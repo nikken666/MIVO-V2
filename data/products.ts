@@ -7,6 +7,10 @@ export type Product = {
   reviews: number;
   icon: string;
   description: string;
+  imageUrl?: string;
+  seller?: string;
+  sku?: string;
+  stock?: number;
 };
 
 export const products: Product[] = [
@@ -25,5 +29,8 @@ export const products: Product[] = [
 ];
 
 export function formatPrice(value: number) {
-  return new Intl.NumberFormat("en-MY", { style: "currency", currency: "MYR" }).format(value);
+  return new Intl.NumberFormat("en-MY", {
+    style: "currency",
+    currency: "MYR",
+  }).format(value);
 }
