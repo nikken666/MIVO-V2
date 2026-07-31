@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import styles from "@/app/sellers/Seller.module.css";
 
@@ -10,7 +10,6 @@ type Mode = "login" | "register";
 export default function LoginPage() {
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [mode, setMode] = useState<Mode>("login");
   const [fullName, setFullName] = useState("");
@@ -54,7 +53,7 @@ export default function LoginPage() {
 
       if (loginError) throw loginError;
 
-      const next = searchParams.get("next");
+      const next = new URLSearchParams(window.location.search).get("next");
       router.push(next === "checkout" ? "/cart" : next || "/sellers");
       router.refresh();
     } catch (caught) {
