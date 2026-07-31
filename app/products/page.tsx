@@ -1,4 +1,4 @@
-import ProductDetailClient from "@/components/ProductDetailClient";
+import ProductCard from "@/components/ProductCard";
 import { products } from "@/data/products";
 
 export default async function ProductsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {

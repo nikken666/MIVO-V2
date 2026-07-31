@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { formatPrice } from "@/data/products";
 import { useMarketplace } from "@/components/MarketplaceProvider";
 
