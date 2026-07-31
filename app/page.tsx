@@ -1,4 +1,7 @@
 import Link from "next/link";
+import SearchPanel from "@/components/SearchPanel";
+import ProductCard from "@/components/ProductCard";
+import { products } from "@/data/products";
 
 const categories = [
   ["🛢️", "Maintenance"],
@@ -13,15 +16,6 @@ const categories = [
   ["🧰", "Tools & Garage"],
   ["◉", "Tyres & Wheels"],
   ["▦", "View All"],
-];
-
-const products = [
-  { icon: "🔩", name: "KYB Excel-G Front Absorber Set", brand: "KYB", price: "RM 248.00", reviews: "128" },
-  { icon: "▰", name: "NIKKEN Brake Pad (Front)", brand: "NIKKEN", price: "RM 89.00", reviews: "96" },
-  { icon: "⚙️", name: "GSP Drive Shaft (RH)", brand: "GSP", price: "RM 320.00", reviews: "74" },
-  { icon: "✦", name: "DENSO Iridium Spark Plug", brand: "DENSO", price: "RM 28.00", reviews: "187" },
-  { icon: "◉", name: "AISIN Water Pump", brand: "AISIN", price: "RM 205.00", reviews: "64" },
-  { icon: "🛢️", name: "Shell Helix HX7 5W-30 (4L)", brand: "SHELL", price: "RM 125.00", reviews: "112" },
 ];
 
 const benefits = [
