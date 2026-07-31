@@ -1,24 +1,10 @@
-const items = Array.from({ length: 15 }, (_, i) => ({
-  title: ["Shock Absorber Set", "Drive Shaft Assembly", "Long Life Coolant", "Steering Rack", "Lower Arm Set"][i % 5],
-  price: ["RM 168.00", "RM 239.00", "RM 18.90", "RM 399.00", "RM 149.00"][i % 5],
-  icon: ["🔩", "⚙️", "🛢️", "◉", "🧰"][i % 5],
-}));
+import ProductDetailClient from "@/components/ProductDetailClient";
+import { products } from "@/data/products";
 
-export default function ProductsPage() {
-  return (
-    <main className="container pageShell">
-      <div className="sectionTitle"><h2>ALL PRODUCTS</h2></div>
-      <div className="catalogGrid">
-        {items.map((item, i) => (
-          <article className="catalogCard" key={`${item.title}-${i}`}>
-            <div className="catalogImage">{item.icon}</div>
-            <h3>{item.title}</h3>
-            <span>Verified MIVO Seller</span>
-            <strong>{item.price}</strong>
-            <small>★★★★★ · {100 + i * 17} sold</small>
-          </article>
-        ))}
-      </div>
-    </main>
-  );
+export default async function ProductsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const params = await searchParams;
+  const q = typeof params.q === "string" ? params.q.toLowerCase() : "";
+  const category = typeof params.category === "string" ? params.category.toLowerCase() : "";
+  const filtered = products.filter((p) => (!q || `${p.name} ${p.brand} ${p.category}`.toLowerCase().includes(q)) && (!category || p.category.toLowerCase().includes(category)));
+  return <main className="container pageShell"><div className="pageHeading"><div><h1>All Products</h1><p>{filtered.length} products found</p></div></div>{filtered.length ? <div className="catalogGrid">{filtered.map((p) => <ProductCard product={p} key={p.slug} />)}</div> : <div className="emptyState"><span>🔎</span><h2>No matching products</h2><p>Try another keyword or category.</p></div>}</main>;
 }
