@@ -10,7 +10,6 @@ export default function Header() {
             src="/mivo-logo.png"
             alt="MIVO"
           />
-          <span className="brandFallback">MIVO</span>
         </Link>
 
         <nav className="mainNav" aria-label="Main navigation">
