@@ -190,3 +190,10 @@ button { cursor: pointer; }
   .productRow { grid-template-columns: 1fr 1fr; }
   .footerGrid { grid-template-columns: 1fr; }
 }
+.footerLogo {
+  display: block;
+  width: 180px;
+  height: auto;
+  object-fit: contain;
+  margin-bottom: 14px;
+}
