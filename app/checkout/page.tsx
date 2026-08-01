@@ -12,13 +12,18 @@ type Buyer = {
   fullName: string;
 };
 
+type CheckoutResult = {
+  order_number: string;
+};
+
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart } = useMarketplace();
+  const { cart, clearCart } = useMarketplace();
 
   const [buyer, setBuyer] = useState<Buyer | null>(null);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const supabase = createClient();
@@ -51,26 +56,92 @@ export default function CheckoutPage() {
     return sum + price * line.quantity;
   }, 0);
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setMessage(
-      "Shipping details saved on this page. Order creation and payment gateway are the next checkout step."
-    );
+    setBusy(true);
+    setError("");
+
+    try {
+      const form = new FormData(event.currentTarget);
+      const supabase = createClient();
+
+      const items = cart.map((line) => {
+        if (!line.variant?.id) {
+          throw new Error(
+            `${line.product.name} does not have a valid SKU variation.`
+          );
+        }
+
+        return {
+          variant_id: line.variant.id,
+          quantity: line.quantity,
+        };
+      });
+
+      const shippingAddress = {
+        full_name: String(form.get("full_name") || "").trim(),
+        phone: String(form.get("phone") || "").trim(),
+        address_line_1: String(
+          form.get("address_line_1") || ""
+        ).trim(),
+        address_line_2: String(
+          form.get("address_line_2") || ""
+        ).trim(),
+        city: String(form.get("city") || "").trim(),
+        state: String(form.get("state") || "").trim(),
+        postcode: String(form.get("postcode") || "").trim(),
+        country_code: "MY",
+      };
+
+      const { data, error: checkoutError } = await supabase.rpc(
+        "create_pending_order",
+        {
+          p_items: items,
+          p_shipping_address: shippingAddress,
+          p_customer_note:
+            String(form.get("customer_note") || "").trim() ||
+            null,
+        }
+      );
+
+      if (checkoutError) throw checkoutError;
+
+      const order = data as CheckoutResult | null;
+
+      if (!order?.order_number) {
+        throw new Error("Order was created without an order number.");
+      }
+
+      clearCart();
+      router.push(`/orders/${order.order_number}`);
+      router.refresh();
+    } catch (caught) {
+      const details = caught as {
+        message?: string;
+        details?: string;
+        hint?: string;
+        code?: string;
+      };
+
+      setError(
+        [
+          details?.message,
+          details?.details,
+          details?.hint,
+          details?.code ? `Error code: ${details.code}` : "",
+        ]
+          .filter(Boolean)
+          .join(" | ") || "Unable to create order."
+      );
+    } finally {
+      setBusy(false);
+    }
   }
 
   if (loading) {
     return (
       <main className="container pageShell">
-        <section
-          style={{
-            padding: 28,
-            border: "1px solid #e5e5e8",
-            borderRadius: 18,
-            background: "#fff",
-          }}
-        >
-          Checking your buyer account...
-        </section>
+        <p>Checking your buyer account...</p>
       </main>
     );
   }
@@ -79,7 +150,6 @@ export default function CheckoutPage() {
     return (
       <main className="container pageShell">
         <div className="emptyState">
-          <span>🛒</span>
           <h1>Your cart is empty</h1>
           <Link href="/products" className="redButton inlineButton">
             Browse Products
@@ -101,7 +171,8 @@ export default function CheckoutPage() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr) minmax(300px, 380px)",
+          gridTemplateColumns:
+            "minmax(0, 1fr) minmax(300px, 380px)",
           gap: 24,
           alignItems: "start",
         }}
@@ -119,27 +190,28 @@ export default function CheckoutPage() {
         >
           <h2 style={{ margin: 0 }}>Shipping Details</h2>
 
-          <label style={{ display: "grid", gap: 7 }}>
+          <label>
             <strong>Full name *</strong>
             <input
+              name="full_name"
               required
               defaultValue={buyer?.fullName}
-              placeholder="Full name"
             />
           </label>
 
-          <label style={{ display: "grid", gap: 7 }}>
+          <label>
             <strong>Phone number *</strong>
-            <input required placeholder="01X-XXXXXXX" />
+            <input name="phone" required />
           </label>
 
-          <label style={{ display: "grid", gap: 7 }}>
-            <strong>Address *</strong>
-            <textarea
-              required
-              rows={4}
-              placeholder="House number, street and area"
-            />
+          <label>
+            <strong>Address line 1 *</strong>
+            <input name="address_line_1" required />
+          </label>
+
+          <label>
+            <strong>Address line 2</strong>
+            <input name="address_line_2" />
           </label>
 
           <div
@@ -149,23 +221,21 @@ export default function CheckoutPage() {
               gap: 14,
             }}
           >
-            <label style={{ display: "grid", gap: 7 }}>
+            <label>
               <strong>Postcode *</strong>
-              <input required placeholder="43000" />
+              <input name="postcode" required />
             </label>
 
-            <label style={{ display: "grid", gap: 7 }}>
+            <label>
               <strong>City *</strong>
-              <input required placeholder="Kajang" />
+              <input name="city" required />
             </label>
           </div>
 
-          <label style={{ display: "grid", gap: 7 }}>
+          <label>
             <strong>State *</strong>
-            <select required defaultValue="">
-              <option value="" disabled>
-                Choose state
-              </option>
+            <select name="state" required defaultValue="">
+              <option value="" disabled>Choose state</option>
               <option>Johor</option>
               <option>Kedah</option>
               <option>Kelantan</option>
@@ -185,21 +255,21 @@ export default function CheckoutPage() {
             </select>
           </label>
 
-          {message && (
-            <p
-              style={{
-                margin: 0,
-                padding: 13,
-                borderRadius: 10,
-                background: "#fff6d8",
-              }}
-            >
-              {message}
-            </p>
+          <label>
+            <strong>Order note</strong>
+            <textarea name="customer_note" rows={3} />
+          </label>
+
+          {error && (
+            <p style={{ color: "#b40012" }}>{error}</p>
           )}
 
-          <button type="submit" className="redButton">
-            Continue
+          <button
+            type="submit"
+            className="redButton"
+            disabled={busy}
+          >
+            {busy ? "Creating Order..." : "Place Order"}
           </button>
         </form>
 
@@ -211,39 +281,19 @@ export default function CheckoutPage() {
               line.variant?.price ?? line.product.price;
 
             return (
-              <div
-                key={line.lineId}
-                style={{
-                  display: "grid",
-                  gap: 4,
-                  padding: "10px 0",
-                  borderBottom: "1px solid #ececef",
-                }}
-              >
+              <div key={line.lineId}>
                 <strong>{line.product.name}</strong>
-
                 {line.variant && (
-                  <small>
+                  <small style={{ display: "block" }}>
                     {line.variant.title} · SKU {line.variant.sku}
                   </small>
                 )}
-
                 <span>
                   {line.quantity} × {formatPrice(price)}
                 </span>
               </div>
             );
           })}
-
-          <div style={{ marginTop: 14 }}>
-            <span>Subtotal</span>
-            <strong>{formatPrice(subtotal)}</strong>
-          </div>
-
-          <div>
-            <span>Shipping</span>
-            <strong>Calculated next</strong>
-          </div>
 
           <hr />
 
