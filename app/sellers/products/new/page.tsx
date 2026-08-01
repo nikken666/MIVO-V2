@@ -634,11 +634,31 @@ export default function NewSellerProductPage() {
           .remove(uploadedPaths);
       }
 
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : "Unable to upload product."
-      );
+      const supabaseError = caught as {
+  message?: string;
+  details?: string;
+  hint?: string;
+  code?: string;
+};
+
+const errorMessage = [
+  supabaseError?.message,
+  supabaseError?.details,
+  supabaseError?.hint,
+  supabaseError?.code
+    ? `Error code: ${supabaseError.code}`
+    : "",
+]
+  .filter(Boolean)
+  .join(" | ");
+
+console.error("Product upload failed:", caught);
+
+setError(
+  caught instanceof Error
+    ? caught.message
+    : errorMessage || "Unable to upload product."
+);
       setProgress("");
     } finally {
       setBusy(false);

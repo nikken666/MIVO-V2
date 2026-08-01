@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "./Seller.module.css";
 
@@ -22,7 +22,6 @@ function slugify(value: string) {
 }
 
 export default function SellersPage() {
-  const supabase = useMemo(() => createClient(), []);
   const [loading, setLoading] = useState(true);
   const [seller, setSeller] = useState<Seller | null>(null);
   const [userEmail, setUserEmail] = useState("");
@@ -33,6 +32,8 @@ export default function SellersPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    const supabase = createClient();
+
     async function load() {
       const {
         data: { user },
@@ -57,10 +58,13 @@ export default function SellersPage() {
     }
 
     void load();
-  }, [supabase]);
+  }, []);
 
   async function apply(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    const supabase = createClient();
+
     setBusy(true);
     setError("");
 
@@ -97,10 +101,11 @@ export default function SellersPage() {
     }
   }
 
-  async function logout() {
-    await supabase.auth.signOut();
-    window.location.href = "/";
-  }
+ async function logout() {
+  const supabase = createClient();
+  await supabase.auth.signOut();
+  window.location.href = "/";
+}
 
   if (loading) {
     return (

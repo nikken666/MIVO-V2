@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Seller.module.css";
 
@@ -23,12 +23,13 @@ type SellerProduct = {
 };
 
 export default function SellerProductsPage() {
-  const supabase = useMemo(() => createClient(), []);
   const [products, setProducts] = useState<SellerProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
+  const supabase = createClient();
+
     async function load() {
       const {
         data: { user },
@@ -64,7 +65,7 @@ export default function SellerProductsPage() {
     }
 
     void load();
-  }, [supabase]);
+  }, []);
 
   return (
     <main className="container pageShell">

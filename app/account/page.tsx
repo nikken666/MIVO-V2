@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "@/app/sellers/Seller.module.css";
 
@@ -11,11 +11,13 @@ type BuyerAccount = {
 };
 
 export default function AccountPage() {
-  const supabase = useMemo(() => createClient(), []);
-  const [account, setAccount] = useState<BuyerAccount | null>(null);
+  const [account, setAccount] =
+    useState<BuyerAccount | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const supabase = createClient();
+
     async function loadAccount() {
       const {
         data: { user },
@@ -33,13 +35,15 @@ export default function AccountPage() {
             : "MIVO Buyer",
         email: user.email || "",
       });
+
       setLoading(false);
     }
 
     void loadAccount();
-  }, [supabase]);
+  }, []);
 
   async function logout() {
+    const supabase = createClient();
     await supabase.auth.signOut();
     window.location.href = "/";
   }
@@ -47,7 +51,9 @@ export default function AccountPage() {
   if (loading) {
     return (
       <main className="container pageShell">
-        <section className={styles.panel}>Loading buyer account...</section>
+        <section className={styles.panel}>
+          Loading buyer account...
+        </section>
       </main>
     );
   }
@@ -57,12 +63,18 @@ export default function AccountPage() {
       <section className={styles.panel}>
         <div className={styles.titleRow}>
           <div>
-            <span className={styles.eyebrow}>MIVO BUYER ACCOUNT</span>
+            <span className={styles.eyebrow}>
+              MIVO BUYER ACCOUNT
+            </span>
+
             <h1>Hello, {account?.fullName}</h1>
             <p>{account?.email}</p>
           </div>
 
-          <button className={styles.secondaryButton} onClick={logout}>
+          <button
+            className={styles.secondaryButton}
+            onClick={logout}
+          >
             Log out
           </button>
         </div>
@@ -72,10 +84,12 @@ export default function AccountPage() {
             <span>Orders</span>
             <strong>My Orders</strong>
           </div>
+
           <div className={styles.stat}>
             <span>Vehicles</span>
             <strong>My Garage</strong>
           </div>
+
           <div className={styles.stat}>
             <span>Account</span>
             <strong>Addresses</strong>
@@ -86,20 +100,35 @@ export default function AccountPage() {
           <Link href="/products" className="redButton">
             Start Shopping
           </Link>
-          <Link href="/orders" className={styles.secondaryButton}>
+
+          <Link
+            href="/orders"
+            className={styles.secondaryButton}
+          >
             My Orders
           </Link>
-          <Link href="/garage" className={styles.secondaryButton}>
+
+          <Link
+            href="/garage"
+            className={styles.secondaryButton}
+          >
             My Garage
           </Link>
         </div>
 
-        <p className={styles.notice} style={{ marginTop: 22 }}>
-          Want to sell products? Seller registration is separate and optional.
+        <p
+          className={styles.notice}
+          style={{ marginTop: 22 }}
+        >
+          Want to sell products? Seller registration is
+          separate and optional.
         </p>
 
         <div className={styles.actions}>
-          <Link href="/sellers" className={styles.secondaryButton}>
+          <Link
+            href="/sellers"
+            className={styles.secondaryButton}
+          >
             Open Seller Centre
           </Link>
         </div>
