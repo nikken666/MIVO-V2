@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import styles from "@/app/sellers/Seller.module.css";
@@ -8,7 +8,6 @@ import styles from "@/app/sellers/Seller.module.css";
 type Mode = "login" | "register";
 
 export default function LoginPage() {
-  const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
 
   const [mode, setMode] = useState<Mode>("login");
@@ -26,8 +25,10 @@ export default function LoginPage() {
     setError("");
 
     try {
+      const supabase = createClient();
+      
       if (mode === "register") {
-        const callback = `${window.location.origin}/auth/callback?next=/sellers`;
+        const callback = `${window.location.origin}/auth/callback?next=/account`;
         const { error: signUpError } = await supabase.auth.signUp({
           email: email.trim(),
           password,
@@ -40,7 +41,7 @@ export default function LoginPage() {
         if (signUpError) throw signUpError;
 
         setMessage(
-          "Registration submitted. Check your email to confirm the account, then log in."
+          "Account created. Check your email to confirm it, then log in as a buyer."
         );
         setMode("login");
         return;
@@ -54,7 +55,7 @@ export default function LoginPage() {
       if (loginError) throw loginError;
 
       const next = new URLSearchParams(window.location.search).get("next");
-      router.push(next === "checkout" ? "/cart" : next || "/sellers");
+      router.push(next || "/account");
       router.refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Authentication failed.");
@@ -68,11 +69,11 @@ export default function LoginPage() {
       <section className={styles.panel}>
         <div className={styles.titleRow}>
           <div>
-            <span className={styles.eyebrow}>MIVO ACCOUNT</span>
-            <h1>{mode === "login" ? "Login" : "Create account"}</h1>
+            <span className={styles.eyebrow}>MIVO BUYER ACCOUNT</span>
+            <h1>{mode === "login" ? "Buyer Login" : "Create Buyer Account"}</h1>
             <p>
-              Customers and sellers use the same account. A seller application is
-              completed after login.
+              Registering here creates a normal buyer account. Selling on MIVO is
+              a separate optional application inside Seller Centre.
             </p>
           </div>
         </div>
@@ -137,8 +138,8 @@ export default function LoginPage() {
             {busy
               ? "Please wait..."
               : mode === "login"
-                ? "Login"
-                : "Create account"}
+                ? "Login as Buyer"
+                : "Create Buyer Account"}
           </button>
         </form>
       </section>
