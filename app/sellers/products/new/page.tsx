@@ -10,6 +10,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import CategoryPicker, { type CategoryNode } from "@/components/CategoryPicker";
 import styles from "../../Seller.module.css";
 
 type Option = { id: string; name: string };
@@ -40,7 +41,7 @@ export default function NewSellerProductPage() {
   const router = useRouter();
 
   const [seller, setSeller] = useState<ApprovedSeller | null>(null);
-  const [categories, setCategories] = useState<Option[]>([]);
+  const [categories, setCategories] = useState<CategoryNode[]>([]);
   const [brands, setBrands] = useState<Option[]>([]);
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
@@ -69,7 +70,7 @@ export default function NewSellerProductPage() {
             .maybeSingle(),
           supabase
             .from("categories")
-            .select("id, name")
+            .select("id, name, slug, parent_id, sort_order")
             .eq("is_active", true)
             .order("sort_order"),
           supabase
@@ -85,7 +86,7 @@ export default function NewSellerProductPage() {
       }
 
       setSeller(sellerData as ApprovedSeller);
-      setCategories((categoryData as Option[] | null) || []);
+      setCategories((categoryData as CategoryNode[] | null) || []);
       setBrands((brandData as Option[] | null) || []);
       setLoading(false);
     }
@@ -330,17 +331,11 @@ export default function NewSellerProductPage() {
               </select>
             </label>
 
-            <label>
-              <span>Category</span>
-              <select name="category_id" defaultValue="">
-                <option value="">Choose category</option>
-                {categories.map((category) => (
-                  <option value={category.id} key={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <CategoryPicker
+              categories={categories}
+              name="category_id"
+              required
+            />
 
             <label>
               <span>SKU *</span>
