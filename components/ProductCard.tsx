@@ -14,6 +14,20 @@ export default function ProductCard({
 }) {
   const { addToCart } = useMarketplace();
 
+  const activeVariants = (product.variants || []).filter(
+    (variant) => variant.isActive
+  );
+  const requiresSelection =
+    Boolean(product.variation1Name) ||
+    Boolean(product.variation2Name) ||
+    activeVariants.length > 1;
+  const singleVariant =
+    activeVariants.length === 1 ? activeVariants[0] : undefined;
+  const soldOut =
+    activeVariants.length > 0
+      ? activeVariants.every((variant) => variant.stock <= 0)
+      : product.stock === 0;
+
   return (
     <article className={compact ? "productCard" : "catalogCard"}>
       <Link
@@ -44,24 +58,38 @@ export default function ProductCard({
         {product.brand}
       </span>
 
-      <strong>{formatPrice(product.price)}</strong>
-
-      {typeof product.stock === "number" && (
-        <small>{product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}</small>
-      )}
+      <strong>
+        {requiresSelection ? "From " : ""}
+        {formatPrice(product.price)}
+      </strong>
 
       <div className="rating">
         ★★★★★ <span>({product.reviews})</span>
       </div>
 
-      <button
-        className="miniCartButton"
-        type="button"
-        disabled={product.stock === 0}
-        onClick={() => addToCart(product)}
-      >
-        {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
-      </button>
+      {requiresSelection ? (
+        <Link
+          href={`/products/${product.slug}`}
+          className="miniCartButton"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            textDecoration: "none",
+          }}
+        >
+          Choose Options
+        </Link>
+      ) : (
+        <button
+          className="miniCartButton"
+          type="button"
+          disabled={soldOut}
+          onClick={() => addToCart(product, singleVariant)}
+        >
+          {soldOut ? "Out of Stock" : "Add to Cart"}
+        </button>
+      )}
     </article>
   );
 }

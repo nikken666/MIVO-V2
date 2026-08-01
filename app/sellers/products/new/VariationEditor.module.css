@@ -1,0 +1,206 @@
+.section {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 16px;
+  border-top: 1px solid #ececef;
+  padding-top: 22px;
+}
+
+.toggleRow,
+.sectionHeader,
+.optionRow,
+.bulkGrid,
+.matrixHeader,
+.matrixRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toggleRow {
+  justify-content: space-between;
+  padding: 15px 16px;
+  border: 1px solid #e2e2e6;
+  border-radius: 13px;
+  background: #fafafa;
+}
+
+.switch {
+  width: 48px;
+  height: 27px;
+  position: relative;
+  border: 0;
+  border-radius: 999px;
+  background: #c9c9ce;
+  cursor: pointer;
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: #fff;
+  transition: 0.18s ease;
+}
+
+.switchOn {
+  background: #e60012;
+}
+
+.switchOn::after {
+  transform: translateX(21px);
+}
+
+.groupCard {
+  display: grid;
+  gap: 13px;
+  padding: 17px;
+  border: 1px solid #e2e2e6;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.sectionHeader {
+  justify-content: space-between;
+}
+
+.sectionHeader h3 {
+  margin: 0;
+}
+
+.optionRow {
+  align-items: flex-end;
+}
+
+.optionRow label {
+  flex: 1;
+}
+
+.optionList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.optionChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid #dcdce0;
+  border-radius: 9px;
+  background: #f8f8f9;
+  font-weight: 750;
+}
+
+.optionChip button {
+  border: 0;
+  background: transparent;
+  color: #99999f;
+  cursor: pointer;
+}
+
+.secondary {
+  border: 1px solid #d8d8dc;
+  background: #fff;
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.remove {
+  color: #bd0011;
+}
+
+.bulkCard {
+  display: grid;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid #e2e2e6;
+  border-radius: 14px;
+  background: #fafafa;
+}
+
+.bulkGrid {
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.bulkGrid label {
+  min-width: 125px;
+  flex: 1;
+}
+
+.matrix {
+  overflow-x: auto;
+  border: 1px solid #e2e2e6;
+  border-radius: 14px;
+}
+
+.matrixHeader,
+.matrixRow {
+  min-width: 1320px;
+  display: grid;
+  grid-template-columns:
+    180px 180px 190px 125px 125px 105px
+    105px 105px 105px 105px 86px;
+  gap: 8px;
+  padding: 11px;
+}
+
+.matrixHeader {
+  background: #f3f3f5;
+  color: #66666d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.matrixRow {
+  border-top: 1px solid #ececef;
+  background: #fff;
+}
+
+.matrixRow input {
+  min-width: 0;
+}
+
+.optionCell {
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.activeToggle {
+  display: flex;
+  justify-content: center;
+}
+
+.singleGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.note {
+  margin: 0;
+  color: #696970;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 760px) {
+  .optionRow,
+  .sectionHeader,
+  .toggleRow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .singleGrid {
+    grid-template-columns: 1fr;
+  }
+}

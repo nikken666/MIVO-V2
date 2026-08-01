@@ -1,3 +1,19 @@
+export type ProductVariant = {
+  id: string;
+  title: string;
+  variation1Value?: string | null;
+  variation2Value?: string | null;
+  sku: string;
+  price: number;
+  compareAtPrice?: number | null;
+  stock: number;
+  weightKg?: number;
+  lengthCm?: number;
+  widthCm?: number;
+  heightCm?: number;
+  isActive: boolean;
+};
+
 export type Product = {
   slug: string;
   name: string;
@@ -11,6 +27,9 @@ export type Product = {
   seller?: string;
   sku?: string;
   stock?: number;
+  variation1Name?: string | null;
+  variation2Name?: string | null;
+  variants?: ProductVariant[];
 };
 
 export const products: Product[] = [
