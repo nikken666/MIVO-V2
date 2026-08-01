@@ -149,7 +149,7 @@ export default function CartPage() {
           </div>
 
           <Link
-            href="/login?next=/cart"
+            href="/checkout"
             className="redButton checkoutButton"
           >
             Proceed to Checkout
