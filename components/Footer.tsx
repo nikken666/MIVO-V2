@@ -1,11 +1,12 @@
 import Link from "next/link";
+import Logo from "./Logo";
 
 export default function Footer() {
   return (
     <footer className="siteFooter">
       <div className="container footerTop">
         <div className="footerBrandBlock">
-          <img src="/mivo-logo.png" alt="MIVO" className="footerLogo" />
+          <Logo variant="light" className="footerLogoAsset" />
           <p>Premium automotive parts, matched with more confidence.</p>
         </div>
         <div><h4>SHOP</h4><Link href="/products">All Parts</Link><Link href="/brands">Brands</Link><Link href="/garage">My Garage</Link></div>
