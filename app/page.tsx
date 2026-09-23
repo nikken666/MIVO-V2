@@ -1,134 +1,78 @@
 import Link from "next/link";
-import SearchPanel from "@/components/SearchPanel";
-import ProductCard from "@/components/ProductCard";
-import { products } from "@/data/products";
 
 const categories = [
-  ["🛢️", "Maintenance"],
-  ["⚙️", "Engine"],
-  ["🔩", "Suspension"],
-  ["🛞", "Braking"],
-  ["◉", "Steering"],
-  ["▦", "Cooling"],
-  ["🔋", "Electrical"],
-  ["◒", "Body Parts"],
-  ["💺", "Interior"],
-  ["🧰", "Tools & Garage"],
-  ["◉", "Tyres & Wheels"],
-  ["▦", "View All"],
+  ["Maintenance", "Oil, filters & fluids", "01"],
+  ["Braking", "Pads, rotors & repair kits", "02"],
+  ["Suspension", "Absorbers, arms & springs", "03"],
+  ["Steering", "EPS racks & steering parts", "04"],
+  ["Drivetrain", "Drive shafts, hubs & CV", "05"],
+  ["Cooling", "Radiators, pumps & thermostats", "06"],
 ];
 
-const benefits = [
-  ["✓", "100% Fitment Guarantee", "Right part for your vehicle"],
-  ["◇", "Genuine & Quality Parts", "Trusted brands only"],
-  ["▱", "Fast Delivery", "Nationwide shipping"],
-  ["▣", "Secure Payment", "Multiple payment options"],
-  ["⌘", "Install at Partner Garages", "700+ workshops nationwide"],
-];
+const brands = ["NIKKEN", "KYB", "DENSO", "BREMBO", "AISIN", "NGK"];
 
 export default function HomePage() {
   return (
     <main>
-      <section className="vehicleSection">
-        <div className="container vehiclePanel">
-          <div className="vehicleIntro">
-            <span className="vehicleIcon">🚘</span>
-            <div>
-              <strong>SELECT YOUR VEHICLE</strong>
-              <small>Find the right parts for your car</small>
-            </div>
+      <section className="premiumHero">
+        <div className="container heroInner">
+          <div className="eyebrow">MIVO / PREMIUM AUTOMOTIVE PARTS</div>
+          <h1>PARTS.<br/><span>PERFECTLY MATCHED.</span></h1>
+          <p className="heroLead">A more precise way to buy automotive parts. Select your vehicle and discover trusted parts matched to it.</p>
+          <div className="heroActions">
+            <a href="#vehicle" className="primaryCta">SELECT YOUR VEHICLE <span>↗</span></a>
+            <Link href="/products" className="textCta">EXPLORE PARTS <span>→</span></Link>
           </div>
-          <label className="selector"><span>Select Brand</span><select defaultValue=""><option value="" disabled>Choose Brand</option><option>Perodua</option><option>Proton</option><option>Toyota</option><option>Honda</option></select></label>
-          <label className="selector"><span>Select Model</span><select defaultValue=""><option value="" disabled>Choose Model</option><option>Myvi</option><option>Axia</option><option>Bezza</option><option>Alza</option></select></label>
-          <label className="selector"><span>Select Year</span><select defaultValue=""><option value="" disabled>Choose Year</option><option>2026</option><option>2025</option><option>2024</option></select></label>
-          <label className="selector"><span>Select Variant</span><select defaultValue=""><option value="" disabled>Choose Variant</option><option>1.3</option><option>1.5</option><option>Auto</option></select></label>
-          <button className="redButton">Find Parts</button>
+          <div className="heroMeta"><span>FITMENT FIRST</span><span>TRUSTED BRANDS</span><span>MALAYSIA DELIVERY</span></div>
+        </div>
+        <div className="heroOrb" aria-hidden="true"><div className="orbCore">M</div></div>
+      </section>
+
+      <section id="vehicle" className="vehicleExperience">
+        <div className="container">
+          <div className="sectionKicker">01 / VEHICLE FITMENT</div>
+          <div className="sectionHead">
+            <h2>START WITH<br/>YOUR CAR.</h2>
+            <p>MIVO narrows the catalogue around your exact vehicle, so you spend less time guessing and more time choosing the right part.</p>
+          </div>
+          <div className="vehicleBuilder">
+            <label><span>01</span><small>MAKE</small><select defaultValue=""><option value="" disabled>Select make</option><option>Perodua</option><option>Proton</option><option>Toyota</option><option>Honda</option><option>Nissan</option></select></label>
+            <label><span>02</span><small>MODEL</small><select defaultValue=""><option value="" disabled>Select model</option><option>Myvi</option><option>Bezza</option><option>Saga</option><option>City</option><option>Vios</option></select></label>
+            <label><span>03</span><small>YEAR</small><select defaultValue=""><option value="" disabled>Select year</option><option>2026</option><option>2025</option><option>2024</option><option>2023</option></select></label>
+            <label><span>04</span><small>VARIANT / ENGINE</small><select defaultValue=""><option value="" disabled>Select variant</option><option>1.3</option><option>1.5</option><option>2.0</option></select></label>
+            <button>FIND COMPATIBLE PARTS <span>→</span></button>
+          </div>
+          <div className="garageLine"><span>+</span><div><strong>MY GARAGE</strong><small>Save your vehicle once. Shop compatible parts every time.</small></div><Link href="/garage">OPEN GARAGE →</Link></div>
         </div>
       </section>
 
-      <section className="container searchPanel">
-        <div className="searchInputWrap"><span>⌕</span><input placeholder="Search by part name, OEM, SKU, or brand..." /><button className="redButton searchButton">Search</button></div>
-        <button className="toolButton">⌘ VIN Search <b>New</b></button>
-        <button className="toolButton">▣ Plate Number Search <b>New</b></button>
-        <button className="toolButton">🚘 My Garage</button>
-      </section>
-
-      <section id="categories" className="container categoryPanel">
-        {categories.map(([icon, label]) => (
-          <Link href="/products" className="categoryItem" key={label}>
-            <span className="categoryGraphic">{icon}</span>
-            <span>{label}</span>
-          </Link>
-        ))}
-      </section>
-
-      <section id="deals" className="container homeGrid">
-        <div className="mainColumn">
-          <div className="heroBanner">
-            <div className="heroCopy">
-              <span className="dealTag">UP TO</span>
-              <h1>50% OFF</h1>
-              <h2>SHOCK ABSORBER</h2>
-              <p>Drive Safe, Drive Confident</p>
-              <Link href="/products" className="redButton heroButton">Shop Now →</Link>
-            </div>
-
-            <div className="heroParts" aria-hidden="true">
-              <span className="shock shockOne">╱│╲</span>
-              <span className="shock shockTwo">╱│╲</span>
-            </div>
-
-            <img className="heroMascot" src="/mivo-ip.png" alt="MIVO automotive assistant" />
-            <div className="sliderDots"><i></i><i></i><i></i><i></i></div>
-          </div>
-
-          <div className="sectionTitle">
-            <h2>RECOMMENDED FOR YOU</h2>
-            <Link href="/products">View All</Link>
-          </div>
-
-          <div className="productRow">
-            {products.map((product) => (
-              <article className="productCard" key={product.name}>
-                <div className="productPicture">{product.icon}</div>
-                <h3>{product.name}</h3>
-                <span className="productBrand">{product.brand}</span>
-                <strong>{product.price}</strong>
-                <div className="rating">★★★★★ <span>({product.reviews})</span></div>
-              </article>
-            ))}
+      <section className="categorySection">
+        <div className="container">
+          <div className="sectionKicker">02 / CATEGORIES</div>
+          <div className="sectionHead compact"><h2>BUILT AROUND<br/>THE MACHINE.</h2><Link href="/products">VIEW ALL PARTS ↗</Link></div>
+          <div className="premiumCategories">
+            {categories.map(([name,desc,num]) => <Link href="/products" className="premiumCategory" key={name}><span className="categoryNo">{num}</span><div><h3>{name}</h3><p>{desc}</p></div><b>↗</b></Link>)}
           </div>
         </div>
-
-        <aside className="sideColumn">
-          <div className="benefitCard">
-            <h2>WHY CHOOSE MIVO?</h2>
-            {benefits.map(([icon, title, desc]) => (
-              <div className="benefit" key={title}>
-                <span>{icon}</span>
-                <div><strong>{title}</strong><small>{desc}</small></div>
-              </div>
-            ))}
-          </div>
-
-          <div id="services" className="serviceCard">
-            <div>
-              <h2>BOOK SERVICE</h2>
-              <h3>AT PARTNER GARAGE</h3>
-              <p>Professional installation<br />Nationwide</p>
-              <button className="lightButton">Book Now →</button>
-            </div>
-            <img src="/mivo-ip.png" alt="MIVO partner garage assistant" />
-          </div>
-        </aside>
       </section>
 
-      <section className="container promiseStrip">
-        <div><span>🚘</span><strong>Find Right Parts</strong><small>Select your vehicle and we’ll show you the right parts</small></div>
-        <div><span>◇</span><strong>Wide Selection</strong><small>100,000+ products from trusted brands</small></div>
-        <div><span>🏷</span><strong>Best Prices</strong><small>Competitive prices everyday</small></div>
-        <div><span>◉</span><strong>Expert Support</strong><small>Our team is here to help you</small></div>
-        <div><span>↻</span><strong>Easy Returns</strong><small>7 days return policy, T&amp;C apply</small></div>
+      <section className="trustSection">
+        <div className="container trustGrid">
+          <div><div className="sectionKicker light">03 / MIVO STANDARD</div><h2>CONFIDENCE,<br/>BUILT IN.</h2></div>
+          <div className="trustPoints">
+            <article><span>01</span><h3>Verified Fitment</h3><p>Compatibility data structured around vehicle make, model, generation, year and engine.</p></article>
+            <article><span>02</span><h3>Trusted Products</h3><p>Clear brand, specification and product information before you buy.</p></article>
+            <article><span>03</span><h3>Premium Experience</h3><p>A focused automotive catalogue without marketplace clutter.</p></article>
+          </div>
+        </div>
+      </section>
+
+      <section className="brandSection">
+        <div className="container">
+          <div className="sectionKicker">04 / SELECTED BRANDS</div>
+          <div className="brandRail">{brands.map(brand => <span key={brand}>{brand}</span>)}</div>
+          <div className="closingStatement"><p>THE RIGHT PART<br/>STARTS WITH<br/><strong>THE RIGHT DATA.</strong></p><a href="#vehicle">SELECT YOUR VEHICLE ↗</a></div>
+        </div>
       </section>
     </main>
   );
