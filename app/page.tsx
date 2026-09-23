@@ -1,77 +1,181 @@
 import Link from "next/link";
+import ProductCard from "@/components/ProductCard";
+import { products } from "@/data/products";
 
 const categories = [
-  ["Maintenance", "Oil, filters & fluids", "01"],
-  ["Braking", "Pads, rotors & repair kits", "02"],
-  ["Suspension", "Absorbers, arms & springs", "03"],
-  ["Steering", "EPS racks & steering parts", "04"],
-  ["Drivetrain", "Drive shafts, hubs & CV", "05"],
-  ["Cooling", "Radiators, pumps & thermostats", "06"],
+  { name: "Maintenance", desc: "Engine oil, ATF, coolant & filters", mark: "M", tone: "warm" },
+  { name: "Braking", desc: "Brake pads, rotors & repair kits", mark: "B", tone: "dark" },
+  { name: "Suspension", desc: "Absorbers, mounts, arms & springs", mark: "S", tone: "silver" },
+  { name: "Steering", desc: "EPS racks, rack ends & tie rods", mark: "R", tone: "graphite" },
+  { name: "Drivetrain", desc: "Drive shafts, CV joints & hubs", mark: "D", tone: "warm" },
+  { name: "Cooling", desc: "Radiators, pumps & thermostats", mark: "C", tone: "silver" },
 ];
 
-const brands = ["NIKKEN", "KYB", "DENSO", "BREMBO", "AISIN", "NGK"];
+const brands = ["NIKKEN", "KYB", "AISIN", "DENSO", "BREMBO", "NGK"];
 
 export default function HomePage() {
+  const featured = products.slice(0, 8);
+
   return (
-    <main>
-      <section className="premiumHero">
-        <div className="container heroInner">
-          <div className="eyebrow">MIVO / PREMIUM AUTOMOTIVE PARTS</div>
-          <h1>PARTS.<br/><span>PERFECTLY MATCHED.</span></h1>
-          <p className="heroLead">A more precise way to buy automotive parts. Select your vehicle and discover trusted parts matched to it.</p>
-          <div className="heroActions">
-            <a href="#vehicle" className="primaryCta">SELECT YOUR VEHICLE <span>↗</span></a>
-            <Link href="/products" className="textCta">EXPLORE PARTS <span>→</span></Link>
+    <main className="home">
+      <section className="hero">
+        <div className="heroTexture" />
+        <div className="container heroGrid">
+          <div className="heroCopy">
+            <span className="heroEyebrow">PREMIUM AUTOMOTIVE PARTS · MALAYSIA</span>
+            <h1>THE RIGHT PART.<br /><em>WITHOUT THE GUESSWORK.</em></h1>
+            <p>
+              Shop trusted automotive parts through a cleaner, more precise buying experience —
+              built around your vehicle, not endless listings.
+            </p>
+            <div className="heroButtons">
+              <a href="#fitment" className="btn btnLight">Find parts for my car <span>→</span></a>
+              <Link href="/products" className="btn btnGhost">Browse all parts</Link>
+            </div>
+            <div className="heroProof">
+              <span><b>01</b> Vehicle-matched catalogue</span>
+              <span><b>02</b> Trusted brands & clear specs</span>
+              <span><b>03</b> Malaysia-wide delivery</span>
+            </div>
           </div>
-          <div className="heroMeta"><span>FITMENT FIRST</span><span>TRUSTED BRANDS</span><span>MALAYSIA DELIVERY</span></div>
+
+          <div className="fitmentCard" id="fitment">
+            <div className="fitmentCardTop">
+              <div>
+                <span className="microLabel">MIVO VEHICLE MATCH</span>
+                <h2>Find parts that fit.</h2>
+              </div>
+              <span className="fitmentBadge">BETA</span>
+            </div>
+            <p className="fitmentIntro">Select your vehicle once. MIVO will narrow the catalogue around it.</p>
+
+            <div className="fitmentForm">
+              <label>
+                <span>Make</span>
+                <select defaultValue="">
+                  <option value="" disabled>Select make</option>
+                  <option>Perodua</option><option>Proton</option><option>Toyota</option><option>Honda</option><option>Nissan</option>
+                </select>
+              </label>
+              <label>
+                <span>Model</span>
+                <select defaultValue="">
+                  <option value="" disabled>Select model</option>
+                  <option>Myvi</option><option>Bezza</option><option>Saga</option><option>City</option><option>Vios</option>
+                </select>
+              </label>
+              <div className="fitmentSplit">
+                <label>
+                  <span>Year</span>
+                  <select defaultValue="">
+                    <option value="" disabled>Year</option>
+                    <option>2026</option><option>2025</option><option>2024</option><option>2023</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Variant / Engine</span>
+                  <select defaultValue="">
+                    <option value="" disabled>Variant</option>
+                    <option>1.3</option><option>1.5</option><option>2.0</option>
+                  </select>
+                </label>
+              </div>
+              <button type="button" className="fitmentSubmit">SHOW COMPATIBLE PARTS <span>→</span></button>
+            </div>
+
+            <div className="garagePrompt">
+              <div className="garageIcon">+</div>
+              <div><strong>Already saved a car?</strong><small>Open My Garage and continue shopping.</small></div>
+              <Link href="/garage">Open Garage</Link>
+            </div>
+          </div>
         </div>
-        <div className="heroOrb" aria-hidden="true"><div className="orbCore">M</div></div>
       </section>
 
-      <section id="vehicle" className="vehicleExperience">
+      <section className="trustBar">
+        <div className="container trustBarInner">
+          <span><i>✓</i> FITMENT-FOCUSED SHOPPING</span>
+          <span><i>✓</i> CURATED AUTOMOTIVE BRANDS</span>
+          <span><i>✓</i> SECURE CHECKOUT</span>
+          <span><i>✓</i> MALAYSIA DELIVERY</span>
+        </div>
+      </section>
+
+      <section className="section categorySection">
         <div className="container">
-          <div className="sectionKicker">01 / VEHICLE FITMENT</div>
-          <div className="sectionHead">
-            <h2>START WITH<br/>YOUR CAR.</h2>
-            <p>MIVO narrows the catalogue around your exact vehicle, so you spend less time guessing and more time choosing the right part.</p>
+          <div className="sectionHeader">
+            <div><span className="sectionEyebrow">SHOP BY SYSTEM</span><h2>Parts, organised the way<br />cars are built.</h2></div>
+            <Link href="/products" className="sectionLink">VIEW ALL CATEGORIES <span>↗</span></Link>
           </div>
-          <div className="vehicleBuilder">
-            <label><span>01</span><small>MAKE</small><select defaultValue=""><option value="" disabled>Select make</option><option>Perodua</option><option>Proton</option><option>Toyota</option><option>Honda</option><option>Nissan</option></select></label>
-            <label><span>02</span><small>MODEL</small><select defaultValue=""><option value="" disabled>Select model</option><option>Myvi</option><option>Bezza</option><option>Saga</option><option>City</option><option>Vios</option></select></label>
-            <label><span>03</span><small>YEAR</small><select defaultValue=""><option value="" disabled>Select year</option><option>2026</option><option>2025</option><option>2024</option><option>2023</option></select></label>
-            <label><span>04</span><small>VARIANT / ENGINE</small><select defaultValue=""><option value="" disabled>Select variant</option><option>1.3</option><option>1.5</option><option>2.0</option></select></label>
-            <button>FIND COMPATIBLE PARTS <span>→</span></button>
+
+          <div className="categoryGrid">
+            {categories.map((cat, index) => (
+              <Link href="/products" className={"categoryCard " + cat.tone} key={cat.name}>
+                <div className="categoryVisual">
+                  <span className="categoryIndex">0{index + 1}</span>
+                  <strong>{cat.mark}</strong>
+                  <i />
+                </div>
+                <div className="categoryCopy">
+                  <h3>{cat.name}</h3>
+                  <p>{cat.desc}</p>
+                  <span>Shop category ↗</span>
+                </div>
+              </Link>
+            ))}
           </div>
-          <div className="garageLine"><span>+</span><div><strong>MY GARAGE</strong><small>Save your vehicle once. Shop compatible parts every time.</small></div><Link href="/garage">OPEN GARAGE →</Link></div>
         </div>
       </section>
 
-      <section className="categorySection">
+      <section className="section productsSection">
         <div className="container">
-          <div className="sectionKicker">02 / CATEGORIES</div>
-          <div className="sectionHead compact"><h2>BUILT AROUND<br/>THE MACHINE.</h2><Link href="/products">VIEW ALL PARTS ↗</Link></div>
-          <div className="premiumCategories">
-            {categories.map(([name,desc,num]) => <Link href="/products" className="premiumCategory" key={name}><span className="categoryNo">{num}</span><div><h3>{name}</h3><p>{desc}</p></div><b>↗</b></Link>)}
+          <div className="sectionHeader productHeader">
+            <div><span className="sectionEyebrow">SELECTED FOR MIVO</span><h2>Popular parts.</h2></div>
+            <div className="productHeaderSide">
+              <p>Clean product information, clear pricing and fitment-led discovery.</p>
+              <Link href="/products" className="sectionLink">SHOP ALL PARTS <span>→</span></Link>
+            </div>
+          </div>
+          <div className="featuredGrid">
+            {featured.map((product) => <ProductCard product={product} compact key={product.slug} />)}
           </div>
         </div>
       </section>
 
-      <section className="trustSection">
-        <div className="container trustGrid">
-          <div><div className="sectionKicker light">03 / MIVO STANDARD</div><h2>CONFIDENCE,<br/>BUILT IN.</h2></div>
-          <div className="trustPoints">
-            <article><span>01</span><h3>Verified Fitment</h3><p>Compatibility data structured around vehicle make, model, generation, year and engine.</p></article>
-            <article><span>02</span><h3>Trusted Products</h3><p>Clear brand, specification and product information before you buy.</p></article>
-            <article><span>03</span><h3>Premium Experience</h3><p>A focused automotive catalogue without marketplace clutter.</p></article>
-          </div>
-        </div>
-      </section>
-
-      <section className="brandSection">
+      <section className="brandBand">
         <div className="container">
-          <div className="sectionKicker">04 / SELECTED BRANDS</div>
-          <div className="brandRail">{brands.map(brand => <span key={brand}>{brand}</span>)}</div>
-          <div className="closingStatement"><p>THE RIGHT PART<br/>STARTS WITH<br/><strong>THE RIGHT DATA.</strong></p><a href="#vehicle">SELECT YOUR VEHICLE ↗</a></div>
+          <div className="brandBandTop"><span>TRUSTED NAMES. ONE CLEAN CATALOGUE.</span><Link href="/brands">EXPLORE BRANDS ↗</Link></div>
+          <div className="brandGrid">{brands.map((brand) => <div key={brand}>{brand}</div>)}</div>
+        </div>
+      </section>
+
+      <section className="section standardSection">
+        <div className="container standardGrid">
+          <div className="standardIntro">
+            <span className="sectionEyebrow">THE MIVO STANDARD</span>
+            <h2>Less clutter.<br />More certainty.</h2>
+            <p>MIVO is designed around the questions that matter before buying a part: Will it fit? What exactly am I buying? Who made it? When will it arrive?</p>
+            <Link href="/products" className="btn btnDark">Explore the catalogue <span>→</span></Link>
+          </div>
+          <div className="standardCards">
+            <article><span>01</span><div className="standardIcon">✓</div><h3>Fitment clarity</h3><p>Vehicle compatibility is treated as core product data, not an afterthought.</p></article>
+            <article><span>02</span><div className="standardIcon">◇</div><h3>Product transparency</h3><p>Brand, specification, variant and product information are easy to understand.</p></article>
+            <article><span>03</span><div className="standardIcon">↗</div><h3>Built for repeat buyers</h3><p>Save vehicles to My Garage and return to a catalogue already tailored to you.</p></article>
+            <article><span>04</span><div className="standardIcon">□</div><h3>Professional checkout</h3><p>A focused path from fitment to product to payment — without marketplace noise.</p></article>
+          </div>
+        </div>
+      </section>
+
+      <section className="garageCtaSection">
+        <div className="container garageCta">
+          <div>
+            <span className="microLabel">MIVO GARAGE</span>
+            <h2>Your car becomes<br />your storefront.</h2>
+          </div>
+          <div className="garageCtaCopy">
+            <p>Save your vehicle and make every return visit faster. Compatible parts first. Irrelevant listings out of the way.</p>
+            <Link href="/garage" className="btn btnLight">OPEN MY GARAGE <span>→</span></Link>
+          </div>
         </div>
       </section>
     </main>
