@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useMarketplace } from "./MarketplaceProvider";
+import Logo from "./Logo";
 
 export default function Header() {
   const { cartCount } = useMarketplace();
@@ -24,7 +25,7 @@ export default function Header() {
       <header className="siteHeader">
         <div className="container headerMain">
           <Link href="/" className="brand" aria-label="MIVO Home">
-            <img className="brandImage" src="/mivo-logo.png" alt="MIVO" />
+            <Logo variant="dark" className="headerLogo" />
           </Link>
 
           <form className="headerSearch" action="/products">
