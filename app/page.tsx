@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
+import Logo from "@/components/Logo";
 import { products } from "@/data/products";
 
 const categories = [
@@ -20,6 +21,7 @@ export default function HomePage() {
     <main className="home">
       <section className="hero">
         <div className="heroTexture" />
+        <Logo variant="watermark" className="heroLogoWatermark" decorative />
         <div className="container heroGrid">
           <div className="heroCopy">
             <span className="heroEyebrow">PREMIUM AUTOMOTIVE PARTS · MALAYSIA</span>
@@ -149,7 +151,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="section standardSection">
+      <section className="section standardSection" id="standard">
         <div className="container standardGrid">
           <div className="standardIntro">
             <span className="sectionEyebrow">THE MIVO STANDARD</span>
