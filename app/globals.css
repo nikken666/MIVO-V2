@@ -26,3 +26,71 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
 @media(max-width:1100px){.headerMain{grid-template-columns:130px 1fr auto}.headerActions{gap:13px}.headerAction:first-child{display:none}.mainNav{gap:18px}.heroGrid{gap:40px}.featuredGrid{grid-template-columns:repeat(3,1fr)}.standardGrid{gap:45px}}
 @media(max-width:850px){.container{width:calc(100% - 28px)}.announcementBar span:last-child{display:none}.headerMain{height:72px;grid-template-columns:110px 1fr auto;gap:12px}.brand{width:105px}.headerSearch button{display:none}.headerSearch{grid-template-columns:34px 1fr}.headerAction{display:none}.cartAction{border:0;padding-left:0}.navRow{overflow-x:auto}.navInner{width:max-content;min-width:100%;padding:0 14px}.trackLink{display:none}.heroGrid{grid-template-columns:1fr;padding:55px 0}.heroCopy h1{font-size:58px}.fitmentCard{max-width:620px}.heroProof{margin-top:38px}.trustBarInner{grid-template-columns:1fr 1fr;gap:0}.trustBarInner span{padding:12px 0;text-align:left!important;border-bottom:1px solid var(--line)}.categoryGrid{grid-template-columns:1fr 1fr}.featuredGrid{grid-template-columns:1fr 1fr}.standardGrid,.garageCta{grid-template-columns:1fr}.brandGrid{grid-template-columns:repeat(3,1fr)}.brandGrid div:nth-child(3){border-right:0}.footerTop{grid-template-columns:1fr 1fr}}
 @media(max-width:540px){.container{width:calc(100% - 22px)}.announcementBar .container{height:28px}.headerMain{grid-template-columns:92px 1fr auto}.brand{width:88px}.headerSearch{height:40px}.headerSearch input{font-size:11px}.cartAction span{display:none}.mainNav{gap:20px}.navInner{height:40px}.hero{min-height:auto}.heroGrid{padding:42px 0 50px}.heroCopy h1{font-size:43px}.heroCopy>p{font-size:14px}.heroButtons{flex-direction:column;align-items:stretch}.btn{justify-content:space-between}.heroProof{display:grid;grid-template-columns:1fr 1fr;gap:12px}.fitmentCard{padding:21px;border-radius:16px}.fitmentCardTop h2{font-size:25px}.fitmentSplit{grid-template-columns:1fr}.garagePrompt{grid-template-columns:31px 1fr}.garagePrompt>a{grid-column:2}.trustBarInner{grid-template-columns:1fr}.trustBarInner span{font-size:8px}.section{padding:65px 0}.sectionHeader{display:block;margin-bottom:28px}.sectionHeader h2{font-size:40px}.sectionLink{display:inline-block;margin-top:22px}.categoryGrid,.featuredGrid{grid-template-columns:1fr}.categoryCard{min-height:260px}.categoryVisual{height:145px}.productHeaderSide{margin-top:18px}.brandGrid{grid-template-columns:1fr 1fr}.brandGrid div:nth-child(3){border-right:1px solid #33373a}.brandGrid div:nth-child(2n){border-right:0}.standardCards{grid-template-columns:1fr}.standardGrid{gap:40px}.garageCta{padding:60px 0;gap:30px}.garageCta h2{font-size:46px}.footerTop{grid-template-columns:1fr 1fr;gap:35px 20px}.footerBrandBlock{grid-column:1/-1}.footerBottom{height:auto;padding:20px 0;gap:10px;display:grid}.catalogGrid{grid-template-columns:1fr 1fr}}
+
+/* MIVO LOGO SYSTEM — one transparent source, three contrast-safe web variants */
+.mivoLogo{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  background:transparent !important;
+  line-height:0;
+  flex:0 0 auto;
+}
+.mivoLogo img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  object-position:center;
+  background:transparent !important;
+}
+.mivoLogo--dark img{
+  filter:brightness(0) saturate(100%) contrast(1.12);
+}
+.mivoLogo--light img{
+  filter:brightness(0) invert(1) contrast(1.12);
+}
+.mivoLogo--watermark img{
+  filter:brightness(0) invert(1);
+}
+.headerLogo{
+  width:154px;
+  height:48px;
+}
+.headerLogo img{
+  transform:scale(1.38);
+}
+.footerLogoAsset{
+  width:160px;
+  height:50px;
+  margin-bottom:18px;
+}
+.footerLogoAsset img{
+  transform:scale(1.38);
+}
+.heroLogoWatermark{
+  position:absolute;
+  z-index:1;
+  width:720px;
+  height:250px;
+  right:-105px;
+  top:118px;
+  opacity:.045;
+  pointer-events:none;
+  transform:rotate(-6deg);
+}
+.heroLogoWatermark img{
+  transform:scale(1.2);
+}
+
+@media(max-width:850px){
+  .headerLogo{width:116px;height:40px}
+  .headerLogo img{transform:scale(1.34)}
+  .heroLogoWatermark{width:520px;height:185px;right:-205px;top:150px;opacity:.035}
+}
+@media(max-width:540px){
+  .headerLogo{width:96px;height:36px}
+  .footerLogoAsset{width:145px;height:44px}
+  .heroLogoWatermark{width:390px;height:140px;right:-175px;top:145px;opacity:.03}
+}
