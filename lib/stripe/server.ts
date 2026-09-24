@@ -1,3 +1,5 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
+
 type StripeRequestOptions = {
   method?: "GET" | "POST";
   body?: URLSearchParams;
@@ -62,9 +64,7 @@ export function verifyStripeWebhookSignature(
   const age = Math.abs(Math.floor(Date.now() / 1000) - Number(timestamp));
   if (!Number.isFinite(age) || age > 300) return false;
 
-  const crypto = require("node:crypto") as typeof import("node:crypto");
-  const expected = crypto
-    .createHmac("sha256", secret)
+  const expected = createHmac("sha256", secret)
     .update(timestamp + "." + payload, "utf8")
     .digest("hex");
 
@@ -74,7 +74,7 @@ export function verifyStripeWebhookSignature(
     const candidate = Buffer.from(signature, "utf8");
     return (
       candidate.length === expectedBuffer.length &&
-      crypto.timingSafeEqual(candidate, expectedBuffer)
+      timingSafeEqual(candidate, expectedBuffer)
     );
   });
 }
