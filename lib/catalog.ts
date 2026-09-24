@@ -17,6 +17,12 @@ type ProductRow = {
   brands: NamedRelation;
   categories: NamedRelation;
   sellers: { shop_name: string } | Array<{ shop_name: string }> | null;
+  product_images:
+    | Array<{
+        image_url: string;
+        sort_order: number;
+      }>
+    | null;
   product_variants:
     | Array<{
         id: string;
@@ -100,7 +106,21 @@ function mapProduct(row: ProductRow): Product | null {
     icon: "🔧",
     description:
       row.description || "Product details will be updated by the seller.",
-    imageUrl: row.primary_image_url || undefined,
+    imageUrl:
+      row.primary_image_url ||
+      row.product_images?.slice().sort((a, b) => a.sort_order - b.sort_order)[0]?.image_url ||
+      undefined,
+    imageUrls: Array.from(
+      new Set(
+        [
+          row.primary_image_url,
+          ...(row.product_images || [])
+            .slice()
+            .sort((a, b) => a.sort_order - b.sort_order)
+            .map((image) => image.image_url),
+        ].filter((url): url is string => Boolean(url))
+      )
+    ),
     seller: sellerName(row.sellers),
     sku: variants.length === 1 ? firstVariant.sku : undefined,
     stock: totalStock,
@@ -111,7 +131,7 @@ function mapProduct(row: ProductRow): Product | null {
 }
 
 const selectQuery =
-  "slug, name, description, primary_image_url, variation_1_name, variation_2_name, brands(name), categories(name), sellers(shop_name), product_variants(id, title, variation_1_value, variation_2_value, sku, price, compare_at_price, stock_on_hand, stock_reserved, weight_kg, length_cm, width_cm, height_cm, is_active)";
+  "slug, name, description, primary_image_url, variation_1_name, variation_2_name, brands(name), categories(name), sellers(shop_name), product_images(image_url, sort_order), product_variants(id, title, variation_1_value, variation_2_value, sku, price, compare_at_price, stock_on_hand, stock_reserved, weight_kg, length_cm, width_cm, height_cm, is_active)";
 
 export async function getActiveProducts(): Promise<Product[]> {
   try {
