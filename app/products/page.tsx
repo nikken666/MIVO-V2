@@ -14,7 +14,15 @@ export default async function ProductsPage({
   const selectedModel = typeof params.model === "string" ? params.model : "";
   const selectedYear = typeof params.year === "string" ? params.year : "";
   const selectedVariant = typeof params.variant === "string" ? params.variant : "";
-  const selectedVehicleLabel = [selectedMake, selectedModel, selectedYear, selectedVariant]
+  const selectedTransmission =
+    typeof params.transmission === "string" ? params.transmission : "";
+  const selectedVehicleLabel = [
+    selectedMake,
+    selectedModel,
+    selectedYear,
+    selectedVariant,
+    selectedTransmission,
+  ]
     .filter(Boolean)
     .join(" ");
 
