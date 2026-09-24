@@ -26,9 +26,11 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient();
-      
+
       if (mode === "register") {
-        const callback = `${window.location.origin}/auth/callback?next=/account`;
+        const callback =
+          window.location.origin + "/auth/callback?next=/account";
+
         const { error: signUpError } = await supabase.auth.signUp({
           email: email.trim(),
           password,
@@ -41,7 +43,7 @@ export default function LoginPage() {
         if (signUpError) throw signUpError;
 
         setMessage(
-          "Account created. Check your email to confirm it, then log in as a buyer."
+          "Account created. Check your email to confirm it, then sign in to MIVO."
         );
         setMode("login");
         return;
@@ -58,22 +60,23 @@ export default function LoginPage() {
       router.push(next || "/account");
       router.refresh();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Authentication failed.");
+      setError(
+        caught instanceof Error ? caught.message : "Authentication failed."
+      );
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <main className={`container pageShell ${styles.narrowPage}`}>
+    <main className={"container pageShell " + styles.narrowPage}>
       <section className={styles.panel}>
         <div className={styles.titleRow}>
           <div>
-            <span className={styles.eyebrow}>MIVO BUYER ACCOUNT</span>
-            <h1>{mode === "login" ? "Buyer Login" : "Create Buyer Account"}</h1>
+            <span className={styles.eyebrow}>MIVO ACCOUNT</span>
+            <h1>{mode === "login" ? "Sign in" : "Create your account"}</h1>
             <p>
-              Registering here creates a normal buyer account. Selling on MIVO is
-              a separate optional application inside Seller Centre.
+              Sign in to manage your orders, saved vehicles and delivery details.
             </p>
           </div>
         </div>
@@ -84,7 +87,7 @@ export default function LoginPage() {
             className={mode === "login" ? styles.activeTab : ""}
             onClick={() => setMode("login")}
           >
-            Login
+            Sign in
           </button>
           <button
             type="button"
@@ -138,8 +141,8 @@ export default function LoginPage() {
             {busy
               ? "Please wait..."
               : mode === "login"
-                ? "Login as Buyer"
-                : "Create Buyer Account"}
+                ? "Sign in"
+                : "Create account"}
           </button>
         </form>
       </section>
