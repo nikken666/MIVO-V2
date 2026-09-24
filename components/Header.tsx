@@ -96,10 +96,17 @@ export default function Header() {
               <strong>My Garage</strong>
             </Link>
 
-            <Link href={loggedIn ? "/account" : "/login"} className="headerAction">
+            <Link
+              href={loggedIn ? "/account" : "/login"}
+              className={
+                loggedIn
+                  ? "headerAction accountHeaderAction"
+                  : "headerAction accountHeaderAction signInHeaderAction"
+              }
+            >
               <small>ACCOUNT</small>
               <strong>
-                {loggedIn ? "Hello, " + (customerName || "Customer") : "Sign in"}
+                {loggedIn ? "Hello, " + (customerName || "Customer") : "SIGN IN →"}
               </strong>
             </Link>
 
