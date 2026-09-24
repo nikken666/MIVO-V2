@@ -9,14 +9,16 @@ import {
   useState,
 } from "react";
 import Link from "next/link";
+import type { User } from "@supabase/supabase-js";
 import type { Product, ProductVariant } from "@/data/products";
+import { createClient } from "@/lib/supabase/client";
+import {
+  loadAccountCart,
+  saveAccountCart,
+  type AccountCartLine,
+} from "@/lib/accountCart";
 
-export type CartLine = {
-  lineId: string;
-  product: Product;
-  variant?: ProductVariant;
-  quantity: number;
-};
+export type CartLine = AccountCartLine;
 
 type CartNotice = {
   productName: string;
@@ -38,6 +40,9 @@ type MarketplaceContextValue = {
 
 const MarketplaceContext =
   createContext<MarketplaceContextValue | null>(null);
+
+const GUEST_CART_KEY = "mivo-cart:guest";
+const LEGACY_CART_KEY = "mivo-cart";
 
 function createLineId(product: Product, variant?: ProductVariant) {
   return product.slug + "::" + (variant?.id || variant?.sku || "default");
@@ -70,6 +75,68 @@ function normalizeSavedCart(value: unknown): CartLine[] {
     }));
 }
 
+function readGuestCart() {
+  try {
+    const guestRaw = window.localStorage.getItem(GUEST_CART_KEY);
+    if (guestRaw) return normalizeSavedCart(JSON.parse(guestRaw));
+
+    const legacyRaw = window.localStorage.getItem(LEGACY_CART_KEY);
+    if (legacyRaw) return normalizeSavedCart(JSON.parse(legacyRaw));
+  } catch {}
+
+  return [];
+}
+
+function writeGuestCart(cart: CartLine[]) {
+  try {
+    window.localStorage.setItem(GUEST_CART_KEY, JSON.stringify(cart));
+    window.localStorage.removeItem(LEGACY_CART_KEY);
+  } catch {}
+}
+
+function clearGuestCart() {
+  try {
+    window.localStorage.removeItem(GUEST_CART_KEY);
+    window.localStorage.removeItem(LEGACY_CART_KEY);
+  } catch {}
+}
+
+function lineMaximum(line: CartLine) {
+  if (typeof line.variant?.stock === "number") return line.variant.stock;
+  if (typeof line.product.stock === "number") return line.product.stock;
+  return undefined;
+}
+
+function mergeCarts(accountCart: CartLine[], guestCart: CartLine[]) {
+  const merged = new Map<string, CartLine>();
+
+  for (const line of accountCart) {
+    merged.set(line.lineId, { ...line });
+  }
+
+  for (const line of guestCart) {
+    const existing = merged.get(line.lineId);
+
+    if (!existing) {
+      merged.set(line.lineId, { ...line });
+      continue;
+    }
+
+    const maximum = lineMaximum(line);
+    const combined = existing.quantity + line.quantity;
+
+    merged.set(line.lineId, {
+      ...line,
+      quantity:
+        typeof maximum === "number"
+          ? Math.min(maximum, combined)
+          : combined,
+    });
+  }
+
+  return Array.from(merged.values());
+}
+
 export default function MarketplaceProvider({
   children,
 }: {
@@ -77,26 +144,105 @@ export default function MarketplaceProvider({
 }) {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [notice, setNotice] = useState<CartNotice>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const persistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const syncSequence = useRef(0);
 
   useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem("mivo-cart");
-      if (saved) setCart(normalizeSavedCart(JSON.parse(saved)));
-    } catch {
-      setCart([]);
+    const supabase = createClient();
+    let active = true;
+
+    async function syncSession(user: User | null) {
+      const sequence = ++syncSequence.current;
+      setHydrated(false);
+
+      if (!user) {
+        const guestCart = readGuestCart();
+
+        if (!active || sequence !== syncSequence.current) return;
+
+        writeGuestCart(guestCart);
+        setUserId(null);
+        setCart(guestCart);
+        setHydrated(true);
+        return;
+      }
+
+      let accountCart: CartLine[] = [];
+
+      try {
+        accountCart = await loadAccountCart();
+      } catch {
+        accountCart = [];
+      }
+
+      const guestCart = readGuestCart();
+      const merged =
+        guestCart.length > 0
+          ? mergeCarts(accountCart, guestCart)
+          : accountCart;
+
+      if (guestCart.length > 0) {
+        try {
+          await saveAccountCart(merged);
+          clearGuestCart();
+        } catch {}
+      }
+
+      if (!active || sequence !== syncSequence.current) return;
+
+      setUserId(user.id);
+      setCart(merged);
+      setHydrated(true);
     }
-  }, []);
 
-  useEffect(() => {
-    window.localStorage.setItem("mivo-cart", JSON.stringify(cart));
-  }, [cart]);
+    supabase.auth
+      .getUser()
+      .then(({ data }) => {
+        void syncSession(data.user);
+      })
+      .catch(() => {
+        void syncSession(null);
+      });
 
-  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      void syncSession(session?.user || null);
+    });
+
     return () => {
+      active = false;
+      subscription.unsubscribe();
+
       if (noticeTimer.current) clearTimeout(noticeTimer.current);
+      if (persistTimer.current) clearTimeout(persistTimer.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+
+    if (persistTimer.current) {
+      clearTimeout(persistTimer.current);
+    }
+
+    if (!userId) {
+      writeGuestCart(cart);
+      return;
+    }
+
+    persistTimer.current = setTimeout(() => {
+      void saveAccountCart(cart).catch(() => {});
+    }, 250);
+
+    return () => {
+      if (persistTimer.current) clearTimeout(persistTimer.current);
+    };
+  }, [cart, hydrated, userId]);
 
   function showAddedNotice(productName: string, quantity: number) {
     setNotice({ productName, quantity });
@@ -175,13 +321,7 @@ export default function MarketplaceProvider({
           current.map((line) => {
             if (line.lineId !== lineId) return line;
 
-            const maximum =
-              typeof line.variant?.stock === "number"
-                ? line.variant.stock
-                : typeof line.product.stock === "number"
-                  ? line.product.stock
-                  : undefined;
-
+            const maximum = lineMaximum(line);
             const safeQuantity = Math.max(
               1,
               Math.floor(Number(quantity) || 1)
