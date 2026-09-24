@@ -129,7 +129,7 @@ export default function Header() {
               <Link href="/products">COOLING</Link>
               <Link href="/brands">BRANDS</Link>
             </nav>
-            <Link href="/track-order" className="trackLink">
+            <Link href="/orders" className="trackLink">
               TRACK ORDER ↗
             </Link>
           </div>
