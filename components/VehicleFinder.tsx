@@ -103,11 +103,9 @@ export default function VehicleFinder() {
       if (!vehicle) continue;
       setMake(makeEntry.make);
       setVehicleId(vehicle.id);
-      const vehicleYears = yearsForVehicle(vehicle);
-      setYear(String(vehicleYears[0] || vehicle.startYear));
-      setVariant(vehicle.variants[0] || "");
-      const vehicleTransmissions = transmissionsForVehicle(vehicle);
-      setTransmission(vehicleTransmissions.length === 1 ? vehicleTransmissions[0] : "");
+      setYear("");
+      setVariant("");
+      setTransmission("");
       return;
     }
   }
@@ -164,7 +162,10 @@ export default function VehicleFinder() {
             <option value="">{makeData ? "Select model / generation" : "Select make first"}</option>
             {makeData?.vehicles.map((vehicle) => (
               <option key={vehicle.id} value={vehicle.id}>
-                {vehicle.model}{vehicle.generation ? " · " + vehicle.generation : ""}
+                {vehicle.model}
+                {vehicle.generation ? " · " + vehicle.generation : ""}
+                {" · "}
+                {vehicle.startYear}–{vehicle.endYear ?? "Present"}
               </option>
             ))}
           </select>
