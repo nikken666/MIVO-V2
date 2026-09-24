@@ -12,7 +12,11 @@ const categories = [
   { name: "Cooling", desc: "Radiators, pumps & thermostats", mark: "C", tone: "silver" },
 ];
 
-const brands = ["NIKKEN", "KYB", "AISIN", "DENSO", "BREMBO", "NGK"];
+const brands = [
+  { name: "NIKKEN", logo: "/brands/nikken-logo.svg" },
+  { name: "KYB", logo: "/brands/kyb-logo.svg" },
+  { name: "GSP", logo: "/brands/gsp-logo.svg" },
+];
 
 export default function HomePage() {
   const featured = products.slice(0, 8);
@@ -147,7 +151,13 @@ export default function HomePage() {
       <section className="brandBand">
         <div className="container">
           <div className="brandBandTop"><span>TRUSTED NAMES. ONE CLEAN CATALOGUE.</span><Link href="/brands">EXPLORE BRANDS ↗</Link></div>
-          <div className="brandGrid">{brands.map((brand) => <div key={brand}>{brand}</div>)}</div>
+          <div className="brandGrid brandLogoGrid">
+            {brands.map((brand) => (
+              <Link href="/brands" className="brandLogoCard" key={brand.name} aria-label={brand.name}>
+                <img src={brand.logo} alt={brand.name} />
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
