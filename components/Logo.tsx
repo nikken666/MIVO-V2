@@ -1,5 +1,11 @@
 type LogoVariant = "dark" | "light" | "watermark";
 
+const logoSources: Record<LogoVariant, string> = {
+  dark: "/mivo-logo-dark.svg",
+  light: "/mivo-logo-light.svg",
+  watermark: "/mivo-logo-watermark.svg",
+};
+
 export default function Logo({
   variant = "dark",
   className = "",
@@ -12,7 +18,7 @@ export default function Logo({
   return (
     <span className={`mivoLogo mivoLogo--${variant} ${className}`.trim()}>
       <img
-        src="/mivo-logo.png"
+        src={logoSources[variant]}
         alt={decorative ? "" : "MIVO"}
         aria-hidden={decorative ? true : undefined}
       />
