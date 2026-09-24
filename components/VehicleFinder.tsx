@@ -103,7 +103,8 @@ export default function VehicleFinder() {
       if (!vehicle) continue;
       setMake(makeEntry.make);
       setVehicleId(vehicle.id);
-      setYear(String(vehicle.endYear));
+      const vehicleYears = yearsForVehicle(vehicle);
+      setYear(String(vehicleYears[0] || vehicle.startYear));
       setVariant(vehicle.variants[0] || "");
       const vehicleTransmissions = transmissionsForVehicle(vehicle);
       setTransmission(vehicleTransmissions.length === 1 ? vehicleTransmissions[0] : "");
