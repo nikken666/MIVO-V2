@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { stripeRequest } from "@/lib/stripe/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 type OrderRow = {
   id: string;
@@ -182,15 +183,18 @@ export async function POST(request: NextRequest) {
       throw new Error("Stripe did not return a checkout URL.");
     }
 
-    await supabase
+    const admin = createAdminClient();
+
+    const { error: linkError } = await admin
       .from("orders")
       .update({
         payment_provider: "stripe",
         stripe_checkout_session_id: session.id,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", order.id)
-      .eq("user_id", user.id);
+      .eq("id", order.id);
+
+    if (linkError) throw linkError;
 
     return NextResponse.json({
       url: session.url,
