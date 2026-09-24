@@ -19,9 +19,22 @@ export default function ProductDetailClient({
 }) {
   const { addToCart } = useMarketplace();
 
-  const activeVariants = useMemo(
+  const images = useMemo(
     () =>
-      (product.variants || []).filter((variant) => variant.isActive),
+      Array.from(
+        new Set(
+          [product.imageUrl, ...(product.imageUrls || [])].filter(
+            (url): url is string => Boolean(url)
+          )
+        )
+      ),
+    [product.imageUrl, product.imageUrls]
+  );
+
+  const [activeImage, setActiveImage] = useState(0);
+
+  const activeVariants = useMemo(
+    () => (product.variants || []).filter((variant) => variant.isActive),
     [product.variants]
   );
 
@@ -77,10 +90,19 @@ export default function ProductDetailClient({
     (!product.variation2Name || Boolean(option2));
 
   const displayPrice = selectedVariant?.price ?? product.price;
+  const displayComparePrice =
+    selectedVariant?.compareAtPrice &&
+    selectedVariant.compareAtPrice > displayPrice
+      ? selectedVariant.compareAtPrice
+      : null;
   const displayStock = selectedVariant?.stock ?? product.stock;
   const displaySku = selectedVariant?.sku ?? product.sku;
   const maxQuantity =
     typeof displayStock === "number" && displayStock > 0 ? displayStock : 1;
+  const canBuy =
+    selectionComplete &&
+    Boolean(selectedVariant) &&
+    Number(selectedVariant?.stock || 0) > 0;
 
   function selectOption1(value: string) {
     setOption1(value);
@@ -116,153 +138,218 @@ export default function ProductDetailClient({
     );
   }
 
-  return (
-    <main className="container pageShell">
-      <Link href="/products" className="backLink">
-        ← Back to products
-      </Link>
+  function addCurrentToCart() {
+    if (!selectedVariant || !canBuy) return;
+    addToCart(product, selectedVariant, quantity);
+    setQuantity(1);
+  }
 
-      <section className="productDetail">
-        <div className="productDetailImage">
-          {product.imageUrl ? (
-            <img
-              src={product.imageUrl}
-              alt={product.name}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-              }}
-            />
-          ) : (
-            product.icon
-          )}
+  function buyNow() {
+    if (!selectedVariant || !canBuy) return;
+    addToCart(product, selectedVariant, quantity);
+    window.location.assign("/checkout");
+  }
+
+  function previousImage() {
+    if (images.length <= 1) return;
+    setActiveImage((current) =>
+      current === 0 ? images.length - 1 : current - 1
+    );
+  }
+
+  function nextImage() {
+    if (images.length <= 1) return;
+    setActiveImage((current) =>
+      current === images.length - 1 ? 0 : current + 1
+    );
+  }
+
+  return (
+    <main className="productDetailPage">
+      <div className="container">
+        <div className="productBreadcrumb">
+          <Link href="/products">ALL PARTS</Link>
+          <span>›</span>
+          <Link href={"/products?category=" + encodeURIComponent(product.category)}>
+            {product.category.toUpperCase()}
+          </Link>
+          <span>›</span>
+          <strong>{product.name}</strong>
         </div>
 
-        <div>
-          <span className="detailBrand">{product.brand}</span>
-          <h1>{product.name}</h1>
+        <section className="productDetailCommerce">
+          <div className="productGallery">
+            <div className="productGalleryMain">
+              {images[activeImage] ? (
+                <img src={images[activeImage]} alt={product.name} />
+              ) : (
+                <div className="productGalleryPlaceholder">{product.icon}</div>
+              )}
 
-          <div className="rating">
-            ★★★★★ <span>({product.reviews} reviews)</span>
+              {images.length > 1 ? (
+                <>
+                  <button
+                    type="button"
+                    className="galleryArrow galleryArrowLeft"
+                    onClick={previousImage}
+                    aria-label="Previous product image"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    type="button"
+                    className="galleryArrow galleryArrowRight"
+                    onClick={nextImage}
+                    aria-label="Next product image"
+                  >
+                    ›
+                  </button>
+                  <span className="galleryCount">
+                    {activeImage + 1}/{images.length}
+                  </span>
+                </>
+              ) : null}
+            </div>
+
+            {images.length > 1 ? (
+              <div className="productGalleryThumbs">
+                {images.map((image, index) => (
+                  <button
+                    type="button"
+                    key={image}
+                    className={
+                      "productGalleryThumb" +
+                      (activeImage === index ? " active" : "")
+                    }
+                    onClick={() => setActiveImage(index)}
+                    aria-label={"View product image " + (index + 1)}
+                  >
+                    <img src={image} alt="" />
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
 
-          <h2 className="detailPrice">{formatPrice(displayPrice)}</h2>
+          <div className="productPurchasePanel">
+            <div className="productTitleBlock">
+              <span className="detailBrand">{product.brand}</span>
+              <h1>{product.name}</h1>
 
-          {product.seller && <p>Sold by: {product.seller}</p>}
-
-          {product.variation1Name && (
-            <section style={{ margin: "22px 0 14px" }}>
-              <strong style={{ display: "block", marginBottom: 10 }}>
-                {product.variation1Name}
-              </strong>
-
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 9 }}>
-                {option1Values.map((value) => {
-                  const soldOut = option1SoldOut(value);
-                  const selected = option1 === value;
-
-                  return (
-                    <button
-                      type="button"
-                      key={value}
-                      disabled={soldOut}
-                      onClick={() => selectOption1(value)}
-                      style={{
-                        border: selected
-                          ? "2px solid #e60012"
-                          : "1px solid #d8d8dc",
-                        background: selected ? "#fff1f2" : "#fff",
-                        color: soldOut ? "#a0a0a5" : "#161619",
-                        borderRadius: 9,
-                        padding: "10px 14px",
-                        fontWeight: 800,
-                        cursor: soldOut ? "not-allowed" : "pointer",
-                      }}
-                    >
-                      {value}
-                    </button>
-                  );
-                })}
+              <div className="productTitleMeta">
+                <span className="productRating">
+                  <b>4.8</b> ★★★★★
+                </span>
+                <span>{product.reviews} reviews</span>
+                {displaySku ? <span>SKU {displaySku}</span> : null}
               </div>
-            </section>
-          )}
+            </div>
 
-          {product.variation2Name && (
-            <section style={{ margin: "14px 0 22px" }}>
-              <strong style={{ display: "block", marginBottom: 10 }}>
-                {product.variation2Name}
-              </strong>
-
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 9 }}>
-                {option2Values.map((value) => {
-                  const soldOut = option2SoldOut(value);
-                  const selected = option2 === value;
-
-                  return (
-                    <button
-                      type="button"
-                      key={value}
-                      disabled={!option1 || soldOut}
-                      onClick={() => { setOption2(value); setQuantity(1); }}
-                      style={{
-                        border: selected
-                          ? "2px solid #e60012"
-                          : "1px solid #d8d8dc",
-                        background: selected ? "#fff1f2" : "#fff",
-                        color:
-                          !option1 || soldOut ? "#a0a0a5" : "#161619",
-                        borderRadius: 9,
-                        padding: "10px 14px",
-                        fontWeight: 800,
-                        cursor:
-                          !option1 || soldOut ? "not-allowed" : "pointer",
-                      }}
-                    >
-                      {value}
-                    </button>
-                  );
-                })}
+            <div className="productPricePanel">
+              <div>
+                {displayComparePrice ? (
+                  <del>{formatPrice(displayComparePrice)}</del>
+                ) : null}
+                <strong>{formatPrice(displayPrice)}</strong>
               </div>
-            </section>
-          )}
+              <span>PRICE</span>
+            </div>
 
-          {displaySku && <p>SKU: {displaySku}</p>}
+            <div className="productFitmentCompact">
+              <div>
+                <span>VEHICLE FITMENT</span>
+                <strong>Check before ordering</strong>
+              </div>
+              <Link href="/#fitment">SELECT VEHICLE →</Link>
+            </div>
 
-          {selectionComplete &&
-            typeof displayStock === "number" && (
-              <p>
-                {displayStock > 0
-                  ? `${displayStock} units available`
-                  : "Out of stock"}
-              </p>
-            )}
+            {product.variation1Name ? (
+              <section className="productOptionSection">
+                <div className="productOptionLabel">
+                  <span>{product.variation1Name}</span>
+                  <small>
+                    {option1 || "Choose an option"}
+                  </small>
+                </div>
 
-          <p>{product.description}</p>
+                <div className="productOptionGrid">
+                  {option1Values.map((value) => {
+                    const soldOut = option1SoldOut(value);
+                    const selected = option1 === value;
 
-          <div className="fitmentBox">
-            <strong>Fitment check available</strong>
-            <span>
-              Select your vehicle or contact MIVO support before ordering.
-            </span>
-          </div>
+                    return (
+                      <button
+                        type="button"
+                        key={value}
+                        disabled={soldOut}
+                        onClick={() => selectOption1(value)}
+                        className={
+                          "productOptionButton" +
+                          (selected ? " selected" : "")
+                        }
+                      >
+                        {value}
+                        {soldOut ? <small>SOLD OUT</small> : null}
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            ) : null}
 
-          <div className="detailPurchaseBox">
-            <div className="detailQuantityRow">
+            {product.variation2Name ? (
+              <section className="productOptionSection">
+                <div className="productOptionLabel">
+                  <span>{product.variation2Name}</span>
+                  <small>
+                    {option2 || "Choose an option"}
+                  </small>
+                </div>
+
+                <div className="productOptionGrid">
+                  {option2Values.map((value) => {
+                    const soldOut = option2SoldOut(value);
+                    const selected = option2 === value;
+
+                    return (
+                      <button
+                        type="button"
+                        key={value}
+                        disabled={!option1 || soldOut}
+                        onClick={() => {
+                          setOption2(value);
+                          setQuantity(1);
+                        }}
+                        className={
+                          "productOptionButton" +
+                          (selected ? " selected" : "")
+                        }
+                      >
+                        {value}
+                        {soldOut ? <small>SOLD OUT</small> : null}
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            ) : null}
+
+            <div className="productQuantityLine">
               <div>
                 <span>QUANTITY</span>
                 <small>
-                  {typeof displayStock === "number" && selectionComplete
-                    ? displayStock + " available"
-                    : "Select your product option first"}
+                  {selectionComplete && typeof displayStock === "number"
+                    ? displayStock > 0
+                      ? displayStock + " available"
+                      : "Out of stock"
+                    : "Select variation first"}
                 </small>
               </div>
 
               <div className="quantityStepper detailQuantityStepper">
                 <button
                   type="button"
-                  aria-label="Decrease quantity"
-                  disabled={quantity <= 1 || !selectionComplete}
+                  disabled={quantity <= 1 || !canBuy}
                   onClick={() =>
                     setQuantity((current) => Math.max(1, current - 1))
                   }
@@ -272,12 +359,7 @@ export default function ProductDetailClient({
                 <strong>{quantity}</strong>
                 <button
                   type="button"
-                  aria-label="Increase quantity"
-                  disabled={
-                    !selectionComplete ||
-                    !selectedVariant ||
-                    quantity >= maxQuantity
-                  }
+                  disabled={!canBuy || quantity >= maxQuantity}
                   onClick={() =>
                     setQuantity((current) =>
                       Math.min(maxQuantity, current + 1)
@@ -289,29 +371,94 @@ export default function ProductDetailClient({
               </div>
             </div>
 
-            <button
-              className="redButton detailCartButton"
-              disabled={
-                !selectionComplete ||
-                !selectedVariant ||
-                selectedVariant.stock <= 0
-              }
-              onClick={() => {
-                if (selectedVariant) {
-                  addToCart(product, selectedVariant, quantity);
-                  setQuantity(1);
-                }
-              }}
-            >
-              {!selectionComplete
-                ? "SELECT VARIATION"
-                : !selectedVariant || selectedVariant.stock <= 0
-                  ? "OUT OF STOCK"
-                  : "ADD " + quantity + " TO CART"}
-            </button>
+            <div className="desktopPurchaseActions">
+              <button
+                type="button"
+                className="productAddCartButton"
+                disabled={!canBuy}
+                onClick={addCurrentToCart}
+              >
+                <span>＋</span>
+                {!selectionComplete
+                  ? "SELECT VARIATION"
+                  : !canBuy
+                    ? "OUT OF STOCK"
+                    : "ADD TO CART"}
+              </button>
+
+              <button
+                type="button"
+                className="productBuyNowButton"
+                disabled={!canBuy}
+                onClick={buyNow}
+              >
+                BUY NOW
+              </button>
+            </div>
+
+            <div className="productServiceRows">
+              <div>
+                <span>✓</span>
+                <p>
+                  <strong>MIVO Direct Store</strong>
+                  <small>Sold and fulfilled by MIVO</small>
+                </p>
+              </div>
+              <div>
+                <span>✓</span>
+                <p>
+                  <strong>Malaysia delivery</strong>
+                  <small>Shipping calculated at checkout</small>
+                </p>
+              </div>
+              <div>
+                <span>✓</span>
+                <p>
+                  <strong>Account synced</strong>
+                  <small>Cart, address, orders and vehicle saved to your account</small>
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        <section className="productInfoSection">
+          <nav className="productInfoTabs">
+            <span className="active">PRODUCT DETAILS</span>
+            <span>FITMENT</span>
+            <span>DELIVERY</span>
+          </nav>
+
+          <div className="productDescriptionCard">
+            <div>
+              <span>DESCRIPTION</span>
+              <h2>Product information</h2>
+            </div>
+            <p>{product.description}</p>
+          </div>
+        </section>
+      </div>
+
+      <div className="mobileProductBar">
+        <button
+          type="button"
+          className="mobileProductCart"
+          disabled={!canBuy}
+          onClick={addCurrentToCart}
+        >
+          <span>＋</span>
+          ADD TO CART
+        </button>
+
+        <button
+          type="button"
+          className="mobileProductBuy"
+          disabled={!canBuy}
+          onClick={buyNow}
+        >
+          BUY NOW
+        </button>
+      </div>
     </main>
   );
 }
