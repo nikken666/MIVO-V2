@@ -6,6 +6,11 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useMarketplace } from "@/components/MarketplaceProvider";
 import { formatPrice } from "@/data/products";
+import {
+  loadDefaultAddress,
+  saveDefaultAddress,
+  type AccountAddress,
+} from "@/lib/customerData";
 
 type Buyer = {
   email: string;
@@ -24,6 +29,7 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [savedAddress, setSavedAddress] = useState<AccountAddress | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -50,6 +56,11 @@ export default function CheckoutPage() {
         if (typeof profile?.full_name === "string") {
           profileName = profile.full_name.trim();
         }
+      } catch {}
+
+      try {
+        const address = await loadDefaultAddress();
+        setSavedAddress(address);
       } catch {}
 
       const metadataName =
@@ -113,6 +124,14 @@ export default function CheckoutPage() {
         postcode: String(form.get("postcode") || "").trim(),
         country_code: "MY",
       };
+
+      try {
+        const saved = await saveDefaultAddress({
+          ...shippingAddress,
+          label: "Default",
+        });
+        if (saved) setSavedAddress(saved);
+      } catch {}
 
       const { data, error: checkoutError } = await supabase.rpc(
         "create_pending_order",
@@ -227,13 +246,22 @@ export default function CheckoutPage() {
               <strong>MALAYSIA</strong>
             </div>
 
+            <div className="checkoutAccountSaveNote">
+              <span>{savedAddress ? "✓ SAVED ADDRESS LOADED" : "ACCOUNT SAVE"}</span>
+              <p>
+                {savedAddress
+                  ? "Your default MIVO delivery address has been filled in automatically."
+                  : "This delivery address will be saved to your MIVO account for your next checkout."}
+              </p>
+            </div>
+
             <div className="checkoutFields">
               <label className="checkoutField checkoutFieldFull">
                 <span>FULL NAME *</span>
                 <input
                   name="full_name"
                   required
-                  defaultValue={buyer?.fullName}
+                  defaultValue={savedAddress?.full_name || buyer?.fullName}
                   placeholder="Recipient name"
                 />
               </label>
@@ -243,6 +271,7 @@ export default function CheckoutPage() {
                 <input
                   name="phone"
                   required
+                  defaultValue={savedAddress?.phone || ""}
                   placeholder="01X-XXXXXXX"
                   inputMode="tel"
                 />
@@ -253,6 +282,7 @@ export default function CheckoutPage() {
                 <input
                   name="address_line_1"
                   required
+                  defaultValue={savedAddress?.address_line_1 || ""}
                   placeholder="House / unit number and street"
                 />
               </label>
@@ -261,6 +291,7 @@ export default function CheckoutPage() {
                 <span>ADDRESS LINE 2</span>
                 <input
                   name="address_line_2"
+                  defaultValue={savedAddress?.address_line_2 || ""}
                   placeholder="Building, area or landmark (optional)"
                 />
               </label>
@@ -270,6 +301,7 @@ export default function CheckoutPage() {
                 <input
                   name="postcode"
                   required
+                  defaultValue={savedAddress?.postcode || ""}
                   placeholder="75000"
                   inputMode="numeric"
                 />
@@ -277,12 +309,21 @@ export default function CheckoutPage() {
 
               <label className="checkoutField">
                 <span>CITY *</span>
-                <input name="city" required placeholder="City" />
+                <input
+                  name="city"
+                  required
+                  defaultValue={savedAddress?.city || ""}
+                  placeholder="City"
+                />
               </label>
 
               <label className="checkoutField checkoutFieldFull">
                 <span>STATE *</span>
-                <select name="state" required defaultValue="">
+                <select
+                  name="state"
+                  required
+                  defaultValue={savedAddress?.state || ""}
+                >
                   <option value="" disabled>
                     Choose state
                   </option>
