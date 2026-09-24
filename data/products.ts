@@ -24,6 +24,7 @@ export type Product = {
   icon: string;
   description: string;
   imageUrl?: string;
+  imageUrls?: string[];
   seller?: string;
   sku?: string;
   stock?: number;
