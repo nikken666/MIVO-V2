@@ -7,6 +7,7 @@ import { useMarketplace } from "@/components/MarketplaceProvider";
 export default function CartPage() {
   const {
     cart,
+    cartCount,
     removeFromCart,
     updateQuantity,
     clearCart,
@@ -19,142 +20,229 @@ export default function CartPage() {
 
   if (!cart.length) {
     return (
-      <main className="container pageShell">
-        <div className="emptyState">
-          <span>🛒</span>
-          <h1>Your cart is empty</h1>
-          <p>Add products to begin checkout.</p>
-          <Link href="/products" className="redButton inlineButton">
-            Browse Products
-          </Link>
+      <main className="cartPage">
+        <div className="container">
+          <div className="cartEmpty">
+            <div className="cartEmptyMark">+</div>
+            <span>MIVO CART</span>
+            <h1>Your cart is empty.</h1>
+            <p>Find the right parts for your vehicle and add them here.</p>
+            <Link href="/products" className="cartPrimaryButton">
+              SHOP PARTS →
+            </Link>
+          </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="container pageShell">
-      <div className="pageHeading">
-        <div>
-          <h1>Shopping Cart</h1>
-          <p>{cart.length} product lines</p>
+    <main className="cartPage">
+      <div className="container">
+        <div className="cartPageHeader">
+          <div>
+            <span className="cartEyebrow">MIVO CART</span>
+            <h1>Your Cart</h1>
+            <p>
+              {cartCount} item{cartCount === 1 ? "" : "s"} ready for checkout
+            </p>
+          </div>
+
+          <button
+            type="button"
+            className="cartClearButton"
+            onClick={clearCart}
+          >
+            CLEAR CART
+          </button>
         </div>
 
-        <button className="textButton" onClick={clearCart}>
-          Clear cart
-        </button>
-      </div>
-
-      <div className="cartLayout">
-        <section className="cartLines">
-          {cart.map((line) => {
-            const price =
-              line.variant?.price ?? line.product.price;
-
-            return (
-              <article className="cartLine" key={line.lineId}>
-                <div className="cartIcon">
-                  {line.product.imageUrl ? (
-                    <img
-                      src={line.product.imageUrl}
-                      alt={line.product.name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "contain",
-                      }}
-                    />
-                  ) : (
-                    line.product.icon
-                  )}
-                </div>
-
+        <div className="modernCartLayout">
+          <section className="modernCartLines">
+            <div className="cartStoreBar">
+              <div>
+                <span className="cartStoreDot">M</span>
                 <div>
-                  <Link href={`/products/${line.product.slug}`}>
-                    <h3>{line.product.name}</h3>
+                  <strong>MIVO DIRECT STORE</strong>
+                  <small>Official MIVO fulfilment</small>
+                </div>
+              </div>
+              <span>IN STOCK</span>
+            </div>
+
+            {cart.map((line) => {
+              const price = line.variant?.price ?? line.product.price;
+              const lineTotal = price * line.quantity;
+              const maxStock =
+                typeof line.variant?.stock === "number"
+                  ? line.variant.stock
+                  : typeof line.product.stock === "number"
+                    ? line.product.stock
+                    : undefined;
+
+              return (
+                <article className="modernCartLine" key={line.lineId}>
+                  <Link
+                    href={"/products/" + line.product.slug}
+                    className="modernCartImage"
+                  >
+                    {line.product.imageUrl ? (
+                      <img
+                        src={line.product.imageUrl}
+                        alt={line.product.name}
+                      />
+                    ) : (
+                      <span>{line.product.icon}</span>
+                    )}
                   </Link>
 
-                  <span>{line.product.brand}</span>
+                  <div className="modernCartInfo">
+                    <span className="modernCartBrand">
+                      {line.product.brand}
+                    </span>
 
-                  {line.variant && (
-                    <small style={{ display: "block", marginTop: 6 }}>
-                      {line.product.variation1Name &&
-                        line.variant.variation1Value && (
-                          <>
+                    <Link href={"/products/" + line.product.slug}>
+                      <h3>{line.product.name}</h3>
+                    </Link>
+
+                    {line.variant ? (
+                      <div className="cartVariantMeta">
+                        {line.product.variation1Name &&
+                        line.variant.variation1Value ? (
+                          <span>
                             {line.product.variation1Name}:{" "}
                             {line.variant.variation1Value}
-                            <br />
-                          </>
-                        )}
+                          </span>
+                        ) : null}
 
-                      {line.product.variation2Name &&
-                        line.variant.variation2Value && (
-                          <>
+                        {line.product.variation2Name &&
+                        line.variant.variation2Value ? (
+                          <span>
                             {line.product.variation2Name}:{" "}
                             {line.variant.variation2Value}
-                            <br />
-                          </>
-                        )}
+                          </span>
+                        ) : null}
 
-                      SKU: {line.variant.sku}
-                    </small>
-                  )}
+                        <span>SKU: {line.variant.sku}</span>
+                      </div>
+                    ) : null}
 
-                  <strong>{formatPrice(price)}</strong>
-                </div>
+                    <strong className="modernCartUnitPrice">
+                      {formatPrice(price)}
+                    </strong>
+                  </div>
 
-                <input
-                  aria-label="Quantity"
-                  type="number"
-                  min="1"
-                  max={line.variant?.stock || undefined}
-                  value={line.quantity}
-                  onChange={(event) =>
-                    updateQuantity(
-                      line.lineId,
-                      Number(event.target.value)
-                    )
-                  }
-                />
+                  <div className="modernCartControls">
+                    <span>QUANTITY</span>
 
-                <button
-                  className="removeButton"
-                  onClick={() => removeFromCart(line.lineId)}
-                >
-                  Remove
-                </button>
-              </article>
-            );
-          })}
-        </section>
+                    <div className="quantityStepper cartQuantityStepper">
+                      <button
+                        type="button"
+                        disabled={line.quantity <= 1}
+                        onClick={() =>
+                          updateQuantity(
+                            line.lineId,
+                            line.quantity - 1
+                          )
+                        }
+                        aria-label="Decrease quantity"
+                      >
+                        −
+                      </button>
+                      <strong>{line.quantity}</strong>
+                      <button
+                        type="button"
+                        disabled={
+                          typeof maxStock === "number" &&
+                          line.quantity >= maxStock
+                        }
+                        onClick={() =>
+                          updateQuantity(
+                            line.lineId,
+                            line.quantity + 1
+                          )
+                        }
+                        aria-label="Increase quantity"
+                      >
+                        +
+                      </button>
+                    </div>
 
-        <aside className="orderSummary">
-          <h2>Order Summary</h2>
+                    <button
+                      type="button"
+                      className="modernRemoveButton"
+                      onClick={() => removeFromCart(line.lineId)}
+                    >
+                      REMOVE
+                    </button>
+                  </div>
 
-          <div>
-            <span>Subtotal</span>
-            <strong>{formatPrice(subtotal)}</strong>
-          </div>
+                  <div className="modernCartLineTotal">
+                    <span>ITEM TOTAL</span>
+                    <strong>{formatPrice(lineTotal)}</strong>
+                  </div>
+                </article>
+              );
+            })}
 
-          <div>
-            <span>Shipping</span>
-            <strong>Calculated later</strong>
-          </div>
+            <div className="cartContinueRow">
+              <Link href="/products">← CONTINUE SHOPPING</Link>
+              <span>Secure checkout · Malaysia delivery</span>
+            </div>
+          </section>
 
-          <hr />
+          <aside className="modernOrderSummary">
+            <div className="summaryHeading">
+              <span>ORDER SUMMARY</span>
+              <strong>{cartCount} ITEMS</strong>
+            </div>
 
-          <div className="summaryTotal">
-            <span>Total</span>
-            <strong>{formatPrice(subtotal)}</strong>
-          </div>
+            <div className="summaryRows">
+              <div>
+                <span>Subtotal</span>
+                <strong>{formatPrice(subtotal)}</strong>
+              </div>
+              <div>
+                <span>Shipping</span>
+                <strong>Calculated at checkout</strong>
+              </div>
+            </div>
 
-          <Link
-            href="/checkout"
-            className="redButton checkoutButton"
-          >
-            Proceed to Checkout
-          </Link>
-        </aside>
+            <div className="summaryDivider" />
+
+            <div className="modernSummaryTotal">
+              <div>
+                <span>TOTAL</span>
+                <small>Before shipping</small>
+              </div>
+              <strong>{formatPrice(subtotal)}</strong>
+            </div>
+
+            <Link href="/checkout" className="cartCheckoutButton">
+              <span>
+                <small>SECURE CHECKOUT</small>
+                CHECKOUT NOW
+              </span>
+              <b>→</b>
+            </Link>
+
+            <div className="checkoutTrust">
+              <span>✓ Secure payment</span>
+              <span>✓ Order tracking</span>
+              <span>✓ Vehicle-fitment support</span>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <div className="mobileCheckoutBar">
+        <div>
+          <span>TOTAL</span>
+          <strong>{formatPrice(subtotal)}</strong>
+        </div>
+        <Link href="/checkout">
+          CHECKOUT <b>→</b>
+        </Link>
       </div>
     </main>
   );
