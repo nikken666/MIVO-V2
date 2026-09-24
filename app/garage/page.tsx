@@ -9,6 +9,7 @@ type SavedVehicle = {
   vehicleId: string;
   year: string;
   variant: string;
+  transmission?: string;
   label: string;
 };
 
@@ -42,6 +43,7 @@ export default function GaragePage() {
         model: details?.model || "",
         year: vehicle.year,
         variant: vehicle.variant,
+        transmission: vehicle.transmission || "",
       }).toString()
     : "";
 
@@ -72,6 +74,7 @@ export default function GaragePage() {
               <div><small>GENERATION</small><strong>{details?.generation || "—"}</strong></div>
               <div><small>YEAR</small><strong>{vehicle.year}</strong></div>
               <div><small>ENGINE / VARIANT</small><strong>{vehicle.variant}</strong></div>
+              <div><small>TRANSMISSION</small><strong>{vehicle.transmission || "—"}</strong></div>
             </div>
 
             <div className="savedVehicleActions">
