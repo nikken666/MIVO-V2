@@ -7,6 +7,7 @@ import {
   vehicleDatabase,
   vehicleLabel,
   yearsForVehicle,
+  transmissionsForVehicle,
 } from "@/data/vehicles";
 
 type SavedVehicle = {
@@ -14,6 +15,7 @@ type SavedVehicle = {
   vehicleId: string;
   year: string;
   variant: string;
+  transmission: string;
   label: string;
 };
 
@@ -23,6 +25,7 @@ export default function VehicleFinder() {
   const [vehicleId, setVehicleId] = useState("");
   const [year, setYear] = useState("");
   const [variant, setVariant] = useState("");
+  const [transmission, setTransmission] = useState("");
   const [saved, setSaved] = useState<SavedVehicle | null>(null);
 
   useEffect(() => {
@@ -43,32 +46,37 @@ export default function VehicleFinder() {
   );
 
   const years = selectedVehicle ? yearsForVehicle(selectedVehicle) : [];
+  const transmissions = selectedVehicle ? transmissionsForVehicle(selectedVehicle) : [];
 
   function resetBelow(level: "make" | "vehicle" | "year") {
     if (level === "make") {
       setVehicleId("");
       setYear("");
       setVariant("");
+      setTransmission("");
     }
     if (level === "vehicle") {
       setYear("");
       setVariant("");
+      setTransmission("");
     }
     if (level === "year") {
       setVariant("");
+      setTransmission("");
     }
   }
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    if (!make || !selectedVehicle || !year || !variant) return;
+    if (!make || !selectedVehicle || !year || !variant || !transmission) return;
 
-    const label = vehicleLabel(make, selectedVehicle, year, variant);
+    const label = vehicleLabel(make, selectedVehicle, year, variant, transmission);
     const selected: SavedVehicle = {
       make,
       vehicleId: selectedVehicle.id,
       year,
       variant,
+      transmission,
       label,
     };
 
@@ -83,6 +91,7 @@ export default function VehicleFinder() {
       model: selectedVehicle.model,
       year,
       variant,
+      transmission,
     });
 
     router.push("/products?" + params.toString());
@@ -96,6 +105,8 @@ export default function VehicleFinder() {
       setVehicleId(vehicle.id);
       setYear(String(vehicle.endYear));
       setVariant(vehicle.variants[0] || "");
+      const vehicleTransmissions = transmissionsForVehicle(vehicle);
+      setTransmission(vehicleTransmissions.length === 1 ? vehicleTransmissions[0] : "");
       return;
     }
   }
@@ -179,7 +190,10 @@ export default function VehicleFinder() {
             <select
               value={variant}
               disabled={!year}
-              onChange={(event) => setVariant(event.target.value)}
+              onChange={(event) => {
+                setVariant(event.target.value);
+                setTransmission("");
+              }}
             >
               <option value="">{year ? "Select engine / variant" : "Select year first"}</option>
               {selectedVehicle?.variants.map((item) => <option key={item} value={item}>{item}</option>)}
@@ -187,10 +201,22 @@ export default function VehicleFinder() {
           </label>
         </div>
 
+        <label className="transmissionField">
+          <span>Transmission</span>
+          <select
+            value={transmission}
+            disabled={!variant}
+            onChange={(event) => setTransmission(event.target.value)}
+          >
+            <option value="">{variant ? "Select AUTO / MANUAL" : "Select engine / variant first"}</option>
+            {transmissions.map((item) => <option key={item} value={item}>{item}</option>)}
+          </select>
+        </label>
+
         <button
           type="submit"
           className="fitmentSubmit"
-          disabled={!make || !vehicleId || !year || !variant}
+          disabled={!make || !vehicleId || !year || !variant || !transmission}
         >
           SHOW PARTS FOR THIS VEHICLE <span>→</span>
         </button>
