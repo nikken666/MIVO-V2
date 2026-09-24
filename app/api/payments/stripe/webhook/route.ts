@@ -118,22 +118,25 @@ async function markOrderPaid(session: Record<string, any>) {
     })
     .eq("order_id", order.id);
 
-  await admin.from("payments").insert({
-    order_id: order.id,
-    provider: "stripe",
-    provider_payment_id: paymentIntentId,
-    provider_session_id: session.id,
-    status: "paid",
-    amount: amountPaid,
-    currency:
-      typeof session.currency === "string"
-        ? session.currency.toUpperCase()
-        : "MYR",
-    payment_method: details.paymentMethod,
-    raw_payload: session,
-    paid_at: now,
-    updated_at: now,
-  });
+  await admin.from("payments").upsert(
+    {
+      order_id: order.id,
+      provider: "stripe",
+      provider_payment_id: paymentIntentId,
+      provider_session_id: session.id,
+      status: "paid",
+      amount: amountPaid,
+      currency:
+        typeof session.currency === "string"
+          ? session.currency.toUpperCase()
+          : "MYR",
+      payment_method: details.paymentMethod,
+      raw_payload: session,
+      paid_at: now,
+      updated_at: now,
+    },
+    { onConflict: "provider,provider_payment_id" }
+  );
 
   if (order.payment_status !== "paid") {
     await admin.from("order_status_history").insert({
