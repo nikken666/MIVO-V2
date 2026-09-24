@@ -1375,3 +1375,772 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
   .modernCartLineTotal strong{font-size:14px}
   .modernOrderSummary{padding:18px}
 }
+
+
+/* MIVO ACCOUNT + CHECKOUT VISUAL SYSTEM */
+.accountHeaderAction{
+  min-width:118px;
+}
+.signInHeaderAction{
+  min-height:42px;
+  padding:7px 13px;
+  border:1px solid #1c1f22;
+  border-radius:9px;
+  background:#111417;
+  color:#fff;
+  justify-content:center;
+}
+.signInHeaderAction small{
+  color:#8f969b;
+}
+.signInHeaderAction strong{
+  font-size:10px;
+  letter-spacing:.06em;
+}
+.signInHeaderAction:hover{
+  background:#23272a;
+}
+
+.mivoAuthPage{
+  min-height:calc(100vh - 159px);
+  padding:48px 0 72px;
+  background:#f3f4f4;
+}
+.mivoAuthShell{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  max-width:1060px;
+  min-height:590px;
+  padding:0;
+  overflow:hidden;
+  border:1px solid #dfe2e3;
+  border-radius:22px;
+  background:#fff;
+  box-shadow:0 26px 70px rgba(12,15,18,.10);
+}
+.mivoAuthVisual{
+  position:relative;
+  min-height:590px;
+  padding:34px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 80% 28%,rgba(216,36,47,.22),transparent 26%),
+    linear-gradient(125deg,#0d1012 0%,#181c1f 100%);
+  color:#fff;
+}
+.mivoAuthVisual:after{
+  content:"";
+  position:absolute;
+  width:520px;
+  height:520px;
+  right:-240px;
+  bottom:-280px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:50%;
+}
+.mivoAuthVisualTop{
+  position:relative;
+  z-index:2;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+}
+.mivoAuthLogo{
+  width:118px;
+  height:38px;
+}
+.mivoAuthVisualTop>span{
+  color:#868d92;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.14em;
+}
+.mivoAuthVisualCopy{
+  position:relative;
+  z-index:2;
+}
+.mivoAuthEyebrow{
+  display:block;
+  margin-bottom:13px;
+  color:#8f969b;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.15em;
+}
+.mivoAuthVisualCopy h1{
+  margin:0;
+  font-size:54px;
+  line-height:.93;
+  letter-spacing:-.055em;
+}
+.mivoAuthVisualCopy h1 em{
+  color:#9ca2a6;
+  font-style:normal;
+  font-weight:400;
+}
+.mivoAuthVisualCopy p{
+  max-width:390px;
+  margin:22px 0 0;
+  color:#aeb4b8;
+  font-size:12px;
+  line-height:1.65;
+}
+.mivoAuthBenefits{
+  position:relative;
+  z-index:2;
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px 20px;
+  padding-top:20px;
+  border-top:1px solid #303438;
+  color:#a5abb0;
+  font-size:8px;
+  font-weight:800;
+}
+.mivoAuthFormPanel{
+  padding:54px 52px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  background:#fff;
+}
+.mivoAuthFormHead>span{
+  color:#969ca0;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.15em;
+}
+.mivoAuthFormHead h2{
+  margin:7px 0 9px;
+  font-size:38px;
+  letter-spacing:-.05em;
+}
+.mivoAuthFormHead p{
+  margin:0;
+  max-width:420px;
+  color:#7b8185;
+  font-size:11px;
+  line-height:1.6;
+}
+.mivoAuthTabs{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:0;
+  margin:28px 0 24px;
+  border-bottom:1px solid #e2e5e6;
+}
+.mivoAuthTabs button{
+  min-height:42px;
+  border:0;
+  border-bottom:2px solid transparent;
+  background:transparent;
+  color:#9aa0a4;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.11em;
+  cursor:pointer;
+}
+.mivoAuthTabs button.active{
+  border-bottom-color:#d8242f;
+  color:#111417;
+}
+.mivoAuthForm{
+  display:grid;
+  gap:15px;
+}
+.mivoAuthForm label{
+  display:grid;
+  gap:7px;
+}
+.mivoAuthForm label>span{
+  color:#656b6f;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.1em;
+}
+.mivoAuthForm input{
+  width:100%;
+  min-height:49px;
+  padding:0 14px;
+  border:1px solid #d9dddf;
+  border-radius:10px;
+  outline:0;
+  background:#fafafa;
+  color:#17191c;
+  font-size:12px;
+  transition:.18s ease;
+}
+.mivoAuthForm input:focus{
+  border-color:#8d9499;
+  background:#fff;
+  box-shadow:0 0 0 3px rgba(20,23,26,.035);
+}
+.mivoAuthSubmit{
+  min-height:60px;
+  margin-top:4px;
+  padding:0 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  border:0;
+  border-radius:11px;
+  background:#111417;
+  color:#fff;
+  cursor:pointer;
+  transition:.18s ease;
+}
+.mivoAuthSubmit:hover{
+  transform:translateY(-1px);
+  background:#202427;
+}
+.mivoAuthSubmit:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+  transform:none;
+}
+.mivoAuthSubmit span,
+.mivoAuthSubmit small{
+  display:block;
+  text-align:left;
+}
+.mivoAuthSubmit small{
+  margin-bottom:3px;
+  color:#8f969b;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+.mivoAuthSubmit span{
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.05em;
+}
+.mivoAuthSubmit b{
+  font-size:21px;
+  font-weight:500;
+}
+.mivoAuthSuccess,
+.mivoAuthError{
+  margin:0;
+  padding:11px 12px;
+  border-radius:9px;
+  font-size:9px;
+  line-height:1.45;
+}
+.mivoAuthSuccess{
+  background:#edf7ef;
+  color:#287b3e;
+}
+.mivoAuthError{
+  background:#fff0f1;
+  color:#a4373e;
+}
+.mivoAuthFinePrint{
+  margin-top:22px;
+  padding-top:16px;
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  border-top:1px solid #eceeef;
+  color:#989ea2;
+  font-size:8px;
+}
+
+.checkoutPage{
+  min-height:72vh;
+  padding-bottom:90px;
+  background:#f3f4f4;
+}
+.checkoutTopBand{
+  border-bottom:1px solid #23272a;
+  background:#111417;
+  color:#fff;
+}
+.checkoutTopInner{
+  min-height:54px;
+  display:grid;
+  grid-template-columns:140px 1fr 140px;
+  align-items:center;
+  gap:20px;
+}
+.checkoutTopInner>a,
+.checkoutTopInner>span{
+  color:#969da1;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.1em;
+}
+.checkoutTopInner>span{text-align:right}
+.checkoutSteps{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:13px;
+}
+.checkoutSteps span{
+  color:#676e73;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.1em;
+  white-space:nowrap;
+}
+.checkoutSteps span.done{color:#9ca3a7}
+.checkoutSteps span.active{color:#fff}
+.checkoutSteps i{
+  width:38px;
+  height:1px;
+  background:#383d41;
+}
+.checkoutShell{
+  padding-top:40px;
+}
+.checkoutPageHeader{
+  margin-bottom:24px;
+}
+.checkoutPageHeader h1{
+  margin:0;
+  font-size:46px;
+  line-height:.98;
+  letter-spacing:-.055em;
+}
+.checkoutPageHeader p{
+  margin:8px 0 0;
+  color:#858b90;
+  font-size:10px;
+}
+.checkoutPageHeader p strong{
+  color:#454b4f;
+}
+.checkoutLayout{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 380px;
+  gap:22px;
+  align-items:start;
+}
+.checkoutFormCard,
+.checkoutSummaryCard{
+  border:1px solid #e0e3e4;
+  border-radius:18px;
+  background:#fff;
+}
+.checkoutFormCard{
+  padding:25px;
+}
+.checkoutSectionHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  padding-bottom:20px;
+  margin-bottom:22px;
+  border-bottom:1px solid #e9ebec;
+}
+.checkoutSectionHead>div{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.checkoutSectionHead>div>span{
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#111417;
+  color:#fff;
+  font-size:8px;
+  font-weight:900;
+}
+.checkoutSectionHead small,
+.checkoutSectionHead h2{
+  display:block;
+}
+.checkoutSectionHead small{
+  color:#9aa0a4;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+.checkoutSectionHead h2{
+  margin:3px 0 0;
+  font-size:20px;
+  letter-spacing:-.025em;
+}
+.checkoutSectionHead>strong{
+  color:#8b9195;
+  font-size:8px;
+  letter-spacing:.1em;
+}
+.checkoutFields{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+.checkoutField{
+  display:grid;
+  gap:7px;
+}
+.checkoutFieldFull{
+  grid-column:1/-1;
+}
+.checkoutField>span{
+  color:#60666a;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.09em;
+}
+.checkoutField input,
+.checkoutField select,
+.checkoutField textarea{
+  width:100%;
+  min-height:48px;
+  padding:0 13px;
+  border:1px solid #dadddf;
+  border-radius:10px;
+  background:#fafafa;
+  color:#181a1c;
+  outline:0;
+  font-size:11px;
+}
+.checkoutField textarea{
+  min-height:90px;
+  padding:12px 13px;
+  resize:vertical;
+}
+.checkoutField input:focus,
+.checkoutField select:focus,
+.checkoutField textarea:focus{
+  border-color:#8e9498;
+  background:#fff;
+  box-shadow:0 0 0 3px rgba(20,23,26,.035);
+}
+.checkoutError{
+  margin:16px 0 0;
+  padding:11px 12px;
+  border-radius:9px;
+  background:#fff0f1;
+  color:#a4373e;
+  font-size:9px;
+  line-height:1.45;
+}
+.checkoutActionRow{
+  margin-top:24px;
+  padding-top:20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:22px;
+  border-top:1px solid #e7e9ea;
+}
+.checkoutActionRow>div>span,
+.checkoutActionRow>div>strong,
+.checkoutActionRow>div>small{
+  display:block;
+}
+.checkoutActionRow>div>span{
+  color:#979da1;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.11em;
+}
+.checkoutActionRow>div>strong{
+  margin-top:3px;
+  font-size:24px;
+  letter-spacing:-.04em;
+}
+.checkoutActionRow>div>small{
+  margin-top:3px;
+  color:#9aa0a4;
+  font-size:8px;
+}
+.checkoutPlaceOrder{
+  min-width:310px;
+  min-height:66px;
+  padding:0 19px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  border:0;
+  border-radius:12px;
+  background:#d8242f;
+  color:#fff;
+  box-shadow:0 14px 32px rgba(216,36,47,.20);
+  cursor:pointer;
+  transition:.18s ease;
+}
+.checkoutPlaceOrder:hover{
+  transform:translateY(-1px);
+  background:#bd1d27;
+  box-shadow:0 18px 38px rgba(216,36,47,.26);
+}
+.checkoutPlaceOrder:disabled{
+  opacity:.58;
+  cursor:not-allowed;
+  transform:none;
+}
+.checkoutPlaceOrder span,
+.checkoutPlaceOrder small{
+  display:block;
+  text-align:left;
+}
+.checkoutPlaceOrder small{
+  margin-bottom:3px;
+  color:#ffd1d4;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+.checkoutPlaceOrder span{
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.04em;
+}
+.checkoutPlaceOrder b{
+  font-size:21px;
+  font-weight:500;
+}
+.checkoutSummaryCard{
+  position:sticky;
+  top:178px;
+  padding:21px;
+  box-shadow:0 16px 42px rgba(12,15,18,.05);
+}
+.checkoutSummaryHead{
+  padding-bottom:15px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  border-bottom:1px solid #e7e9ea;
+}
+.checkoutSummaryHead>div span,
+.checkoutSummaryHead>div strong{
+  display:block;
+}
+.checkoutSummaryHead>div span{
+  color:#8d9397;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.11em;
+}
+.checkoutSummaryHead>div strong{
+  margin-top:3px;
+  font-size:11px;
+}
+.checkoutSummaryHead>a{
+  color:#62686c;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.checkoutItems{
+  max-height:370px;
+  overflow:auto;
+}
+.checkoutItem{
+  display:grid;
+  grid-template-columns:60px minmax(0,1fr) auto;
+  gap:11px;
+  align-items:center;
+  padding:14px 0;
+  border-bottom:1px solid #eef0f1;
+}
+.checkoutItemImage{
+  position:relative;
+  width:60px;
+  height:60px;
+  display:grid;
+  place-items:center;
+  border:1px solid #e5e7e8;
+  border-radius:10px;
+  background:#f7f8f8;
+}
+.checkoutItemImage img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  padding:5px;
+}
+.checkoutItemImage>b{
+  position:absolute;
+  right:-5px;
+  top:-5px;
+  min-width:19px;
+  height:19px;
+  padding:0 5px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  background:#111417;
+  color:#fff;
+  font-size:7px;
+}
+.checkoutItemInfo{
+  min-width:0;
+}
+.checkoutItemInfo span,
+.checkoutItemInfo strong,
+.checkoutItemInfo small{
+  display:block;
+}
+.checkoutItemInfo span{
+  color:#969ca0;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.checkoutItemInfo strong{
+  margin-top:3px;
+  font-size:10px;
+  line-height:1.35;
+}
+.checkoutItemInfo small{
+  margin-top:4px;
+  color:#92989c;
+  font-size:7px;
+  line-height:1.35;
+}
+.checkoutItemPrice{
+  font-size:10px;
+  white-space:nowrap;
+}
+.checkoutSummaryRows{
+  padding:15px 0;
+  display:grid;
+  gap:10px;
+  border-bottom:1px solid #e6e8e9;
+}
+.checkoutSummaryRows>div{
+  display:flex;
+  justify-content:space-between;
+  gap:15px;
+  color:#747a7e;
+  font-size:9px;
+}
+.checkoutSummaryRows strong{
+  color:#202427;
+}
+.checkoutSummaryTotal{
+  padding:16px 0;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:15px;
+}
+.checkoutSummaryTotal span,
+.checkoutSummaryTotal small{
+  display:block;
+}
+.checkoutSummaryTotal span{
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.1em;
+}
+.checkoutSummaryTotal small{
+  margin-top:3px;
+  color:#9aa0a4;
+  font-size:7px;
+}
+.checkoutSummaryTotal>strong{
+  font-size:23px;
+  letter-spacing:-.04em;
+}
+.checkoutAssurance{
+  display:grid;
+  gap:6px;
+  padding-top:14px;
+  border-top:1px solid #eceeef;
+  color:#858b8f;
+  font-size:7px;
+}
+.checkoutLoading{
+  min-height:420px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+}
+.checkoutLoading span{
+  color:#9aa0a4;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.14em;
+}
+.checkoutLoading strong{
+  font-size:18px;
+}
+
+@media(max-width:980px){
+  .mivoAuthShell{grid-template-columns:.9fr 1.1fr}
+  .mivoAuthVisualCopy h1{font-size:46px}
+  .checkoutLayout{grid-template-columns:1fr}
+  .checkoutSummaryCard{position:static}
+}
+@media(max-width:760px){
+  .signInHeaderAction{
+    min-width:0;
+    padding:6px 10px;
+  }
+  .signInHeaderAction small{display:none}
+  .mivoAuthPage{padding:22px 0 45px}
+  .mivoAuthShell{display:block}
+  .mivoAuthVisual{
+    min-height:280px;
+    padding:25px;
+  }
+  .mivoAuthVisualCopy h1{font-size:40px}
+  .mivoAuthBenefits{display:none}
+  .mivoAuthFormPanel{padding:32px 25px}
+  .checkoutTopInner{
+    grid-template-columns:auto 1fr;
+  }
+  .checkoutTopInner>span{display:none}
+  .checkoutSteps{justify-content:flex-end}
+  .checkoutFields{grid-template-columns:1fr}
+  .checkoutFieldFull{grid-column:auto}
+  .checkoutActionRow{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .checkoutPlaceOrder{
+    width:100%;
+    min-width:0;
+  }
+}
+@media(max-width:540px){
+  .mivoAuthVisual{min-height:245px}
+  .mivoAuthVisualTop>span{display:none}
+  .mivoAuthVisualCopy h1{font-size:36px}
+  .mivoAuthFormPanel{padding:28px 20px}
+  .mivoAuthFormHead h2{font-size:32px}
+  .mivoAuthFinePrint{
+    flex-direction:column;
+    gap:5px;
+  }
+  .checkoutShell{padding-top:28px}
+  .checkoutPageHeader h1{font-size:38px}
+  .checkoutSteps{gap:7px}
+  .checkoutSteps i{width:18px}
+  .checkoutSteps span{font-size:7px}
+  .checkoutFormCard{padding:18px}
+  .checkoutSectionHead>strong{display:none}
+  .checkoutSummaryCard{padding:17px}
+  .checkoutItem{
+    grid-template-columns:54px minmax(0,1fr);
+  }
+  .checkoutItemImage{
+    width:54px;
+    height:54px;
+  }
+  .checkoutItemPrice{
+    grid-column:2;
+    text-align:left;
+  }
+}
