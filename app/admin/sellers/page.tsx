@@ -1,3 +1,5 @@
-import Link from "next/link";
-import styles from "../Admin.module.css";
-export default function AdminSellersPage(){return <main className={styles.adminShell}><div className="container"><div className={styles.adminTop}><div><span className={styles.adminEyebrow}>MIVO ADMIN · SELLERS</span><h1>Sellers</h1><p>Seller accounts and marketplace permissions.</p></div></div><nav className={styles.adminNav}><Link href="/admin">Dashboard</Link><Link href="/admin/products">Products</Link><Link href="/admin/products/new">Add Product</Link><Link href="/admin/fitment">Fitment</Link><Link href="/admin/orders">Orders</Link><Link href="/admin/sellers">Sellers</Link></nav><section className={styles.adminPanel}><p className={styles.adminNotice}>Seller management will be connected after the product workflow is stable.</p></section></div></main>}
+import { redirect } from "next/navigation";
+
+export default function AdminSellersPage() {
+  redirect("/admin");
+}
