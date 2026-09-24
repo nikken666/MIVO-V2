@@ -4138,3 +4138,119 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
     grid-template-columns:1fr;
   }
 }
+
+
+/* UNPAID ORDER CANCELLATION MODAL */
+.unpaidCancelModal{
+  width:min(520px,100%);
+}
+.unpaidCancelOrderNumber{
+  margin-top:16px;
+  padding:13px 14px;
+  border:1px solid #e3e5e6;
+  border-radius:10px;
+  background:#fafafa;
+}
+.unpaidCancelOrderNumber span,
+.unpaidCancelOrderNumber strong{
+  display:block;
+}
+.unpaidCancelOrderNumber span{
+  color:#969ca0;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.1em;
+}
+.unpaidCancelOrderNumber strong{
+  margin-top:4px;
+  font-size:11px;
+}
+.unpaidCancelSummary{
+  margin-top:14px;
+  display:grid;
+  gap:10px;
+}
+.unpaidCancelSummary>div{
+  padding:12px 13px;
+  display:grid;
+  grid-template-columns:28px minmax(0,1fr);
+  gap:10px;
+  align-items:start;
+  border:1px solid #e5e7e8;
+  border-radius:10px;
+  background:#fff;
+}
+.unpaidCancelSummary i{
+  width:24px;
+  height:24px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#edf7ef;
+  color:#277b3d;
+  font-style:normal;
+  font-size:9px;
+  font-weight:900;
+}
+.unpaidCancelSummary>div:last-child i{
+  background:#fff3e8;
+  color:#a96800;
+}
+.unpaidCancelSummary p{
+  margin:0;
+}
+.unpaidCancelSummary strong,
+.unpaidCancelSummary small{
+  display:block;
+}
+.unpaidCancelSummary strong{
+  font-size:9px;
+}
+.unpaidCancelSummary small{
+  margin-top:3px;
+  color:#858b8f;
+  font-size:8px;
+  line-height:1.45;
+}
+.unpaidCancelAutoNote{
+  margin-top:14px;
+  padding:12px 13px;
+  border-left:3px solid #111417;
+  background:#f7f8f8;
+}
+.unpaidCancelAutoNote span{
+  display:block;
+  color:#777d81;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.1em;
+}
+.unpaidCancelAutoNote p{
+  margin:5px 0 0;
+  color:#6d7377;
+  font-size:8px;
+  line-height:1.5;
+}
+.orderDangerButton{
+  min-height:38px;
+  padding:0 13px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid #c4232e;
+  border-radius:8px;
+  background:#c4232e;
+  color:#fff;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.06em;
+  cursor:pointer;
+}
+.orderDangerButton:hover{
+  background:#a91d26;
+  border-color:#a91d26;
+}
+.orderDangerButton:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
