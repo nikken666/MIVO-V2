@@ -1,0 +1,44 @@
+.adminShell{min-height:75vh;padding:34px 0 80px;background:#f3f4f4}
+.adminTop{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:24px}
+.adminEyebrow{font-size:9px;font-weight:900;letter-spacing:.14em;color:#8b9094}
+.adminTop h1{margin:6px 0 0;font-size:42px;letter-spacing:-.05em}
+.adminTop p{margin:8px 0 0;color:#777d81;font-size:12px}
+.adminAction{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 17px;border-radius:10px;background:#d52f36;color:#fff;font-size:9px;font-weight:900;letter-spacing:.07em}
+.adminSecondary{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 17px;border:1px solid #d8dbdd;border-radius:10px;background:#fff;color:#33383c;font-size:9px;font-weight:900;letter-spacing:.06em}
+.adminNav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+.adminNav a{padding:10px 13px;border:1px solid #dde0e1;border-radius:999px;background:#fff;font-size:9px;font-weight:900;color:#565c60}
+.adminNav a:hover{border-color:#aeb3b6;color:#111}
+.adminStats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.adminStat{padding:20px;background:#fff;border:1px solid #e0e3e4;border-radius:16px}
+.adminStat span,.adminStat strong{display:block}
+.adminStat span{font-size:8px;font-weight:900;letter-spacing:.12em;color:#969b9f}
+.adminStat strong{margin-top:8px;font-size:28px;letter-spacing:-.04em}
+.adminPanel{background:#fff;border:1px solid #e0e3e4;border-radius:18px;padding:24px}
+.adminPanelHead{display:flex;justify-content:space-between;gap:18px;align-items:center;margin-bottom:18px}
+.adminPanelHead h2{margin:0;font-size:22px;letter-spacing:-.035em}
+.adminPanelHead p{margin:5px 0 0;color:#858b8f;font-size:11px}
+.adminTableWrap{overflow:auto}
+.adminTable{width:100%;border-collapse:collapse;min-width:850px}
+.adminTable th{padding:11px 10px;text-align:left;border-bottom:1px solid #e5e7e8;font-size:8px;letter-spacing:.1em;color:#989da1}
+.adminTable td{padding:13px 10px;border-bottom:1px solid #eef0f1;font-size:11px}
+.adminProductCell{display:flex;align-items:center;gap:11px;min-width:250px}
+.adminProductThumb{width:46px;height:46px;border-radius:9px;object-fit:cover;background:#f0f1f1;border:1px solid #e2e4e5}
+.adminStatus{display:inline-flex;padding:6px 8px;border-radius:999px;background:#f0f2f2;font-size:8px;font-weight:900;text-transform:uppercase}
+.adminForm{display:grid;gap:18px}
+.adminFormGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.adminField{display:grid;gap:7px}
+.adminField.full{grid-column:1/-1}
+.adminField span{font-size:9px;font-weight:850;color:#555b5f}
+.adminField input,.adminField select,.adminField textarea{width:100%;border:1px solid #d9dcde;border-radius:10px;background:#fff;padding:12px 13px;font-size:12px;outline:none}
+.adminField textarea{min-height:130px;resize:vertical}
+.adminField input:focus,.adminField select:focus,.adminField textarea:focus{border-color:#8d9397}
+.adminSectionTitle{margin:7px 0 -4px;padding-top:18px;border-top:1px solid #e7e9ea;font-size:10px;font-weight:900;letter-spacing:.1em;color:#777d81}
+.adminUploadBox{padding:20px;border:1px dashed #c8ccce;border-radius:13px;background:#fafafa}
+.adminPreviewGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:12px}
+.adminPreviewGrid img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;border:1px solid #e1e3e4}
+.adminActions{display:flex;align-items:center;gap:10px;margin-top:4px}
+.adminNotice{padding:12px 14px;border-radius:10px;background:#f3f5f5;color:#656b6f;font-size:11px}
+.adminError{padding:12px 14px;border-radius:10px;background:#fff0f0;color:#aa3037;font-size:11px}
+.adminSuccess{padding:12px 14px;border-radius:10px;background:#eef8f0;color:#23723b;font-size:11px}
+@media(max-width:850px){.adminStats{grid-template-columns:1fr 1fr}.adminFormGrid{grid-template-columns:1fr}.adminField.full{grid-column:auto}.adminTop{align-items:flex-start;flex-direction:column}.adminPreviewGrid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:540px){.adminStats{grid-template-columns:1fr 1fr}.adminStat strong{font-size:22px}.adminTop h1{font-size:34px}.adminPanel{padding:18px}.adminPreviewGrid{grid-template-columns:1fr 1fr}.adminActions{align-items:stretch;flex-direction:column}}
