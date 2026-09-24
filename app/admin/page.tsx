@@ -8,7 +8,6 @@ import styles from "./Admin.module.css";
 type DashboardStats = {
   products: number;
   activeProducts: number;
-  sellers: number;
   pendingProducts: number;
 };
 
@@ -16,7 +15,6 @@ export default function AdminPage() {
   const [stats, setStats] = useState<DashboardStats>({
     products: 0,
     activeProducts: 0,
-    sellers: 0,
     pendingProducts: 0,
   });
   const [loading, setLoading] = useState(true);
@@ -47,7 +45,6 @@ export default function AdminPage() {
         const [
           { count: productCount },
           { count: activeCount },
-          { count: sellerCount },
           { count: pendingCount },
         ] = await Promise.all([
           supabase.from("products").select("*", { count: "exact", head: true }),
@@ -55,7 +52,6 @@ export default function AdminPage() {
             .from("products")
             .select("*", { count: "exact", head: true })
             .eq("status", "active"),
-          supabase.from("sellers").select("*", { count: "exact", head: true }),
           supabase
             .from("products")
             .select("*", { count: "exact", head: true })
@@ -65,11 +61,12 @@ export default function AdminPage() {
         setStats({
           products: productCount || 0,
           activeProducts: activeCount || 0,
-          sellers: sellerCount || 0,
           pendingProducts: pendingCount || 0,
         });
       } catch (caught) {
-        setError(caught instanceof Error ? caught.message : "Unable to load admin data.");
+        setError(
+          caught instanceof Error ? caught.message : "Unable to load admin data."
+        );
       } finally {
         setLoading(false);
       }
@@ -79,10 +76,10 @@ export default function AdminPage() {
   }, []);
 
   const statCards = [
-    ["TOTAL PRODUCTS", stats.products],
-    ["ACTIVE PRODUCTS", stats.activeProducts],
-    ["SELLERS", stats.sellers],
-    ["PENDING REVIEW", stats.pendingProducts],
+    ["TOTAL PRODUCTS", loading ? "—" : stats.products],
+    ["ACTIVE PRODUCTS", loading ? "—" : stats.activeProducts],
+    ["STORE MODE", "MIVO DIRECT"],
+    ["PENDING REVIEW", loading ? "—" : stats.pendingProducts],
   ] as const;
 
   return (
@@ -92,7 +89,7 @@ export default function AdminPage() {
           <div>
             <span className={styles.adminEyebrow}>MIVO CONTROL CENTER</span>
             <h1>Admin Console</h1>
-            <p>Manage catalogue, fitment, stock and marketplace operations.</p>
+            <p>Manage your MIVO catalogue, fitment, stock and customer orders.</p>
           </div>
           <Link href="/admin/products/new" className={styles.adminAction}>
             + ADD PRODUCT
@@ -105,17 +102,15 @@ export default function AdminPage() {
           <Link href="/admin/products/new">Add Product</Link>
           <Link href="/admin/fitment">Fitment</Link>
           <Link href="/admin/orders">Orders</Link>
-          <Link href="/admin/sellers">Sellers</Link>
         </nav>
 
         {error ? <p className={styles.adminError}>{error}</p> : null}
-        {loading ? <p className={styles.adminNotice}>Loading MIVO admin data...</p> : null}
 
         <div className={styles.adminStats}>
           {statCards.map(([label, value]) => (
             <article className={styles.adminStat} key={label}>
               <span>{label}</span>
-              <strong>{loading ? "—" : value}</strong>
+              <strong>{value}</strong>
             </article>
           ))}
         </div>
@@ -123,8 +118,8 @@ export default function AdminPage() {
         <section className={styles.adminPanel}>
           <div className={styles.adminPanelHead}>
             <div>
-              <h2>Catalogue Operations</h2>
-              <p>Start with products, inventory and vehicle fitment.</p>
+              <h2>Store Operations</h2>
+              <p>MIVO is configured as a self-operated automotive parts store.</p>
             </div>
           </div>
 
@@ -141,7 +136,7 @@ export default function AdminPage() {
             <article className={styles.adminStat}>
               <span>NEW LISTING</span>
               <strong>Upload</strong>
-              <p>Create a product with images, SKU, price and inventory.</p>
+              <p>Create products directly under MIVO Direct Store.</p>
               <Link href="/admin/products/new" className={styles.adminSecondary}>
                 ADD PRODUCT
               </Link>
@@ -159,7 +154,7 @@ export default function AdminPage() {
             <article className={styles.adminStat}>
               <span>ORDERS</span>
               <strong>Operate</strong>
-              <p>Order workflow will be connected after catalogue setup.</p>
+              <p>Manage customer orders and fulfilment from one place.</p>
               <Link href="/admin/orders" className={styles.adminSecondary}>
                 VIEW ORDERS
               </Link>
