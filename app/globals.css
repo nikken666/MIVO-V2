@@ -2169,3 +2169,421 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
   font-size:9px;
   line-height:1.5;
 }
+
+
+/* ACCOUNT DATA: ADDRESSES + ORDERS */
+.accountDataPage{
+  min-height:72vh;
+  padding:44px 0 90px;
+  background:#f3f4f4;
+}
+.accountDataHeader{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:24px;
+  margin-bottom:24px;
+}
+.accountDataHeader>div>span{
+  display:block;
+  margin-bottom:7px;
+  color:#969ca0;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.14em;
+}
+.accountDataHeader h1{
+  margin:0;
+  font-size:44px;
+  letter-spacing:-.055em;
+}
+.accountDataHeader p{
+  margin:8px 0 0;
+  max-width:620px;
+  color:#7f8589;
+  font-size:11px;
+  line-height:1.55;
+}
+.accountDataHeader>a{
+  color:#4d5357;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.accountDataNotice,
+.accountDataSuccess,
+.accountDataError{
+  margin:0;
+  padding:12px 14px;
+  border-radius:10px;
+  font-size:9px;
+  line-height:1.5;
+}
+.accountDataNotice{background:#f7f8f8;color:#7e8488}
+.accountDataSuccess{background:#edf7ef;color:#277b3d}
+.accountDataError{background:#fff0f1;color:#a4373e}
+
+.addressSettingsLayout{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 440px;
+  gap:22px;
+  align-items:start;
+}
+.addressBookPanel,
+.addressEditorPanel,
+.ordersPanel{
+  border:1px solid #e0e3e4;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 16px 42px rgba(12,15,18,.05);
+}
+.addressBookPanel{overflow:hidden}
+.addressBookHead,
+.ordersPanelHead{
+  min-height:68px;
+  padding:0 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  border-bottom:1px solid #e9ebec;
+  background:#fafafa;
+}
+.addressBookHead>div,
+.ordersPanelHead>div{
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+}
+.addressBookHead span,
+.ordersPanelHead span{
+  color:#8d9397;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.1em;
+}
+.addressBookHead strong,
+.ordersPanelHead strong{
+  font-size:20px;
+}
+.addressBookHead button,
+.ordersPanelHead>a{
+  min-height:34px;
+  padding:0 11px;
+  display:inline-flex;
+  align-items:center;
+  border:1px solid #d9dcde;
+  border-radius:8px;
+  background:#fff;
+  color:#222629;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.07em;
+  cursor:pointer;
+}
+.addressEmpty,
+.ordersEmpty{
+  padding:56px 22px;
+  text-align:center;
+}
+.addressEmpty strong,
+.ordersEmpty strong{
+  display:block;
+  font-size:22px;
+}
+.addressEmpty p,
+.ordersEmpty p{
+  margin:8px 0 0;
+  color:#858b90;
+  font-size:10px;
+}
+.ordersEmpty>a{
+  display:inline-flex;
+  margin-top:18px;
+  min-height:40px;
+  padding:0 14px;
+  align-items:center;
+  border-radius:8px;
+  background:#111417;
+  color:#fff;
+  font-size:8px;
+  font-weight:900;
+}
+.addressCardList{display:grid}
+.addressCard{
+  padding:19px 20px;
+  border-bottom:1px solid #eceeef;
+  background:#fff;
+}
+.addressCard:last-child{border-bottom:0}
+.addressCardDefault{
+  box-shadow:inset 3px 0 0 #d8242f;
+}
+.addressCardTop{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+}
+.addressCardTop>div{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.addressCardTop span{
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.06em;
+}
+.addressCardTop b{
+  padding:4px 6px;
+  border-radius:999px;
+  background:#111417;
+  color:#fff;
+  font-size:6px;
+  letter-spacing:.08em;
+}
+.addressCardTop>button{
+  border:0;
+  background:transparent;
+  color:#575d61;
+  font-size:7px;
+  font-weight:900;
+  cursor:pointer;
+}
+.addressCard>strong{
+  display:block;
+  font-size:13px;
+}
+.addressCard>p{
+  margin:7px 0 0;
+  color:#777d81;
+  font-size:9px;
+  line-height:1.55;
+}
+.addressCardActions{
+  display:flex;
+  gap:14px;
+  margin-top:12px;
+}
+.addressCardActions button{
+  padding:0;
+  border:0;
+  background:transparent;
+  color:#454b4f;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.07em;
+  cursor:pointer;
+}
+.addressCardActions .danger{color:#a53d43}
+
+.addressEditorPanel{
+  position:sticky;
+  top:178px;
+  padding:22px;
+}
+.addressEditorHead>span{
+  color:#969ca0;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+.addressEditorHead h2{
+  margin:5px 0 20px;
+  font-size:24px;
+  letter-spacing:-.035em;
+}
+.addressEditorForm{display:grid;gap:16px}
+.addressFormGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.addressFormGrid label{
+  display:grid;
+  gap:6px;
+}
+.addressFormGrid label.full{grid-column:1/-1}
+.addressFormGrid label>span{
+  color:#62686c;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.09em;
+}
+.addressFormGrid input,
+.addressFormGrid select{
+  width:100%;
+  min-height:45px;
+  padding:0 12px;
+  border:1px solid #dadddf;
+  border-radius:9px;
+  background:#fafafa;
+  outline:0;
+  font-size:10px;
+}
+.addressFormGrid input:focus,
+.addressFormGrid select:focus{
+  border-color:#8e9498;
+  background:#fff;
+  box-shadow:0 0 0 3px rgba(20,23,26,.035);
+}
+.addressDefaultToggle{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  padding:12px;
+  border:1px solid #e3e5e6;
+  border-radius:10px;
+  background:#f8f9f9;
+}
+.addressDefaultToggle input{margin-top:2px}
+.addressDefaultToggle span,
+.addressDefaultToggle strong,
+.addressDefaultToggle small{
+  display:block;
+}
+.addressDefaultToggle strong{
+  font-size:9px;
+}
+.addressDefaultToggle small{
+  margin-top:2px;
+  color:#888e92;
+  font-size:8px;
+}
+.addressSaveButton{
+  min-height:58px;
+  padding:0 17px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  border:0;
+  border-radius:11px;
+  background:#d8242f;
+  color:#fff;
+  cursor:pointer;
+}
+.addressSaveButton:disabled{opacity:.55;cursor:not-allowed}
+.addressSaveButton span,
+.addressSaveButton small{
+  display:block;
+  text-align:left;
+}
+.addressSaveButton small{
+  margin-bottom:3px;
+  color:#ffd1d4;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.11em;
+}
+.addressSaveButton span{
+  font-size:11px;
+  font-weight:900;
+}
+.addressSaveButton b{
+  font-size:20px;
+  font-weight:500;
+}
+
+.ordersPanel{overflow:hidden}
+.orderList{display:grid}
+.orderListCard{
+  min-height:132px;
+  padding:20px;
+  display:grid;
+  grid-template-columns:180px minmax(0,1fr) 150px;
+  gap:20px;
+  align-items:center;
+  border-bottom:1px solid #eceeef;
+  background:#fff;
+  transition:.16s ease;
+}
+.orderListCard:last-child{border-bottom:0}
+.orderListCard:hover{background:#fafafa}
+.orderListPrimary span,
+.orderListPrimary strong,
+.orderListPrimary small{
+  display:block;
+}
+.orderListPrimary span,
+.orderListMeta span,
+.orderListTotal span{
+  color:#969ca0;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.1em;
+}
+.orderListPrimary strong{
+  margin-top:5px;
+  font-size:14px;
+}
+.orderListPrimary small{
+  margin-top:5px;
+  color:#898f93;
+  font-size:8px;
+}
+.orderListMeta{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+.orderListMeta>div{
+  min-width:0;
+}
+.orderListMeta strong{
+  display:block;
+  margin-top:5px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:9px;
+}
+.orderListTotal{
+  text-align:right;
+}
+.orderListTotal strong,
+.orderListTotal b{
+  display:block;
+}
+.orderListTotal strong{
+  margin-top:5px;
+  font-size:18px;
+}
+.orderListTotal b{
+  margin-top:8px;
+  color:#d8242f;
+  font-size:7px;
+  letter-spacing:.07em;
+}
+
+@media(max-width:900px){
+  .addressSettingsLayout{grid-template-columns:1fr}
+  .addressEditorPanel{position:static}
+  .orderListCard{
+    grid-template-columns:1fr auto;
+  }
+  .orderListMeta{
+    grid-column:1/-1;
+  }
+}
+@media(max-width:600px){
+  .accountDataPage{padding:28px 0 70px}
+  .accountDataHeader{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .accountDataHeader h1{font-size:36px}
+  .addressFormGrid{grid-template-columns:1fr}
+  .addressFormGrid label.full{grid-column:auto}
+  .orderListCard{
+    grid-template-columns:1fr;
+    gap:14px;
+  }
+  .orderListMeta{
+    grid-column:auto;
+    grid-template-columns:1fr 1fr;
+  }
+  .orderListTotal{text-align:left}
+}
