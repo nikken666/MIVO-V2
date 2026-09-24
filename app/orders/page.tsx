@@ -1,10 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/data/products";
+
+type OrderItemPreview = {
+  id: string;
+  product_name: string;
+  quantity: number;
+};
 
 type OrderRow = {
   id: string;
@@ -14,135 +20,350 @@ type OrderRow = {
   total_amount: number | string;
   created_at: string;
   shipping_address: Record<string, string> | null;
+  order_items: OrderItemPreview[] | null;
 };
+
+type OrderTab =
+  | "all"
+  | "to_pay"
+  | "to_ship"
+  | "to_receive"
+  | "completed"
+  | "cancelled";
+
+const tabs: Array<{ key: OrderTab; label: string }> = [
+  { key: "all", label: "ALL" },
+  { key: "to_pay", label: "TO PAY" },
+  { key: "to_ship", label: "TO SHIP" },
+  { key: "to_receive", label: "TO RECEIVE" },
+  { key: "completed", label: "COMPLETED" },
+  { key: "cancelled", label: "CANCELLED" },
+];
 
 function formatOrderStatus(value: string) {
   return value.replaceAll("_", " ").toUpperCase();
 }
 
+function orderBucket(order: OrderRow): Exclude<OrderTab, "all"> {
+  if (
+    order.status === "cancelled" ||
+    order.status === "refunded" ||
+    order.status === "partially_refunded"
+  ) {
+    return "cancelled";
+  }
+
+  if (order.status === "delivered") return "completed";
+  if (order.status === "shipped") return "to_receive";
+
+  if (
+    order.status === "paid" ||
+    order.status === "processing" ||
+    order.status === "packed"
+  ) {
+    return "to_ship";
+  }
+
+  return "to_pay";
+}
+
+function statusCopy(order: OrderRow) {
+  const bucket = orderBucket(order);
+
+  if (bucket === "to_pay") {
+    return {
+      title: "Waiting for payment",
+      text: "Complete payment to continue processing your order.",
+    };
+  }
+
+  if (bucket === "to_ship") {
+    return {
+      title:
+        order.status === "packed"
+          ? "Packed and ready to ship"
+          : "Seller is preparing your order",
+      text: "Your order is being prepared for shipment.",
+    };
+  }
+
+  if (bucket === "to_receive") {
+    return {
+      title: "Parcel is on the way",
+      text: "Confirm receipt after your parcel arrives.",
+    };
+  }
+
+  if (bucket === "completed") {
+    return {
+      title: "Order completed",
+      text: "Your parcel has been received. You can now rate your order.",
+    };
+  }
+
+  return {
+    title: formatOrderStatus(order.status),
+    text: "This order is no longer in the active fulfilment flow.",
+  };
+}
+
 export default function OrdersPage() {
   const router = useRouter();
   const [orders, setOrders] = useState<OrderRow[]>([]);
+  const [activeTab, setActiveTab] = useState<OrderTab>("all");
   const [loading, setLoading] = useState(true);
+  const [busyOrder, setBusyOrder] = useState("");
   const [error, setError] = useState("");
 
-  useEffect(() => {
+  async function loadOrders() {
     const supabase = createClient();
 
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      router.replace("/login?next=/orders");
+      return;
+    }
+
+    const { data, error: orderError } = await supabase
+      .from("orders")
+      .select(
+        "id, order_number, status, payment_status, total_amount, created_at, shipping_address, order_items(id, product_name, quantity)"
+      )
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (orderError) throw orderError;
+
+    setOrders((data as OrderRow[] | null) || []);
+  }
+
+  useEffect(() => {
+    let active = true;
+
     async function load() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        router.replace("/login?next=/orders");
-        return;
+      try {
+        await loadOrders();
+      } catch (caught) {
+        if (!active) return;
+        setError(
+          caught instanceof Error ? caught.message : "Unable to load orders."
+        );
+      } finally {
+        if (active) setLoading(false);
       }
-
-      const { data, error: orderError } = await supabase
-        .from("orders")
-        .select(
-          "id, order_number, status, payment_status, total_amount, created_at, shipping_address"
-        )
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (orderError) {
-        setError(orderError.message);
-        setLoading(false);
-        return;
-      }
-
-      setOrders((data as OrderRow[] | null) || []);
-      setLoading(false);
     }
 
     void load();
+
+    return () => {
+      active = false;
+    };
   }, [router]);
 
+  const counts = useMemo(() => {
+    const result: Record<OrderTab, number> = {
+      all: orders.length,
+      to_pay: 0,
+      to_ship: 0,
+      to_receive: 0,
+      completed: 0,
+      cancelled: 0,
+    };
+
+    orders.forEach((order) => {
+      result[orderBucket(order)] += 1;
+    });
+
+    return result;
+  }, [orders]);
+
+  const visibleOrders = useMemo(
+    () =>
+      activeTab === "all"
+        ? orders
+        : orders.filter((order) => orderBucket(order) === activeTab),
+    [activeTab, orders]
+  );
+
+  async function confirmReceived(orderNumber: string) {
+    setBusyOrder(orderNumber);
+    setError("");
+
+    try {
+      const supabase = createClient();
+      const { error: confirmError } = await supabase.rpc(
+        "confirm_order_received",
+        { p_order_number: orderNumber }
+      );
+
+      if (confirmError) throw confirmError;
+      await loadOrders();
+      setActiveTab("completed");
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Unable to confirm this order."
+      );
+    } finally {
+      setBusyOrder("");
+    }
+  }
+
   return (
-    <main className="accountDataPage">
+    <main className="accountDataPage orderCenterPage">
       <div className="container">
         <div className="accountDataHeader">
           <div>
             <span>MIVO ACCOUNT</span>
             <h1>My Orders</h1>
-            <p>View every order placed with your MIVO account.</p>
+            <p>Track payment, fulfilment, delivery and completed orders.</p>
           </div>
 
           <Link href="/account">← ACCOUNT</Link>
         </div>
 
-        <section className="ordersPanel">
-          <div className="ordersPanelHead">
-            <div>
-              <span>ORDER HISTORY</span>
-              <strong>
-                {loading ? "—" : orders.length}
-              </strong>
-            </div>
-            <Link href="/products">SHOP PARTS →</Link>
-          </div>
+        <section className="orderCenterPanel">
+          <nav className="orderStatusTabs">
+            {tabs.map((tab) => (
+              <button
+                type="button"
+                key={tab.key}
+                className={activeTab === tab.key ? "active" : ""}
+                onClick={() => setActiveTab(tab.key)}
+              >
+                <span>{tab.label}</span>
+                {counts[tab.key] > 0 ? <b>{counts[tab.key]}</b> : null}
+              </button>
+            ))}
+          </nav>
+
+          {error ? <p className="accountDataError">{error}</p> : null}
 
           {loading ? (
             <p className="accountDataNotice">Loading your orders...</p>
-          ) : error ? (
-            <p className="accountDataError">{error}</p>
-          ) : orders.length === 0 ? (
+          ) : visibleOrders.length === 0 ? (
             <div className="ordersEmpty">
-              <strong>No orders yet.</strong>
-              <p>Your MIVO orders will appear here after checkout.</p>
+              <strong>No orders here yet.</strong>
+              <p>Your orders will move between these tabs automatically.</p>
               <Link href="/products">BROWSE PARTS →</Link>
             </div>
           ) : (
-            <div className="orderList">
-              {orders.map((order) => {
-                const address = order.shipping_address || {};
+            <div className="shopOrderList">
+              {visibleOrders.map((order) => {
+                const bucket = orderBucket(order);
+                const copy = statusCopy(order);
                 const date = new Date(order.created_at);
+                const items = order.order_items || [];
+                const totalQty = items.reduce(
+                  (sum, item) => sum + Number(item.quantity || 0),
+                  0
+                );
 
                 return (
-                  <Link
-                    href={"/orders/" + encodeURIComponent(order.order_number)}
-                    className="orderListCard"
-                    key={order.id}
-                  >
-                    <div className="orderListPrimary">
-                      <span>ORDER</span>
-                      <strong>{order.order_number}</strong>
-                      <small>
-                        {date.toLocaleDateString("en-MY", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </small>
-                    </div>
+                  <article className="shopOrderCard" key={order.id}>
+                    <div className="shopOrderHead">
+                      <div>
+                        <span>ORDER</span>
+                        <strong>{order.order_number}</strong>
+                        <small>
+                          {date.toLocaleDateString("en-MY", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </small>
+                      </div>
 
-                    <div className="orderListMeta">
-                      <div>
-                        <span>STATUS</span>
-                        <strong>{formatOrderStatus(order.status)}</strong>
-                      </div>
-                      <div>
-                        <span>PAYMENT</span>
-                        <strong>{formatOrderStatus(order.payment_status)}</strong>
-                      </div>
-                      <div>
-                        <span>DELIVERY</span>
-                        <strong>
-                          {[address.city, address.state]
-                            .filter(Boolean)
-                            .join(", ") || "Malaysia"}
-                        </strong>
+                      <div className={"shopOrderStatus " + bucket}>
+                        <span>{copy.title}</span>
+                        <small>{copy.text}</small>
                       </div>
                     </div>
 
-                    <div className="orderListTotal">
-                      <span>TOTAL</span>
-                      <strong>{formatPrice(Number(order.total_amount))}</strong>
-                      <b>VIEW ORDER →</b>
+                    <div className="shopOrderItems">
+                      {items.slice(0, 3).map((item) => (
+                        <div className="shopOrderItem" key={item.id}>
+                          <div className="shopOrderItemImage">M</div>
+                          <div>
+                            <strong>{item.product_name}</strong>
+                            <span>Qty {item.quantity}</span>
+                          </div>
+                        </div>
+                      ))}
+
+                      {items.length > 3 ? (
+                        <span className="shopOrderMore">
+                          +{items.length - 3} more item
+                          {items.length - 3 === 1 ? "" : "s"}
+                        </span>
+                      ) : null}
                     </div>
-                  </Link>
+
+                    <div className="shopOrderFoot">
+                      <div className="shopOrderTotal">
+                        <span>
+                          {totalQty} ITEM{totalQty === 1 ? "" : "S"}
+                        </span>
+                        <strong>{formatPrice(Number(order.total_amount))}</strong>
+                      </div>
+
+                      <div className="shopOrderActions">
+                        <Link
+                          href={
+                            "/orders/" +
+                            encodeURIComponent(order.order_number)
+                          }
+                          className="orderGhostButton"
+                        >
+                          VIEW ORDER
+                        </Link>
+
+                        {bucket === "to_pay" ? (
+                          <Link
+                            href={
+                              "/orders/" +
+                              encodeURIComponent(order.order_number)
+                            }
+                            className="orderPrimaryButton"
+                          >
+                            PAY NOW
+                          </Link>
+                        ) : null}
+
+                        {bucket === "to_receive" ? (
+                          <button
+                            type="button"
+                            className="orderPrimaryButton"
+                            disabled={busyOrder === order.order_number}
+                            onClick={() =>
+                              confirmReceived(order.order_number)
+                            }
+                          >
+                            {busyOrder === order.order_number
+                              ? "CONFIRMING..."
+                              : "ORDER RECEIVED"}
+                          </button>
+                        ) : null}
+
+                        {bucket === "completed" ? (
+                          <Link
+                            href={
+                              "/orders/" +
+                              encodeURIComponent(order.order_number) +
+                              "/review"
+                            }
+                            className="orderPrimaryButton"
+                          >
+                            RATE ORDER
+                          </Link>
+                        ) : null}
+                      </div>
+                    </div>
+                  </article>
                 );
               })}
             </div>
