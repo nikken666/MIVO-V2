@@ -25,6 +25,7 @@ export type AccountAddress = {
   state: string;
   postcode: string;
   country_code?: string;
+  is_default?: boolean;
 };
 
 export async function loadAccountVehicle(): Promise<AccountVehicle | null> {
@@ -313,4 +314,204 @@ export async function saveDefaultAddress(
     postcode: data.postcode,
     country_code: data.country_code,
   };
+}
+
+
+export async function loadAccountAddresses(): Promise<AccountAddress[]> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from("addresses")
+    .select(
+      "id, label, full_name, phone, address_line_1, address_line_2, city, state, postcode, country_code, is_default"
+    )
+    .eq("user_id", user.id)
+    .order("is_default", { ascending: false })
+    .order("updated_at", { ascending: false });
+
+  if (error) throw error;
+
+  return (data || []).map((row) => ({
+    id: row.id,
+    label: row.label || undefined,
+    full_name: row.full_name,
+    phone: row.phone,
+    address_line_1: row.address_line_1,
+    address_line_2: row.address_line_2 || undefined,
+    city: row.city,
+    state: row.state,
+    postcode: row.postcode,
+    country_code: row.country_code,
+    is_default: Boolean(row.is_default),
+  }));
+}
+
+export async function saveAccountAddress(
+  address: AccountAddress,
+  makeDefault = false
+): Promise<AccountAddress | null> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const now = new Date().toISOString();
+
+  if (makeDefault) {
+    let clear = supabase
+      .from("addresses")
+      .update({ is_default: false, updated_at: now })
+      .eq("user_id", user.id)
+      .eq("is_default", true);
+
+    if (address.id) {
+      clear = clear.neq("id", address.id);
+    }
+
+    const { error: clearError } = await clear;
+    if (clearError) throw clearError;
+  }
+
+  const payload = {
+    label: address.label?.trim() || "Address",
+    full_name: address.full_name.trim(),
+    phone: address.phone.trim(),
+    address_line_1: address.address_line_1.trim(),
+    address_line_2: address.address_line_2?.trim() || null,
+    city: address.city.trim(),
+    state: address.state.trim(),
+    postcode: address.postcode.trim(),
+    country_code: address.country_code || "MY",
+    is_default: makeDefault,
+    updated_at: now,
+  };
+
+  if (address.id) {
+    const { data, error } = await supabase
+      .from("addresses")
+      .update(payload)
+      .eq("id", address.id)
+      .eq("user_id", user.id)
+      .select(
+        "id, label, full_name, phone, address_line_1, address_line_2, city, state, postcode, country_code, is_default"
+      )
+      .single();
+
+    if (error) throw error;
+
+    return {
+      id: data.id,
+      label: data.label || undefined,
+      full_name: data.full_name,
+      phone: data.phone,
+      address_line_1: data.address_line_1,
+      address_line_2: data.address_line_2 || undefined,
+      city: data.city,
+      state: data.state,
+      postcode: data.postcode,
+      country_code: data.country_code,
+      is_default: Boolean(data.is_default),
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("addresses")
+    .insert({
+      user_id: user.id,
+      ...payload,
+    })
+    .select(
+      "id, label, full_name, phone, address_line_1, address_line_2, city, state, postcode, country_code, is_default"
+    )
+    .single();
+
+  if (error) throw error;
+
+  return {
+    id: data.id,
+    label: data.label || undefined,
+    full_name: data.full_name,
+    phone: data.phone,
+    address_line_1: data.address_line_1,
+    address_line_2: data.address_line_2 || undefined,
+    city: data.city,
+    state: data.state,
+    postcode: data.postcode,
+    country_code: data.country_code,
+    is_default: Boolean(data.is_default),
+  };
+}
+
+export async function setDefaultAccountAddress(id: string) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return;
+
+  const now = new Date().toISOString();
+
+  const { error: clearError } = await supabase
+    .from("addresses")
+    .update({ is_default: false, updated_at: now })
+    .eq("user_id", user.id)
+    .eq("is_default", true)
+    .neq("id", id);
+
+  if (clearError) throw clearError;
+
+  const { error } = await supabase
+    .from("addresses")
+    .update({ is_default: true, updated_at: now })
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) throw error;
+}
+
+export async function deleteAccountAddress(id: string) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return;
+
+  const { error } = await supabase
+    .from("addresses")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) throw error;
+
+  const { data: remaining, error: remainingError } = await supabase
+    .from("addresses")
+    .select("id")
+    .eq("user_id", user.id)
+    .order("updated_at", { ascending: false })
+    .limit(1);
+
+  if (remainingError) throw remainingError;
+
+  if (remaining?.[0]?.id) {
+    const { data: defaultExists } = await supabase
+      .from("addresses")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("is_default", true)
+      .maybeSingle();
+
+    if (!defaultExists) {
+      await setDefaultAccountAddress(remaining[0].id);
+    }
+  }
 }
