@@ -69,7 +69,7 @@ export default function VehicleFinder() {
     year,
     variant,
     transmission,
-  ].filter(Boolean);
+  ].filter((answer): answer is string => Boolean(answer));
 
   function chooseMake(value: string) {
     setMake(value);
