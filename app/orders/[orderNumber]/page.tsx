@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/data/products";
 import PaidCancellationModal from "@/components/PaidCancellationModal";
 import UnpaidCancellationModal from "@/components/UnpaidCancellationModal";
+import StripePayButton from "@/components/StripePayButton";
 
 type OrderRow = {
   id: string;
@@ -345,13 +346,11 @@ export default function OrderDetailsPage() {
                   CANCEL ORDER
                 </button>
 
-                <button
-                  type="button"
+                <StripePayButton
+                  orderNumber={order.order_number}
                   className="orderPrimaryButton orderSideMainAction"
-                  disabled
-                >
-                  PAYMENT GATEWAY COMING NEXT
-                </button>
+                  children="PAY SECURELY WITH STRIPE"
+                />
               </>
             ) : null}
 
