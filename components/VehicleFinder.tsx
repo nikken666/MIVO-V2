@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   vehicleDatabase,
   vehicleLabel,
@@ -21,8 +20,6 @@ type SavedVehicle = {
 const TOTAL_STEPS = 6;
 
 export default function VehicleFinder() {
-  const router = useRouter();
-
   const [step, setStep] = useState(1);
   const [make, setMake] = useState("");
   const [model, setModel] = useState("");
@@ -31,6 +28,7 @@ export default function VehicleFinder() {
   const [variant, setVariant] = useState("");
   const [transmission, setTransmission] = useState("");
   const [saved, setSaved] = useState<SavedVehicle | null>(null);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   useEffect(() => {
     try {
@@ -159,7 +157,8 @@ export default function VehicleFinder() {
       transmission,
     });
 
-    router.push("/products?" + params.toString());
+    setIsNavigating(true);
+    window.location.assign("/products?" + params.toString());
   }
 
   const progress = step <= TOTAL_STEPS ? (step / TOTAL_STEPS) * 100 : 100;
@@ -343,8 +342,13 @@ export default function VehicleFinder() {
               <div><small>TRANSMISSION</small><strong>{transmission}</strong></div>
             </div>
 
-            <button type="button" className="fitmentSubmit quizConfirmButton" onClick={confirmVehicle}>
-              YES, FIND MY PARTS <span>→</span>
+            <button
+              type="button"
+              className="fitmentSubmit quizConfirmButton"
+              onClick={confirmVehicle}
+              disabled={isNavigating}
+            >
+              {isNavigating ? "FINDING PARTS..." : "YES, FIND MY PARTS"} <span>→</span>
             </button>
             <button type="button" className="quizRestart" onClick={restart}>
               NO, START AGAIN
