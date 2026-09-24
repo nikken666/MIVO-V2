@@ -1,6 +1,7 @@
 type StripeRequestOptions = {
   method?: "GET" | "POST";
   body?: URLSearchParams;
+  idempotencyKey?: string;
 };
 
 export function getStripeSecretKey() {
@@ -21,6 +22,9 @@ export async function stripeRequest<T>(
       Authorization: "Bearer " + getStripeSecretKey(),
       ...(options.body
         ? { "Content-Type": "application/x-www-form-urlencoded" }
+        : {}),
+      ...(options.idempotencyKey
+        ? { "Idempotency-Key": options.idempotencyKey }
         : {}),
     },
     body: options.body,
