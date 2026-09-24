@@ -5,6 +5,7 @@ export type VehicleGeneration = {
   startYear: number;
   endYear: number;
   variants: string[];
+  transmissions?: string[];
 };
 
 export type VehicleMake = {
@@ -18,12 +19,12 @@ export const vehicleDatabase: VehicleMake[] = [
     vehicles: [
       { id: "perodua-myvi-gen1", model: "Myvi", generation: "Gen 1", startYear: 2005, endYear: 2011, variants: ["1.0", "1.3"] },
       { id: "perodua-myvi-gen2", model: "Myvi", generation: "Gen 2", startYear: 2011, endYear: 2017, variants: ["1.3", "1.5"] },
-      { id: "perodua-myvi-gen3", model: "Myvi", generation: "Gen 3 / D20N / M800", startYear: 2018, endYear: 2026, variants: ["1.3", "1.5"] },
+      { id: "perodua-myvi-gen3", model: "Myvi", generation: "Gen 3 / D20N / M800", startYear: 2018, endYear: 2026, variants: ["1.3", "1.5"], transmissions: ["AUTO"] },
       { id: "perodua-axia-g1", model: "Axia", generation: "Gen 1", startYear: 2014, endYear: 2022, variants: ["1.0"] },
-      { id: "perodua-axia-d74a", model: "Axia", generation: "D74A", startYear: 2023, endYear: 2026, variants: ["1.0"] },
+      { id: "perodua-axia-d74a", model: "Axia", generation: "D74A", startYear: 2023, endYear: 2026, variants: ["1.0"], transmissions: ["AUTO"] },
       { id: "perodua-bezza", model: "Bezza", startYear: 2016, endYear: 2026, variants: ["1.0", "1.3"] },
       { id: "perodua-alza-g1", model: "Alza", generation: "Gen 1", startYear: 2009, endYear: 2021, variants: ["1.5"] },
-      { id: "perodua-alza-w150", model: "Alza", generation: "W150", startYear: 2022, endYear: 2026, variants: ["1.5"] },
+      { id: "perodua-alza-w150", model: "Alza", generation: "W150", startYear: 2022, endYear: 2026, variants: ["1.5"], transmissions: ["AUTO"] },
       { id: "perodua-viva", model: "Viva", startYear: 2007, endYear: 2014, variants: ["660", "850", "1.0"] },
       { id: "perodua-kelisa", model: "Kelisa", startYear: 2001, endYear: 2007, variants: ["850", "1.0"] },
       { id: "perodua-kenari", model: "Kenari", startYear: 2000, endYear: 2009, variants: ["1.0"] },
@@ -38,9 +39,9 @@ export const vehicleDatabase: VehicleMake[] = [
       { id: "proton-saga-flx", model: "Saga", generation: "FLX", startYear: 2011, endYear: 2016, variants: ["1.3"] },
       { id: "proton-saga-vvt", model: "Saga", generation: "VVT", startYear: 2016, endYear: 2026, variants: ["1.3"] },
       { id: "proton-exora-cps", model: "Exora", generation: "CPS", startYear: 2009, endYear: 2011, variants: ["1.6 CPS"] },
-      { id: "proton-exora-bold", model: "Exora", generation: "Bold / CFE", startYear: 2011, endYear: 2023, variants: ["1.6 CFE"] },
+      { id: "proton-exora-bold", model: "Exora", generation: "Bold / CFE", startYear: 2011, endYear: 2023, variants: ["1.6 CFE"], transmissions: ["AUTO"] },
       { id: "proton-preve", model: "Preve", startYear: 2012, endYear: 2018, variants: ["1.6 IAFM+", "1.6 CFE"] },
-      { id: "proton-suprima-s", model: "Suprima S", startYear: 2013, endYear: 2019, variants: ["1.6 CFE"] },
+      { id: "proton-suprima-s", model: "Suprima S", startYear: 2013, endYear: 2019, variants: ["1.6 CFE"], transmissions: ["AUTO"] },
       { id: "proton-waja-mmc", model: "Waja", generation: "MMC", startYear: 2000, endYear: 2007, variants: ["1.6"] },
       { id: "proton-waja-campro", model: "Waja", generation: "Campro", startYear: 2006, endYear: 2011, variants: ["1.6"] },
       { id: "proton-gen2", model: "Gen2", startYear: 2004, endYear: 2012, variants: ["1.3", "1.6"] },
@@ -70,20 +71,20 @@ export const vehicleDatabase: VehicleMake[] = [
   {
     make: "Honda",
     vehicles: [
-      { id: "honda-city-gm2", model: "City", generation: "GM2", startYear: 2009, endYear: 2013, variants: ["1.5"] },
-      { id: "honda-city-gm6", model: "City", generation: "GM6", startYear: 2014, endYear: 2020, variants: ["1.5"] },
-      { id: "honda-city-gn", model: "City", generation: "GN", startYear: 2020, endYear: 2026, variants: ["1.5", "1.5 e:HEV"] },
-      { id: "honda-civic-fd", model: "Civic", generation: "FD", startYear: 2006, endYear: 2011, variants: ["1.8", "2.0"] },
-      { id: "honda-civic-fb", model: "Civic", generation: "FB", startYear: 2012, endYear: 2015, variants: ["1.8", "2.0"] },
-      { id: "honda-civic-fc", model: "Civic", generation: "FC", startYear: 2016, endYear: 2021, variants: ["1.8", "1.5 Turbo"] },
-      { id: "honda-hrv-ru", model: "HR-V", generation: "RU", startYear: 2015, endYear: 2021, variants: ["1.8"] },
+      { id: "honda-city-gm2", model: "City", generation: "GM2", startYear: 2009, endYear: 2013, variants: ["1.5"], transmissions: ["AUTO"] },
+      { id: "honda-city-gm6", model: "City", generation: "GM6", startYear: 2014, endYear: 2020, variants: ["1.5"], transmissions: ["AUTO"] },
+      { id: "honda-city-gn", model: "City", generation: "GN", startYear: 2020, endYear: 2026, variants: ["1.5", "1.5 e:HEV"], transmissions: ["AUTO"] },
+      { id: "honda-civic-fd", model: "Civic", generation: "FD", startYear: 2006, endYear: 2011, variants: ["1.8", "2.0"], transmissions: ["AUTO"] },
+      { id: "honda-civic-fb", model: "Civic", generation: "FB", startYear: 2012, endYear: 2015, variants: ["1.8", "2.0"], transmissions: ["AUTO"] },
+      { id: "honda-civic-fc", model: "Civic", generation: "FC", startYear: 2016, endYear: 2021, variants: ["1.8", "1.5 Turbo"], transmissions: ["AUTO"] },
+      { id: "honda-hrv-ru", model: "HR-V", generation: "RU", startYear: 2015, endYear: 2021, variants: ["1.8"], transmissions: ["AUTO"] },
     ],
   },
   {
     make: "Nissan",
     vehicles: [
       { id: "nissan-almera-n17", model: "Almera", generation: "N17", startYear: 2012, endYear: 2020, variants: ["1.5"] },
-      { id: "nissan-almera-n18", model: "Almera", generation: "N18", startYear: 2020, endYear: 2026, variants: ["1.0 Turbo"] },
+      { id: "nissan-almera-n18", model: "Almera", generation: "N18", startYear: 2020, endYear: 2026, variants: ["1.0 Turbo"], transmissions: ["AUTO"] },
       { id: "nissan-sentra-b13", model: "Sentra", generation: "B13", startYear: 1991, endYear: 1995, variants: ["1.6"] },
       { id: "nissan-sentra-b14", model: "Sentra", generation: "B14", startYear: 1995, endYear: 2000, variants: ["1.6"] },
       { id: "nissan-sentra-n16", model: "Sentra", generation: "N16", startYear: 2000, endYear: 2012, variants: ["1.6", "1.8"] },
@@ -122,6 +123,18 @@ export function yearsForVehicle(vehicle: VehicleGeneration) {
   );
 }
 
-export function vehicleLabel(make: string, vehicle: VehicleGeneration, year?: string, variant?: string) {
-  return [make, vehicle.model, vehicle.generation, year, variant].filter(Boolean).join(" ");
+export function transmissionsForVehicle(vehicle: VehicleGeneration) {
+  return vehicle.transmissions || ["AUTO", "MANUAL"];
+}
+
+export function vehicleLabel(
+  make: string,
+  vehicle: VehicleGeneration,
+  year?: string,
+  variant?: string,
+  transmission?: string
+) {
+  return [make, vehicle.model, vehicle.generation, year, variant, transmission]
+    .filter(Boolean)
+    .join(" ");
 }
