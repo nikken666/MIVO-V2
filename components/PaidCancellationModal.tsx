@@ -74,16 +74,32 @@ export default function PaidCancellationModal({
     setError("");
 
     try {
-      const supabase = createClient();
-      const { error: cancelError } = await supabase.rpc(
-        "customer_cancel_paid_order",
-        {
-          p_order_number: orderNumber,
-          p_reason: reason.trim() || null,
-        }
-      );
+      const response = await fetch("/api/payments/stripe/refund", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderNumber,
+          reason: reason.trim() || null,
+        }),
+      });
 
-      if (cancelError) throw cancelError;
+      const data = (await response.json()) as {
+        error?: string;
+        refundPending?: boolean;
+      };
+
+      if (!response.ok) {
+        if (data.refundPending) {
+          throw new Error(
+            (data.error || "Stripe refund could not be completed.") +
+              " Your order is cancelled and the refund is marked as pending."
+          );
+        }
+
+        throw new Error(
+          data.error || "Unable to cancel and refund this paid order."
+        );
+      }
 
       await onCancelled();
       onClose();
