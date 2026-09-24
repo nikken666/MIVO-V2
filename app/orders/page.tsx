@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/data/products";
 import PaidCancellationModal from "@/components/PaidCancellationModal";
+import UnpaidCancellationModal from "@/components/UnpaidCancellationModal";
 
 type OrderItemPreview = {
   id: string;
@@ -114,6 +115,7 @@ export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState<OrderTab>("all");
   const [loading, setLoading] = useState(true);
   const [busyOrder, setBusyOrder] = useState("");
+  const [unpaidCancelOrder, setUnpaidCancelOrder] = useState("");
   const [paidCancelOrder, setPaidCancelOrder] = useState("");
   const [error, setError] = useState("");
 
@@ -209,37 +211,6 @@ export default function OrdersPage() {
         caught instanceof Error
           ? caught.message
           : "Unable to confirm this order."
-      );
-    } finally {
-      setBusyOrder("");
-    }
-  }
-
-  async function cancelUnpaidOrder(orderNumber: string) {
-    const confirmed = window.confirm(
-      "Cancel this unpaid order? Any reserved stock will be released immediately."
-    );
-
-    if (!confirmed) return;
-
-    setBusyOrder(orderNumber);
-    setError("");
-
-    try {
-      const supabase = createClient();
-      const { error: cancelError } = await supabase.rpc(
-        "customer_cancel_unpaid_order",
-        { p_order_number: orderNumber }
-      );
-
-      if (cancelError) throw cancelError;
-      await loadOrders();
-      setActiveTab("cancelled");
-    } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : "Unable to cancel this order."
       );
     } finally {
       setBusyOrder("");
@@ -360,14 +331,11 @@ export default function OrdersPage() {
                             <button
                               type="button"
                               className="orderGhostButton orderCancelButton"
-                              disabled={busyOrder === order.order_number}
                               onClick={() =>
-                                cancelUnpaidOrder(order.order_number)
+                                setUnpaidCancelOrder(order.order_number)
                               }
                             >
-                              {busyOrder === order.order_number
-                                ? "CANCELLING..."
-                                : "CANCEL ORDER"}
+                              CANCEL ORDER
                             </button>
 
                             <Link
@@ -431,6 +399,17 @@ export default function OrdersPage() {
           )}
         </section>
       </div>
+
+      {unpaidCancelOrder ? (
+        <UnpaidCancellationModal
+          orderNumber={unpaidCancelOrder}
+          onClose={() => setUnpaidCancelOrder("")}
+          onCancelled={async () => {
+            await loadOrders();
+            setActiveTab("cancelled");
+          }}
+        />
+      ) : null}
 
       {paidCancelOrder ? (
         <PaidCancellationModal
