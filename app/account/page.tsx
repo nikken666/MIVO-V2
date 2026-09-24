@@ -91,20 +91,20 @@ export default function AccountPage() {
         </div>
 
         <div className={styles.dashboardGrid}>
-          <div className={styles.stat}>
+          <Link href="/orders" className={styles.stat}>
             <span>Orders</span>
             <strong>My Orders</strong>
-          </div>
+          </Link>
 
-          <div className={styles.stat}>
+          <Link href="/garage" className={styles.stat}>
             <span>Vehicles</span>
             <strong>My Garage</strong>
-          </div>
+          </Link>
 
-          <div className={styles.stat}>
+          <Link href="/account/addresses" className={styles.stat}>
             <span>Account</span>
             <strong>Addresses</strong>
-          </div>
+          </Link>
         </div>
 
         <div className={styles.actions}>
@@ -118,6 +118,10 @@ export default function AccountPage() {
 
           <Link href="/garage" className={styles.secondaryButton}>
             My Garage
+          </Link>
+
+          <Link href="/account/addresses" className={styles.secondaryButton}>
+            Addresses
           </Link>
         </div>
       </section>
