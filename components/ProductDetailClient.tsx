@@ -35,6 +35,7 @@ export default function ProductDetailClient({
 
   const [option1, setOption1] = useState("");
   const [option2, setOption2] = useState("");
+  const [quantity, setQuantity] = useState(1);
 
   const option2Values = useMemo(
     () =>
@@ -78,9 +79,12 @@ export default function ProductDetailClient({
   const displayPrice = selectedVariant?.price ?? product.price;
   const displayStock = selectedVariant?.stock ?? product.stock;
   const displaySku = selectedVariant?.sku ?? product.sku;
+  const maxQuantity =
+    typeof displayStock === "number" && displayStock > 0 ? displayStock : 1;
 
   function selectOption1(value: string) {
     setOption1(value);
+    setQuantity(1);
 
     if (
       option2 &&
@@ -200,7 +204,7 @@ export default function ProductDetailClient({
                       type="button"
                       key={value}
                       disabled={!option1 || soldOut}
-                      onClick={() => setOption2(value)}
+                      onClick={() => { setOption2(value); setQuantity(1); }}
                       style={{
                         border: selected
                           ? "2px solid #e60012"
@@ -243,25 +247,69 @@ export default function ProductDetailClient({
             </span>
           </div>
 
-          <button
-            className="redButton detailCartButton"
-            disabled={
-              !selectionComplete ||
-              !selectedVariant ||
-              selectedVariant.stock <= 0
-            }
-            onClick={() => {
-              if (selectedVariant) {
-                addToCart(product, selectedVariant);
+          <div className="detailPurchaseBox">
+            <div className="detailQuantityRow">
+              <div>
+                <span>QUANTITY</span>
+                <small>
+                  {typeof displayStock === "number" && selectionComplete
+                    ? displayStock + " available"
+                    : "Select your product option first"}
+                </small>
+              </div>
+
+              <div className="quantityStepper detailQuantityStepper">
+                <button
+                  type="button"
+                  aria-label="Decrease quantity"
+                  disabled={quantity <= 1 || !selectionComplete}
+                  onClick={() =>
+                    setQuantity((current) => Math.max(1, current - 1))
+                  }
+                >
+                  −
+                </button>
+                <strong>{quantity}</strong>
+                <button
+                  type="button"
+                  aria-label="Increase quantity"
+                  disabled={
+                    !selectionComplete ||
+                    !selectedVariant ||
+                    quantity >= maxQuantity
+                  }
+                  onClick={() =>
+                    setQuantity((current) =>
+                      Math.min(maxQuantity, current + 1)
+                    )
+                  }
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <button
+              className="redButton detailCartButton"
+              disabled={
+                !selectionComplete ||
+                !selectedVariant ||
+                selectedVariant.stock <= 0
               }
-            }}
-          >
-            {!selectionComplete
-              ? "Select Variation"
-              : !selectedVariant || selectedVariant.stock <= 0
-                ? "Out of Stock"
-                : "Add to Cart"}
-          </button>
+              onClick={() => {
+                if (selectedVariant) {
+                  addToCart(product, selectedVariant, quantity);
+                  setQuantity(1);
+                }
+              }}
+            >
+              {!selectionComplete
+                ? "SELECT VARIATION"
+                : !selectedVariant || selectedVariant.stock <= 0
+                  ? "OUT OF STOCK"
+                  : "ADD " + quantity + " TO CART"}
+            </button>
+          </div>
         </div>
       </section>
     </main>
