@@ -7,15 +7,11 @@ import {
   yearsForVehicle,
   transmissionsForVehicle,
 } from "@/data/vehicles";
-
-type SavedVehicle = {
-  make: string;
-  vehicleId: string;
-  year: string;
-  variant: string;
-  transmission: string;
-  label: string;
-};
+import {
+  loadAccountVehicle,
+  saveAccountVehicle,
+  type AccountVehicle,
+} from "@/lib/customerData";
 
 const TOTAL_STEPS = 6;
 
@@ -27,14 +23,71 @@ export default function VehicleFinder() {
   const [year, setYear] = useState("");
   const [variant, setVariant] = useState("");
   const [transmission, setTransmission] = useState("");
-  const [saved, setSaved] = useState<SavedVehicle | null>(null);
+  const [saved, setSaved] = useState<AccountVehicle | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem("mivo:selectedVehicle");
-      if (raw) setSaved(JSON.parse(raw));
-    } catch {}
+    let active = true;
+
+    async function loadSavedVehicle() {
+      let localSaved: AccountVehicle | null = null;
+
+      try {
+        const raw = window.localStorage.getItem("mivo:selectedVehicle");
+        if (raw) {
+          localSaved = JSON.parse(raw) as AccountVehicle;
+          if (active) setSaved(localSaved);
+        }
+      } catch {}
+
+      try {
+        const accountVehicle = await loadAccountVehicle();
+
+        if (accountVehicle) {
+          if (!active) return;
+          setSaved(accountVehicle);
+          window.localStorage.setItem(
+            "mivo:selectedVehicle",
+            JSON.stringify(accountVehicle)
+          );
+          return;
+        }
+
+        if (localSaved) {
+          const details = vehicleDatabase
+            .flatMap((entry) =>
+              entry.vehicles.map((vehicle) => ({
+                make: entry.make,
+                ...vehicle,
+              }))
+            )
+            .find((vehicle) => vehicle.id === localSaved?.vehicleId);
+
+          if (details) {
+            const synced = await saveAccountVehicle({
+              ...localSaved,
+              model: localSaved.model || details.model,
+              generation:
+                localSaved.generation || details.generation || undefined,
+            });
+
+            if (synced && active) {
+              setSaved(synced);
+              window.localStorage.setItem(
+                "mivo:selectedVehicle",
+                JSON.stringify(synced)
+              );
+            }
+          }
+        }
+      } catch {}
+    }
+
+    void loadSavedVehicle();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const makeData = useMemo(
@@ -129,13 +182,24 @@ export default function VehicleFinder() {
     setTransmission("");
   }
 
-  function confirmVehicle() {
+  async function confirmVehicle() {
     if (!make || !selectedVehicle || !year || !variant || !transmission) return;
 
-    const label = vehicleLabel(make, selectedVehicle, year, variant, transmission);
-    const selected: SavedVehicle = {
+    setIsNavigating(true);
+
+    const label = vehicleLabel(
+      make,
+      selectedVehicle,
+      year,
+      variant,
+      transmission
+    );
+
+    const selected: AccountVehicle = {
       make,
       vehicleId: selectedVehicle.id,
+      model: selectedVehicle.model,
+      generation: selectedVehicle.generation || undefined,
       year,
       variant,
       transmission,
@@ -143,8 +207,22 @@ export default function VehicleFinder() {
     };
 
     try {
-      window.localStorage.setItem("mivo:selectedVehicle", JSON.stringify(selected));
+      window.localStorage.setItem(
+        "mivo:selectedVehicle",
+        JSON.stringify(selected)
+      );
       setSaved(selected);
+    } catch {}
+
+    try {
+      const synced = await saveAccountVehicle(selected);
+      if (synced) {
+        setSaved(synced);
+        window.localStorage.setItem(
+          "mivo:selectedVehicle",
+          JSON.stringify(synced)
+        );
+      }
     } catch {}
 
     const params = new URLSearchParams({
@@ -157,7 +235,6 @@ export default function VehicleFinder() {
       transmission,
     });
 
-    setIsNavigating(true);
     window.location.assign("/products?" + params.toString());
   }
 
@@ -361,7 +438,13 @@ export default function VehicleFinder() {
         <div className="garageIcon">+</div>
         <div>
           <strong>{saved ? saved.label : "Already saved a car?"}</strong>
-          <small>{saved ? "Saved on this device" : "Open My Garage and continue shopping."}</small>
+          <small>
+            {saved
+              ? saved.id
+                ? "Synced to your MIVO account"
+                : "Saved on this device"
+              : "Open My Garage and continue shopping."}
+          </small>
         </div>
         <a href="/garage">{saved ? "Manage" : "Open Garage"}</a>
       </div>
