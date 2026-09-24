@@ -685,3 +685,82 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
   .quizTransmission button{min-height:126px;padding:15px}
   .quizGaragePrompt{margin:0 20px 20px}
 }
+
+
+/* PRODUCT FITMENT RESULTS */
+.fitmentPill.fits{
+  background:#1d7a3b;
+}
+.fitmentPill.universal{
+  background:#2e586f;
+}
+.fitmentPill.unverified{
+  background:#6d7276;
+}
+.fitmentPill.not-fit{
+  background:#9a2f35;
+}
+.productFitmentText.fits{
+  color:#22773b;
+  font-weight:800;
+}
+.productFitmentText.universal{
+  color:#315f76;
+  font-weight:800;
+}
+.productFitmentText.unverified{
+  color:#777d81;
+}
+.productFitmentText.not-fit{
+  color:#a0393f;
+  font-weight:800;
+}
+.fitmentState-not-fit{
+  opacity:.64;
+}
+.vehicleMatchBanner{
+  border:1px solid #272c30;
+}
+.fitmentResultsBar{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  margin:0 0 28px;
+  border:1px solid #dfe2e3;
+  border-radius:14px;
+  overflow:hidden;
+  background:#fff;
+}
+.fitmentResultsBar>div{
+  padding:18px 20px;
+  border-right:1px solid #e4e6e7;
+}
+.fitmentResultsBar>div:last-child{
+  border-right:0;
+}
+.fitmentResultsBar strong,
+.fitmentResultsBar span{
+  display:block;
+}
+.fitmentResultsBar strong{
+  font-size:24px;
+  letter-spacing:-.04em;
+}
+.fitmentResultsBar span{
+  margin-top:3px;
+  color:#8b9195;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+@media(max-width:540px){
+  .fitmentResultsBar{
+    grid-template-columns:1fr;
+  }
+  .fitmentResultsBar>div{
+    border-right:0;
+    border-bottom:1px solid #e4e6e7;
+  }
+  .fitmentResultsBar>div:last-child{
+    border-bottom:0;
+  }
+}
