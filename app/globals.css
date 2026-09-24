@@ -3888,3 +3888,40 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
     width:100%;
   }
 }
+
+
+.orderCancelButton{
+  border-color:#c9cdd0;
+  color:#4f5559;
+  background:#fff;
+}
+.orderCancelButton:hover{
+  border-color:#9aa0a4;
+  background:#f8f9f9;
+}
+.orderCancellationNotice{
+  padding:14px 15px;
+  border:1px solid #e3e5e6;
+  border-radius:10px;
+  background:#fafafa;
+}
+.orderCancellationNotice span,
+.orderCancellationNotice strong{
+  display:block;
+}
+.orderCancellationNotice span{
+  color:#969ca0;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.1em;
+}
+.orderCancellationNotice strong{
+  margin-top:4px;
+  font-size:9px;
+}
+.orderCancellationNotice p{
+  margin:6px 0 0;
+  color:#7e8488;
+  font-size:8px;
+  line-height:1.5;
+}
