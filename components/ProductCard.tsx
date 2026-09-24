@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import type { Product } from "@/data/products";
 import { formatPrice } from "@/data/products";
 import type { FitmentStatus } from "@/data/fitments";
@@ -43,33 +44,66 @@ export default function ProductCard({
   hrefSuffix?: string;
 }) {
   const { addToCart } = useMarketplace();
-  const activeVariants = (product.variants || []).filter((variant) => variant.isActive);
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+
+  const activeVariants = (product.variants || []).filter(
+    (variant) => variant.isActive
+  );
   const requiresSelection =
     Boolean(product.variation1Name) ||
     Boolean(product.variation2Name) ||
     activeVariants.length > 1;
-  const singleVariant = activeVariants.length === 1 ? activeVariants[0] : undefined;
+  const singleVariant =
+    activeVariants.length === 1 ? activeVariants[0] : undefined;
   const soldOut =
     activeVariants.length > 0
       ? activeVariants.every((variant) => variant.stock <= 0)
       : product.stock === 0;
 
+  const maxQuantity =
+    typeof singleVariant?.stock === "number"
+      ? singleVariant.stock
+      : typeof product.stock === "number"
+        ? product.stock
+        : 99;
+
   const detailHref = "/products/" + product.slug + hrefSuffix;
   const fitment = fitmentStatus ? fitmentCopy[fitmentStatus] : null;
   const cardClass =
-    (compact ? "productCard premiumProductCard" : "catalogCard premiumProductCard") +
+    (compact
+      ? "productCard premiumProductCard"
+      : "catalogCard premiumProductCard") +
     (fitmentStatus ? " fitmentState-" + fitmentStatus : "");
   const imageClass = compact
     ? "productPicture premiumProductImage"
     : "catalogImage premiumProductImage";
-  const pillClass = "fitmentPill" + (fitmentStatus ? " " + fitmentStatus : "");
+  const pillClass =
+    "fitmentPill" + (fitmentStatus ? " " + fitmentStatus : "");
   const fitmentTextClass =
     "productFitmentText" + (fitmentStatus ? " " + fitmentStatus : "");
+
+  function decrease() {
+    setQuantity((current) => Math.max(1, current - 1));
+  }
+
+  function increase() {
+    setQuantity((current) =>
+      Math.min(Math.max(1, maxQuantity), current + 1)
+    );
+  }
+
+  function confirmAdd() {
+    addToCart(product, singleVariant, quantity);
+    setQuickAddOpen(false);
+    setQuantity(1);
+  }
 
   return (
     <article className={cardClass}>
       <Link href={detailHref} className={imageClass}>
         <span className="productCategoryLabel">{product.category}</span>
+
         {product.imageUrl ? (
           <img src={product.imageUrl} alt={product.name} />
         ) : (
@@ -88,12 +122,18 @@ export default function ProductCard({
         <div className="productBrandRow">
           <span className="productBrandIdentity">
             {brandLogos[product.brand] ? (
-              <img className="productBrandLogo" src={brandLogos[product.brand]} alt={product.brand} />
+              <img
+                className="productBrandLogo"
+                src={brandLogos[product.brand]}
+                alt={product.brand}
+              />
             ) : (
               product.brand
             )}
           </span>
-          <span>★ {Math.min(5, 4.6 + (product.reviews % 4) / 10).toFixed(1)}</span>
+          <span>
+            ★ {Math.min(5, 4.6 + (product.reviews % 4) / 10).toFixed(1)}
+          </span>
         </div>
 
         <Link href={detailHref}>
@@ -119,12 +159,53 @@ export default function ProductCard({
               className="miniCartButton"
               type="button"
               disabled={soldOut || fitmentStatus === "not-fit"}
-              onClick={() => addToCart(product, singleVariant)}
+              onClick={() => setQuickAddOpen((open) => !open)}
             >
-              {fitmentStatus === "not-fit" ? "NO FIT" : soldOut ? "SOLD OUT" : "ADD"}
+              {fitmentStatus === "not-fit"
+                ? "NO FIT"
+                : soldOut
+                  ? "SOLD OUT"
+                  : quickAddOpen
+                    ? "CANCEL"
+                    : "ADD"}
             </button>
           )}
         </div>
+
+        {quickAddOpen && !requiresSelection && !soldOut ? (
+          <div className="quickAddPanel">
+            <div>
+              <span>QUANTITY</span>
+              <div className="quantityStepper">
+                <button
+                  type="button"
+                  onClick={decrease}
+                  disabled={quantity <= 1}
+                  aria-label="Decrease quantity"
+                >
+                  −
+                </button>
+                <strong>{quantity}</strong>
+                <button
+                  type="button"
+                  onClick={increase}
+                  disabled={quantity >= maxQuantity}
+                  aria-label="Increase quantity"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="quickAddConfirm"
+              onClick={confirmAdd}
+            >
+              ADD {quantity} TO CART
+            </button>
+          </div>
+        ) : null}
       </div>
     </article>
   );
