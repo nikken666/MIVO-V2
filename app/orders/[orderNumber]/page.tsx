@@ -156,6 +156,38 @@ export default function OrderDetailsPage() {
     }
   }
 
+  async function cancelUnpaidOrder() {
+    if (!order) return;
+
+    const confirmed = window.confirm(
+      "Cancel this unpaid order? Any reserved stock will be released immediately."
+    );
+
+    if (!confirmed) return;
+
+    setBusy(true);
+    setError("");
+
+    try {
+      const supabase = createClient();
+      const { error: cancelError } = await supabase.rpc(
+        "customer_cancel_unpaid_order",
+        { p_order_number: order.order_number }
+      );
+
+      if (cancelError) throw cancelError;
+      await load();
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Unable to cancel this order."
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
   if (loading) {
     return (
       <main className="accountDataPage">
@@ -311,13 +343,35 @@ export default function OrderDetailsPage() {
             </section>
 
             {order.status === "pending_payment" ? (
-              <button
-                type="button"
-                className="orderPrimaryButton orderSideMainAction"
-                disabled
-              >
-                PAYMENT GATEWAY COMING NEXT
-              </button>
+              <>
+                <section className="orderCancellationNotice">
+                  <span>PAYMENT DEADLINE</span>
+                  <strong>
+                    Pay within 24 hours from order creation
+                  </strong>
+                  <p>
+                    Unpaid orders are cancelled automatically and reserved stock
+                    is released.
+                  </p>
+                </section>
+
+                <button
+                  type="button"
+                  className="orderGhostButton orderSideMainAction orderCancelButton"
+                  disabled={busy}
+                  onClick={cancelUnpaidOrder}
+                >
+                  {busy ? "CANCELLING..." : "CANCEL ORDER"}
+                </button>
+
+                <button
+                  type="button"
+                  className="orderPrimaryButton orderSideMainAction"
+                  disabled
+                >
+                  PAYMENT GATEWAY COMING NEXT
+                </button>
+              </>
             ) : null}
 
             {order.status === "shipped" ? (
