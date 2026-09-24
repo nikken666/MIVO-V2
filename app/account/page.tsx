@@ -109,19 +109,7 @@ export default function AccountPage() {
 
         <div className={styles.actions}>
           <Link href="/products" className="redButton">
-            Start Shopping
-          </Link>
-
-          <Link href="/orders" className={styles.secondaryButton}>
-            My Orders
-          </Link>
-
-          <Link href="/garage" className={styles.secondaryButton}>
-            My Garage
-          </Link>
-
-          <Link href="/account/addresses" className={styles.secondaryButton}>
-            Addresses
+            Start Shopping →
           </Link>
         </div>
       </section>
