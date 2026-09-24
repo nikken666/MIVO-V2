@@ -18,7 +18,7 @@ type CheckoutResult = {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, clearCart } = useMarketplace();
+  const { cart, cartCount, clearCart } = useMarketplace();
 
   const [buyer, setBuyer] = useState<Buyer | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,13 +38,34 @@ export default function CheckoutPage() {
         return;
       }
 
+      let profileName = "";
+
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (typeof profile?.full_name === "string") {
+          profileName = profile.full_name.trim();
+        }
+      } catch {}
+
+      const metadataName =
+        typeof user.user_metadata?.full_name === "string"
+          ? user.user_metadata.full_name.trim()
+          : "";
+
       setBuyer({
         email: user.email || "",
         fullName:
-          typeof user.user_metadata?.full_name === "string"
-            ? user.user_metadata.full_name
-            : "",
+          profileName ||
+          metadataName ||
+          user.email?.split("@")[0] ||
+          "",
       });
+
       setLoading(false);
     }
 
@@ -68,7 +89,7 @@ export default function CheckoutPage() {
       const items = cart.map((line) => {
         if (!line.variant?.id) {
           throw new Error(
-            `${line.product.name} does not have a valid SKU variation.`
+            line.product.name + " does not have a valid SKU variation."
           );
         }
 
@@ -113,7 +134,7 @@ export default function CheckoutPage() {
       }
 
       clearCart();
-      router.push(`/orders/${order.order_number}`);
+      router.push("/orders/" + order.order_number);
       router.refresh();
     } catch (caught) {
       const details = caught as {
@@ -128,7 +149,7 @@ export default function CheckoutPage() {
           details?.message,
           details?.details,
           details?.hint,
-          details?.code ? `Error code: ${details.code}` : "",
+          details?.code ? "Error code: " + details.code : "",
         ]
           .filter(Boolean)
           .join(" | ") || "Unable to create order."
@@ -140,172 +161,260 @@ export default function CheckoutPage() {
 
   if (loading) {
     return (
-      <main className="container pageShell">
-        <p>Checking your buyer account...</p>
+      <main className="checkoutPage">
+        <div className="container checkoutLoading">
+          <span>MIVO CHECKOUT</span>
+          <strong>Preparing your checkout...</strong>
+        </div>
       </main>
     );
   }
 
   if (!cart.length) {
     return (
-      <main className="container pageShell">
-        <div className="emptyState">
-          <h1>Your cart is empty</h1>
-          <Link href="/products" className="redButton inlineButton">
-            Browse Products
-          </Link>
+      <main className="checkoutPage">
+        <div className="container">
+          <div className="cartEmpty">
+            <span>MIVO CHECKOUT</span>
+            <h1>Your cart is empty.</h1>
+            <p>Add a product before continuing to checkout.</p>
+            <Link href="/products" className="cartPrimaryButton">
+              SHOP PARTS →
+            </Link>
+          </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="container pageShell">
-      <div className="pageHeading">
-        <div>
-          <h1>Checkout</h1>
-          <p>Logged in as {buyer?.email}</p>
+    <main className="checkoutPage">
+      <div className="checkoutTopBand">
+        <div className="container checkoutTopInner">
+          <Link href="/cart">← BACK TO CART</Link>
+
+          <div className="checkoutSteps" aria-label="Checkout progress">
+            <span className="done">01 CART</span>
+            <i />
+            <span className="active">02 DETAILS</span>
+            <i />
+            <span>03 CONFIRM</span>
+          </div>
+
+          <span>SECURE CHECKOUT</span>
         </div>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns:
-            "minmax(0, 1fr) minmax(300px, 380px)",
-          gap: 24,
-          alignItems: "start",
-        }}
-      >
-        <form
-          onSubmit={submit}
-          style={{
-            display: "grid",
-            gap: 16,
-            padding: 24,
-            border: "1px solid #e5e5e8",
-            borderRadius: 18,
-            background: "#fff",
-          }}
-        >
-          <h2 style={{ margin: 0 }}>Shipping Details</h2>
+      <div className="container checkoutShell">
+        <div className="checkoutPageHeader">
+          <span className="cartEyebrow">MIVO CHECKOUT</span>
+          <h1>Complete your order.</h1>
+          <p>
+            Signed in as <strong>{buyer?.email}</strong>
+          </p>
+        </div>
 
-          <label>
-            <strong>Full name *</strong>
-            <input
-              name="full_name"
-              required
-              defaultValue={buyer?.fullName}
-            />
-          </label>
-
-          <label>
-            <strong>Phone number *</strong>
-            <input name="phone" required />
-          </label>
-
-          <label>
-            <strong>Address line 1 *</strong>
-            <input name="address_line_1" required />
-          </label>
-
-          <label>
-            <strong>Address line 2</strong>
-            <input name="address_line_2" />
-          </label>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 14,
-            }}
-          >
-            <label>
-              <strong>Postcode *</strong>
-              <input name="postcode" required />
-            </label>
-
-            <label>
-              <strong>City *</strong>
-              <input name="city" required />
-            </label>
-          </div>
-
-          <label>
-            <strong>State *</strong>
-            <select name="state" required defaultValue="">
-              <option value="" disabled>Choose state</option>
-              <option>Johor</option>
-              <option>Kedah</option>
-              <option>Kelantan</option>
-              <option>Kuala Lumpur</option>
-              <option>Labuan</option>
-              <option>Melaka</option>
-              <option>Negeri Sembilan</option>
-              <option>Pahang</option>
-              <option>Penang</option>
-              <option>Perak</option>
-              <option>Perlis</option>
-              <option>Putrajaya</option>
-              <option>Sabah</option>
-              <option>Sarawak</option>
-              <option>Selangor</option>
-              <option>Terengganu</option>
-            </select>
-          </label>
-
-          <label>
-            <strong>Order note</strong>
-            <textarea name="customer_note" rows={3} />
-          </label>
-
-          {error && (
-            <p style={{ color: "#b40012" }}>{error}</p>
-          )}
-
-          <button
-            type="submit"
-            className="redButton"
-            disabled={busy}
-          >
-            {busy ? "Creating Order..." : "Place Order"}
-          </button>
-        </form>
-
-        <aside className="orderSummary">
-          <h2>Order Summary</h2>
-
-          {cart.map((line) => {
-            const price =
-              line.variant?.price ?? line.product.price;
-
-            return (
-              <div key={line.lineId}>
-                <strong>{line.product.name}</strong>
-                {line.variant && (
-                  <small style={{ display: "block" }}>
-                    {line.variant.title} · SKU {line.variant.sku}
-                  </small>
-                )}
-                <span>
-                  {line.quantity} × {formatPrice(price)}
-                </span>
+        <div className="checkoutLayout">
+          <form className="checkoutFormCard" onSubmit={submit}>
+            <div className="checkoutSectionHead">
+              <div>
+                <span>01</span>
+                <div>
+                  <small>DELIVERY</small>
+                  <h2>Shipping details</h2>
+                </div>
               </div>
-            );
-          })}
+              <strong>MALAYSIA</strong>
+            </div>
 
-          <hr />
+            <div className="checkoutFields">
+              <label className="checkoutField checkoutFieldFull">
+                <span>FULL NAME *</span>
+                <input
+                  name="full_name"
+                  required
+                  defaultValue={buyer?.fullName}
+                  placeholder="Recipient name"
+                />
+              </label>
 
-          <div className="summaryTotal">
-            <span>Total</span>
-            <strong>{formatPrice(subtotal)}</strong>
-          </div>
+              <label className="checkoutField checkoutFieldFull">
+                <span>PHONE NUMBER *</span>
+                <input
+                  name="phone"
+                  required
+                  placeholder="01X-XXXXXXX"
+                  inputMode="tel"
+                />
+              </label>
 
-          <Link href="/cart" className="textButton">
-            ← Back to cart
-          </Link>
-        </aside>
+              <label className="checkoutField checkoutFieldFull">
+                <span>ADDRESS LINE 1 *</span>
+                <input
+                  name="address_line_1"
+                  required
+                  placeholder="House / unit number and street"
+                />
+              </label>
+
+              <label className="checkoutField checkoutFieldFull">
+                <span>ADDRESS LINE 2</span>
+                <input
+                  name="address_line_2"
+                  placeholder="Building, area or landmark (optional)"
+                />
+              </label>
+
+              <label className="checkoutField">
+                <span>POSTCODE *</span>
+                <input
+                  name="postcode"
+                  required
+                  placeholder="75000"
+                  inputMode="numeric"
+                />
+              </label>
+
+              <label className="checkoutField">
+                <span>CITY *</span>
+                <input name="city" required placeholder="City" />
+              </label>
+
+              <label className="checkoutField checkoutFieldFull">
+                <span>STATE *</span>
+                <select name="state" required defaultValue="">
+                  <option value="" disabled>
+                    Choose state
+                  </option>
+                  <option>Johor</option>
+                  <option>Kedah</option>
+                  <option>Kelantan</option>
+                  <option>Kuala Lumpur</option>
+                  <option>Labuan</option>
+                  <option>Melaka</option>
+                  <option>Negeri Sembilan</option>
+                  <option>Pahang</option>
+                  <option>Penang</option>
+                  <option>Perak</option>
+                  <option>Perlis</option>
+                  <option>Putrajaya</option>
+                  <option>Sabah</option>
+                  <option>Sarawak</option>
+                  <option>Selangor</option>
+                  <option>Terengganu</option>
+                </select>
+              </label>
+
+              <label className="checkoutField checkoutFieldFull">
+                <span>ORDER NOTE</span>
+                <textarea
+                  name="customer_note"
+                  rows={3}
+                  placeholder="Optional note for this order"
+                />
+              </label>
+            </div>
+
+            {error ? <p className="checkoutError">{error}</p> : null}
+
+            <div className="checkoutActionRow">
+              <div>
+                <span>ORDER TOTAL</span>
+                <strong>{formatPrice(subtotal)}</strong>
+                <small>Shipping calculated after address confirmation</small>
+              </div>
+
+              <button
+                type="submit"
+                className="checkoutPlaceOrder"
+                disabled={busy}
+              >
+                <span>
+                  <small>{busy ? "PROCESSING" : "FINAL STEP"}</small>
+                  {busy ? "CREATING ORDER..." : "CONFIRM & PLACE ORDER"}
+                </span>
+                <b>→</b>
+              </button>
+            </div>
+          </form>
+
+          <aside className="checkoutSummaryCard">
+            <div className="checkoutSummaryHead">
+              <div>
+                <span>YOUR ORDER</span>
+                <strong>
+                  {cartCount} ITEM{cartCount === 1 ? "" : "S"}
+                </strong>
+              </div>
+              <Link href="/cart">EDIT CART</Link>
+            </div>
+
+            <div className="checkoutItems">
+              {cart.map((line) => {
+                const price =
+                  line.variant?.price ?? line.product.price;
+
+                return (
+                  <article
+                    className="checkoutItem"
+                    key={line.lineId}
+                  >
+                    <div className="checkoutItemImage">
+                      {line.product.imageUrl ? (
+                        <img
+                          src={line.product.imageUrl}
+                          alt={line.product.name}
+                        />
+                      ) : (
+                        <span>{line.product.icon}</span>
+                      )}
+                      <b>{line.quantity}</b>
+                    </div>
+
+                    <div className="checkoutItemInfo">
+                      <span>{line.product.brand}</span>
+                      <strong>{line.product.name}</strong>
+                      {line.variant ? (
+                        <small>
+                          {line.variant.title} · {line.variant.sku}
+                        </small>
+                      ) : null}
+                    </div>
+
+                    <strong className="checkoutItemPrice">
+                      {formatPrice(price * line.quantity)}
+                    </strong>
+                  </article>
+                );
+              })}
+            </div>
+
+            <div className="checkoutSummaryRows">
+              <div>
+                <span>Subtotal</span>
+                <strong>{formatPrice(subtotal)}</strong>
+              </div>
+              <div>
+                <span>Shipping</span>
+                <strong>Calculated next</strong>
+              </div>
+            </div>
+
+            <div className="checkoutSummaryTotal">
+              <div>
+                <span>TOTAL</span>
+                <small>Before shipping</small>
+              </div>
+              <strong>{formatPrice(subtotal)}</strong>
+            </div>
+
+            <div className="checkoutAssurance">
+              <span>✓ Secure account checkout</span>
+              <span>✓ Order tracking after confirmation</span>
+              <span>✓ MIVO customer support</span>
+            </div>
+          </aside>
+        </div>
       </div>
     </main>
   );
