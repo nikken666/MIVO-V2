@@ -1,6 +1,7 @@
 import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
 import Logo from "@/components/Logo";
+import VehicleFinder from "@/components/VehicleFinder";
 import { products } from "@/data/products";
 
 const categories = [
@@ -45,56 +46,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="fitmentCard" id="fitment">
-            <div className="fitmentCardTop">
-              <div>
-                <span className="microLabel">MIVO VEHICLE MATCH</span>
-                <h2>Find parts that fit.</h2>
-              </div>
-              <span className="fitmentBadge">BETA</span>
-            </div>
-            <p className="fitmentIntro">Select your vehicle once. MIVO will narrow the catalogue around it.</p>
-
-            <div className="fitmentForm">
-              <label>
-                <span>Make</span>
-                <select defaultValue="">
-                  <option value="" disabled>Select make</option>
-                  <option>Perodua</option><option>Proton</option><option>Toyota</option><option>Honda</option><option>Nissan</option>
-                </select>
-              </label>
-              <label>
-                <span>Model</span>
-                <select defaultValue="">
-                  <option value="" disabled>Select model</option>
-                  <option>Myvi</option><option>Bezza</option><option>Saga</option><option>City</option><option>Vios</option>
-                </select>
-              </label>
-              <div className="fitmentSplit">
-                <label>
-                  <span>Year</span>
-                  <select defaultValue="">
-                    <option value="" disabled>Year</option>
-                    <option>2026</option><option>2025</option><option>2024</option><option>2023</option>
-                  </select>
-                </label>
-                <label>
-                  <span>Variant / Engine</span>
-                  <select defaultValue="">
-                    <option value="" disabled>Variant</option>
-                    <option>1.3</option><option>1.5</option><option>2.0</option>
-                  </select>
-                </label>
-              </div>
-              <button type="button" className="fitmentSubmit">SHOW COMPATIBLE PARTS <span>→</span></button>
-            </div>
-
-            <div className="garagePrompt">
-              <div className="garageIcon">+</div>
-              <div><strong>Already saved a car?</strong><small>Open My Garage and continue shopping.</small></div>
-              <Link href="/garage">Open Garage</Link>
-            </div>
-          </div>
+          <VehicleFinder />
         </div>
       </section>
 
