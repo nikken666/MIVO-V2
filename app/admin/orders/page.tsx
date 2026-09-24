@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
 
@@ -115,7 +114,6 @@ function customerName(order: OrderView) {
 }
 
 export default function AdminOrdersPage() {
-  const searchParams = useSearchParams();
   const [orders, setOrders] = useState<OrderView[]>([]);
   const [tab, setTab] = useState<TabKey>("all");
   const [query, setQuery] = useState("");
@@ -258,7 +256,11 @@ export default function AdminOrdersPage() {
 
     setOrders(nextOrders);
 
-    const requestedOrder = searchParams.get("order");
+    const requestedOrder =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("order")
+        : null;
+
     if (
       requestedOrder &&
       nextOrders.some((order) => order.order_number === requestedOrder)
