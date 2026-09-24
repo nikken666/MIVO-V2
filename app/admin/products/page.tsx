@@ -12,7 +12,6 @@ type ProductRow = {
   status: string;
   primary_image_url: string | null;
   created_at: string;
-  sellers: { shop_name: string } | Array<{ shop_name: string }> | null;
   brands: { name: string } | Array<{ name: string }> | null;
   product_variants:
     | Array<{
@@ -62,7 +61,7 @@ export default function AdminProductsPage() {
         const { data, error: productError } = await supabase
           .from("products")
           .select(
-            "id, name, slug, status, primary_image_url, created_at, sellers(shop_name), brands(name), product_variants(sku, price, stock_on_hand, stock_reserved)"
+            "id, name, slug, status, primary_image_url, created_at, brands(name), product_variants(sku, price, stock_on_hand, stock_reserved)"
           )
           .order("created_at", { ascending: false });
 
@@ -88,7 +87,6 @@ export default function AdminProductsPage() {
         [
           product.name,
           relationName(product.brands),
-          relationName(product.sellers),
           firstVariant?.sku || "",
         ]
           .join(" ")
@@ -120,7 +118,6 @@ export default function AdminProductsPage() {
           <Link href="/admin/products/new">Add Product</Link>
           <Link href="/admin/fitment">Fitment</Link>
           <Link href="/admin/orders">Orders</Link>
-          <Link href="/admin/sellers">Sellers</Link>
         </nav>
 
         <section className={styles.adminPanel}>
@@ -137,7 +134,7 @@ export default function AdminProductsPage() {
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Product name, SKU, brand or seller"
+                placeholder="Product name, SKU or brand"
               />
             </label>
 
@@ -162,7 +159,6 @@ export default function AdminProductsPage() {
                 <thead>
                   <tr>
                     <th>PRODUCT</th>
-                    <th>SELLER</th>
                     <th>BRAND</th>
                     <th>SKU</th>
                     <th>PRICE</th>
@@ -205,7 +201,6 @@ export default function AdminProductsPage() {
                             </div>
                           </div>
                         </td>
-                        <td>{relationName(product.sellers)}</td>
                         <td>{relationName(product.brands)}</td>
                         <td>{first?.sku || "—"}</td>
                         <td>{minPrice === null ? "—" : "RM " + minPrice.toFixed(2)}</td>
