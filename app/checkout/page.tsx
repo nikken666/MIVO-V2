@@ -356,6 +356,24 @@ export default function CheckoutPage() {
               </label>
             </div>
 
+            <label className="checkoutCancellationPolicy">
+              <input
+                type="checkbox"
+                name="cancellation_policy_accepted"
+                required
+              />
+              <span>
+                <strong>Cancellation & refund policy</strong>
+                <small>
+                  Unpaid orders are cancelled automatically after 24 hours.
+                  Paid orders may be cancelled before shipment. Paid
+                  cancellations deduct the actual payment processing fee, a 3%
+                  cancellation administration fee capped at RM20, and a RM2
+                  service fee. Once shipped, the order cannot be cancelled.
+                </small>
+              </span>
+            </label>
+
             {error ? <p className="checkoutError">{error}</p> : null}
 
             <div className="checkoutActionRow">
