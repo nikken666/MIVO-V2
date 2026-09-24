@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/data/products";
+import PaidCancellationModal from "@/components/PaidCancellationModal";
 
 type OrderItemPreview = {
   id: string;
@@ -113,6 +114,7 @@ export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState<OrderTab>("all");
   const [loading, setLoading] = useState(true);
   const [busyOrder, setBusyOrder] = useState("");
+  const [paidCancelOrder, setPaidCancelOrder] = useState("");
   const [error, setError] = useState("");
 
   async function loadOrders() {
@@ -380,6 +382,19 @@ export default function OrdersPage() {
                           </>
                         ) : null}
 
+                        {bucket === "to_ship" &&
+                        order.status !== "shipped" ? (
+                          <button
+                            type="button"
+                            className="orderGhostButton orderCancelButton"
+                            onClick={() =>
+                              setPaidCancelOrder(order.order_number)
+                            }
+                          >
+                            CANCEL ORDER
+                          </button>
+                        ) : null}
+
                         {bucket === "to_receive" ? (
                           <button
                             type="button"
@@ -416,6 +431,17 @@ export default function OrdersPage() {
           )}
         </section>
       </div>
+
+      {paidCancelOrder ? (
+        <PaidCancellationModal
+          orderNumber={paidCancelOrder}
+          onClose={() => setPaidCancelOrder("")}
+          onCancelled={async () => {
+            await loadOrders();
+            setActiveTab("cancelled");
+          }}
+        />
+      ) : null}
     </main>
   );
 }
