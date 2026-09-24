@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import styles from "../../Admin.module.css";
 
 type Option = { id: string; name: string };
-type Seller = { id: string; shop_name: string; status: string };
+type Store = { id: string; shop_name: string; status: string };
 type Category = { id: string; name: string; parent_id: string | null };
 
 function slugify(value: string) {
@@ -33,7 +33,7 @@ function safeFileName(value: string) {
 export default function AdminNewProductPage() {
   const router = useRouter();
 
-  const [sellers, setSellers] = useState<Seller[]>([]);
+  const [store, setStore] = useState<Store | null>(null);
   const [brands, setBrands] = useState<Option[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [files, setFiles] = useState<File[]>([]);
@@ -73,7 +73,8 @@ export default function AdminNewProductPage() {
             .from("sellers")
             .select("id, shop_name, status")
             .eq("status", "approved")
-            .order("shop_name"),
+            .limit(1)
+            .maybeSingle(),
           supabase
             .from("brands")
             .select("id, name")
@@ -90,7 +91,7 @@ export default function AdminNewProductPage() {
           throw sellerError || brandError || categoryError;
         }
 
-        setSellers((sellerData as Seller[] | null) || []);
+        setStore((sellerData as Store | null) || null);
         setBrands((brandData as Option[] | null) || []);
         setCategories((categoryData as Category[] | null) || []);
       } catch (caught) {
@@ -135,7 +136,7 @@ export default function AdminNewProductPage() {
 
     const supabase = createClient();
     const form = new FormData(event.currentTarget);
-    const sellerId = String(form.get("seller_id") || "");
+    const sellerId = store?.id || "";
     const name = String(form.get("name") || "").trim();
     const sku = String(form.get("sku") || "").trim().toUpperCase();
     const price = Number(form.get("price"));
@@ -157,7 +158,7 @@ export default function AdminNewProductPage() {
       } = await supabase.auth.getUser();
 
       if (!user) throw new Error("Your admin session expired.");
-      if (!sellerId) throw new Error("Choose a seller.");
+      if (!sellerId) throw new Error("MIVO Direct Store is not configured.");
       if (!name) throw new Error("Product name is required.");
       if (!categoryId) throw new Error("Choose a category.");
       if (!sku) throw new Error("SKU is required.");
@@ -307,7 +308,6 @@ export default function AdminNewProductPage() {
           <Link href="/admin/products/new">Add Product</Link>
           <Link href="/admin/fitment">Fitment</Link>
           <Link href="/admin/orders">Orders</Link>
-          <Link href="/admin/sellers">Sellers</Link>
         </nav>
 
         <section className={styles.adminPanel}>
@@ -325,17 +325,12 @@ export default function AdminNewProductPage() {
                   />
                 </label>
 
-                <label className={styles.adminField}>
-                  <span>SELLER *</span>
-                  <select name="seller_id" defaultValue="" required>
-                    <option value="">Choose seller</option>
-                    {sellers.map((seller) => (
-                      <option value={seller.id} key={seller.id}>
-                        {seller.shop_name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <div className={styles.adminField}>
+                  <span>STORE</span>
+                  <div className={styles.adminNotice}>
+                    {store?.shop_name || "MIVO DIRECT STORE"}
+                  </div>
+                </div>
 
                 <label className={styles.adminField}>
                   <span>LISTING STATUS</span>
