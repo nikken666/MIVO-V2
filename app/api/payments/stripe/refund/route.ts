@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { stripeRequest } from "@/lib/stripe/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 type OrderRow = {
   id: string;
@@ -189,11 +190,12 @@ export async function POST(request: NextRequest) {
       update.refunded_at = new Date().toISOString();
     }
 
-    const { error: updateError } = await supabase
+    const admin = createAdminClient();
+
+    const { error: updateError } = await admin
       .from("orders")
       .update(update)
-      .eq("id", order.id)
-      .eq("user_id", user.id);
+      .eq("id", order.id);
 
     if (updateError) throw updateError;
 
