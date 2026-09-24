@@ -4,6 +4,12 @@ import type { Product } from "@/data/products";
 import { formatPrice } from "@/data/products";
 import { useMarketplace } from "./MarketplaceProvider";
 
+const brandLogos: Record<string, string> = {
+  NIKKEN: "/brands/nikken-logo.svg",
+  KYB: "/brands/kyb-logo.svg",
+  GSP: "/brands/gsp-logo.svg",
+};
+
 export default function ProductCard({ product, compact = false }: { product: Product; compact?: boolean }) {
   const { addToCart } = useMarketplace();
   const activeVariants = (product.variants || []).filter((variant) => variant.isActive);
@@ -26,7 +32,16 @@ export default function ProductCard({ product, compact = false }: { product: Pro
         <span className="fitmentPill">FITMENT CHECK</span>
       </Link>
       <div className="productMeta">
-        <div className="productBrandRow"><span>{product.brand}</span><span>★ {Math.min(5, 4.6 + product.reviews % 4 / 10).toFixed(1)}</span></div>
+        <div className="productBrandRow">
+          <span className="productBrandIdentity">
+            {brandLogos[product.brand] ? (
+              <img className="productBrandLogo" src={brandLogos[product.brand]} alt={product.brand} />
+            ) : (
+              product.brand
+            )}
+          </span>
+          <span>★ {Math.min(5, 4.6 + product.reviews % 4 / 10).toFixed(1)}</span>
+        </div>
         <Link href={`/products/${product.slug}`}><h3>{product.name}</h3></Link>
         <p className="productFitmentText">Check compatibility with your vehicle</p>
         <div className="productBottom">
