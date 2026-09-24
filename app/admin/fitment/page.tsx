@@ -14,7 +14,7 @@ export default function AdminFitmentPage() {
           <Link href="/admin/products" className={styles.adminSecondary}>PRODUCTS</Link>
         </div>
         <nav className={styles.adminNav}>
-          <Link href="/admin">Dashboard</Link><Link href="/admin/products">Products</Link><Link href="/admin/products/new">Add Product</Link><Link href="/admin/fitment">Fitment</Link><Link href="/admin/orders">Orders</Link><Link href="/admin/sellers">Sellers</Link>
+          <Link href="/admin">Dashboard</Link><Link href="/admin/products">Products</Link><Link href="/admin/products/new">Add Product</Link><Link href="/admin/fitment">Fitment</Link><Link href="/admin/orders">Orders</Link>
         </nav>
         <section className={styles.adminPanel}>
           <div className={styles.adminPanelHead}><div><h2>Vehicle Fitment</h2><p>Next module: select a product, then assign Make → Model → Generation → Year → Variant → Transmission.</p></div></div>
