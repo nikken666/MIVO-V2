@@ -5,8 +5,10 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
+import Link from "next/link";
 import type { Product, ProductVariant } from "@/data/products";
 
 export type CartLine = {
@@ -16,10 +18,19 @@ export type CartLine = {
   quantity: number;
 };
 
+type CartNotice = {
+  productName: string;
+  quantity: number;
+} | null;
+
 type MarketplaceContextValue = {
   cart: CartLine[];
   cartCount: number;
-  addToCart: (product: Product, variant?: ProductVariant) => void;
+  addToCart: (
+    product: Product,
+    variant?: ProductVariant,
+    quantity?: number
+  ) => void;
   removeFromCart: (lineId: string) => void;
   updateQuantity: (lineId: string, quantity: number) => void;
   clearCart: () => void;
@@ -29,7 +40,7 @@ const MarketplaceContext =
   createContext<MarketplaceContextValue | null>(null);
 
 function createLineId(product: Product, variant?: ProductVariant) {
-  return `${product.slug}::${variant?.id || variant?.sku || "default"}`;
+  return product.slug + "::" + (variant?.id || variant?.sku || "default");
 }
 
 function normalizeSavedCart(value: unknown): CartLine[] {
@@ -65,6 +76,8 @@ export default function MarketplaceProvider({
   children: React.ReactNode;
 }) {
   const [cart, setCart] = useState<CartLine[]>([]);
+  const [notice, setNotice] = useState<CartNotice>(null);
+  const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     try {
@@ -79,6 +92,22 @@ export default function MarketplaceProvider({
     window.localStorage.setItem("mivo-cart", JSON.stringify(cart));
   }, [cart]);
 
+  useEffect(() => {
+    return () => {
+      if (noticeTimer.current) clearTimeout(noticeTimer.current);
+    };
+  }, []);
+
+  function showAddedNotice(productName: string, quantity: number) {
+    setNotice({ productName, quantity });
+
+    if (noticeTimer.current) clearTimeout(noticeTimer.current);
+
+    noticeTimer.current = setTimeout(() => {
+      setNotice(null);
+    }, 2600);
+  }
+
   const value = useMemo<MarketplaceContextValue>(
     () => ({
       cart,
@@ -87,14 +116,24 @@ export default function MarketplaceProvider({
         0
       ),
 
-      addToCart: (product, variant) =>
+      addToCart: (product, variant, quantity = 1) => {
+        const requestedQuantity = Math.max(
+          1,
+          Math.floor(Number(quantity) || 1)
+        );
+
         setCart((current) => {
           const lineId = createLineId(product, variant);
           const found = current.find((line) => line.lineId === lineId);
+          const maximum =
+            typeof variant?.stock === "number"
+              ? variant.stock
+              : typeof product.stock === "number"
+                ? product.stock
+                : undefined;
 
           if (found) {
-            const maximum = variant?.stock;
-            const nextQuantity = found.quantity + 1;
+            const nextQuantity = found.quantity + requestedQuantity;
 
             return current.map((line) =>
               line.lineId === lineId
@@ -115,10 +154,16 @@ export default function MarketplaceProvider({
               lineId,
               product,
               variant,
-              quantity: 1,
+              quantity:
+                typeof maximum === "number"
+                  ? Math.min(maximum, requestedQuantity)
+                  : requestedQuantity,
             },
           ];
-        }),
+        });
+
+        showAddedNotice(product.name, requestedQuantity);
+      },
 
       removeFromCart: (lineId) =>
         setCart((current) =>
@@ -130,8 +175,17 @@ export default function MarketplaceProvider({
           current.map((line) => {
             if (line.lineId !== lineId) return line;
 
-            const maximum = line.variant?.stock;
-            const safeQuantity = Math.max(1, Math.floor(quantity || 1));
+            const maximum =
+              typeof line.variant?.stock === "number"
+                ? line.variant.stock
+                : typeof line.product.stock === "number"
+                  ? line.product.stock
+                  : undefined;
+
+            const safeQuantity = Math.max(
+              1,
+              Math.floor(Number(quantity) || 1)
+            );
 
             return {
               ...line,
@@ -151,6 +205,19 @@ export default function MarketplaceProvider({
   return (
     <MarketplaceContext.Provider value={value}>
       {children}
+
+      {notice ? (
+        <div className="cartSuccessToast" role="status" aria-live="polite">
+          <div className="cartSuccessIcon">✓</div>
+          <div className="cartSuccessCopy">
+            <strong>Added to cart</strong>
+            <span>
+              {notice.quantity} × {notice.productName}
+            </span>
+          </div>
+          <Link href="/cart">VIEW CART →</Link>
+        </div>
+      ) : null}
     </MarketplaceContext.Provider>
   );
 }
