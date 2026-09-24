@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/data/products";
+import PaidCancellationModal from "@/components/PaidCancellationModal";
 
 type OrderRow = {
   id: string;
@@ -17,6 +18,12 @@ type OrderRow = {
   shipping_address: Record<string, string>;
   customer_note: string | null;
   created_at: string;
+  payment_processing_fee_amount?: number | string;
+  cancellation_platform_fee_amount?: number | string;
+  cancellation_service_fee_amount?: number | string;
+  cancellation_fee_total?: number | string;
+  cancellation_refund_amount?: number | string | null;
+  refund_status?: string;
 };
 
 type OrderItem = {
@@ -59,6 +66,7 @@ export default function OrderDetailsPage() {
   const [items, setItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [showPaidCancel, setShowPaidCancel] = useState(false);
   const [error, setError] = useState("");
 
   async function load() {
@@ -78,7 +86,7 @@ export default function OrderDetailsPage() {
     const { data: orderData, error: orderError } = await supabase
       .from("orders")
       .select(
-        "id, order_number, status, payment_status, subtotal, shipping_amount, total_amount, shipping_address, customer_note, created_at"
+        "id, order_number, status, payment_status, subtotal, shipping_amount, total_amount, shipping_address, customer_note, created_at, payment_processing_fee_amount, cancellation_platform_fee_amount, cancellation_service_fee_amount, cancellation_fee_total, cancellation_refund_amount, refund_status"
       )
       .eq("order_number", orderNumber)
       .eq("user_id", user.id)
@@ -252,7 +260,11 @@ export default function OrderDetailsPage() {
         ) : (
           <section className="orderCancelledBanner">
             <strong>{formatStatus(order.status)}</strong>
-            <span>This order is no longer in the active delivery flow.</span>
+            <span>
+              {order.refund_status && order.refund_status !== "none"
+                ? "Refund status: " + formatStatus(order.refund_status)
+                : "This order is no longer in the active delivery flow."}
+            </span>
           </section>
         )}
 
@@ -374,6 +386,19 @@ export default function OrderDetailsPage() {
               </>
             ) : null}
 
+            {order.payment_status === "paid" &&
+            !cancelled &&
+            order.status !== "shipped" &&
+            order.status !== "delivered" ? (
+              <button
+                type="button"
+                className="orderGhostButton orderSideMainAction orderCancelButton"
+                onClick={() => setShowPaidCancel(true)}
+              >
+                CANCEL ORDER
+              </button>
+            ) : null}
+
             {order.status === "shipped" ? (
               <button
                 type="button"
@@ -398,12 +423,70 @@ export default function OrderDetailsPage() {
               </Link>
             ) : null}
 
+            {cancelled &&
+            Number(order.cancellation_refund_amount || 0) > 0 ? (
+              <section className="orderSideCard refundSummaryCard">
+                <span>REFUND SUMMARY</span>
+
+                <div className="orderSideRows">
+                  <div>
+                    <span>Payment processing fee</span>
+                    <strong>
+                      − {formatPrice(
+                        Number(order.payment_processing_fee_amount || 0)
+                      )}
+                    </strong>
+                  </div>
+                  <div>
+                    <span>Cancellation administration fee</span>
+                    <strong>
+                      − {formatPrice(
+                        Number(order.cancellation_platform_fee_amount || 0)
+                      )}
+                    </strong>
+                  </div>
+                  <div>
+                    <span>Service fee</span>
+                    <strong>
+                      − {formatPrice(
+                        Number(order.cancellation_service_fee_amount || 0)
+                      )}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="orderSideTotal">
+                  <span>REFUND AMOUNT</span>
+                  <strong>
+                    {formatPrice(
+                      Number(order.cancellation_refund_amount || 0)
+                    )}
+                  </strong>
+                </div>
+
+                <p className="refundStatusText">
+                  Refund status:{" "}
+                  <strong>
+                    {formatStatus(order.refund_status || "pending")}
+                  </strong>
+                </p>
+              </section>
+            ) : null}
+
             <Link href="/products" className="orderGhostButton orderSideMainAction">
               CONTINUE SHOPPING
             </Link>
           </aside>
         </div>
       </div>
+
+      {showPaidCancel ? (
+        <PaidCancellationModal
+          orderNumber={order.order_number}
+          onClose={() => setShowPaidCancel(false)}
+          onCancelled={load}
+        />
+      ) : null}
     </main>
   );
 }
