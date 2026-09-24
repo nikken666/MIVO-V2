@@ -73,7 +73,7 @@ function statusCopy(order: OrderRow) {
   if (bucket === "to_pay") {
     return {
       title: "Waiting for payment",
-      text: "Complete payment to continue processing your order.",
+      text: "Pay within 24 hours. Unpaid orders are cancelled automatically.",
     };
   }
 
@@ -213,6 +213,37 @@ export default function OrdersPage() {
     }
   }
 
+  async function cancelUnpaidOrder(orderNumber: string) {
+    const confirmed = window.confirm(
+      "Cancel this unpaid order? Any reserved stock will be released immediately."
+    );
+
+    if (!confirmed) return;
+
+    setBusyOrder(orderNumber);
+    setError("");
+
+    try {
+      const supabase = createClient();
+      const { error: cancelError } = await supabase.rpc(
+        "customer_cancel_unpaid_order",
+        { p_order_number: orderNumber }
+      );
+
+      if (cancelError) throw cancelError;
+      await loadOrders();
+      setActiveTab("cancelled");
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Unable to cancel this order."
+      );
+    } finally {
+      setBusyOrder("");
+    }
+  }
+
   return (
     <main className="accountDataPage orderCenterPage">
       <div className="container">
@@ -323,15 +354,30 @@ export default function OrdersPage() {
                         </Link>
 
                         {bucket === "to_pay" ? (
-                          <Link
-                            href={
-                              "/orders/" +
-                              encodeURIComponent(order.order_number)
-                            }
-                            className="orderPrimaryButton"
-                          >
-                            PAY NOW
-                          </Link>
+                          <>
+                            <button
+                              type="button"
+                              className="orderGhostButton orderCancelButton"
+                              disabled={busyOrder === order.order_number}
+                              onClick={() =>
+                                cancelUnpaidOrder(order.order_number)
+                              }
+                            >
+                              {busyOrder === order.order_number
+                                ? "CANCELLING..."
+                                : "CANCEL ORDER"}
+                            </button>
+
+                            <Link
+                              href={
+                                "/orders/" +
+                                encodeURIComponent(order.order_number)
+                              }
+                              className="orderPrimaryButton"
+                            >
+                              PAY NOW
+                            </Link>
+                          </>
                         ) : null}
 
                         {bucket === "to_receive" ? (
