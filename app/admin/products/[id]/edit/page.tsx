@@ -272,7 +272,7 @@ export default function EditProductPage() {
           (imageResult.data as ProductImageRow[] | null) || [];
 
         const mappedFitments = fitmentRows
-          .map((row) => {
+          .map<AdminFitmentDraft | null>((row) => {
             const vehicle = vehicles.find(
               (item) => item.id === row.vehicle_id
             );
@@ -316,10 +316,10 @@ export default function EditProductPage() {
               targetVariantKey: row.variant_id,
               targetVariantId: row.variant_id,
               targetVariantLabel,
-            } satisfies AdminFitmentDraft;
+            };
           })
           .filter(
-            (row): row is AdminFitmentDraft => Boolean(row)
+            (row): row is AdminFitmentDraft => row !== null
           );
 
         const uniqueFitments = Array.from(
