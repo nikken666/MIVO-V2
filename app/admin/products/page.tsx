@@ -99,130 +99,188 @@ export default function AdminProductsPage() {
 
   return (
     <main className={styles.adminShell}>
-      <div className="container">
-        <div className={styles.adminTop}>
-          <div>
-            <span className={styles.adminEyebrow}>MIVO ADMIN · CATALOGUE</span>
-            <h1>Products</h1>
-            <p>View the live MIVO catalogue, SKU, price, stock and listing status.</p>
-          </div>
-          <a href="/admin/products/new" className={styles.adminAction}>
-            + ADD PRODUCT
+      <div className={styles.adminWorkspace}>
+        <aside className={styles.adminSidebar}>
+          <a href="/admin" className={styles.adminBrand}>
+            <span>MIVO</span>
+            <small>STORE CONTROL</small>
           </a>
-        </div>
 
-        <nav className={styles.adminNav}>
-          <a href="/admin">Dashboard</a>
-          <a href="/admin/products">Products</a>
-          <a href="/admin/products/new">Add Product</a>
-          
-          <a href="/admin/orders">Orders</a>
-        </nav>
+          <nav className={styles.adminSideNav}>
+            <a href="/admin">
+              <span>01</span>
+              Dashboard
+            </a>
+            <a href="/admin/orders">
+              <span>02</span>
+              Orders
+            </a>
+            <a href="/admin/products" className={styles.active}>
+              <span>03</span>
+              Products
+            </a>
+            <a href="/admin/products/new">
+              <span>04</span>
+              Add Product
+            </a>
+          </nav>
 
-        <section className={styles.adminPanel}>
-          <div className={styles.adminPanelHead}>
+          <div className={styles.adminSidebarFoot}>
+            <span>STORE MODE</span>
+            <strong>MIVO DIRECT</strong>
+            <a href="/">OPEN STOREFRONT ↗</a>
+          </div>
+        </aside>
+
+        <section className={styles.adminContent}>
+          <header className={styles.adminHeader}>
             <div>
-              <h2>Product Catalogue</h2>
-              <p>{loading ? "Loading..." : filtered.length + " products shown"}</p>
+              <span className={styles.adminEyebrow}>MIVO STORE CONTROL · CATALOGUE</span>
+              <h1>Products</h1>
+              <p>View the live MIVO catalogue, SKU, price, stock and listing status.</p>
             </div>
-          </div>
 
-          <div className={styles.adminFormGrid} style={{ marginBottom: 18 }}>
-            <label className={styles.adminField}>
-              <span>SEARCH</span>
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Product name, SKU or brand"
-              />
-            </label>
+            <div className={styles.adminHeaderActions}>
+              <div className={styles.adminAttention}>
+                <span>PRODUCTS SHOWN</span>
+                <strong>{loading ? "—" : filtered.length}</strong>
+              </div>
+              <a href="/admin/products/new" className={styles.adminAction}>
+                + ADD PRODUCT
+              </a>
+            </div>
+          </header>
 
-            <label className={styles.adminField}>
-              <span>STATUS</span>
-              <select value={status} onChange={(event) => setStatus(event.target.value)}>
-                <option value="all">All status</option>
-                <option value="active">Active</option>
-                <option value="draft">Draft</option>
-                <option value="pending_review">Pending review</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </label>
-          </div>
+          <section className={styles.adminPanel}>
+            <div className={styles.adminPanelHead}>
+              <div>
+                <span className={styles.adminPanelKicker}>CATALOGUE MANAGEMENT</span>
+                <h2>Product Catalogue</h2>
+                <p>Search, review and manage all MIVO listings.</p>
+              </div>
+            </div>
 
-          {error ? <p className={styles.adminError}>{error}</p> : null}
-          {loading ? <p className={styles.adminNotice}>Loading products...</p> : null}
+            <div className={styles.adminFormGrid} style={{ marginBottom: 18 }}>
+              <label className={styles.adminField}>
+                <span>SEARCH</span>
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Product name, SKU or brand"
+                />
+              </label>
 
-          {!loading && !error && (
-            <div className={styles.adminTableWrap}>
-              <table className={styles.adminTable}>
-                <thead>
-                  <tr>
-                    <th>PRODUCT</th>
-                    <th>BRAND</th>
-                    <th>SKU</th>
-                    <th>PRICE</th>
-                    <th>STOCK</th>
-                    <th>STATUS</th>
-                    <th>ACTION</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((product) => {
-                    const variants = product.product_variants || [];
-                    const first = variants[0];
-                    const stock = variants.reduce(
-                      (sum, item) =>
-                        sum + Math.max(0, Number(item.stock_on_hand || 0) - Number(item.stock_reserved || 0)),
-                      0
-                    );
-                    const minPrice = variants.length
-                      ? Math.min(...variants.map((item) => Number(item.price)))
-                      : null;
+              <label className={styles.adminField}>
+                <span>STATUS</span>
+                <select
+                  value={status}
+                  onChange={(event) => setStatus(event.target.value)}
+                >
+                  <option value="all">All status</option>
+                  <option value="active">Active</option>
+                  <option value="draft">Draft</option>
+                  <option value="pending_review">Pending review</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </label>
+            </div>
 
-                    return (
-                      <tr key={product.id}>
-                        <td>
-                          <div className={styles.adminProductCell}>
-                            {product.primary_image_url ? (
-                              <img
-                                className={styles.adminProductThumb}
-                                src={product.primary_image_url}
-                                alt={product.name}
-                              />
-                            ) : (
-                              <div className={styles.adminProductThumb} />
-                            )}
-                            <div>
-                              <strong>{product.name}</strong>
-                              <div style={{ color: "#8b9094", marginTop: 4 }}>
-                                {variants.length} SKU{variants.length === 1 ? "" : "s"}
+            {error ? <p className={styles.adminError}>{error}</p> : null}
+            {loading ? (
+              <p className={styles.adminNotice}>Loading products...</p>
+            ) : null}
+
+            {!loading && !error && (
+              <div className={styles.adminTableWrap}>
+                <table className={styles.adminTable}>
+                  <thead>
+                    <tr>
+                      <th>PRODUCT</th>
+                      <th>BRAND</th>
+                      <th>SKU</th>
+                      <th>PRICE</th>
+                      <th>STOCK</th>
+                      <th>STATUS</th>
+                      <th>ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.map((product) => {
+                      const variants = product.product_variants || [];
+                      const first = variants[0];
+                      const stock = variants.reduce(
+                        (sum, item) =>
+                          sum +
+                          Math.max(
+                            0,
+                            Number(item.stock_on_hand || 0) -
+                              Number(item.stock_reserved || 0)
+                          ),
+                        0
+                      );
+                      const minPrice = variants.length
+                        ? Math.min(
+                            ...variants.map((item) => Number(item.price))
+                          )
+                        : null;
+
+                      return (
+                        <tr key={product.id}>
+                          <td>
+                            <div className={styles.adminProductCell}>
+                              {product.primary_image_url ? (
+                                <img
+                                  className={styles.adminProductThumb}
+                                  src={product.primary_image_url}
+                                  alt={product.name}
+                                />
+                              ) : (
+                                <div className={styles.adminProductThumb} />
+                              )}
+                              <div>
+                                <strong>{product.name}</strong>
+                                <div
+                                  style={{
+                                    color: "#8b9094",
+                                    marginTop: 4,
+                                  }}
+                                >
+                                  {variants.length} SKU
+                                  {variants.length === 1 ? "" : "s"}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </td>
-                        <td>{relationName(product.brands)}</td>
-                        <td>{first?.sku || "—"}</td>
-                        <td>{minPrice === null ? "—" : "RM " + minPrice.toFixed(2)}</td>
-                        <td>{stock}</td>
-                        <td>
-                          <span className={styles.adminStatus}>{product.status}</span>
-                        </td>
-                        <td>
-                          <a
-                            href={"/products/" + product.slug}
-                            className={styles.adminSecondary}
-                            target="_blank"
-                          >
-                            VIEW
-                          </a>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+                          </td>
+                          <td>{relationName(product.brands)}</td>
+                          <td>{first?.sku || "—"}</td>
+                          <td>
+                            {minPrice === null
+                              ? "—"
+                              : "RM " + minPrice.toFixed(2)}
+                          </td>
+                          <td>{stock}</td>
+                          <td>
+                            <span className={styles.adminStatus}>
+                              {product.status}
+                            </span>
+                          </td>
+                          <td>
+                            <a
+                              href={"/products/" + product.slug}
+                              className={styles.adminSecondary}
+                              target="_blank"
+                            >
+                              VIEW
+                            </a>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
         </section>
       </div>
     </main>
