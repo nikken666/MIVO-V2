@@ -1587,3 +1587,125 @@
   .catalogueQuickEditTable th:nth-child(7),
   .catalogueQuickEditTable td:nth-child(7){width:15%}
 }
+
+
+/* SITE-WIDE ADMIN WIDTH SAFETY */
+.adminShell,.adminWorkspace,.adminContent,.adminPanel,.productEditorLayout,.productEditorNav,.productEditorMain,.productEditorCard,.adminFormGrid,.editorTwoCol,.editorThreeCol,.variationSimpleGrid,.fitmentBuilder,.fitmentBuilderGrid,.adminTableWrap{
+  max-width:100%;
+  min-width:0;
+}
+.adminShell{width:100%;overflow-x:hidden}
+.adminWorkspace{max-width:calc(100vw - 32px)}
+.adminContent,.productEditorMain,.productEditorCard,.productEditorCardHead,.adminFormGrid>*,.editorTwoCol>*,.editorThreeCol>*,.variationSimpleGrid>*,.fitmentBuilderGrid>*{min-width:0}
+.adminField input,.adminField select,.adminField textarea{min-width:0;max-width:100%}
+.productEditorCard .adminTable,.editVariantTable{width:100%;min-width:0;table-layout:fixed}
+.productEditorCard .adminTable th,.productEditorCard .adminTable td{overflow-wrap:anywhere;word-break:break-word}
+.productEditorCard .adminTable input,.editVariantTable input{min-width:0;max-width:100%}
+.productEditorFooter{max-width:100%}
+.editVariantTable th:nth-child(1),.editVariantTable td:nth-child(1){width:18%}
+.editVariantTable th:nth-child(2),.editVariantTable td:nth-child(2){width:18%}
+.editVariantTable th:nth-child(3),.editVariantTable td:nth-child(3){width:12%}
+.editVariantTable th:nth-child(4),.editVariantTable td:nth-child(4){width:13%}
+.editVariantTable th:nth-child(5),.editVariantTable td:nth-child(5){width:13%}
+.editVariantTable th:nth-child(6),.editVariantTable td:nth-child(6){width:13%}
+.editVariantTable th:nth-child(7),.editVariantTable td:nth-child(7){width:13%}
+
+.editImagesGrid{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:10px;
+}
+.editImageCard{
+  position:relative;
+  min-width:0;
+  aspect-ratio:1/1;
+  border:1px solid #dfe2e3;
+  border-radius:10px;
+  overflow:hidden;
+  background:#f7f8f8;
+}
+.editImageCard img{width:100%;height:100%;object-fit:cover}
+.editImageMainBadge{
+  position:absolute;left:7px;top:7px;
+  padding:5px 7px;border-radius:999px;
+  background:#111417;color:#fff;
+  font-size:6px;font-weight:900;letter-spacing:.08em;
+}
+.editImageControls{
+  position:absolute;left:6px;right:6px;bottom:6px;
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;
+}
+.editImageControls button{
+  min-width:0;min-height:27px;padding:0 4px;
+  border:1px solid rgba(255,255,255,.7);border-radius:6px;
+  background:rgba(17,20,23,.88);color:#fff;
+  font-size:7px;font-weight:900;cursor:pointer;
+}
+.editImageControls button:disabled{opacity:.35;cursor:not-allowed}
+.editImageAdd{
+  aspect-ratio:1/1;
+  display:grid;place-items:center;
+  border:1px dashed #c9ced1;border-radius:10px;
+  background:#fafafa;color:#697075;cursor:pointer;text-align:center;
+}
+.editImageAdd strong{display:block;font-size:25px;font-weight:400}
+.editImageAdd span{display:block;margin-top:4px;font-size:7px;font-weight:900}
+.editImageHint{margin:10px 0 0;color:#8b9195;font-size:8px}
+
+.shippingMode{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:14px;
+}
+.shippingMode button{
+  min-height:72px;padding:12px 14px;
+  border:1px solid #dfe2e3;border-radius:11px;
+  background:#fff;text-align:left;cursor:pointer;
+}
+.shippingMode button.active{
+  border-color:#111417;
+  box-shadow:0 0 0 1px #111417 inset;
+}
+.shippingMode strong,.shippingMode span{display:block}
+.shippingMode strong{font-size:10px}
+.shippingMode span{margin-top:4px;color:#858b8f;font-size:8px;line-height:1.4}
+
+.variantDimensionTable{
+  width:100%;
+  min-width:0;
+  table-layout:fixed;
+  border-collapse:collapse;
+}
+.variantDimensionTable th,.variantDimensionTable td{
+  padding:9px 7px;
+  border-bottom:1px solid #eceeef;
+  font-size:9px;
+  overflow-wrap:anywhere;
+}
+.variantDimensionTable th{font-size:7px;letter-spacing:.08em;color:#8e9498;text-align:left}
+.variantDimensionTable th:first-child,.variantDimensionTable td:first-child{width:30%}
+.variantDimensionTable th:not(:first-child),.variantDimensionTable td:not(:first-child){width:17.5%}
+.variantDimensionTable input{
+  width:100%;min-width:0;
+  padding:8px 7px;border:1px solid #d7dbdd;border-radius:7px;
+  background:#fff;font-size:9px;
+}
+
+@media(max-width:1350px){
+  .productEditorLayout{grid-template-columns:160px minmax(0,1fr);gap:14px}
+  .productEditorCard{padding:18px}
+  .editImagesGrid{grid-template-columns:repeat(5,minmax(0,1fr))}
+}
+@media(max-width:1180px){
+  .editImagesGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:1100px){
+  .productEditorLayout{grid-template-columns:1fr}
+  .productEditorNav{position:static;display:flex;overflow-x:auto;max-width:100%}
+}
+@media(max-width:760px){
+  .editImagesGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .shippingMode{grid-template-columns:1fr}
+  .variantDimensionTable th:first-child,.variantDimensionTable td:first-child{width:34%}
+}
