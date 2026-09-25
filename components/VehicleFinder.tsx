@@ -24,6 +24,8 @@ export default function VehicleFinder() {
   const [variant, setVariant] = useState("");
   const [transmission, setTransmission] = useState("");
   const [saved, setSaved] = useState<AccountVehicle | null>(null);
+  const [savedLoaded, setSavedLoaded] = useState(false);
+  const [addingVehicle, setAddingVehicle] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
 
   useEffect(() => {
@@ -31,6 +33,13 @@ export default function VehicleFinder() {
 
     async function loadSavedVehicle() {
       let localSaved: AccountVehicle | null = null;
+
+      try {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("addVehicle") === "1") {
+          setAddingVehicle(true);
+        }
+      } catch {}
 
       try {
         const raw = window.localStorage.getItem("mivo:selectedVehicle");
@@ -81,6 +90,9 @@ export default function VehicleFinder() {
           }
         }
       } catch {}
+      finally {
+        if (active) setSavedLoaded(true);
+      }
     }
 
     void loadSavedVehicle();
@@ -240,14 +252,101 @@ export default function VehicleFinder() {
 
   const progress = step <= TOTAL_STEPS ? (step / TOTAL_STEPS) * 100 : 100;
 
+  const savedVehicleQuery = saved
+    ? new URLSearchParams({
+        vehicle: saved.vehicleId,
+        make: saved.make,
+        model: saved.model || "",
+        generation: saved.generation || "",
+        year: saved.year,
+        variant: saved.variant,
+        transmission: saved.transmission || "",
+      }).toString()
+    : "";
+
+  if (!savedLoaded) {
+    return (
+      <div className="fitmentCard quizFitment savedVehicleHomeCard" id="fitment">
+        <div className="savedVehicleHomeLoading">
+          <span className="microLabel">MIVO GARAGE</span>
+          <strong>Loading your vehicle...</strong>
+        </div>
+      </div>
+    );
+  }
+
+  if (saved && !addingVehicle) {
+    return (
+      <div className="fitmentCard quizFitment savedVehicleHomeCard" id="fitment">
+        <div className="savedVehicleHomeTop">
+          <div>
+            <span className="microLabel">YOUR MIVO VEHICLE</span>
+            <h2>{saved.label}</h2>
+          </div>
+          <span className="fitmentBadge">✓ SAVED</span>
+        </div>
+
+        <div className="savedVehicleHomeFacts">
+          <div><small>MAKE</small><strong>{saved.make}</strong></div>
+          <div><small>MODEL</small><strong>{saved.model || "—"}</strong></div>
+          <div><small>YEAR</small><strong>{saved.year}</strong></div>
+          <div><small>VARIANT</small><strong>{saved.variant}</strong></div>
+          <div><small>TRANSMISSION</small><strong>{saved.transmission || "—"}</strong></div>
+        </div>
+
+        <div className="savedVehicleHomeActions">
+          <a
+            className="fitmentSubmit savedVehicleShopButton"
+            href={"/products?" + savedVehicleQuery}
+          >
+            SHOP PARTS FOR THIS CAR <span>→</span>
+          </a>
+
+          <button
+            type="button"
+            className="savedVehicleAddButton"
+            onClick={() => {
+              restart();
+              setAddingVehicle(true);
+            }}
+          >
+            + ADD ANOTHER VEHICLE
+          </button>
+        </div>
+
+        <div className="savedVehicleHomeFooter">
+          <span>
+            {saved.id ? "Synced to your MIVO account" : "Saved on this device"}
+          </span>
+          <a href="/garage">MANAGE GARAGE →</a>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fitmentCard quizFitment" id="fitment">
       <div className="quizTop">
         <div>
-          <span className="microLabel">MIVO VEHICLE MATCH</span>
+          <span className="microLabel">
+            {saved ? "ADD ANOTHER VEHICLE" : "MIVO VEHICLE MATCH"}
+          </span>
           <h2>Tell us about your car.</h2>
         </div>
-        <span className="fitmentBadge">LIVE</span>
+        {saved ? (
+          <button
+            type="button"
+            className="vehicleFinderCancel"
+            onClick={() => {
+              restart();
+              setAddingVehicle(false);
+            }}
+          >
+            CANCEL
+          </button>
+        ) : (
+          <span className="fitmentBadge">LIVE</span>
+        )}
       </div>
 
       <div className="quizProgress" aria-hidden="true">
