@@ -8,6 +8,7 @@ export default function CartPage() {
   const {
     cart,
     cartCount,
+    cartReady,
     removeFromCart,
     updateQuantity,
     clearCart,
@@ -17,6 +18,19 @@ export default function CartPage() {
     const price = line.variant?.price ?? line.product.price;
     return sum + price * line.quantity;
   }, 0);
+
+  if (!cartReady) {
+    return (
+      <main className="cartPage">
+        <div className="container">
+          <div className="cartEmpty">
+            <span>MIVO CART</span>
+            <h1>Loading your cart...</h1>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   if (!cart.length) {
     return (
