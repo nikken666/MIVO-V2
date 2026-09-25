@@ -1709,3 +1709,117 @@
   .shippingMode{grid-template-columns:1fr}
   .variantDimensionTable th:first-child,.variantDimensionTable td:first-child{width:34%}
 }
+
+
+/* SHIPPING RULES */
+.shippingFormulaCard{
+  margin-bottom:18px;
+  padding:18px 20px;
+  border:1px solid #202427;
+  border-radius:14px;
+  background:#111417;
+  color:#fff;
+}
+.shippingFormulaCard span,
+.shippingFormulaCard strong{
+  display:block;
+}
+.shippingFormulaCard span{
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.12em;
+  color:#aeb5ba;
+}
+.shippingFormulaCard strong{
+  margin-top:7px;
+  font-size:15px;
+}
+.shippingFormulaCard p{
+  max-width:900px;
+  margin:7px 0 0;
+  color:#b8bec2;
+  font-size:10px;
+  line-height:1.6;
+}
+.shippingRuleGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+.shippingRuleCard{
+  min-width:0;
+  padding:18px;
+  border:1px solid #dfe2e3;
+  border-radius:16px;
+  background:#fff;
+}
+.shippingRuleHead{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  padding-bottom:14px;
+  border-bottom:1px solid #eceeef;
+}
+.shippingRuleHead>div{
+  min-width:0;
+}
+.shippingRuleHead>div>span{
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.12em;
+  color:#d52f36;
+}
+.shippingRuleHead h2{
+  margin:5px 0 0;
+  font-size:19px;
+}
+.shippingRuleHead p{
+  margin:5px 0 0;
+  color:#858b8f;
+  font-size:8px;
+  line-height:1.45;
+}
+.shippingActiveToggle{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  white-space:nowrap;
+  font-size:8px;
+  font-weight:900;
+}
+.shippingActiveToggle input{
+  width:16px;
+  height:16px;
+  accent-color:#d52f36;
+}
+.shippingRuleFields{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:11px;
+  margin-top:14px;
+}
+.shippingRuleFooter{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px solid #eceeef;
+}
+.shippingRuleFooter small{
+  color:#8a9094;
+  font-size:8px;
+  line-height:1.4;
+}
+@media(max-width:1100px){
+  .shippingRuleGrid{grid-template-columns:1fr}
+}
+@media(max-width:700px){
+  .shippingRuleFields{grid-template-columns:1fr}
+  .shippingRuleFooter{
+    align-items:stretch;
+    flex-direction:column;
+  }
+}
