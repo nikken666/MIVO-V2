@@ -66,6 +66,7 @@ type VehicleRow = {
 type FitmentRow = {
   id: string;
   vehicle_id: string;
+  variant_id: string | null;
   year_from: number | null;
   year_to: number | null;
 };
@@ -231,7 +232,7 @@ export default function EditProductPage() {
             .eq("is_active", true),
           supabase
             .from("product_vehicle_fitments")
-            .select("id, vehicle_id, year_from, year_to")
+            .select("id, vehicle_id, variant_id, year_from, year_to")
             .eq("product_id", productId),
           supabase
             .from("product_images")
@@ -286,8 +287,18 @@ export default function EditProductPage() {
               vehicle.year_to ??
               new Date().getFullYear();
 
+            const targetVariant = row.variant_id
+              ? variantRows.find((item) => item.id === row.variant_id)
+              : null;
+            const targetVariantLabel = targetVariant
+              ? [variantTitle(targetVariant), targetVariant.sku]
+                  .filter(Boolean)
+                  .join(" · ")
+              : null;
+
             return {
               key: [
+                row.variant_id || "ALL-SKU",
                 vehicle.generation_key,
                 yearFrom,
                 yearTo,
@@ -302,6 +313,9 @@ export default function EditProductPage() {
               yearTo,
               variant: vehicle.variant || "ALL",
               transmission: vehicle.transmission || "ALL",
+              targetVariantKey: row.variant_id,
+              targetVariantId: row.variant_id,
+              targetVariantLabel,
             } satisfies AdminFitmentDraft;
           })
           .filter(
@@ -723,7 +737,10 @@ export default function EditProductPage() {
           return {
             product_id: product.id,
             vehicle_id: vehicle.id,
-            variant_id: null,
+            variant_id:
+              fitment.targetVariantId ||
+              fitment.targetVariantKey ||
+              null,
             year_from: fitment.yearFrom,
             year_to: fitment.yearTo,
             notes: null,
@@ -1148,6 +1165,12 @@ export default function EditProductPage() {
                   <AdminFitmentBuilder
                     value={fitments}
                     onChange={setFitments}
+                    variantOptions={variants.map((variant) => ({
+                      key: variant.id,
+                      dbId: variant.id,
+                      label: variantTitle(variant),
+                      sku: variant.sku,
+                    }))}
                   />
                 </section>
 
