@@ -129,9 +129,14 @@ export default function Header() {
               <Link href="/products">COOLING</Link>
               <Link href="/brands">BRANDS</Link>
             </nav>
-            <Link href="/orders" className="trackLink">
-              TRACK ORDER ↗
-            </Link>
+            <div className="navUtilityLinks">
+              <Link href="/?addVehicle=1#fitment" className="addCarLink">
+                + ADD CAR
+              </Link>
+              <Link href="/orders" className="trackLink">
+                TRACK ORDER ↗
+              </Link>
+            </div>
           </div>
         </div>
       </header>
