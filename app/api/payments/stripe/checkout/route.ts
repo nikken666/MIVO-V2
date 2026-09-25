@@ -129,6 +129,12 @@ export async function POST(request: NextRequest) {
     params.set("client_reference_id", order.id);
     params.set("locale", "auto");
 
+    // Malaysia checkout methods.
+    // Card also allows eligible Apple Pay / Google Pay wallets on Stripe Checkout.
+    params.append("payment_method_types[]", "card");
+    params.append("payment_method_types[]", "fpx");
+    params.append("payment_method_types[]", "grabpay");
+
     if (user.email) {
       params.set("customer_email", user.email);
     }
