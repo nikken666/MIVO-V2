@@ -1,4 +1,6 @@
 import ProductCard from "@/components/ProductCard";
+import SavedVehicleProductsBootstrap from "@/components/SavedVehicleProductsBootstrap";
+import { createClient } from "@/lib/supabase/server";
 import { getActiveProducts } from "@/lib/catalog";
 import {
   fitmentRank,
@@ -18,17 +20,47 @@ export default async function ProductsPage({
   const category =
     typeof params.category === "string" ? params.category.toLowerCase() : "";
 
-  const selectedVehicleId =
+  let selectedVehicleId =
     typeof params.vehicle === "string" ? params.vehicle : "";
-  const selectedMake = typeof params.make === "string" ? params.make : "";
-  const selectedModel = typeof params.model === "string" ? params.model : "";
-  const selectedGeneration =
+  let selectedMake = typeof params.make === "string" ? params.make : "";
+  let selectedModel = typeof params.model === "string" ? params.model : "";
+  let selectedGeneration =
     typeof params.generation === "string" ? params.generation : "";
-  const selectedYear = typeof params.year === "string" ? params.year : "";
-  const selectedVariant =
+  let selectedYear = typeof params.year === "string" ? params.year : "";
+  let selectedVariant =
     typeof params.variant === "string" ? params.variant : "";
-  const selectedTransmission =
+  let selectedTransmission =
     typeof params.transmission === "string" ? params.transmission : "";
+
+  if (!selectedVehicleId) {
+    try {
+      const supabase = await createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data: savedVehicle } = await supabase
+          .from("customer_vehicles")
+          .select(
+            "vehicle_key, make, model, generation, year, variant, transmission"
+          )
+          .eq("user_id", user.id)
+          .eq("is_default", true)
+          .maybeSingle();
+
+        if (savedVehicle?.vehicle_key) {
+          selectedVehicleId = savedVehicle.vehicle_key;
+          selectedMake = savedVehicle.make || "";
+          selectedModel = savedVehicle.model || "";
+          selectedGeneration = savedVehicle.generation || "";
+          selectedYear = savedVehicle.year || "";
+          selectedVariant = savedVehicle.variant || "";
+          selectedTransmission = savedVehicle.transmission || "";
+        }
+      }
+    } catch {}
+  }
 
   const selectedVehicleLabel = [
     selectedMake,
@@ -106,6 +138,9 @@ export default async function ProductsPage({
 
   return (
     <main className="container pageShell">
+      <SavedVehicleProductsBootstrap
+        hasVehicle={Boolean(selectedVehicleId)}
+      />
       {selectedVehicleLabel ? (
         <div className="selectedVehicleBanner vehicleMatchBanner">
           <div>
