@@ -229,41 +229,41 @@ export default function AdminPage() {
           {error ? <p className={styles.adminError}>{error}</p> : null}
 
           <div className={styles.dashboardStats}>
-            <article className={styles.dashboardStatPrimary}>
+            <a href="/admin/orders?tab=all" className={styles.dashboardStatPrimary}>
               <span>TODAY SALES</span>
               <strong>{loading ? "—" : money(stats.todaySales)}</strong>
-              <small>Paid orders today</small>
-            </article>
+              <small>Paid orders today · VIEW →</small>
+            </a>
 
-            <article className={styles.dashboardStat}>
+            <a href="/admin/orders?tab=all" className={styles.dashboardStat}>
               <span>ORDERS TODAY</span>
               <strong>{loading ? "—" : stats.ordersToday}</strong>
-              <small>New orders</small>
-            </article>
+              <small>New orders · VIEW →</small>
+            </a>
 
-            <article className={styles.dashboardStat}>
+            <a href="/admin/orders?tab=to_pay" className={styles.dashboardStat}>
               <span>PENDING PAYMENT</span>
               <strong>{loading ? "—" : stats.pendingPayment}</strong>
-              <small>Auto-cancel after 24h</small>
-            </article>
+              <small>Auto-cancel after 24h · VIEW →</small>
+            </a>
 
-            <article className={styles.dashboardStat}>
+            <a href="/admin/orders?tab=to_ship" className={styles.dashboardStat}>
               <span>TO SHIP</span>
               <strong>{loading ? "—" : stats.toShip}</strong>
-              <small>Paid / processing / packed</small>
-            </article>
+              <small>Paid / processing / packed · VIEW →</small>
+            </a>
 
-            <article className={styles.dashboardStat}>
+            <a href="/admin/products?stock=low" className={styles.dashboardStat}>
               <span>LOW STOCK</span>
               <strong>{loading ? "—" : stats.lowStock}</strong>
-              <small>At or below threshold</small>
-            </article>
+              <small>At or below threshold · VIEW →</small>
+            </a>
 
-            <article className={styles.dashboardStat}>
+            <a href="/admin/products?status=active" className={styles.dashboardStat}>
               <span>ACTIVE PRODUCTS</span>
               <strong>{loading ? "—" : stats.activeProducts}</strong>
-              <small>Live catalogue</small>
-            </article>
+              <small>Live catalogue · VIEW →</small>
+            </a>
           </div>
 
           <div className={styles.adminDashboardGrid}>
