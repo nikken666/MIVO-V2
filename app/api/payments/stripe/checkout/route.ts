@@ -9,6 +9,7 @@ type OrderRow = {
   status: string;
   payment_status: string;
   total_amount: number | string;
+  shipping_amount: number | string;
   currency: string;
   stripe_checkout_session_id: string | null;
 };
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
     const { data: orderData, error: orderError } = await supabase
       .from("orders")
       .select(
-        "id, order_number, status, payment_status, total_amount, currency, stripe_checkout_session_id"
+        "id, order_number, status, payment_status, total_amount, shipping_amount, currency, stripe_checkout_session_id"
       )
       .eq("order_number", orderNumber)
       .eq("user_id", user.id)
@@ -174,9 +175,52 @@ export async function POST(request: NextRequest) {
       );
     });
 
+    const shippingAmount = Math.round(
+      Number(order.shipping_amount || 0) * 100
+    );
+
+    if (shippingAmount > 0) {
+      const shippingIndex = items.length;
+
+      params.set(
+        `line_items[${shippingIndex}][price_data][currency]`,
+        String(order.currency || "MYR").toLowerCase()
+      );
+      params.set(
+        `line_items[${shippingIndex}][price_data][product_data][name]`,
+        "Shipping"
+      );
+      params.set(
+        `line_items[${shippingIndex}][price_data][unit_amount]`,
+        String(shippingAmount)
+      );
+      params.set(
+        `line_items[${shippingIndex}][quantity]`,
+        "1"
+      );
+    }
+
+    const expectedTotal = Math.round(Number(order.total_amount) * 100);
+    const itemTotal = items.reduce(
+      (sum, item) =>
+        sum + Math.round(Number(item.unit_price) * 100) * item.quantity,
+      0
+    );
+    const checkoutTotal = itemTotal + Math.max(0, shippingAmount);
+
+    if (checkoutTotal !== expectedTotal) {
+      throw new Error(
+        "Payment total does not match the order total. Please refresh the order."
+      );
+    }
+
     const session = await stripeRequest<StripeCheckoutSession>(
       "/checkout/sessions",
-      { method: "POST", body: params }
+      {
+        method: "POST",
+        body: params,
+        idempotencyKey: "mivo-checkout-" + order.id,
+      }
     );
 
     if (!session.url) {
