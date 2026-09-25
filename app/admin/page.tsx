@@ -338,7 +338,7 @@ export default function AdminPage() {
               </Link>
               <Link href="/admin/products">
                 <span>CATALOGUE</span>
-                <strong>Manage products →</strong>
+                <strong>Open products →</strong>
               </Link>
               <Link href="/admin/products/new">
                 <span>NEW LISTING</span>
