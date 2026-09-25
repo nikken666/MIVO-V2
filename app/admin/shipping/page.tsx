@@ -8,6 +8,9 @@ type ShippingRule = {
   id: string;
   zone_code: string;
   zone_name: string;
+  courier_code: string;
+  courier_name: string;
+  handling_markup: number | string;
   states: string[];
   base_fee: number | string;
   base_weight_kg: number | string;
@@ -60,7 +63,7 @@ export default function AdminShippingPage() {
         const { data, error: rulesError } = await supabase
           .from("shipping_rules")
           .select(
-            "id, zone_code, zone_name, states, base_fee, base_weight_kg, additional_step_kg, additional_kg_fee, volumetric_divisor, minimum_chargeable_weight_kg, bulky_threshold_kg, bulky_surcharge, free_shipping_threshold, max_shipping_fee, is_active, sort_order"
+            "id, zone_code, zone_name, courier_code, courier_name, handling_markup, states, base_fee, base_weight_kg, additional_step_kg, additional_kg_fee, volumetric_divisor, minimum_chargeable_weight_kg, bulky_threshold_kg, bulky_surcharge, free_shipping_threshold, max_shipping_fee, is_active, sort_order"
           )
           .order("sort_order");
 
@@ -134,6 +137,7 @@ export default function AdminShippingPage() {
           rule.free_shipping_threshold
         ),
         max_shipping_fee: nullableNumber(rule.max_shipping_fee),
+        handling_markup: number(rule.handling_markup, 2),
         is_active: rule.is_active,
         updated_at: new Date().toISOString(),
       };
@@ -223,7 +227,9 @@ export default function AdminShippingPage() {
                 <section className={styles.shippingRuleCard} key={rule.id}>
                   <div className={styles.shippingRuleHead}>
                     <div>
-                      <span>{rule.zone_code.toUpperCase()}</span>
+                      <span>
+                        {rule.courier_name.toUpperCase()} · {rule.zone_code.toUpperCase()}
+                      </span>
                       <h2>{rule.zone_name}</h2>
                       <p>{rule.states.join(" · ")}</p>
                     </div>
@@ -344,6 +350,23 @@ export default function AdminShippingPage() {
                     </label>
 
                     <label className={styles.adminField}>
+                      <span>MIVO MARKUP (RM)</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={valueOf(rule.handling_markup)}
+                        onChange={(event) =>
+                          updateRule(
+                            rule.id,
+                            "handling_markup",
+                            event.target.value
+                          )
+                        }
+                      />
+                    </label>
+
+                    <label className={styles.adminField}>
                       <span>BULKY ABOVE (KG)</span>
                       <input
                         type="number"
@@ -417,7 +440,7 @@ export default function AdminShippingPage() {
 
                   <div className={styles.shippingRuleFooter}>
                     <small>
-                      Activate only after the prices for this zone are ready.
+                      Customer charge = courier rate + RM {Number(rule.handling_markup || 0).toFixed(2)}. Activate only after the courier rate for this zone is ready.
                     </small>
                     <button
                       type="button"
