@@ -3,7 +3,7 @@
   --soft:#f4f5f5;--paper:#fff;--warm:#f1eee8;--red:#d8242f;--silver:#d9dde0;
   --radius:20px;--shadow:0 22px 60px rgba(12,15,18,.09)
 }
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#fff;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}html{scroll-behavior:smooth;max-width:100%;overflow-x:hidden}body{margin:0;max-width:100%;overflow-x:hidden;background:#fff;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container{width:min(1360px,calc(100% - 48px));margin:0 auto}
 .announcementBar{background:#090b0d;color:#aeb3b8;font-size:10px;letter-spacing:.12em}.announcementBar .container{height:30px;display:flex;align-items:center;justify-content:space-between}
 .siteHeader{position:sticky;top:0;z-index:80;background:rgba(255,255,255,.96);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
