@@ -105,7 +105,7 @@ export default function AdminProductsPage() {
           <div>
             <span className={styles.adminEyebrow}>MIVO ADMIN · CATALOGUE</span>
             <h1>Products</h1>
-            <p>Manage listings, SKU, price, stock, status and fitment.</p>
+            <p>View the live MIVO catalogue, SKU, price, stock and listing status.</p>
           </div>
           <Link href="/admin/products/new" className={styles.adminAction}>
             + ADD PRODUCT
