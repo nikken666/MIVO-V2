@@ -194,8 +194,11 @@ export default function GaragePage() {
               <Link className="btn btnDark" href={"/products?" + query}>
                 SHOP PARTS FOR THIS VEHICLE <span>→</span>
               </Link>
-              <Link className="garageSecondary" href="/#fitment">
-                CHANGE VEHICLE
+              <Link
+                className="garageSecondary"
+                href="/?addVehicle=1#fitment"
+              >
+                + ADD ANOTHER VEHICLE
               </Link>
               <button
                 className="garageRemove"
