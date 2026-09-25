@@ -255,10 +255,16 @@ export default function AdminOrdersPage() {
 
     setOrders(nextOrders);
 
-    const requestedOrder =
+    const searchParams =
       typeof window !== "undefined"
-        ? new URLSearchParams(window.location.search).get("order")
+        ? new URLSearchParams(window.location.search)
         : null;
+    const requestedOrder = searchParams?.get("order") || null;
+    const requestedTab = searchParams?.get("tab") || "";
+
+    if (tabs.some((item) => item.key === requestedTab)) {
+      setTab(requestedTab as TabKey);
+    }
 
     if (
       requestedOrder &&
