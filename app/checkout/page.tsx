@@ -37,7 +37,7 @@ type ShippingQuote = {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, cartCount, clearCart } = useMarketplace();
+  const { cart, cartCount, cartReady, clearCart } = useMarketplace();
 
   const [buyer, setBuyer] = useState<Buyer | null>(null);
   const [loading, setLoading] = useState(true);
@@ -297,12 +297,14 @@ export default function CheckoutPage() {
     }
   }
 
-  if (loading) {
+  if (loading || !cartReady) {
     return (
       <main className="checkoutPage">
         <div className="container checkoutLoading">
           <span>MIVO CHECKOUT</span>
-          <strong>Preparing your checkout...</strong>
+          <strong>
+            {loading ? "Preparing your checkout..." : "Loading your cart..."}
+          </strong>
         </div>
       </main>
     );
