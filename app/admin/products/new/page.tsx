@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -297,17 +296,17 @@ export default function AdminNewProductPage() {
             <h1>Add Product</h1>
             <p>Create a product directly from the MIVO Admin Console.</p>
           </div>
-          <Link href="/admin/products" className={styles.adminSecondary}>
+          <a href="/admin/products" className={styles.adminSecondary}>
             ← PRODUCTS
-          </Link>
+          </a>
         </div>
 
         <nav className={styles.adminNav}>
-          <Link href="/admin">Dashboard</Link>
-          <Link href="/admin/products">Products</Link>
-          <Link href="/admin/products/new">Add Product</Link>
+          <a href="/admin">Dashboard</a>
+          <a href="/admin/products">Products</a>
+          <a href="/admin/products/new">Add Product</a>
           
-          <Link href="/admin/orders">Orders</Link>
+          <a href="/admin/orders">Orders</a>
         </nav>
 
         <section className={styles.adminPanel}>
@@ -479,9 +478,9 @@ export default function AdminNewProductPage() {
                 <button className={styles.adminAction} type="submit" disabled={busy}>
                   {busy ? "UPLOADING..." : "CREATE PRODUCT"}
                 </button>
-                <Link href="/admin/products" className={styles.adminSecondary}>
+                <a href="/admin/products" className={styles.adminSecondary}>
                   CANCEL
-                </Link>
+                </a>
               </div>
             </form>
           )}
