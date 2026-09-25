@@ -199,10 +199,6 @@ export default function AdminPage() {
               <span>04</span>
               Add Product
             </Link>
-            <Link href="/admin/fitment">
-              <span>05</span>
-              Fitment
-            </Link>
           </nav>
 
           <div className={styles.adminSidebarFoot}>
@@ -347,10 +343,6 @@ export default function AdminPage() {
               <Link href="/admin/products/new">
                 <span>NEW LISTING</span>
                 <strong>Add product →</strong>
-              </Link>
-              <Link href="/admin/fitment">
-                <span>FITMENT</span>
-                <strong>Vehicle matching →</strong>
               </Link>
             </aside>
           </div>
