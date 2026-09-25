@@ -392,6 +392,35 @@ export default function AdminOrdersPage() {
     }
   }
 
+  async function markPaid(order: OrderView) {
+    setBusy(order.order_number);
+    setError("");
+    setMessage("");
+
+    try {
+      const supabase = createClient();
+      const { error: paymentError } = await supabase.rpc(
+        "admin_mark_order_paid",
+        {
+          p_order_number: order.order_number,
+        }
+      );
+
+      if (paymentError) throw paymentError;
+
+      await loadOrders();
+      setMessage(order.order_number + " marked as PAID.");
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Unable to mark this order as paid."
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
   function openOrder(order: OrderView) {
     setSelected(order.order_number);
     setMessage("");
@@ -753,10 +782,23 @@ export default function AdminOrdersPage() {
                             ) : null}
 
                             {order.status === "pending_payment" ? (
-                              <p className={styles.adminNotice}>
-                                Waiting for customer payment. This order
-                                auto-cancels after 24 hours if unpaid.
-                              </p>
+                              <>
+                                <p className={styles.adminNotice}>
+                                  Waiting for customer payment. For testing or
+                                  manually verified payments, confirm it here
+                                  before fulfilment.
+                                </p>
+                                <button
+                                  type="button"
+                                  className={styles.adminAction}
+                                  disabled={busy === order.order_number}
+                                  onClick={() => markPaid(order)}
+                                >
+                                  {busy === order.order_number
+                                    ? "CONFIRMING..."
+                                    : "MARK AS PAID"}
+                                </button>
+                              </>
                             ) : null}
 
                             {["cancelled", "refunded", "partially_refunded"].includes(
