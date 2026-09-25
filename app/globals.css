@@ -2808,6 +2808,30 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
   font-weight:900;
   letter-spacing:.08em;
 }
+.productFitmentCompact small{
+  display:block;
+  margin-top:4px;
+  color:#7f8589;
+  font-size:7px;
+  line-height:1.4;
+}
+.productFitmentCompact.fitment-fits{
+  border-color:#b9d8c1;
+  background:#f3faf5;
+}
+.productFitmentCompact.fitment-fits strong{
+  color:#24743c;
+}
+.productFitmentCompact.fitment-not-fit{
+  border-color:#e6c2c5;
+  background:#fff6f6;
+}
+.productFitmentCompact.fitment-not-fit strong{
+  color:#a62f37;
+}
+.productFitmentCompact.fitment-unverified{
+  background:#f8f9f9;
+}
 .productOptionSection{
   margin-top:17px;
 }
