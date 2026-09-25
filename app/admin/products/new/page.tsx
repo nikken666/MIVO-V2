@@ -265,6 +265,7 @@ export default function AdminNewProductPage() {
 
       return [
         {
+          draftKey: "__default__",
           title: "Default",
           variation_1_value: null,
           variation_2_value: null,
@@ -310,6 +311,7 @@ export default function AdminNewProductPage() {
       }
 
       return {
+        draftKey: row.key,
         title: [row.value1, row.value2].filter(Boolean).join(" / "),
         variation_1_value: row.value1,
         variation_2_value: row.value2 || null,
@@ -448,21 +450,27 @@ export default function AdminNewProductPage() {
         height_cm: Number(form.get("height_cm") || 0),
       };
 
-      const { error: variantError } = await supabase
+      const variantInsertRows = preparedVariants.map(
+        ({ draftKey: _draftKey, ...variant }) => ({
+          product_id: product.id,
+          seller_id: sellerId,
+          ...variant,
+          stock_reserved: 0,
+          low_stock_threshold: Number(
+            form.get("low_stock_threshold") || 5
+          ),
+          ...sharedMeasurements,
+          is_active: true,
+        })
+      );
+
+      const {
+        data: insertedVariants,
+        error: variantError,
+      } = await supabase
         .from("product_variants")
-        .insert(
-          preparedVariants.map((variant) => ({
-            product_id: product.id,
-            seller_id: sellerId,
-            ...variant,
-            stock_reserved: 0,
-            low_stock_threshold: Number(
-              form.get("low_stock_threshold") || 5
-            ),
-            ...sharedMeasurements,
-            is_active: true,
-          }))
-        );
+        .insert(variantInsertRows)
+        .select("id, sku");
 
       if (variantError) throw variantError;
 
@@ -499,10 +507,37 @@ export default function AdminNewProductPage() {
             );
           }
 
+          let targetVariantId: string | null = null;
+
+          if (fitment.targetVariantKey) {
+            const preparedTarget = preparedVariants.find(
+              (item) => item.draftKey === fitment.targetVariantKey
+            );
+
+            if (!preparedTarget) {
+              throw new Error(
+                "The selected fitment SKU no longer exists."
+              );
+            }
+
+            const insertedTarget = (insertedVariants || []).find(
+              (item) => item.sku === preparedTarget.sku
+            );
+
+            if (!insertedTarget?.id) {
+              throw new Error(
+                "Could not connect fitment to SKU " +
+                  preparedTarget.sku
+              );
+            }
+
+            targetVariantId = insertedTarget.id;
+          }
+
           return {
             product_id: product.id,
             vehicle_id: vehicle.id,
-            variant_id: null,
+            variant_id: targetVariantId,
             year_from: fitment.yearFrom,
             year_to: fitment.yearTo,
             notes: null,
@@ -1026,6 +1061,18 @@ export default function AdminNewProductPage() {
                     <AdminFitmentBuilder
                       value={fitments}
                       onChange={setFitments}
+                      variantOptions={
+                        hasVariations
+                          ? variantRows.map((variant) => ({
+                              key: variant.key,
+                              label:
+                                [variant.value1, variant.value2]
+                                  .filter(Boolean)
+                                  .join(" / ") || "Default",
+                              sku: variant.sku || "SKU not set",
+                            }))
+                          : []
+                      }
                     />
                   </section>
 
