@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
@@ -397,34 +396,34 @@ export default function AdminOrdersPage() {
     <main className={styles.adminShell}>
       <div className={styles.adminWorkspace}>
         <aside className={styles.adminSidebar}>
-          <Link href="/admin" className={styles.adminBrand}>
+          <a href="/admin" className={styles.adminBrand}>
             <span>MIVO</span>
             <small>STORE CONTROL</small>
-          </Link>
+          </a>
 
           <nav className={styles.adminSideNav}>
-            <Link href="/admin">
+            <a href="/admin">
               <span>01</span>
               Dashboard
-            </Link>
-            <Link href="/admin/orders" className={styles.active}>
+            </a>
+            <a href="/admin/orders" className={styles.active}>
               <span>02</span>
               Orders
-            </Link>
-            <Link href="/admin/products">
+            </a>
+            <a href="/admin/products">
               <span>03</span>
               Products
-            </Link>
-            <Link href="/admin/products/new">
+            </a>
+            <a href="/admin/products/new">
               <span>04</span>
               Add Product
-            </Link>
+            </a>
           </nav>
 
           <div className={styles.adminSidebarFoot}>
             <span>FULFILMENT</span>
             <strong>{counts.to_ship} TO SHIP</strong>
-            <Link href="/">OPEN STOREFRONT ↗</Link>
+            <a href="/">OPEN STOREFRONT ↗</a>
           </div>
         </aside>
 
