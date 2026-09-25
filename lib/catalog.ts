@@ -8,6 +8,7 @@ import {
 type NamedRelation = { name: string } | Array<{ name: string }> | null;
 
 type ProductRow = {
+  id: string;
   slug: string;
   name: string;
   description: string | null;
@@ -97,6 +98,7 @@ function mapProduct(row: ProductRow): Product | null {
   const firstVariant = variants[0];
 
   return {
+    id: row.id,
     slug: row.slug,
     name: row.name,
     brand: relationName(row.brands, "MIVO"),
@@ -131,7 +133,7 @@ function mapProduct(row: ProductRow): Product | null {
 }
 
 const selectQuery =
-  "slug, name, description, primary_image_url, variation_1_name, variation_2_name, brands(name), categories(name), sellers(shop_name), product_images(image_url, sort_order), product_variants(id, title, variation_1_value, variation_2_value, sku, price, compare_at_price, stock_on_hand, stock_reserved, weight_kg, length_cm, width_cm, height_cm, is_active)";
+  "id, slug, name, description, primary_image_url, variation_1_name, variation_2_name, brands(name), categories(name), sellers(shop_name), product_images(image_url, sort_order), product_variants(id, title, variation_1_value, variation_2_value, sku, price, compare_at_price, stock_on_hand, stock_reserved, weight_kg, length_cm, width_cm, height_cm, is_active)";
 
 export async function getActiveProducts(): Promise<Product[]> {
   try {
