@@ -598,6 +598,10 @@ export default function AdminNewProductPage() {
             <a href="/admin/products/new" className={styles.active}>
               <span>04</span>Add Product
             </a>
+            <a href="/admin/shipping">
+              <span>05</span>
+              Shipping
+            </a>
           </nav>
 
           <div className={styles.adminSidebarFoot}>
