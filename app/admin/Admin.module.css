@@ -870,3 +870,312 @@
 /* redeploy trigger: admin refresh */
 
 /* redeploy trigger: 2026-09-25 admin retry */
+
+
+/* SHOPEE-STYLE PRODUCT EDITOR */
+.productEditorLayout{
+  display:grid;
+  grid-template-columns:190px minmax(0,1fr);
+  gap:18px;
+  align-items:start;
+}
+.productEditorNav{
+  position:sticky;
+  top:110px;
+  display:grid;
+  gap:5px;
+  padding:14px;
+  border:1px solid #e1e4e5;
+  border-radius:14px;
+  background:#fff;
+}
+.productEditorNav span{
+  padding:5px 8px 9px;
+  color:#979da1;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+.productEditorNav a{
+  padding:10px 9px;
+  border-radius:8px;
+  color:#5f6569;
+  font-size:9px;
+  font-weight:850;
+}
+.productEditorNav a:hover{
+  background:#f3f4f4;
+  color:#111417;
+}
+.productEditorMain{
+  display:grid;
+  gap:14px;
+}
+.productEditorCard{
+  scroll-margin-top:115px;
+  padding:22px;
+  border:1px solid #e0e3e4;
+  border-radius:16px;
+  background:#fff;
+}
+.productEditorCardHead{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:18px;
+  padding-bottom:14px;
+  border-bottom:1px solid #eceeef;
+}
+.productEditorCardHead span,
+.productEditorCardHead h2,
+.productEditorCardHead p{
+  display:block;
+}
+.productEditorCardHead span{
+  color:#d8242f;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+.productEditorCardHead h2{
+  margin:4px 0 0;
+  font-size:20px;
+  letter-spacing:-.035em;
+}
+.productEditorCardHead p{
+  margin:5px 0 0;
+  color:#81878b;
+  font-size:9px;
+  line-height:1.5;
+}
+.productEditorCardHead b{
+  padding:7px 9px;
+  border-radius:999px;
+  background:#f1f3f3;
+  color:#686e72;
+  font-size:7px;
+  letter-spacing:.08em;
+}
+.imageUploadGrid{
+  display:grid;
+  grid-template-columns:repeat(8,minmax(0,1fr));
+  gap:9px;
+}
+.imageUploadTile{
+  aspect-ratio:1/1;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  border:1px dashed #cfd3d5;
+  border-radius:10px;
+  background:#fafafa;
+}
+.imageUploadTile img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.imageUploadButton{
+  cursor:pointer;
+  color:#777d81;
+  text-align:center;
+}
+.imageUploadButton strong,
+.imageUploadButton small{
+  display:block;
+}
+.imageUploadButton strong{
+  font-size:24px;
+  font-weight:400;
+}
+.imageUploadButton small{
+  margin-top:4px;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.06em;
+}
+.editorTwoCol{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+.editorThreeCol{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+}
+.editorHint{
+  margin:7px 0 0;
+  color:#979da1;
+  font-size:8px;
+  line-height:1.5;
+}
+.variationToggle{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:14px 15px;
+  border:1px solid #e1e4e5;
+  border-radius:11px;
+  background:#fafafa;
+}
+.variationToggle strong,
+.variationToggle span{
+  display:block;
+}
+.variationToggle strong{
+  font-size:10px;
+}
+.variationToggle span{
+  margin-top:3px;
+  color:#858b8f;
+  font-size:8px;
+}
+.variationToggle input{
+  width:18px;
+  height:18px;
+}
+.variationSimpleGrid{
+  margin-top:14px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+.fitmentBuilder{
+  border:1px solid #dfe2e3;
+  border-radius:13px;
+  overflow:hidden;
+}
+.fitmentBuilderHead{
+  padding:16px 17px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  background:#f8f9f9;
+  border-bottom:1px solid #e4e6e7;
+}
+.fitmentBuilderHead span,
+.fitmentBuilderHead strong{
+  display:block;
+}
+.fitmentBuilderHead span{
+  color:#d8242f;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.11em;
+}
+.fitmentBuilderHead strong{
+  margin-top:4px;
+  font-size:13px;
+}
+.fitmentBuilderHead p{
+  margin:5px 0 0;
+  color:#80868a;
+  font-size:8px;
+}
+.fitmentBuilderHead b{
+  white-space:nowrap;
+  padding:7px 9px;
+  border-radius:999px;
+  background:#111417;
+  color:#fff;
+  font-size:7px;
+}
+.fitmentBuilderGrid{
+  padding:16px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+}
+.fitmentAddButton{
+  min-height:42px;
+  align-self:end;
+  border:1px solid #111417;
+  border-radius:9px;
+  background:#111417;
+  color:#fff;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.06em;
+  cursor:pointer;
+}
+.fitmentAddButton:disabled{
+  opacity:.35;
+  cursor:not-allowed;
+}
+.fitmentList{
+  border-top:1px solid #e6e8e9;
+}
+.fitmentListRow{
+  padding:12px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  border-bottom:1px solid #eef0f1;
+}
+.fitmentListRow:last-child{
+  border-bottom:0;
+}
+.fitmentListRow strong,
+.fitmentListRow span{
+  display:block;
+}
+.fitmentListRow strong{
+  font-size:9px;
+}
+.fitmentListRow span{
+  margin-top:3px;
+  color:#868c90;
+  font-size:8px;
+}
+.fitmentListRow button{
+  border:0;
+  background:transparent;
+  color:#c8242e;
+  font-size:7px;
+  font-weight:900;
+  cursor:pointer;
+}
+.fitmentEmpty{
+  margin:0;
+  padding:14px 16px;
+  border-top:1px solid #e6e8e9;
+  color:#90969a;
+  font-size:8px;
+}
+.productEditorFooter{
+  position:sticky;
+  bottom:0;
+  z-index:30;
+  margin-top:4px;
+  padding:12px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:9px;
+  border:1px solid #dfe2e3;
+  border-radius:12px;
+  background:rgba(255,255,255,.96);
+  backdrop-filter:blur(10px);
+  box-shadow:0 -10px 24px rgba(12,15,18,.06);
+}
+@media(max-width:1100px){
+  .productEditorLayout{grid-template-columns:1fr}
+  .productEditorNav{position:static;display:flex;overflow:auto}
+  .productEditorNav span{display:none}
+  .productEditorNav a{white-space:nowrap}
+  .fitmentBuilderGrid{grid-template-columns:1fr 1fr}
+  .imageUploadGrid{grid-template-columns:repeat(4,1fr)}
+}
+@media(max-width:650px){
+  .editorTwoCol,.editorThreeCol,.variationSimpleGrid{grid-template-columns:1fr}
+  .fitmentBuilderGrid{grid-template-columns:1fr}
+  .imageUploadGrid{grid-template-columns:repeat(3,1fr)}
+  .productEditorCard{padding:16px}
+  .productEditorFooter{align-items:stretch;flex-direction:column-reverse}
+  .productEditorFooter a,.productEditorFooter button{width:100%}
+}
