@@ -21,6 +21,16 @@ type CheckoutResult = {
   order_number: string;
 };
 
+type ShippingQuote = {
+  zone_code: string;
+  zone_name: string;
+  state: string;
+  chargeable_weight_kg: number;
+  subtotal: number;
+  shipping_amount: number;
+  total_amount: number;
+};
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, cartCount, clearCart } = useMarketplace();
@@ -30,6 +40,10 @@ export default function CheckoutPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [savedAddress, setSavedAddress] = useState<AccountAddress | null>(null);
+  const [shippingState, setShippingState] = useState("");
+  const [shippingQuote, setShippingQuote] = useState<ShippingQuote | null>(null);
+  const [shippingLoading, setShippingLoading] = useState(false);
+  const [shippingError, setShippingError] = useState("");
 
   useEffect(() => {
     const supabase = createClient();
@@ -61,6 +75,7 @@ export default function CheckoutPage() {
       try {
         const address = await loadDefaultAddress();
         setSavedAddress(address);
+        if (address?.state) setShippingState(address.state);
       } catch {}
 
       const metadataName =
@@ -88,10 +103,82 @@ export default function CheckoutPage() {
     return sum + price * line.quantity;
   }, 0);
 
+  useEffect(() => {
+    let active = true;
+
+    async function quote() {
+      if (!shippingState || cart.length === 0) {
+        setShippingQuote(null);
+        setShippingError("");
+        return;
+      }
+
+      const items = cart.map((line) => {
+        if (!line.variant?.id) return null;
+        return {
+          variant_id: line.variant.id,
+          quantity: line.quantity,
+        };
+      });
+
+      if (items.some((item) => item === null)) {
+        setShippingQuote(null);
+        setShippingError(
+          "One or more cart items do not have a valid SKU variation."
+        );
+        return;
+      }
+
+      setShippingLoading(true);
+      setShippingError("");
+
+      try {
+        const supabase = createClient();
+        const { data, error: quoteError } = await supabase.rpc(
+          "quote_shipping",
+          {
+            p_items: items,
+            p_state: shippingState,
+          }
+        );
+
+        if (quoteError) throw quoteError;
+        if (!active) return;
+
+        setShippingQuote(data as ShippingQuote);
+      } catch (caught) {
+        if (!active) return;
+        setShippingQuote(null);
+        setShippingError(
+          caught instanceof Error
+            ? caught.message
+            : "Unable to calculate shipping."
+        );
+      } finally {
+        if (active) setShippingLoading(false);
+      }
+    }
+
+    void quote();
+
+    return () => {
+      active = false;
+    };
+  }, [cart, shippingState]);
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setBusy(true);
     setError("");
+
+    if (!shippingState || !shippingQuote) {
+      setError(
+        shippingError ||
+          "Choose a delivery state and wait for the shipping quote."
+      );
+      return;
+    }
+
+    setBusy(true);
 
     try {
       const form = new FormData(event.currentTarget);
@@ -326,7 +413,10 @@ export default function CheckoutPage() {
                 <select
                   name="state"
                   required
-                  defaultValue={savedAddress?.state || ""}
+                  value={shippingState}
+                  onChange={(event) =>
+                    setShippingState(event.target.value)
+                  }
                 >
                   <option value="" disabled>
                     Choose state
@@ -378,19 +468,64 @@ export default function CheckoutPage() {
               </span>
             </label>
 
+            {shippingState ? (
+              <div
+                className={
+                  "checkoutShippingQuote" +
+                  (shippingError ? " error" : "")
+                }
+              >
+                <div>
+                  <span>SHIPPING</span>
+                  <strong>
+                    {shippingLoading
+                      ? "Calculating..."
+                      : shippingQuote
+                        ? shippingQuote.shipping_amount === 0
+                          ? "FREE"
+                          : formatPrice(shippingQuote.shipping_amount)
+                        : "Unavailable"}
+                  </strong>
+                </div>
+                {shippingQuote ? (
+                  <small>
+                    {shippingQuote.zone_name} · Chargeable weight{" "}
+                    {Number(
+                      shippingQuote.chargeable_weight_kg
+                    ).toFixed(2)}{" "}
+                    kg
+                  </small>
+                ) : shippingError ? (
+                  <small>{shippingError}</small>
+                ) : null}
+              </div>
+            ) : null}
+
             {error ? <p className="checkoutError">{error}</p> : null}
 
             <div className="checkoutActionRow">
               <div>
                 <span>ORDER TOTAL</span>
-                <strong>{formatPrice(subtotal)}</strong>
-                <small>Shipping calculated after address confirmation</small>
+                <strong>
+                  {formatPrice(
+                    shippingQuote?.total_amount ?? subtotal
+                  )}
+                </strong>
+                <small>
+                  {shippingQuote
+                    ? "Includes shipping"
+                    : "Choose state to calculate shipping"}
+                </small>
               </div>
 
               <button
                 type="submit"
                 className="checkoutPlaceOrder"
-                disabled={busy}
+                disabled={
+                  busy ||
+                  shippingLoading ||
+                  !shippingQuote
+                }
               >
                 <span>
                   <small>{busy ? "PROCESSING" : "FINAL STEP"}</small>
@@ -459,16 +594,36 @@ export default function CheckoutPage() {
               </div>
               <div>
                 <span>Shipping</span>
-                <strong>Calculated next</strong>
+                <strong>
+                  {!shippingState
+                    ? "Choose state"
+                    : shippingLoading
+                      ? "Calculating..."
+                      : shippingQuote
+                        ? shippingQuote.shipping_amount === 0
+                          ? "FREE"
+                          : formatPrice(
+                              shippingQuote.shipping_amount
+                            )
+                        : "Unavailable"}
+                </strong>
               </div>
             </div>
 
             <div className="checkoutSummaryTotal">
               <div>
                 <span>TOTAL</span>
-                <small>Before shipping</small>
+                <small>
+                  {shippingQuote
+                    ? shippingQuote.zone_name
+                    : "Awaiting delivery state"}
+                </small>
               </div>
-              <strong>{formatPrice(subtotal)}</strong>
+              <strong>
+                {formatPrice(
+                  shippingQuote?.total_amount ?? subtotal
+                )}
+              </strong>
             </div>
 
             <div className="checkoutAssurance">
