@@ -278,47 +278,64 @@ export default function VehicleFinder() {
   if (saved && !addingVehicle) {
     return (
       <div className="fitmentCard quizFitment savedVehicleHomeCard" id="fitment">
+        <div className="savedVehicleAmbient" aria-hidden="true">M</div>
+
         <div className="savedVehicleHomeTop">
           <div>
-            <span className="microLabel">YOUR MIVO VEHICLE</span>
-            <h2>{saved.label}</h2>
+            <span className="savedVehicleEyebrow">MIVO GARAGE · ACTIVE VEHICLE</span>
+            <h2>
+              <span>{saved.make}</span>
+              {saved.model || "Vehicle"}
+            </h2>
+            <p>
+              {[saved.generation, saved.year].filter(Boolean).join(" · ")}
+            </p>
           </div>
-          <span className="fitmentBadge">✓ SAVED</span>
+          <span className="savedVehicleStatus">✓ ACTIVE</span>
         </div>
 
-        <div className="savedVehicleHomeFacts">
-          <div><small>MAKE</small><strong>{saved.make}</strong></div>
-          <div><small>MODEL</small><strong>{saved.model || "—"}</strong></div>
-          <div><small>YEAR</small><strong>{saved.year}</strong></div>
-          <div><small>VARIANT</small><strong>{saved.variant}</strong></div>
-          <div><small>TRANSMISSION</small><strong>{saved.transmission || "—"}</strong></div>
+        <div className="savedVehicleSpecLine">
+          <div>
+            <small>VARIANT</small>
+            <strong>{saved.variant}</strong>
+          </div>
+          <i />
+          <div>
+            <small>TRANSMISSION</small>
+            <strong>{saved.transmission || "—"}</strong>
+          </div>
+          <i />
+          <div>
+            <small>FITMENT</small>
+            <strong>READY</strong>
+          </div>
         </div>
 
-        <div className="savedVehicleHomeActions">
-          <a
-            className="fitmentSubmit savedVehicleShopButton"
-            href={"/products?" + savedVehicleQuery}
-          >
-            SHOP PARTS FOR THIS CAR <span>→</span>
-          </a>
+        <a
+          className="savedVehiclePrimary"
+          href={"/products?" + savedVehicleQuery}
+        >
+          <span>
+            <small>SHOP FOR YOUR VEHICLE</small>
+            COMPATIBLE PARTS
+          </span>
+          <b>→</b>
+        </a>
 
+        <div className="savedVehicleHomeFooter">
           <button
             type="button"
-            className="savedVehicleAddButton"
             onClick={() => {
               restart();
               setAddingVehicle(true);
             }}
           >
-            + ADD ANOTHER VEHICLE
+            + ADD CAR
           </button>
-        </div>
-
-        <div className="savedVehicleHomeFooter">
           <span>
-            {saved.id ? "Synced to your MIVO account" : "Saved on this device"}
+            {saved.id ? "ACCOUNT SYNCED" : "SAVED ON THIS DEVICE"}
           </span>
-          <a href="/garage">MANAGE GARAGE →</a>
+          <a href="/garage">MANAGE GARAGE</a>
         </div>
       </div>
     );
