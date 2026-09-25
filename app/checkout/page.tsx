@@ -22,6 +22,10 @@ type CheckoutResult = {
 };
 
 type ShippingQuote = {
+  courier_code: string;
+  courier_name: string;
+  courier_cost: number;
+  handling_markup: number;
   zone_code: string;
   zone_name: string;
   state: string;
@@ -41,7 +45,8 @@ export default function CheckoutPage() {
   const [error, setError] = useState("");
   const [savedAddress, setSavedAddress] = useState<AccountAddress | null>(null);
   const [shippingState, setShippingState] = useState("");
-  const [shippingQuote, setShippingQuote] = useState<ShippingQuote | null>(null);
+  const [shippingQuotes, setShippingQuotes] = useState<ShippingQuote[]>([]);
+  const [selectedCourier, setSelectedCourier] = useState("");
   const [shippingLoading, setShippingLoading] = useState(false);
   const [shippingError, setShippingError] = useState("");
 
@@ -103,12 +108,19 @@ export default function CheckoutPage() {
     return sum + price * line.quantity;
   }, 0);
 
+  const shippingQuote =
+    shippingQuotes.find(
+      (quote) => quote.courier_code === selectedCourier
+    ) ||
+    shippingQuotes[0] ||
+    null;
+
   useEffect(() => {
     let active = true;
 
     async function quote() {
       if (!shippingState || cart.length === 0) {
-        setShippingQuote(null);
+        setShippingQuotes([]);
         setShippingError("");
         return;
       }
@@ -122,7 +134,7 @@ export default function CheckoutPage() {
       });
 
       if (items.some((item) => item === null)) {
-        setShippingQuote(null);
+        setShippingQuotes([]);
         setShippingError(
           "One or more cart items do not have a valid SKU variation."
         );
@@ -135,7 +147,7 @@ export default function CheckoutPage() {
       try {
         const supabase = createClient();
         const { data, error: quoteError } = await supabase.rpc(
-          "quote_shipping",
+          "quote_shipping_options",
           {
             p_items: items,
             p_state: shippingState,
@@ -145,10 +157,25 @@ export default function CheckoutPage() {
         if (quoteError) throw quoteError;
         if (!active) return;
 
-        setShippingQuote(data as ShippingQuote);
+        const options = ((data as ShippingQuote[] | null) || [])
+          .slice()
+          .sort(
+            (a, b) =>
+              Number(a.shipping_amount) -
+              Number(b.shipping_amount)
+          );
+
+        setShippingQuotes(options);
+        setSelectedCourier((current) =>
+          options.some(
+            (quote) => quote.courier_code === current
+          )
+            ? current
+            : options[0]?.courier_code || ""
+        );
       } catch (caught) {
         if (!active) return;
-        setShippingQuote(null);
+        setShippingQuotes([]);
         setShippingError(
           caught instanceof Error
             ? caught.message
@@ -210,6 +237,7 @@ export default function CheckoutPage() {
         state: String(form.get("state") || "").trim(),
         postcode: String(form.get("postcode") || "").trim(),
         country_code: "MY",
+        courier_code: selectedCourier,
       };
 
       try {
@@ -414,9 +442,10 @@ export default function CheckoutPage() {
                   name="state"
                   required
                   value={shippingState}
-                  onChange={(event) =>
-                    setShippingState(event.target.value)
-                  }
+                  onChange={(event) => {
+                    setShippingState(event.target.value);
+                    setSelectedCourier("");
+                  }}
                 >
                   <option value="" disabled>
                     Choose state
@@ -476,25 +505,50 @@ export default function CheckoutPage() {
                 }
               >
                 <div>
-                  <span>SHIPPING</span>
+                  <span>DELIVERY METHOD</span>
                   <strong>
                     {shippingLoading
                       ? "Calculating..."
-                      : shippingQuote
-                        ? shippingQuote.shipping_amount === 0
-                          ? "FREE"
-                          : formatPrice(shippingQuote.shipping_amount)
+                      : shippingQuotes.length
+                        ? "Choose courier"
                         : "Unavailable"}
                   </strong>
                 </div>
-                {shippingQuote ? (
-                  <small>
-                    {shippingQuote.zone_name} · Chargeable weight{" "}
-                    {Number(
-                      shippingQuote.chargeable_weight_kg
-                    ).toFixed(2)}{" "}
-                    kg
-                  </small>
+
+                {shippingQuotes.length > 0 ? (
+                  <div className="checkoutCourierOptions">
+                    {shippingQuotes.map((quote) => (
+                      <button
+                        type="button"
+                        key={quote.courier_code}
+                        className={
+                          "checkoutCourierOption" +
+                          (selectedCourier === quote.courier_code
+                            ? " selected"
+                            : "")
+                        }
+                        onClick={() =>
+                          setSelectedCourier(quote.courier_code)
+                        }
+                      >
+                        <span>
+                          <strong>{quote.courier_name}</strong>
+                          <small>
+                            {quote.zone_name} ·{" "}
+                            {Number(
+                              quote.chargeable_weight_kg
+                            ).toFixed(2)}{" "}
+                            kg
+                          </small>
+                        </span>
+                        <b>
+                          {quote.shipping_amount === 0
+                            ? "FREE"
+                            : formatPrice(quote.shipping_amount)}
+                        </b>
+                      </button>
+                    ))}
+                  </div>
                 ) : shippingError ? (
                   <small>{shippingError}</small>
                 ) : null}
