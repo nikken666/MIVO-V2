@@ -455,8 +455,8 @@ export default function CheckoutPage() {
                   <option>Johor</option>
                   <option>Kedah</option>
                   <option>Kelantan</option>
-                  <option>Kuala Lumpur</option>
-                  <option>Labuan</option>
+                  <option>WP Kuala Lumpur</option>
+                  <option>WP Labuan</option>
                   <option>Melaka</option>
                   <option>Negeri Sembilan</option>
                   <option>Pahang</option>
