@@ -18,6 +18,7 @@ type ProductRow = {
         price: number | string;
         stock_on_hand: number;
         stock_reserved: number;
+        low_stock_threshold: number;
       }>
     | null;
 };
@@ -33,8 +34,28 @@ export default function AdminProductsPage() {
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
+  const [stockFilter, setStockFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedStatus = params.get("status");
+    const requestedStock = params.get("stock");
+
+    if (
+      requestedStatus &&
+      ["all", "active", "draft", "pending_review", "inactive"].includes(
+        requestedStatus
+      )
+    ) {
+      setStatus(requestedStatus);
+    }
+
+    if (requestedStock === "low") {
+      setStockFilter("low");
+    }
+  }, []);
 
   useEffect(() => {
     const supabase = createClient();
@@ -60,7 +81,7 @@ export default function AdminProductsPage() {
         const { data, error: productError } = await supabase
           .from("products")
           .select(
-            "id, name, slug, status, primary_image_url, created_at, brands(name), product_variants(sku, price, stock_on_hand, stock_reserved)"
+            "id, name, slug, status, primary_image_url, created_at, brands(name), product_variants(sku, price, stock_on_hand, stock_reserved, low_stock_threshold)"
           )
           .order("created_at", { ascending: false });
 
@@ -93,9 +114,18 @@ export default function AdminProductsPage() {
           .includes(q);
 
       const matchesStatus = status === "all" || product.status === status;
-      return matchesQuery && matchesStatus;
+      const matchesStock =
+        stockFilter !== "low" ||
+        (product.product_variants || []).some((item) => {
+          const available =
+            Number(item.stock_on_hand || 0) -
+            Number(item.stock_reserved || 0);
+          return available <= Number(item.low_stock_threshold || 0);
+        });
+
+      return matchesQuery && matchesStatus && matchesStock;
     });
-  }, [products, query, status]);
+  }, [products, query, status, stockFilter]);
 
   return (
     <main className={styles.adminShell}>
@@ -181,6 +211,17 @@ export default function AdminProductsPage() {
                   <option value="draft">Draft</option>
                   <option value="pending_review">Pending review</option>
                   <option value="inactive">Inactive</option>
+                </select>
+              </label>
+
+              <label className={styles.adminField}>
+                <span>STOCK</span>
+                <select
+                  value={stockFilter}
+                  onChange={(event) => setStockFilter(event.target.value)}
+                >
+                  <option value="all">All stock</option>
+                  <option value="low">Low stock only</option>
                 </select>
               </label>
             </div>
