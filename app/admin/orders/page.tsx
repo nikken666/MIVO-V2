@@ -419,10 +419,6 @@ export default function AdminOrdersPage() {
               <span>04</span>
               Add Product
             </Link>
-            <Link href="/admin/fitment">
-              <span>05</span>
-              Fitment
-            </Link>
           </nav>
 
           <div className={styles.adminSidebarFoot}>
