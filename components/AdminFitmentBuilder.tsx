@@ -8,6 +8,13 @@ import {
 } from "@/data/vehicles";
 import styles from "@/app/admin/Admin.module.css";
 
+export type AdminFitmentVariantOption = {
+  key: string;
+  label: string;
+  sku?: string;
+  dbId?: string | null;
+};
+
 export type AdminFitmentDraft = {
   key: string;
   generationKey: string;
@@ -18,14 +25,19 @@ export type AdminFitmentDraft = {
   yearTo: number;
   variant: string;
   transmission: string;
+  targetVariantKey?: string | null;
+  targetVariantId?: string | null;
+  targetVariantLabel?: string | null;
 };
 
 export default function AdminFitmentBuilder({
   value,
   onChange,
+  variantOptions = [],
 }: {
   value: AdminFitmentDraft[];
   onChange: (next: AdminFitmentDraft[]) => void;
+  variantOptions?: AdminFitmentVariantOption[];
 }) {
   const [make, setMake] = useState("");
   const [model, setModel] = useState("");
@@ -34,6 +46,7 @@ export default function AdminFitmentBuilder({
   const [transmission, setTransmission] = useState("ALL");
   const [yearFrom, setYearFrom] = useState("");
   const [yearTo, setYearTo] = useState("");
+  const [targetVariantKey, setTargetVariantKey] = useState("ALL");
 
   const makeData = useMemo(
     () => vehicleDatabase.find((entry) => entry.make === make),
@@ -41,7 +54,10 @@ export default function AdminFitmentBuilder({
   );
 
   const models = useMemo(
-    () => Array.from(new Set((makeData?.vehicles || []).map((item) => item.model))),
+    () =>
+      Array.from(
+        new Set((makeData?.vehicles || []).map((item) => item.model))
+      ),
     [makeData]
   );
 
@@ -55,8 +71,19 @@ export default function AdminFitmentBuilder({
     [generations, generationKey]
   );
 
-  const years = generation ? yearsForVehicle(generation).slice().reverse() : [];
-  const transmissions = generation ? transmissionsForVehicle(generation) : [];
+  const years = generation
+    ? yearsForVehicle(generation).slice().reverse()
+    : [];
+  const transmissions = generation
+    ? transmissionsForVehicle(generation)
+    : [];
+
+  const targetOption = useMemo(
+    () =>
+      variantOptions.find((item) => item.key === targetVariantKey) ||
+      null,
+    [variantOptions, targetVariantKey]
+  );
 
   function resetAfterMake(next: string) {
     setMake(next);
@@ -101,11 +128,15 @@ export default function AdminFitmentBuilder({
       yearTo || generation.endYear || new Date().getFullYear()
     );
 
+    const targetKey =
+      targetVariantKey === "ALL" ? null : targetVariantKey;
+
     const additions: AdminFitmentDraft[] = [];
 
     for (const selectedVariant of selectedVariants) {
       for (const selectedTransmission of selectedTransmissions) {
         const key = [
+          targetKey || "ALL-SKU",
           generation.id,
           from,
           to,
@@ -123,6 +154,14 @@ export default function AdminFitmentBuilder({
           yearTo: Math.max(from, to),
           variant: selectedVariant,
           transmission: selectedTransmission,
+          targetVariantKey: targetKey,
+          targetVariantId: targetOption?.dbId || null,
+          targetVariantLabel:
+            targetKey && targetOption
+              ? [targetOption.label, targetOption.sku]
+                  .filter(Boolean)
+                  .join(" · ")
+              : null,
         });
       }
     }
@@ -141,19 +180,44 @@ export default function AdminFitmentBuilder({
       <div className={styles.fitmentBuilderHead}>
         <div>
           <span>VEHICLE COMPATIBILITY</span>
-          <strong>Which cars can use this product?</strong>
+          <strong>Which vehicle can use which SKU?</strong>
           <p>
-            Add one vehicle or use ALL VARIANTS / ALL TRANSMISSIONS to apply the
-            product to a whole generation.
+            Apply a fitment to the whole product or target one specific
+            variation / SKU.
           </p>
         </div>
         <b>{value.length} MATCHES</b>
       </div>
 
       <div className={styles.fitmentBuilderGrid}>
+        {variantOptions.length > 0 ? (
+          <label className={styles.adminField}>
+            <span>APPLIES TO</span>
+            <select
+              value={targetVariantKey}
+              onChange={(event) =>
+                setTargetVariantKey(event.target.value)
+              }
+            >
+              <option value="ALL">ALL SKU / WHOLE PRODUCT</option>
+              {variantOptions.map((option) => (
+                <option value={option.key} key={option.key}>
+                  {option.label}
+                  {option.sku ? " · " + option.sku : ""}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+
         <label className={styles.adminField}>
           <span>MAKE</span>
-          <select value={make} onChange={(e) => resetAfterMake(e.target.value)}>
+          <select
+            value={make}
+            onChange={(event) =>
+              resetAfterMake(event.target.value)
+            }
+          >
             <option value="">Choose make</option>
             {vehicleDatabase.map((entry) => (
               <option key={entry.make} value={entry.make}>
@@ -168,7 +232,9 @@ export default function AdminFitmentBuilder({
           <select
             value={model}
             disabled={!make}
-            onChange={(e) => resetAfterModel(e.target.value)}
+            onChange={(event) =>
+              resetAfterModel(event.target.value)
+            }
           >
             <option value="">Choose model</option>
             {models.map((item) => (
@@ -184,7 +250,9 @@ export default function AdminFitmentBuilder({
           <select
             value={generationKey}
             disabled={!model}
-            onChange={(e) => chooseGeneration(e.target.value)}
+            onChange={(event) =>
+              chooseGeneration(event.target.value)
+            }
           >
             <option value="">Choose generation</option>
             {generations.map((item) => (
@@ -197,13 +265,15 @@ export default function AdminFitmentBuilder({
         </label>
 
         <label className={styles.adminField}>
-          <span>VARIANT</span>
+          <span>VEHICLE VARIANT</span>
           <select
             value={variant}
             disabled={!generation}
-            onChange={(e) => setVariant(e.target.value)}
+            onChange={(event) =>
+              setVariant(event.target.value)
+            }
           >
-            <option value="ALL">ALL VARIANTS</option>
+            <option value="ALL">ALL VEHICLE VARIANTS</option>
             {(generation?.variants || []).map((item) => (
               <option key={item} value={item}>
                 {item}
@@ -217,7 +287,9 @@ export default function AdminFitmentBuilder({
           <select
             value={yearFrom}
             disabled={!generation}
-            onChange={(e) => setYearFrom(e.target.value)}
+            onChange={(event) =>
+              setYearFrom(event.target.value)
+            }
           >
             {years.map((item) => (
               <option key={item} value={item}>
@@ -232,7 +304,9 @@ export default function AdminFitmentBuilder({
           <select
             value={yearTo}
             disabled={!generation}
-            onChange={(e) => setYearTo(e.target.value)}
+            onChange={(event) =>
+              setYearTo(event.target.value)
+            }
           >
             {years.map((item) => (
               <option key={item} value={item}>
@@ -247,7 +321,9 @@ export default function AdminFitmentBuilder({
           <select
             value={transmission}
             disabled={!generation}
-            onChange={(e) => setTransmission(e.target.value)}
+            onChange={(event) =>
+              setTransmission(event.target.value)
+            }
           >
             <option value="ALL">ALL TRANSMISSIONS</option>
             {transmissions.map((item) => (
@@ -271,17 +347,26 @@ export default function AdminFitmentBuilder({
       {value.length > 0 ? (
         <div className={styles.fitmentList}>
           {value.map((item) => (
-            <div className={styles.fitmentListRow} key={item.key}>
+            <div
+              className={styles.fitmentListRow}
+              key={item.key}
+            >
               <div>
                 <strong>
-                  {item.make} {item.model} · {item.generation}
+                  {item.targetVariantKey
+                    ? item.targetVariantLabel || "SPECIFIC SKU"
+                    : "ALL SKU / WHOLE PRODUCT"}
                 </strong>
                 <span>
+                  {item.make} {item.model} · {item.generation} ·{" "}
                   {item.yearFrom}–{item.yearTo} · {item.variant} ·{" "}
                   {item.transmission}
                 </span>
               </div>
-              <button type="button" onClick={() => remove(item.key)}>
+              <button
+                type="button"
+                onClick={() => remove(item.key)}
+              >
                 REMOVE
               </button>
             </div>
@@ -289,8 +374,8 @@ export default function AdminFitmentBuilder({
         </div>
       ) : (
         <p className={styles.fitmentEmpty}>
-          No vehicle fitment added yet. The storefront will show FITMENT NOT
-          VERIFIED until compatibility is assigned.
+          No vehicle fitment added yet. The storefront will show
+          FITMENT NOT VERIFIED until compatibility is assigned.
         </p>
       )}
     </div>
