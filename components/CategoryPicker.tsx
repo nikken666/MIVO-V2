@@ -16,6 +16,7 @@ type CategoryPickerProps = {
   name?: string;
   required?: boolean;
   rootSlug?: string;
+  initialSelectedId?: string;
 };
 
 function sortNodes(nodes: CategoryNode[]) {
@@ -33,9 +34,10 @@ export default function CategoryPicker({
   name = "category_id",
   required = true,
   rootSlug = "vehicles-spare-parts-accessories",
+  initialSelectedId = "",
 }: CategoryPickerProps) {
   const [open, setOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState("");
+  const [selectedId, setSelectedId] = useState(initialSelectedId);
   const [draftPath, setDraftPath] = useState<string[]>([]);
   const [search, setSearch] = useState("");
 
