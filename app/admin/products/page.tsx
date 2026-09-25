@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
@@ -107,17 +106,17 @@ export default function AdminProductsPage() {
             <h1>Products</h1>
             <p>View the live MIVO catalogue, SKU, price, stock and listing status.</p>
           </div>
-          <Link href="/admin/products/new" className={styles.adminAction}>
+          <a href="/admin/products/new" className={styles.adminAction}>
             + ADD PRODUCT
-          </Link>
+          </a>
         </div>
 
         <nav className={styles.adminNav}>
-          <Link href="/admin">Dashboard</Link>
-          <Link href="/admin/products">Products</Link>
-          <Link href="/admin/products/new">Add Product</Link>
+          <a href="/admin">Dashboard</a>
+          <a href="/admin/products">Products</a>
+          <a href="/admin/products/new">Add Product</a>
           
-          <Link href="/admin/orders">Orders</Link>
+          <a href="/admin/orders">Orders</a>
         </nav>
 
         <section className={styles.adminPanel}>
@@ -209,13 +208,13 @@ export default function AdminProductsPage() {
                           <span className={styles.adminStatus}>{product.status}</span>
                         </td>
                         <td>
-                          <Link
+                          <a
                             href={"/products/" + product.slug}
                             className={styles.adminSecondary}
                             target="_blank"
                           >
                             VIEW
-                          </Link>
+                          </a>
                         </td>
                       </tr>
                     );
