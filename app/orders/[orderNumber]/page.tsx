@@ -349,7 +349,7 @@ export default function OrderDetailsPage() {
                 <StripePayButton
                   orderNumber={order.order_number}
                   className="orderPrimaryButton orderSideMainAction"
-                  children="PAY SECURELY WITH STRIPE"
+                  children="PAY NOW · CARD / FPX / GRABPAY"
                 />
               </>
             ) : null}
