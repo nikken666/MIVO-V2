@@ -11,6 +11,8 @@ type ShippingRule = {
   courier_code: string;
   courier_name: string;
   handling_markup: number | string;
+  origin_postcode: string | null;
+  rate_source: string | null;
   states: string[];
   base_fee: number | string;
   base_weight_kg: number | string;
@@ -26,12 +28,20 @@ type ShippingRule = {
   sort_order: number;
 };
 
+type ShippingTier = {
+  courier_code: string;
+  zone_code: string;
+  max_weight_kg: number | string;
+  courier_fee: number | string;
+};
+
 function valueOf(value: number | string | null | undefined) {
   return value === null || value === undefined ? "" : String(value);
 }
 
 export default function AdminShippingPage() {
   const [rules, setRules] = useState<ShippingRule[]>([]);
+  const [tiers, setTiers] = useState<ShippingTier[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState("");
   const [error, setError] = useState("");
@@ -60,15 +70,25 @@ export default function AdminShippingPage() {
           return;
         }
 
-        const { data, error: rulesError } = await supabase
-          .from("shipping_rules")
-          .select(
-            "id, zone_code, zone_name, courier_code, courier_name, handling_markup, states, base_fee, base_weight_kg, additional_step_kg, additional_kg_fee, volumetric_divisor, minimum_chargeable_weight_kg, bulky_threshold_kg, bulky_surcharge, free_shipping_threshold, max_shipping_fee, is_active, sort_order"
-          )
-          .order("sort_order");
+        const [
+          { data, error: rulesError },
+          { data: tierData, error: tierError },
+        ] = await Promise.all([
+          supabase
+            .from("shipping_rules")
+            .select(
+              "id, zone_code, zone_name, courier_code, courier_name, handling_markup, origin_postcode, rate_source, states, base_fee, base_weight_kg, additional_step_kg, additional_kg_fee, volumetric_divisor, minimum_chargeable_weight_kg, bulky_threshold_kg, bulky_surcharge, free_shipping_threshold, max_shipping_fee, is_active, sort_order"
+            )
+            .order("sort_order"),
+          supabase
+            .from("shipping_rate_tiers")
+            .select("courier_code, zone_code, max_weight_kg, courier_fee")
+            .order("max_weight_kg"),
+        ]);
 
-        if (rulesError) throw rulesError;
+        if (rulesError || tierError) throw rulesError || tierError;
         setRules((data as ShippingRule[] | null) || []);
+        setTiers((tierData as ShippingTier[] | null) || []);
       } catch (caught) {
         setError(
           caught instanceof Error
@@ -206,13 +226,13 @@ export default function AdminShippingPage() {
           <section className={styles.shippingFormulaCard}>
             <span>HOW MIVO CALCULATES SHIPPING</span>
             <strong>
-              Chargeable weight = higher of actual weight or volumetric weight.
+              Tiered courier rate card + RM2 MIVO markup.
             </strong>
             <p>
-              Volumetric weight uses L × W × H ÷ divisor. The base fee covers
-              the base weight, then each additional weight step adds the
-              configured fee. Bulky surcharge, free-shipping threshold and a
-              maximum fee are optional.
+              Origin postcode: 52200. MIVO first calculates chargeable weight
+              using the higher of actual or volumetric weight, then looks up
+              the matching SPX / J&T weight tier. Customer shipping = courier
+              rate + MIVO markup.
             </p>
           </section>
 
@@ -250,70 +270,35 @@ export default function AdminShippingPage() {
                     </label>
                   </div>
 
+                  <div className={styles.shippingRatePreview}>
+                    <span>RATE CARD · ORIGIN {rule.origin_postcode || "—"}</span>
+                    <small>{rule.rate_source || "Configured courier rate"}</small>
+                    <div>
+                      {[1, 3, 5, 10, 15].map((weight) => {
+                        const rows = tiers.filter(
+                          (tier) =>
+                            tier.courier_code === rule.courier_code &&
+                            tier.zone_code === rule.zone_code
+                        );
+                        const tier = rows.find(
+                          (item) => Number(item.max_weight_kg) >= weight
+                        );
+                        if (!tier) return null;
+                        const courierFee = Number(tier.courier_fee);
+                        return (
+                          <b key={weight}>
+                            {weight}KG
+                            <em>
+                              RM {(courierFee + Number(rule.handling_markup || 0)).toFixed(2)}
+                            </em>
+                            <i>courier RM {courierFee.toFixed(2)}</i>
+                          </b>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   <div className={styles.shippingRuleFields}>
-                    <label className={styles.adminField}>
-                      <span>BASE FEE (RM)</span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={valueOf(rule.base_fee)}
-                        onChange={(event) =>
-                          updateRule(rule.id, "base_fee", event.target.value)
-                        }
-                      />
-                    </label>
-
-                    <label className={styles.adminField}>
-                      <span>BASE WEIGHT (KG)</span>
-                      <input
-                        type="number"
-                        min="0.001"
-                        step="0.001"
-                        value={valueOf(rule.base_weight_kg)}
-                        onChange={(event) =>
-                          updateRule(
-                            rule.id,
-                            "base_weight_kg",
-                            event.target.value
-                          )
-                        }
-                      />
-                    </label>
-
-                    <label className={styles.adminField}>
-                      <span>ADDITIONAL STEP (KG)</span>
-                      <input
-                        type="number"
-                        min="0.001"
-                        step="0.001"
-                        value={valueOf(rule.additional_step_kg)}
-                        onChange={(event) =>
-                          updateRule(
-                            rule.id,
-                            "additional_step_kg",
-                            event.target.value
-                          )
-                        }
-                      />
-                    </label>
-
-                    <label className={styles.adminField}>
-                      <span>ADDITIONAL FEE / STEP (RM)</span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={valueOf(rule.additional_kg_fee)}
-                        onChange={(event) =>
-                          updateRule(
-                            rule.id,
-                            "additional_kg_fee",
-                            event.target.value
-                          )
-                        }
-                      />
-                    </label>
 
                     <label className={styles.adminField}>
                       <span>VOLUMETRIC DIVISOR</span>
@@ -440,7 +425,7 @@ export default function AdminShippingPage() {
 
                   <div className={styles.shippingRuleFooter}>
                     <small>
-                      Customer charge = courier rate + RM {Number(rule.handling_markup || 0).toFixed(2)}. Activate only after the courier rate for this zone is ready.
+                      Customer charge = courier rate + RM {Number(rule.handling_markup || 0).toFixed(2)}. Rate card is already loaded for origin {rule.origin_postcode || "52200"}.
                     </small>
                     <button
                       type="button"
