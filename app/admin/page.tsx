@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "./Admin.module.css";
@@ -177,34 +176,34 @@ export default function AdminPage() {
     <main className={styles.adminShell}>
       <div className={styles.adminWorkspace}>
         <aside className={styles.adminSidebar}>
-          <Link href="/admin" className={styles.adminBrand}>
+          <a href="/admin" className={styles.adminBrand}>
             <span>MIVO</span>
             <small>STORE CONTROL</small>
-          </Link>
+          </a>
 
           <nav className={styles.adminSideNav}>
-            <Link href="/admin" className={styles.active}>
+            <a href="/admin" className={styles.active}>
               <span>01</span>
               Dashboard
-            </Link>
-            <Link href="/admin/orders">
+            </a>
+            <a href="/admin/orders">
               <span>02</span>
               Orders
-            </Link>
-            <Link href="/admin/products">
+            </a>
+            <a href="/admin/products">
               <span>03</span>
               Products
-            </Link>
-            <Link href="/admin/products/new">
+            </a>
+            <a href="/admin/products/new">
               <span>04</span>
               Add Product
-            </Link>
+            </a>
           </nav>
 
           <div className={styles.adminSidebarFoot}>
             <span>STORE MODE</span>
             <strong>MIVO DIRECT</strong>
-            <Link href="/">OPEN STOREFRONT ↗</Link>
+            <a href="/">OPEN STOREFRONT ↗</a>
           </div>
         </aside>
 
@@ -221,9 +220,9 @@ export default function AdminPage() {
                 <span>NEEDS ATTENTION</span>
                 <strong>{loading ? "—" : alertCount}</strong>
               </div>
-              <Link href="/admin/products/new" className={styles.adminAction}>
+              <a href="/admin/products/new" className={styles.adminAction}>
                 + ADD PRODUCT
-              </Link>
+              </a>
             </div>
           </header>
 
@@ -275,9 +274,9 @@ export default function AdminPage() {
                   <h2>Recent Orders</h2>
                   <p>Latest customer activity across MIVO.</p>
                 </div>
-                <Link href="/admin/orders" className={styles.adminTextLink}>
+                <a href="/admin/orders" className={styles.adminTextLink}>
                   VIEW ALL ORDERS →
-                </Link>
+                </a>
               </div>
 
               {loading ? (
@@ -289,7 +288,7 @@ export default function AdminPage() {
                   {recentOrders.map((order) => {
                     const address = order.shipping_address || {};
                     return (
-                      <Link
+                      <a
                         href={"/admin/orders?order=" + encodeURIComponent(order.order_number)}
                         className={styles.recentOrder}
                         key={order.id}
@@ -321,7 +320,7 @@ export default function AdminPage() {
                           </span>
                           <strong>{money(Number(order.total_amount))}</strong>
                         </div>
-                      </Link>
+                      </a>
                     );
                   })}
                 </div>
@@ -332,18 +331,18 @@ export default function AdminPage() {
               <span className={styles.adminPanelKicker}>QUICK ACTIONS</span>
               <h2>Store Operations</h2>
 
-              <Link href="/admin/orders">
+              <a href="/admin/orders">
                 <span>ORDERS</span>
                 <strong>Process & ship →</strong>
-              </Link>
-              <Link href="/admin/products">
+              </a>
+              <a href="/admin/products">
                 <span>CATALOGUE</span>
                 <strong>Open products →</strong>
-              </Link>
-              <Link href="/admin/products/new">
+              </a>
+              <a href="/admin/products/new">
                 <span>NEW LISTING</span>
                 <strong>Add product →</strong>
-              </Link>
+              </a>
             </aside>
           </div>
         </section>
