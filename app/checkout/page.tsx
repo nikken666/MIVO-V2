@@ -45,6 +45,7 @@ export default function CheckoutPage() {
   const [error, setError] = useState("");
   const [savedAddress, setSavedAddress] = useState<AccountAddress | null>(null);
   const [shippingState, setShippingState] = useState("");
+  const [shippingPostcode, setShippingPostcode] = useState("");
   const [shippingQuotes, setShippingQuotes] = useState<ShippingQuote[]>([]);
   const [selectedCourier, setSelectedCourier] = useState("");
   const [shippingLoading, setShippingLoading] = useState(false);
@@ -81,6 +82,7 @@ export default function CheckoutPage() {
         const address = await loadDefaultAddress();
         setSavedAddress(address);
         if (address?.state) setShippingState(address.state);
+        if (address?.postcode) setShippingPostcode(address.postcode);
       } catch {}
 
       const metadataName =
@@ -119,7 +121,11 @@ export default function CheckoutPage() {
     let active = true;
 
     async function quote() {
-      if (!shippingState || cart.length === 0) {
+      if (
+        !shippingState ||
+        !/^\d{5}$/.test(shippingPostcode) ||
+        cart.length === 0
+      ) {
         setShippingQuotes([]);
         setShippingError("");
         return;
@@ -151,6 +157,7 @@ export default function CheckoutPage() {
           {
             p_items: items,
             p_state: shippingState,
+            p_postcode: shippingPostcode,
           }
         );
 
@@ -191,16 +198,20 @@ export default function CheckoutPage() {
     return () => {
       active = false;
     };
-  }, [cart, shippingState]);
+  }, [cart, shippingState, shippingPostcode]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
 
-    if (!shippingState || !shippingQuote) {
+    if (
+      !shippingState ||
+      !/^\d{5}$/.test(shippingPostcode) ||
+      !shippingQuote
+    ) {
       setError(
         shippingError ||
-          "Choose a delivery state and wait for the shipping quote."
+          "Enter a valid postcode and choose a delivery state."
       );
       return;
     }
@@ -422,9 +433,17 @@ export default function CheckoutPage() {
                 <input
                   name="postcode"
                   required
-                  defaultValue={savedAddress?.postcode || ""}
+                  value={shippingPostcode}
+                  onChange={(event) => {
+                    const value = event.target.value
+                      .replace(/\D/g, "")
+                      .slice(0, 5);
+                    setShippingPostcode(value);
+                    setSelectedCourier("");
+                  }}
                   placeholder="75000"
                   inputMode="numeric"
+                  pattern="[0-9]{5}"
                 />
               </label>
 
@@ -653,7 +672,9 @@ export default function CheckoutPage() {
                 <strong>
                   {!shippingState
                     ? "Choose state"
-                    : shippingLoading
+                    : !/^\d{5}$/.test(shippingPostcode)
+                      ? "Enter postcode"
+                      : shippingLoading
                       ? "Calculating..."
                       : shippingQuote
                         ? shippingQuote.shipping_amount === 0
@@ -672,7 +693,9 @@ export default function CheckoutPage() {
                 <small>
                   {shippingQuote
                     ? shippingQuote.zone_name
-                    : "Awaiting delivery state"}
+                    : !shippingState
+                      ? "Awaiting delivery state"
+                      : "Awaiting postcode"}
                 </small>
               </div>
               <strong>
