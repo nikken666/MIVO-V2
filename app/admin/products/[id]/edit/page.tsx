@@ -45,7 +45,7 @@ type EditVariant = {
   compare_at_price: number | string | null;
   stock_on_hand: number;
   stock_reserved: number;
-  low_stock_threshold: number;
+  low_stock_threshold: number | string;
   weight_kg: number | string;
   length_cm: number | string;
   width_cm: number | string;
