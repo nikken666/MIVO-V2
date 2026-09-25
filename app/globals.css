@@ -4320,3 +4320,53 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
 .checkoutShippingQuote.error small{
   color:#a6363c;
 }
+
+
+.checkoutCourierOptions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+  margin-top:12px;
+}
+.checkoutCourierOption{
+  min-width:0;
+  padding:12px 13px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  border:1px solid #d8dcde;
+  border-radius:10px;
+  background:#fff;
+  color:#1d2225;
+  text-align:left;
+  cursor:pointer;
+}
+.checkoutCourierOption.selected{
+  border-color:#111417;
+  box-shadow:0 0 0 1px #111417 inset;
+  background:#f7f8f8;
+}
+.checkoutCourierOption>span{
+  min-width:0;
+}
+.checkoutCourierOption strong,
+.checkoutCourierOption small{
+  display:block;
+}
+.checkoutCourierOption strong{
+  font-size:10px;
+}
+.checkoutCourierOption small{
+  margin-top:4px;
+  color:#858b8f;
+  font-size:8px;
+  line-height:1.4;
+}
+.checkoutCourierOption>b{
+  flex:0 0 auto;
+  font-size:12px;
+}
+@media(max-width:650px){
+  .checkoutCourierOptions{grid-template-columns:1fr}
+}
