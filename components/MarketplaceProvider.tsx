@@ -28,6 +28,7 @@ type CartNotice = {
 type MarketplaceContextValue = {
   cart: CartLine[];
   cartCount: number;
+  cartReady: boolean;
   addToCart: (
     product: Product,
     variant?: ProductVariant,
@@ -236,7 +237,9 @@ export default function MarketplaceProvider({
     }
 
     persistTimer.current = setTimeout(() => {
-      void saveAccountCart(cart).catch(() => {});
+      void saveAccountCart(cart)
+        .then(() => clearGuestCart())
+        .catch(() => {});
     }, 250);
 
     return () => {
@@ -262,6 +265,8 @@ export default function MarketplaceProvider({
         0
       ),
 
+      cartReady: hydrated,
+
       addToCart: (product, variant, quantity = 1) => {
         const requestedQuantity = Math.max(
           1,
@@ -278,10 +283,12 @@ export default function MarketplaceProvider({
                 ? product.stock
                 : undefined;
 
+          let nextCart: CartLine[];
+
           if (found) {
             const nextQuantity = found.quantity + requestedQuantity;
 
-            return current.map((line) =>
+            nextCart = current.map((line) =>
               line.lineId === lineId
                 ? {
                     ...line,
@@ -292,20 +299,27 @@ export default function MarketplaceProvider({
                   }
                 : line
             );
+          } else {
+            nextCart = [
+              ...current,
+              {
+                lineId,
+                product,
+                variant,
+                quantity:
+                  typeof maximum === "number"
+                    ? Math.min(maximum, requestedQuantity)
+                    : requestedQuantity,
+              },
+            ];
           }
 
-          return [
-            ...current,
-            {
-              lineId,
-              product,
-              variant,
-              quantity:
-                typeof maximum === "number"
-                  ? Math.min(maximum, requestedQuantity)
-                  : requestedQuantity,
-            },
-          ];
+          // Immediate durable handoff for BUY NOW / hard navigation.
+          // Logged-in users still sync to Supabase below, then this
+          // temporary guest copy is cleared.
+          writeGuestCart(nextCart);
+
+          return nextCart;
         });
 
         showAddedNotice(product.name, requestedQuantity);
@@ -339,7 +353,7 @@ export default function MarketplaceProvider({
 
       clearCart: () => setCart([]),
     }),
-    [cart]
+    [cart, hydrated]
   );
 
   return (
