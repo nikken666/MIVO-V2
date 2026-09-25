@@ -152,33 +152,13 @@ export default function CheckoutPage() {
         throw new Error("Order was created without an order number.");
       }
 
-      const paymentResponse = await fetch(
-        "/api/payments/stripe/checkout",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ orderNumber: order.order_number }),
-        }
-      );
-
-      const payment = (await paymentResponse.json()) as {
-        url?: string;
-        error?: string;
-      };
-
       clearCart();
 
-      if (paymentResponse.ok && payment.url) {
-        window.location.assign(payment.url);
-        return;
-      }
-
-      router.push(
+      window.location.assign(
         "/orders/" +
-          order.order_number +
-          "?payment=unavailable"
+          encodeURIComponent(order.order_number) +
+          "?created=1"
       );
-      router.refresh();
     } catch (caught) {
       const details = caught as {
         message?: string;
@@ -241,7 +221,7 @@ export default function CheckoutPage() {
             <i />
             <span className="active">02 DETAILS</span>
             <i />
-            <span>03 PAYMENT</span>
+            <span>03 ORDER</span>
           </div>
 
           <span>SECURE CHECKOUT</span>
@@ -414,7 +394,7 @@ export default function CheckoutPage() {
               >
                 <span>
                   <small>{busy ? "PROCESSING" : "FINAL STEP"}</small>
-                  {busy ? "PREPARING PAYMENT..." : "CONTINUE TO SECURE PAYMENT"}
+                  {busy ? "CREATING ORDER..." : "PLACE ORDER"}
                 </span>
                 <b>→</b>
               </button>
