@@ -81,7 +81,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!order.stripe_payment_intent_id) {
+    const paymentIntentId = order.stripe_payment_intent_id;
+
+    if (!paymentIntentId) {
       return NextResponse.json(
         {
           error:
@@ -138,7 +140,7 @@ export async function POST(request: NextRequest) {
     }
 
     const params = new URLSearchParams();
-    params.set("payment_intent", order.stripe_payment_intent_id);
+    params.set("payment_intent", paymentIntentId);
     params.set("amount", String(amount));
     params.set("metadata[order_id]", order.id);
     params.set("metadata[order_number]", order.order_number);
