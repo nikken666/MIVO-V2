@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import ProductDetailClient from "@/components/ProductDetailClient";
 import { getActiveProductBySlug } from "@/lib/catalog";
-import { getLiveFitmentStatuses } from "@/lib/liveFitment";
+import { getLiveProductFitmentDetail } from "@/lib/liveFitment";
 import {
   getProductFitmentStatus,
   type SelectedVehicle,
@@ -44,13 +44,19 @@ export default async function ProductPage({
   let fitmentStatus = selectedVehicle
     ? getProductFitmentStatus(product.slug, selectedVehicle)
     : undefined;
+  let variantFitmentStatuses: Record<string, import("@/data/fitments").FitmentStatus> = {};
 
   if (selectedVehicle && product.id) {
-    const live = await getLiveFitmentStatuses(
-      [product.id],
+    const live = await getLiveProductFitmentDetail(
+      product.id,
+      (product.variants || []).map((variant) => variant.id),
       selectedVehicle
     );
-    fitmentStatus = live[product.id] || fitmentStatus;
+
+    if (live) {
+      fitmentStatus = live.productStatus;
+      variantFitmentStatuses = live.variantStatuses;
+    }
   }
 
   const selectedVehicleLabel = [
@@ -68,6 +74,7 @@ export default async function ProductPage({
     <ProductDetailClient
       product={product}
       fitmentStatus={fitmentStatus}
+      variantFitmentStatuses={variantFitmentStatuses}
       selectedVehicleLabel={selectedVehicleLabel}
     />
   );
