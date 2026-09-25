@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { Product, ProductVariant } from "@/data/products";
+import type { FitmentStatus } from "@/data/fitments";
 import { formatPrice } from "@/data/products";
 import { useMarketplace } from "./MarketplaceProvider";
 
@@ -14,8 +15,12 @@ function uniqueValues(values: Array<string | null | undefined>) {
 
 export default function ProductDetailClient({
   product,
+  fitmentStatus,
+  selectedVehicleLabel,
 }: {
   product: Product;
+  fitmentStatus?: FitmentStatus;
+  selectedVehicleLabel?: string;
 }) {
   const { addToCart } = useMarketplace();
 
@@ -99,7 +104,9 @@ export default function ProductDetailClient({
   const displaySku = selectedVariant?.sku ?? product.sku;
   const maxQuantity =
     typeof displayStock === "number" && displayStock > 0 ? displayStock : 1;
+  const fitmentBlocked = fitmentStatus === "not-fit";
   const canBuy =
+    !fitmentBlocked &&
     selectionComplete &&
     Boolean(selectedVariant) &&
     Number(selectedVariant?.stock || 0) > 0;
@@ -255,12 +262,32 @@ export default function ProductDetailClient({
               <span>PRICE</span>
             </div>
 
-            <div className="productFitmentCompact">
+            <div
+              className={
+                "productFitmentCompact" +
+                (fitmentStatus ? " fitment-" + fitmentStatus : "")
+              }
+            >
               <div>
                 <span>VEHICLE FITMENT</span>
-                <strong>Check before ordering</strong>
+                <strong>
+                  {fitmentStatus === "fits"
+                    ? "✓ FITS YOUR VEHICLE"
+                    : fitmentStatus === "not-fit"
+                      ? "NOT COMPATIBLE"
+                      : fitmentStatus === "universal"
+                        ? "UNIVERSAL FIT"
+                        : fitmentStatus === "unverified"
+                          ? "FITMENT NOT VERIFIED"
+                          : "SELECT YOUR VEHICLE"}
+                </strong>
+                {selectedVehicleLabel ? (
+                  <small>{selectedVehicleLabel}</small>
+                ) : null}
               </div>
-              <Link href="/#fitment">SELECT VEHICLE →</Link>
+              <Link href="/#fitment">
+                {selectedVehicleLabel ? "CHANGE VEHICLE →" : "SELECT VEHICLE →"}
+              </Link>
             </div>
 
             {product.variation1Name ? (
@@ -379,11 +406,13 @@ export default function ProductDetailClient({
                 onClick={addCurrentToCart}
               >
                 <span>＋</span>
-                {!selectionComplete
-                  ? "SELECT VARIATION"
-                  : !canBuy
-                    ? "OUT OF STOCK"
-                    : "ADD TO CART"}
+                {fitmentBlocked
+                  ? "NOT COMPATIBLE"
+                  : !selectionComplete
+                    ? "SELECT VARIATION"
+                    : !canBuy
+                      ? "OUT OF STOCK"
+                      : "ADD TO CART"}
               </button>
 
               <button
