@@ -87,7 +87,9 @@ export default function AdminShippingPage() {
   ) {
     setRules((current) =>
       current.map((rule) =>
-        rule.id === id ? { ...rule, [field]: value } : rule
+        rule.id === id
+          ? ({ ...rule, [field]: value } as ShippingRule)
+          : rule
       )
     );
   }
