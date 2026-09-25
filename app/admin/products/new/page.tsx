@@ -306,7 +306,7 @@ export default function AdminNewProductPage() {
           <Link href="/admin">Dashboard</Link>
           <Link href="/admin/products">Products</Link>
           <Link href="/admin/products/new">Add Product</Link>
-          <Link href="/admin/fitment">Fitment</Link>
+          
           <Link href="/admin/orders">Orders</Link>
         </nav>
 
