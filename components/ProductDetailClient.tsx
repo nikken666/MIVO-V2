@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Product, ProductVariant } from "@/data/products";
 import type { FitmentStatus } from "@/data/fitments";
 import { formatPrice } from "@/data/products";
@@ -16,10 +16,12 @@ function uniqueValues(values: Array<string | null | undefined>) {
 export default function ProductDetailClient({
   product,
   fitmentStatus,
+  variantFitmentStatuses = {},
   selectedVehicleLabel,
 }: {
   product: Product;
   fitmentStatus?: FitmentStatus;
+  variantFitmentStatuses?: Record<string, FitmentStatus>;
   selectedVehicleLabel?: string;
 }) {
   const { addToCart } = useMarketplace();
@@ -39,16 +41,48 @@ export default function ProductDetailClient({
   const [activeImage, setActiveImage] = useState(0);
 
   const activeVariants = useMemo(
-    () => (product.variants || []).filter((variant) => variant.isActive),
+    () =>
+      (product.variants || []).filter(
+        (variant) => variant.isActive
+      ),
     [product.variants]
   );
+
+  const confirmedFitmentVariants = useMemo(
+    () =>
+      activeVariants.filter(
+        (variant) =>
+          variantFitmentStatuses[variant.id] === "fits"
+      ),
+    [activeVariants, variantFitmentStatuses]
+  );
+
+  const selectableVariants = useMemo(() => {
+    if (!selectedVehicleLabel) return activeVariants;
+
+    if (confirmedFitmentVariants.length > 0) {
+      return confirmedFitmentVariants;
+    }
+
+    return activeVariants.filter(
+      (variant) =>
+        variantFitmentStatuses[variant.id] !== "not-fit"
+    );
+  }, [
+    activeVariants,
+    confirmedFitmentVariants,
+    selectedVehicleLabel,
+    variantFitmentStatuses,
+  ]);
 
   const option1Values = useMemo(
     () =>
       uniqueValues(
-        activeVariants.map((variant) => variant.variation1Value)
+        selectableVariants.map(
+          (variant) => variant.variation1Value
+        )
       ),
-    [activeVariants]
+    [selectableVariants]
   );
 
   const [option1, setOption1] = useState("");
@@ -58,7 +92,7 @@ export default function ProductDetailClient({
   const option2Values = useMemo(
     () =>
       uniqueValues(
-        activeVariants
+        selectableVariants
           .filter(
             (variant) =>
               !product.variation1Name ||
@@ -67,15 +101,22 @@ export default function ProductDetailClient({
           )
           .map((variant) => variant.variation2Value)
       ),
-    [activeVariants, option1, product.variation1Name]
+    [
+      selectableVariants,
+      option1,
+      product.variation1Name,
+    ]
   );
 
   const selectedVariant = useMemo(() => {
-    if (!product.variation1Name && !product.variation2Name) {
-      return activeVariants[0];
+    if (
+      !product.variation1Name &&
+      !product.variation2Name
+    ) {
+      return selectableVariants[0];
     }
 
-    return activeVariants.find(
+    return selectableVariants.find(
       (variant) =>
         (!product.variation1Name ||
           variant.variation1Value === option1) &&
@@ -83,9 +124,35 @@ export default function ProductDetailClient({
           variant.variation2Value === option2)
     );
   }, [
-    activeVariants,
+    selectableVariants,
     option1,
     option2,
+    product.variation1Name,
+    product.variation2Name,
+  ]);
+
+  useEffect(() => {
+    if (
+      !selectedVehicleLabel ||
+      selectableVariants.length !== 1
+    ) {
+      return;
+    }
+
+    const onlyVariant = selectableVariants[0];
+
+    if (product.variation1Name) {
+      setOption1(onlyVariant.variation1Value || "");
+    }
+
+    if (product.variation2Name) {
+      setOption2(onlyVariant.variation2Value || "");
+    }
+
+    setQuantity(1);
+  }, [
+    selectedVehicleLabel,
+    selectableVariants,
     product.variation1Name,
     product.variation2Name,
   ]);
@@ -104,7 +171,17 @@ export default function ProductDetailClient({
   const displaySku = selectedVariant?.sku ?? product.sku;
   const maxQuantity =
     typeof displayStock === "number" && displayStock > 0 ? displayStock : 1;
-  const fitmentBlocked = fitmentStatus === "not-fit";
+  const selectedVariantFitmentStatus =
+    selectedVariant
+      ? variantFitmentStatuses[selectedVariant.id] ||
+        fitmentStatus
+      : fitmentStatus;
+  const fitmentBlocked =
+    selectedVariantFitmentStatus === "not-fit" ||
+    (selectedVehicleLabel &&
+      selectableVariants.length === 0);
+  const confirmedFitmentCount =
+    confirmedFitmentVariants.length;
   const canBuy =
     !fitmentBlocked &&
     selectionComplete &&
@@ -117,7 +194,7 @@ export default function ProductDetailClient({
 
     if (
       option2 &&
-      !activeVariants.some(
+      !selectableVariants.some(
         (variant) =>
           variant.variation1Value === value &&
           variant.variation2Value === option2 &&
@@ -129,14 +206,14 @@ export default function ProductDetailClient({
   }
 
   function option1SoldOut(value: string) {
-    return !activeVariants.some(
+    return !selectableVariants.some(
       (variant) =>
         variant.variation1Value === value && variant.stock > 0
     );
   }
 
   function option2SoldOut(value: string) {
-    return !activeVariants.some(
+    return !selectableVariants.some(
       (variant) =>
         (!product.variation1Name ||
           variant.variation1Value === option1) &&
@@ -265,24 +342,34 @@ export default function ProductDetailClient({
             <div
               className={
                 "productFitmentCompact" +
-                (fitmentStatus ? " fitment-" + fitmentStatus : "")
+                (selectedVariantFitmentStatus
+                  ? " fitment-" + selectedVariantFitmentStatus
+                  : "")
               }
             >
               <div>
                 <span>VEHICLE FITMENT</span>
                 <strong>
-                  {fitmentStatus === "fits"
+                  {selectedVariantFitmentStatus === "fits"
                     ? "✓ FITS YOUR VEHICLE"
-                    : fitmentStatus === "not-fit"
+                    : selectedVariantFitmentStatus === "not-fit"
                       ? "NOT COMPATIBLE"
-                      : fitmentStatus === "universal"
+                      : selectedVariantFitmentStatus === "universal"
                         ? "UNIVERSAL FIT"
-                        : fitmentStatus === "unverified"
+                        : selectedVariantFitmentStatus === "unverified"
                           ? "FITMENT NOT VERIFIED"
                           : "SELECT YOUR VEHICLE"}
                 </strong>
                 {selectedVehicleLabel ? (
-                  <small>{selectedVehicleLabel}</small>
+                  <>
+                    <small>{selectedVehicleLabel}</small>
+                    {confirmedFitmentCount > 0 ? (
+                      <small>
+                        {confirmedFitmentCount} compatible SKU
+                        {confirmedFitmentCount === 1 ? "" : "s"} available
+                      </small>
+                    ) : null}
+                  </>
                 ) : null}
               </div>
               <Link href="/#fitment">
