@@ -5,6 +5,7 @@ import {
   getProductFitmentStatus,
   type FitmentStatus,
 } from "@/data/fitments";
+import { getLiveFitmentStatuses } from "@/lib/liveFitment";
 
 export default async function ProductsPage({
   searchParams,
@@ -60,9 +61,21 @@ export default async function ProductsPage({
       (!category || product.category.toLowerCase().includes(category))
   );
 
+  const liveFitmentStatuses = selectedVehicle
+    ? await getLiveFitmentStatuses(
+        baseFiltered
+          .map((product) => product.id)
+          .filter((id): id is string => Boolean(id)),
+        selectedVehicle
+      )
+    : {};
+
   const withFitment = baseFiltered.map((product) => ({
     product,
-    fitmentStatus: getProductFitmentStatus(product.slug, selectedVehicle),
+    fitmentStatus:
+      product.id && liveFitmentStatuses[product.id]
+        ? liveFitmentStatuses[product.id]
+        : getProductFitmentStatus(product.slug, selectedVehicle),
   }));
 
   const visible = selectedVehicle
