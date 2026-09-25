@@ -4370,3 +4370,155 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
 @media(max-width:650px){
   .checkoutCourierOptions{grid-template-columns:1fr}
 }
+
+
+/* SAVED VEHICLE HOME STATE */
+.savedVehicleHomeCard{
+  min-width:0;
+}
+.savedVehicleHomeLoading{
+  display:grid;
+  gap:8px;
+  min-height:260px;
+  align-content:center;
+  justify-items:start;
+}
+.savedVehicleHomeLoading strong{
+  font-size:22px;
+  letter-spacing:-.035em;
+}
+.savedVehicleHomeTop{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+}
+.savedVehicleHomeTop h2{
+  margin:7px 0 0;
+  font-size:26px;
+  letter-spacing:-.045em;
+  line-height:1.05;
+}
+.savedVehicleHomeFacts{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin-top:18px;
+}
+.savedVehicleHomeFacts>div{
+  min-width:0;
+  padding:12px 13px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:12px;
+  background:rgba(255,255,255,.04);
+}
+.savedVehicleHomeFacts small,
+.savedVehicleHomeFacts strong{
+  display:block;
+}
+.savedVehicleHomeFacts small{
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.11em;
+  opacity:.58;
+}
+.savedVehicleHomeFacts strong{
+  margin-top:5px;
+  font-size:11px;
+  line-height:1.3;
+  overflow-wrap:anywhere;
+}
+.savedVehicleHomeActions{
+  display:grid;
+  gap:9px;
+  margin-top:18px;
+}
+.savedVehicleShopButton{
+  width:100%;
+  text-decoration:none;
+}
+.savedVehicleAddButton{
+  min-height:44px;
+  border:1px solid rgba(255,255,255,.22);
+  border-radius:10px;
+  background:transparent;
+  color:inherit;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.08em;
+  cursor:pointer;
+}
+.savedVehicleAddButton:hover{
+  border-color:rgba(255,255,255,.5);
+  background:rgba(255,255,255,.05);
+}
+.savedVehicleHomeFooter{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  margin-top:16px;
+  padding-top:14px;
+  border-top:1px solid rgba(255,255,255,.1);
+  font-size:8px;
+}
+.savedVehicleHomeFooter span{
+  opacity:.58;
+}
+.savedVehicleHomeFooter a{
+  color:inherit;
+  font-weight:900;
+}
+.vehicleFinderCancel{
+  border:0;
+  background:transparent;
+  color:inherit;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.1em;
+  cursor:pointer;
+  opacity:.72;
+}
+.vehicleFinderCancel:hover{
+  opacity:1;
+}
+.navUtilityLinks{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  flex:0 0 auto;
+}
+.addCarLink{
+  display:inline-flex;
+  align-items:center;
+  min-height:30px;
+  padding:0 11px;
+  border:1px solid #d7dadc;
+  border-radius:999px;
+  color:#343a3e;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.08em;
+  white-space:nowrap;
+}
+.addCarLink:hover{
+  border-color:#111;
+  color:#111;
+}
+@media(max-width:900px){
+  .navUtilityLinks{
+    gap:8px;
+  }
+  .addCarLink{
+    display:none;
+  }
+}
+@media(max-width:620px){
+  .savedVehicleHomeFacts{
+    grid-template-columns:1fr;
+  }
+  .savedVehicleHomeFooter{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+}
