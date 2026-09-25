@@ -278,12 +278,33 @@ export default function CheckoutPage() {
         throw new Error("Order was created without an order number.");
       }
 
+      const paymentResponse = await fetch(
+        "/api/payments/stripe/checkout",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderNumber: order.order_number,
+          }),
+        }
+      );
+
+      const payment = (await paymentResponse.json()) as {
+        url?: string;
+        error?: string;
+      };
+
       clearCart();
+
+      if (paymentResponse.ok && payment.url) {
+        window.location.assign(payment.url);
+        return;
+      }
 
       window.location.assign(
         "/orders/" +
           encodeURIComponent(order.order_number) +
-          "?created=1"
+          "?created=1&payment=unavailable"
       );
     } catch (caught) {
       const details = caught as {
@@ -604,7 +625,7 @@ export default function CheckoutPage() {
               >
                 <span>
                   <small>{busy ? "PROCESSING" : "FINAL STEP"}</small>
-                  {busy ? "CREATING ORDER..." : "PLACE ORDER"}
+                  {busy ? "OPENING PAYMENT..." : "PLACE ORDER & PAY"}
                 </span>
                 <b>→</b>
               </button>
