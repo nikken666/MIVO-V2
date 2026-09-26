@@ -5173,3 +5173,23 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
     flex-basis:72px;
   }
 }
+
+
+/* REVIEW PRODUCT IMAGE */
+.reviewProductImage{
+  overflow:hidden;
+  background:#f7f8f8;
+}
+.reviewProductImage img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:contain;
+  padding:5px;
+}
+.reviewProductImage span{
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+}
