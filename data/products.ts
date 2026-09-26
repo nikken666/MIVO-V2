@@ -25,6 +25,8 @@ export type Product = {
   rating?: number;
   icon: string;
   description: string;
+  shortDescription?: string;
+  warrantyMonths?: number | null;
   imageUrl?: string;
   imageUrls?: string[];
   seller?: string;
