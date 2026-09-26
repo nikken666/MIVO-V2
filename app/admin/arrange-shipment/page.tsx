@@ -90,6 +90,29 @@ function courierName(order: OrderView) {
   );
 }
 
+function officialTrackingUrl(courier: string) {
+  const value = courier.toLowerCase().replaceAll("&", "and");
+
+  if (
+    value.includes("j&t") ||
+    value.includes("j and t") ||
+    value.includes("jnt") ||
+    value.includes("jt express")
+  ) {
+    return "https://www.jtexpress.my/tracking";
+  }
+
+  if (
+    value.includes("spx") ||
+    value.includes("shopee xpress") ||
+    value.includes("shopee express")
+  ) {
+    return "https://spx.com.my/en";
+  }
+
+  return "";
+}
+
 export default function ArrangeShipmentPage() {
   const [orders, setOrders] = useState<OrderView[]>([]);
   const [tab, setTab] = useState<PageTab>("ready");
@@ -107,7 +130,6 @@ export default function ArrangeShipmentPage() {
   const [courierOverride, setCourierOverride] = useState("");
   const [courierInputs, setCourierInputs] = useState<Record<string, string>>({});
   const [trackingInputs, setTrackingInputs] = useState<Record<string, string>>({});
-  const [trackingUrlInputs, setTrackingUrlInputs] = useState<Record<string, string>>({});
   const [shippingBusy, setShippingBusy] = useState("");
 
   async function loadOrders() {
@@ -391,11 +413,9 @@ export default function ArrangeShipmentPage() {
       order.shipment?.tracking_number ??
       ""
     ).trim();
-    const trackingUrl = (
-      trackingUrlInputs[orderNumber] ??
-      order.shipment?.tracking_url ??
-      ""
-    ).trim();
+    const trackingUrl =
+      officialTrackingUrl(courier) ||
+      (order.shipment?.tracking_url || "").trim();
 
     if (!courier || !tracking) {
       setError("Courier and tracking number are required.");
@@ -709,23 +729,21 @@ export default function ArrangeShipmentPage() {
                             />
                           </label>
 
-                          <label>
-                            <span>TRACKING URL</span>
-                            <input
-                              value={
-                                trackingUrlInputs[order.order_number] ??
-                                order.shipment?.tracking_url ??
-                                ""
-                              }
-                              onChange={(event) =>
-                                setTrackingUrlInputs((current) => ({
-                                  ...current,
-                                  [order.order_number]: event.target.value,
-                                }))
-                              }
-                              placeholder="Optional"
-                            />
-                          </label>
+                          <div className={styles.adminTrackingAutoUrl}>
+                            <span>TRACKING LINK</span>
+                            <strong>
+                              {officialTrackingUrl(
+                                courierInputs[order.order_number] ??
+                                  order.shipment?.courier_name ??
+                                  ""
+                              )
+                                ? "AUTO · OFFICIAL COURIER"
+                                : "NOT AVAILABLE"}
+                            </strong>
+                            <small>
+                              J&T and SPX links are generated automatically.
+                            </small>
+                          </div>
 
                           <button
                             type="button"
