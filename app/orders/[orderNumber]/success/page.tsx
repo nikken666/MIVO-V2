@@ -17,6 +17,10 @@ export default function PaymentSuccessPage() {
   const params = useParams();
   const router = useRouter();
   const orderNumber = String(params.orderNumber || "");
+  const sessionId =
+    typeof window === "undefined"
+      ? ""
+      : new URLSearchParams(window.location.search).get("session_id") || "";
 
   const [order, setOrder] = useState<OrderSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,6 +43,13 @@ export default function PaymentSuccessPage() {
             "/success"
         );
         return;
+      }
+
+      if (sessionId) {
+        await supabase.rpc("sync_stripe_paid_order", {
+          p_order_number: orderNumber,
+          p_session_id: sessionId,
+        });
       }
 
       const { data } = await supabase
@@ -80,7 +91,7 @@ export default function PaymentSuccessPage() {
       if (timer) clearInterval(timer);
       clearTimeout(stop);
     };
-  }, [orderNumber, router]);
+  }, [orderNumber, router, sessionId]);
 
   const confirmed =
     order?.payment_status === "paid" ||
