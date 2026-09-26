@@ -2224,3 +2224,18 @@
 .adminArrangedTracking select:focus{
   border-color:#111417;
 }
+
+
+.adminShipForm select{
+  width:100%;
+  min-height:39px;
+  padding:0 10px;
+  border:1px solid #d8dcde;
+  border-radius:8px;
+  background:#fff;
+  outline:0;
+  font-size:8px;
+}
+.adminShipForm select:focus{
+  border-color:#111417;
+}
