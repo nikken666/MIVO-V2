@@ -4754,3 +4754,145 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
     display:none;
   }
 }
+
+
+/* ORDER DETAIL — MAIN COLUMN + SHIPMENT TIMELINE */
+.orderDetailMainColumn{
+  min-width:0;
+  display:grid;
+  align-content:start;
+  gap:16px;
+}
+.orderTimelineCard{
+  overflow:hidden;
+  border:1px solid #e0e3e4;
+  border-radius:16px;
+  background:#fff;
+}
+.orderTimelineHead{
+  min-height:72px;
+  padding:0 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  border-bottom:1px solid #eceeef;
+  background:#fafafa;
+}
+.orderTimelineHead span{
+  display:block;
+  color:#969ca0;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.1em;
+}
+.orderTimelineHead h2{
+  margin:4px 0 0;
+  color:#171b1e;
+  font-size:18px;
+  letter-spacing:-.025em;
+}
+.orderTimelineHead>strong{
+  flex:0 0 auto;
+  padding:7px 10px;
+  border:1px solid #dde1e3;
+  border-radius:999px;
+  background:#fff;
+  color:#4f575b;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.05em;
+}
+.orderTimelineList{
+  padding:8px 20px 14px;
+}
+.orderTimelineItem{
+  display:grid;
+  grid-template-columns:38px minmax(0,1fr);
+  gap:13px;
+}
+.orderTimelineMarker{
+  display:grid;
+  grid-template-rows:30px 1fr;
+  justify-items:center;
+}
+.orderTimelineMarker i{
+  width:30px;
+  height:30px;
+  display:grid;
+  place-items:center;
+  border:1px solid #dfe2e3;
+  border-radius:50%;
+  background:#fff;
+  color:#9ba1a5;
+  font-style:normal;
+  font-size:8px;
+  font-weight:900;
+}
+.orderTimelineMarker span{
+  width:2px;
+  min-height:36px;
+  margin:5px 0;
+  border-radius:999px;
+  background:#e5e7e8;
+}
+.orderTimelineContent{
+  min-width:0;
+  padding:4px 0 20px;
+}
+.orderTimelineContent>div{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:16px;
+}
+.orderTimelineContent strong{
+  color:#262c30;
+  font-size:11px;
+}
+.orderTimelineContent time{
+  flex:0 0 auto;
+  color:#9ba1a5;
+  font-size:7px;
+  font-weight:800;
+  letter-spacing:.02em;
+}
+.orderTimelineContent p{
+  margin:6px 0 0;
+  color:#7d8488;
+  font-size:8px;
+  line-height:1.5;
+  overflow-wrap:anywhere;
+}
+.orderTimelineItem.complete .orderTimelineMarker i{
+  border-color:#2d8a48;
+  background:#eaf6ed;
+  color:#24733c;
+}
+.orderTimelineItem.complete .orderTimelineMarker span{
+  background:#6aae7a;
+}
+.orderTimelineItem.complete .orderTimelineContent strong{
+  color:#171b1e;
+}
+@media(max-width:900px){
+  .orderDetailMainColumn{
+    gap:12px;
+  }
+}
+@media(max-width:560px){
+  .orderTimelineHead{
+    min-height:auto;
+    padding:16px;
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .orderTimelineList{
+    padding:8px 16px 10px;
+  }
+  .orderTimelineContent>div{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:4px;
+  }
+}
