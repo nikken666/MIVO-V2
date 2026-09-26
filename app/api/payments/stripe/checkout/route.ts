@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
       origin +
         "/orders/" +
         encodeURIComponent(order.order_number) +
-        "?payment=success&session_id={CHECKOUT_SESSION_ID}"
+        "/success?session_id={CHECKOUT_SESSION_ID}"
     );
     params.set(
       "cancel_url",
