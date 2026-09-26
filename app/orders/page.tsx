@@ -11,8 +11,10 @@ import StripePayButton from "@/components/StripePayButton";
 
 type OrderItemPreview = {
   id: string;
+  product_id: string | null;
   product_name: string;
   quantity: number;
+  image_url?: string | null;
 };
 
 type OrderRow = {
@@ -138,14 +140,82 @@ export default function OrdersPage() {
     const { data, error: orderError } = await supabase
       .from("orders")
       .select(
-        "id, order_number, status, payment_status, total_amount, created_at, shipping_address, order_items(id, product_name, quantity)"
+        "id, order_number, status, payment_status, total_amount, created_at, shipping_address, order_items(id, product_id, product_name, quantity)"
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
     if (orderError) throw orderError;
 
-    const loadedOrders = (data as OrderRow[] | null) || [];
+    let loadedOrders = (data as OrderRow[] | null) || [];
+
+    const productIds = Array.from(
+      new Set(
+        loadedOrders
+          .flatMap((order) => order.order_items || [])
+          .map((item) => item.product_id)
+          .filter((value): value is string => Boolean(value))
+      )
+    );
+
+    const productImageMap = new Map<string, string>();
+
+    if (productIds.length > 0) {
+      const { data: productData, error: productError } = await supabase
+        .from("products")
+        .select("id, primary_image_url")
+        .in("id", productIds);
+
+      if (productError) throw productError;
+
+      (
+        (productData as Array<{
+          id: string;
+          primary_image_url: string | null;
+        }> | null) || []
+      ).forEach((product) => {
+        if (product.primary_image_url) {
+          productImageMap.set(product.id, product.primary_image_url);
+        }
+      });
+
+      const missingProductIds = productIds.filter(
+        (productId) => !productImageMap.has(productId)
+      );
+
+      if (missingProductIds.length > 0) {
+        const { data: imageData, error: imageError } = await supabase
+          .from("product_images")
+          .select("product_id, image_url, sort_order")
+          .in("product_id", missingProductIds)
+          .order("sort_order", { ascending: true });
+
+        if (imageError) throw imageError;
+
+        (
+          (imageData as Array<{
+            product_id: string;
+            image_url: string;
+            sort_order: number;
+          }> | null) || []
+        ).forEach((image) => {
+          if (!productImageMap.has(image.product_id) && image.image_url) {
+            productImageMap.set(image.product_id, image.image_url);
+          }
+        });
+      }
+    }
+
+    loadedOrders = loadedOrders.map((order) => ({
+      ...order,
+      order_items: (order.order_items || []).map((item) => ({
+        ...item,
+        image_url: item.product_id
+          ? productImageMap.get(item.product_id) || null
+          : null,
+      })),
+    }));
+
     const completedOrders = loadedOrders.filter(
       (order) => order.status === "delivered"
     );
@@ -341,7 +411,16 @@ export default function OrdersPage() {
                     <div className="shopOrderItems">
                       {items.slice(0, 3).map((item) => (
                         <div className="shopOrderItem" key={item.id}>
-                          <div className="shopOrderItemImage">M</div>
+                          <div className="shopOrderItemImage">
+                            {item.image_url ? (
+                              <img
+                                src={item.image_url}
+                                alt={item.product_name}
+                              />
+                            ) : (
+                              <span>M</span>
+                            )}
+                          </div>
                           <div>
                             <strong>{item.product_name}</strong>
                             <span>Qty {item.quantity}</span>
