@@ -1879,3 +1879,260 @@
     grid-template-columns:repeat(2,1fr);
   }
 }
+
+
+/* MASS ARRANGE SHIPMENT */
+.adminMassArrangeBar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  margin:0 0 14px;
+  padding:12px 14px;
+  border:1px solid #dfe2e3;
+  border-radius:12px;
+  background:#f7f8f8;
+}
+.adminMassSelectAll{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.08em;
+  cursor:pointer;
+}
+.adminMassSelectAll input,
+.adminOrderBatchCheck input{
+  width:16px;
+  height:16px;
+  accent-color:#d52f36;
+}
+.adminMassArrangeActions{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.adminMassArrangeActions>span{
+  color:#737a7e;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.adminOrderCard{
+  position:relative;
+}
+.adminOrderBatchCheck{
+  position:absolute;
+  z-index:4;
+  left:12px;
+  top:50%;
+  transform:translateY(-50%);
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:7px 8px;
+  border:1px solid #dfe2e3;
+  border-radius:8px;
+  background:#fff;
+  box-shadow:0 3px 12px rgba(0,0,0,.04);
+  cursor:pointer;
+}
+.adminOrderBatchCheck span{
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.adminOrderBatchCheck + .adminOrderCardMain{
+  padding-left:92px;
+}
+.adminModalBackdrop{
+  position:fixed;
+  z-index:1000;
+  inset:0;
+  display:grid;
+  place-items:center;
+  padding:24px;
+  background:rgba(13,16,18,.48);
+  backdrop-filter:blur(5px);
+}
+.adminMassArrangeModal{
+  width:min(680px,100%);
+  max-height:90vh;
+  overflow:auto;
+  border:1px solid #dfe2e3;
+  border-radius:20px;
+  background:#fff;
+  box-shadow:0 30px 100px rgba(0,0,0,.25);
+}
+.adminMassArrangeHeader{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+  padding:24px 26px 18px;
+  border-bottom:1px solid #eceeef;
+}
+.adminMassArrangeHeader span{
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.13em;
+  color:#d52f36;
+}
+.adminMassArrangeHeader h2{
+  margin:6px 0 0;
+  font-size:22px;
+  letter-spacing:-.03em;
+}
+.adminMassArrangeHeader p{
+  margin:6px 0 0;
+  color:#7b8286;
+  font-size:9px;
+}
+.adminMassArrangeHeader>button{
+  width:34px;
+  height:34px;
+  border:1px solid #dfe2e3;
+  border-radius:50%;
+  background:#fff;
+  font-size:20px;
+  line-height:1;
+  cursor:pointer;
+}
+.adminMassArrangeBody{
+  display:grid;
+  gap:16px;
+  padding:22px 26px;
+}
+.adminMassMethodGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.adminMassMethodGrid button{
+  min-height:92px;
+  padding:15px;
+  border:1px solid #dfe2e3;
+  border-radius:12px;
+  background:#fff;
+  text-align:left;
+  cursor:pointer;
+}
+.adminMassMethodGrid button.active{
+  border-color:#111417;
+  box-shadow:0 0 0 1px #111417 inset;
+  background:#fafafa;
+}
+.adminMassMethodGrid strong,
+.adminMassMethodGrid span{
+  display:block;
+}
+.adminMassMethodGrid strong{
+  font-size:11px;
+}
+.adminMassMethodGrid span{
+  margin-top:6px;
+  color:#7c8387;
+  font-size:8px;
+  line-height:1.45;
+}
+.adminMassField{
+  display:grid;
+  gap:6px;
+}
+.adminMassField>span{
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.08em;
+  color:#555d61;
+}
+.adminMassField input,
+.adminMassField select{
+  width:100%;
+  min-height:42px;
+  padding:0 12px;
+  border:1px solid #d7dbdd;
+  border-radius:9px;
+  background:#fff;
+  font:inherit;
+  font-size:10px;
+}
+.adminMassField small{
+  color:#8b9195;
+  font-size:8px;
+  line-height:1.4;
+}
+.adminMassSummary{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:5px 18px;
+  padding:15px 16px;
+  border-radius:12px;
+  background:#111417;
+  color:#fff;
+}
+.adminMassSummary>span{
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.1em;
+  color:#aeb5ba;
+}
+.adminMassSummary>strong{
+  grid-row:1 / span 2;
+  grid-column:2;
+  align-self:center;
+  font-size:28px;
+}
+.adminMassSummary>small{
+  color:#bfc4c7;
+  font-size:8px;
+}
+.adminMassArrangeFooter{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  padding:16px 26px 24px;
+  border-top:1px solid #eceeef;
+}
+.adminSecondaryAction{
+  min-height:40px;
+  padding:0 16px;
+  border:1px solid #d7dbdd;
+  border-radius:9px;
+  background:#fff;
+  color:#30363a;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.06em;
+  cursor:pointer;
+}
+.adminSecondaryAction:disabled,
+.adminMassArrangeHeader>button:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+@media(max-width:780px){
+  .adminMassArrangeBar{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .adminMassArrangeActions{
+    justify-content:space-between;
+  }
+  .adminMassMethodGrid{
+    grid-template-columns:1fr;
+  }
+  .adminOrderBatchCheck{
+    position:static;
+    transform:none;
+    margin:10px 10px 0;
+    width:max-content;
+  }
+  .adminOrderBatchCheck + .adminOrderCardMain{
+    padding-left:inherit;
+  }
+  .adminMassArrangeFooter{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+}
