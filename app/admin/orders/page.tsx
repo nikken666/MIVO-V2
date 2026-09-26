@@ -126,14 +126,6 @@ export default function AdminOrdersPage() {
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [batchSelected, setBatchSelected] = useState<string[]>([]);
-  const [massArrangeOpen, setMassArrangeOpen] = useState(false);
-  const [arrangementMethod, setArrangementMethod] = useState<
-    "drop_off" | "pickup"
-  >("drop_off");
-  const [pickupDate, setPickupDate] = useState("");
-  const [massCourier, setMassCourier] = useState("");
-  const [massBusy, setMassBusy] = useState(false);
 
   async function loadOrders() {
     const supabase = createClient();
@@ -352,41 +344,6 @@ export default function AdminOrdersPage() {
   const selectedOrder =
     orders.find((order) => order.order_number === selected) || null;
 
-  const batchEligible = useMemo(
-    () => filtered.filter((order) => bucket(order) === "to_ship"),
-    [filtered]
-  );
-
-  const allVisibleBatchSelected =
-    batchEligible.length > 0 &&
-    batchEligible.every((order) =>
-      batchSelected.includes(order.order_number)
-    );
-
-  function toggleBatchOrder(orderNumber: string) {
-    setBatchSelected((current) =>
-      current.includes(orderNumber)
-        ? current.filter((value) => value !== orderNumber)
-        : [...current, orderNumber]
-    );
-  }
-
-  function toggleAllVisibleBatch() {
-    const visibleNumbers = batchEligible.map((order) => order.order_number);
-
-    setBatchSelected((current) => {
-      const allSelected = visibleNumbers.every((value) =>
-        current.includes(value)
-      );
-
-      if (allSelected) {
-        return current.filter((value) => !visibleNumbers.includes(value));
-      }
-
-      return Array.from(new Set([...current, ...visibleNumbers]));
-    });
-  }
-
   useEffect(() => {
     if (!selectedOrder) return;
     setCourier(selectedOrder.shipment?.courier_name || "");
@@ -466,54 +423,6 @@ export default function AdminOrdersPage() {
     }
   }
 
-  async function massArrangeShipments() {
-    if (!batchSelected.length) return;
-
-    setMassBusy(true);
-    setError("");
-    setMessage("");
-
-    try {
-      const supabase = createClient();
-      const { data, error: arrangeError } = await supabase.rpc(
-        "admin_mass_arrange_shipments",
-        {
-          p_order_numbers: batchSelected,
-          p_arrangement_method: arrangementMethod,
-          p_pickup_date:
-            arrangementMethod === "pickup" && pickupDate
-              ? pickupDate
-              : null,
-          p_courier_name: massCourier.trim() || null,
-        }
-      );
-
-      if (arrangeError) throw arrangeError;
-
-      const processedCount = Number(
-        (data as { processed_count?: number } | null)?.processed_count || 0
-      );
-
-      await loadOrders();
-      setBatchSelected([]);
-      setMassArrangeOpen(false);
-      setMessage(
-        processedCount +
-          " order" +
-          (processedCount === 1 ? "" : "s") +
-          " arranged for shipment."
-      );
-    } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : "Unable to arrange selected shipments."
-      );
-    } finally {
-      setMassBusy(false);
-    }
-  }
-
   function openOrder(order: OrderView) {
     setSelected((current) =>
       current === order.order_number ? "" : order.order_number
@@ -540,16 +449,20 @@ export default function AdminOrdersPage() {
               <span>02</span>
               Orders
             </a>
-            <a href="/admin/products">
+            <a href="/admin/arrange-shipment">
               <span>03</span>
+              Arrange Shipment
+            </a>
+            <a href="/admin/products">
+              <span>04</span>
               Products
             </a>
             <a href="/admin/products/new">
-              <span>04</span>
+              <span>05</span>
               Add Product
             </a>
             <a href="/admin/shipping">
-              <span>05</span>
+              <span>06</span>
               Shipping
             </a>
           </nav>
@@ -610,35 +523,7 @@ export default function AdminOrdersPage() {
               </div>
             </div>
 
-            {tab === "to_ship" ? (
-              <div className={styles.adminMassArrangeBar}>
-                <label className={styles.adminMassSelectAll}>
-                  <input
-                    type="checkbox"
-                    checked={allVisibleBatchSelected}
-                    onChange={toggleAllVisibleBatch}
-                    disabled={batchEligible.length === 0}
-                  />
-                  <span>
-                    SELECT ALL {batchEligible.length} TO SHIP
-                  </span>
-                </label>
 
-                <div className={styles.adminMassArrangeActions}>
-                  <span>
-                    {batchSelected.length} SELECTED
-                  </span>
-                  <button
-                    type="button"
-                    className={styles.adminAction}
-                    disabled={batchSelected.length === 0}
-                    onClick={() => setMassArrangeOpen(true)}
-                  >
-                    MASS ARRANGE SHIPMENT
-                  </button>
-                </div>
-              </div>
-            ) : null}
 
             {message ? (
               <p className={styles.adminSuccess}>{message}</p>
@@ -664,22 +549,6 @@ export default function AdminOrdersPage() {
                     }
                     key={order.id}
                   >
-                    {tab === "to_ship" && bucket(order) === "to_ship" ? (
-                      <label
-                        className={styles.adminOrderBatchCheck}
-                        onClick={(event) => event.stopPropagation()}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={batchSelected.includes(order.order_number)}
-                          onChange={() =>
-                            toggleBatchOrder(order.order_number)
-                          }
-                        />
-                        <span>SELECT</span>
-                      </label>
-                    ) : null}
-
                     <button
                       type="button"
                       className={styles.adminOrderCardMain}
@@ -1005,130 +874,6 @@ export default function AdminOrdersPage() {
         </section>
       </div>
 
-      {massArrangeOpen ? (
-        <div
-          className={styles.adminModalBackdrop}
-          onMouseDown={() => {
-            if (!massBusy) setMassArrangeOpen(false);
-          }}
-        >
-          <section
-            className={styles.adminMassArrangeModal}
-            onMouseDown={(event) => event.stopPropagation()}
-          >
-            <div className={styles.adminMassArrangeHeader}>
-              <div>
-                <span>MIVO FULFILMENT</span>
-                <h2>MASS ARRANGE SHIPMENT</h2>
-                <p>
-                  Arrange {batchSelected.length} selected order
-                  {batchSelected.length === 1 ? "" : "s"} at once.
-                </p>
-              </div>
-              <button
-                type="button"
-                disabled={massBusy}
-                onClick={() => setMassArrangeOpen(false)}
-              >
-                ×
-              </button>
-            </div>
-
-            <div className={styles.adminMassArrangeBody}>
-              <div className={styles.adminMassMethodGrid}>
-                <button
-                  type="button"
-                  className={
-                    arrangementMethod === "drop_off"
-                      ? styles.active
-                      : ""
-                  }
-                  onClick={() => setArrangementMethod("drop_off")}
-                >
-                  <strong>DROP-OFF</strong>
-                  <span>Pack orders and drop them at the courier point.</span>
-                </button>
-                <button
-                  type="button"
-                  className={
-                    arrangementMethod === "pickup"
-                      ? styles.active
-                      : ""
-                  }
-                  onClick={() => setArrangementMethod("pickup")}
-                >
-                  <strong>PICKUP</strong>
-                  <span>Prepare the parcels for courier collection.</span>
-                </button>
-              </div>
-
-              {arrangementMethod === "pickup" ? (
-                <label className={styles.adminMassField}>
-                  <span>PICKUP DATE *</span>
-                  <input
-                    type="date"
-                    value={pickupDate}
-                    min={new Date().toISOString().slice(0, 10)}
-                    onChange={(event) => setPickupDate(event.target.value)}
-                  />
-                </label>
-              ) : null}
-
-              <label className={styles.adminMassField}>
-                <span>COURIER OVERRIDE</span>
-                <select
-                  value={massCourier}
-                  onChange={(event) => setMassCourier(event.target.value)}
-                >
-                  <option value="">USE COURIER FROM EACH ORDER</option>
-                  <option value="SPX Express">SPX EXPRESS</option>
-                  <option value="J&T Express">J&T EXPRESS</option>
-                </select>
-                <small>
-                  Leave this unchanged to follow the courier selected during
-                  checkout.
-                </small>
-              </label>
-
-              <div className={styles.adminMassSummary}>
-                <span>ORDERS SELECTED</span>
-                <strong>{batchSelected.length}</strong>
-                <small>
-                  Orders will move to PACKED / READY TO SHIP after confirmation.
-                </small>
-              </div>
-            </div>
-
-            <div className={styles.adminMassArrangeFooter}>
-              <button
-                type="button"
-                className={styles.adminSecondaryAction}
-                disabled={massBusy}
-                onClick={() => setMassArrangeOpen(false)}
-              >
-                CANCEL
-              </button>
-              <button
-                type="button"
-                className={styles.adminAction}
-                disabled={
-                  massBusy ||
-                  batchSelected.length === 0 ||
-                  (arrangementMethod === "pickup" && !pickupDate)
-                }
-                onClick={() => void massArrangeShipments()}
-              >
-                {massBusy
-                  ? "ARRANGING..."
-                  : "CONFIRM " +
-                    batchSelected.length +
-                    " SHIPMENT" +
-                    (batchSelected.length === 1 ? "" : "S")}
-              </button>
-            </div>
-          </section>
-        </div>
-      ) : null}
     </main>
   );
 }
