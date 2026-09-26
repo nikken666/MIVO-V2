@@ -34,6 +34,8 @@ type OrderItem = {
   product_name: string;
   variant_name: string | null;
   sku: string;
+  image_url?: string | null;
+  warranty_months?: number | null;
   unit_price: number | string;
   quantity: number;
   line_subtotal: number | string;
@@ -119,7 +121,7 @@ export default function OrderDetailsPage() {
     const { data: itemData, error: itemError } = await supabase
       .from("order_items")
       .select(
-        "id, product_id, product_name, variant_name, sku, unit_price, quantity, line_subtotal"
+        "id, product_id, product_name, variant_name, sku, warranty_months, unit_price, quantity, line_subtotal"
       )
       .eq("order_id", orderData.id)
       .order("created_at");
@@ -151,6 +153,69 @@ export default function OrderDetailsPage() {
       shipmentData = (foundShipment as ShipmentInfo | null) || null;
     }
 
+    const rawItems = (itemData as OrderItem[] | null) || [];
+    const productIds = Array.from(
+      new Set(
+        rawItems
+          .map((item) => item.product_id)
+          .filter((value): value is string => Boolean(value))
+      )
+    );
+    const productImageMap = new Map<string, string>();
+
+    if (productIds.length > 0) {
+      const { data: productData, error: productError } = await supabase
+        .from("products")
+        .select("id, primary_image_url")
+        .in("id", productIds);
+
+      if (productError) throw productError;
+
+      (
+        (productData as Array<{
+          id: string;
+          primary_image_url: string | null;
+        }> | null) || []
+      ).forEach((product) => {
+        if (product.primary_image_url) {
+          productImageMap.set(product.id, product.primary_image_url);
+        }
+      });
+
+      const missingProductIds = productIds.filter(
+        (productId) => !productImageMap.has(productId)
+      );
+
+      if (missingProductIds.length > 0) {
+        const { data: imageData, error: imageError } = await supabase
+          .from("product_images")
+          .select("product_id, image_url, sort_order")
+          .in("product_id", missingProductIds)
+          .order("sort_order", { ascending: true });
+
+        if (imageError) throw imageError;
+
+        (
+          (imageData as Array<{
+            product_id: string;
+            image_url: string;
+            sort_order: number;
+          }> | null) || []
+        ).forEach((image) => {
+          if (!productImageMap.has(image.product_id) && image.image_url) {
+            productImageMap.set(image.product_id, image.image_url);
+          }
+        });
+      }
+    }
+
+    const loadedItems = rawItems.map((item) => ({
+      ...item,
+      image_url: item.product_id
+        ? productImageMap.get(item.product_id) || null
+        : null,
+    }));
+
     const { data: historyData, error: historyError } = await supabase
       .from("order_status_history")
       .select("id, new_status, note, created_at")
@@ -159,7 +224,6 @@ export default function OrderDetailsPage() {
 
     if (historyError) throw historyError;
 
-    const loadedItems = (itemData as OrderItem[] | null) || [];
     let allReviewed = false;
 
     if (orderData.status === "delivered" && loadedItems.length > 0) {
@@ -383,13 +447,20 @@ export default function OrderDetailsPage() {
               <div className="orderDetailItems">
                 {items.map((item) => (
                   <article className="orderDetailItem" key={item.id}>
-                    <div className="orderDetailItemImage">M</div>
+                    <div className="orderDetailItemImage">
+                      {item.image_url ? (
+                        <img
+                          src={item.image_url}
+                          alt={item.product_name}
+                        />
+                      ) : (
+                        <span>M</span>
+                      )}
+                    </div>
 
                     <div className="orderDetailItemInfo">
                       <strong>{item.product_name}</strong>
-                      <span>
-                        {item.variant_name || "Default"} · SKU {item.sku}
-                      </span>
+                      <span>{item.variant_name || "Default"}</span>
                       <small>Qty {item.quantity}</small>
                     </div>
 
@@ -625,6 +696,20 @@ export default function OrderDetailsPage() {
                   RATE ORDER
                 </Link>
               )
+            ) : null}
+
+            {order.status === "delivered" &&
+            items.some((item) => Number(item.warranty_months || 0) > 0) ? (
+              <Link
+                href={
+                  "/orders/" +
+                  encodeURIComponent(order.order_number) +
+                  "/warranty"
+                }
+                className="orderGhostButton orderSideMainAction"
+              >
+                VIEW WARRANTY
+              </Link>
             ) : null}
 
             {cancelled &&
