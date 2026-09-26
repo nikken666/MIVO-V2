@@ -5193,3 +5193,96 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
   display:grid;
   place-items:center;
 }
+
+
+/* REVIEW THANK-YOU SCREEN */
+.reviewThanksPage .container{
+  min-height:68vh;
+  display:grid;
+  place-items:center;
+}
+.reviewThanksCard{
+  width:min(680px,100%);
+  padding:54px 44px;
+  border:1px solid #e0e3e4;
+  border-radius:22px;
+  background:#fff;
+  text-align:center;
+  box-shadow:0 18px 50px rgba(17,20,23,.05);
+}
+.reviewThanksIcon{
+  width:64px;
+  height:64px;
+  margin:0 auto 22px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#eaf6ed;
+  color:#24733c;
+  font-size:25px;
+  font-weight:900;
+}
+.reviewThanksCard>span{
+  display:block;
+  color:#8d9498;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.14em;
+}
+.reviewThanksCard h1{
+  margin:10px 0 0;
+  color:#15191c;
+  font-size:38px;
+  line-height:1;
+  letter-spacing:-.045em;
+}
+.reviewThanksCard>p{
+  max-width:500px;
+  margin:16px auto 0;
+  color:#747b7f;
+  font-size:11px;
+  line-height:1.7;
+}
+.reviewThanksOrder{
+  width:min(360px,100%);
+  margin:28px auto 0;
+  padding:14px 16px;
+  border:1px solid #e4e7e8;
+  border-radius:10px;
+  background:#fafafa;
+}
+.reviewThanksOrder span,
+.reviewThanksOrder strong{
+  display:block;
+}
+.reviewThanksOrder span{
+  color:#9aa0a4;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.11em;
+}
+.reviewThanksOrder strong{
+  margin-top:5px;
+  font-size:11px;
+}
+.reviewThanksActions{
+  width:min(460px,100%);
+  margin:24px auto 0;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.reviewThanksActions a{
+  min-height:46px;
+}
+@media(max-width:620px){
+  .reviewThanksCard{
+    padding:38px 22px;
+  }
+  .reviewThanksCard h1{
+    font-size:30px;
+  }
+  .reviewThanksActions{
+    grid-template-columns:1fr;
+  }
+}
