@@ -132,7 +132,7 @@ export default function ProductCard({
             )}
           </span>
           <span>
-            ★ {Math.min(5, 4.6 + (product.reviews % 4) / 10).toFixed(1)}
+            ★ {Number(product.rating || 0).toFixed(1)}
           </span>
         </div>
 
