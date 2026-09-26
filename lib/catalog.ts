@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import {
   products as demoProducts,
   type Product,
@@ -150,44 +149,24 @@ async function getReviewStats(
   if (productIds.length === 0) return stats;
 
   try {
-    const admin = createAdminClient();
-    const { data, error } = await admin
-      .from("product_reviews")
-      .select("product_id, rating")
-      .in("product_id", productIds);
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc(
+      "get_product_review_stats",
+      { p_product_ids: productIds }
+    );
 
     if (error) throw error;
 
-    const totals = new Map<
-      string,
-      { total: number; count: number }
-    >();
-
     (
       (data as Array<{
-        product_id: string | null;
-        rating: number;
+        product_id: string;
+        review_count: number | string;
+        average_rating: number | string;
       }> | null) || []
-    ).forEach((review) => {
-      if (!review.product_id) return;
-
-      const current = totals.get(review.product_id) || {
-        total: 0,
-        count: 0,
-      };
-
-      current.total += Number(review.rating || 0);
-      current.count += 1;
-      totals.set(review.product_id, current);
-    });
-
-    totals.forEach((value, productId) => {
-      stats.set(productId, {
-        rating:
-          value.count > 0
-            ? Math.round((value.total / value.count) * 10) / 10
-            : 0,
-        reviews: value.count,
+    ).forEach((row) => {
+      stats.set(row.product_id, {
+        rating: Number(row.average_rating || 0),
+        reviews: Number(row.review_count || 0),
       });
     });
   } catch {
