@@ -2184,3 +2184,28 @@
     grid-template-columns:1fr;
   }
 }
+
+
+.adminTrackingAutoUrl{
+  min-height:40px;
+  display:grid;
+  align-content:center;
+  gap:3px;
+  padding:8px 10px;
+  border:1px solid #d7dbdd;
+  border-radius:8px;
+  background:#fff;
+}
+.adminTrackingAutoUrl>span{
+  color:#777f83;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.adminTrackingAutoUrl>strong{
+  font-size:8px;
+}
+.adminTrackingAutoUrl>small{
+  color:#8b9195;
+  font-size:7px;
+}
