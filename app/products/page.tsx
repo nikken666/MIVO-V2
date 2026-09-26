@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import ProductCard from "@/components/ProductCard";
 import SavedVehicleProductsBootstrap from "@/components/SavedVehicleProductsBootstrap";
 import { createClient } from "@/lib/supabase/server";
