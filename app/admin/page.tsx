@@ -190,16 +190,20 @@ export default function AdminPage() {
               <span>02</span>
               Orders
             </a>
-            <a href="/admin/products">
+            <a href="/admin/arrange-shipment">
               <span>03</span>
+              Arrange Shipment
+            </a>
+            <a href="/admin/products">
+              <span>04</span>
               Products
             </a>
             <a href="/admin/products/new">
-              <span>04</span>
+              <span>05</span>
               Add Product
             </a>
             <a href="/admin/shipping">
-              <span>05</span>
+              <span>06</span>
               Shipping
             </a>
           </nav>
@@ -251,10 +255,10 @@ export default function AdminPage() {
               <small>Auto-cancel after 24h · VIEW →</small>
             </a>
 
-            <a href="/admin/orders?tab=to_ship" className={styles.dashboardStat}>
-              <span>TO SHIP</span>
+            <a href="/admin/arrange-shipment" className={styles.dashboardStat}>
+              <span>TO ARRANGE</span>
               <strong>{loading ? "—" : stats.toShip}</strong>
-              <small>Paid / processing / packed · VIEW →</small>
+              <small>Paid orders ready for fulfilment · VIEW →</small>
             </a>
 
             <a href="/admin/products?stock=low" className={styles.dashboardStat}>
@@ -337,7 +341,11 @@ export default function AdminPage() {
 
               <a href="/admin/orders">
                 <span>ORDERS</span>
-                <strong>Process & ship →</strong>
+                <strong>Open order centre →</strong>
+              </a>
+              <a href="/admin/arrange-shipment">
+                <span>FULFILMENT</span>
+                <strong>Arrange paid orders →</strong>
               </a>
               <a href="/admin/products">
                 <span>CATALOGUE</span>
