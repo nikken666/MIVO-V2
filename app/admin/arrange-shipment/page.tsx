@@ -729,22 +729,6 @@ export default function ArrangeShipmentPage() {
                             />
                           </label>
 
-                          <div className={styles.adminTrackingAutoUrl}>
-                            <span>TRACKING LINK</span>
-                            <strong>
-                              {officialTrackingUrl(
-                                courierInputs[order.order_number] ??
-                                  order.shipment?.courier_name ??
-                                  ""
-                              )
-                                ? "AUTO · OFFICIAL COURIER"
-                                : "NOT AVAILABLE"}
-                            </strong>
-                            <small>
-                              J&T and SPX links are generated automatically.
-                            </small>
-                          </div>
-
                           <button
                             type="button"
                             className={styles.adminAction}
