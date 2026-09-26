@@ -114,6 +114,29 @@ function customerName(order: OrderView) {
   );
 }
 
+function officialTrackingUrl(courier: string) {
+  const value = courier.toLowerCase().replaceAll("&", "and");
+
+  if (
+    value.includes("j&t") ||
+    value.includes("j and t") ||
+    value.includes("jnt") ||
+    value.includes("jt express")
+  ) {
+    return "https://www.jtexpress.my/tracking";
+  }
+
+  if (
+    value.includes("spx") ||
+    value.includes("shopee xpress") ||
+    value.includes("shopee express")
+  ) {
+    return "https://spx.com.my/en";
+  }
+
+  return "";
+}
+
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<OrderView[]>([]);
   const [tab, setTab] = useState<TabKey>("all");
@@ -372,7 +395,9 @@ export default function AdminOrdersPage() {
             nextStatus === "shipped" ? tracking.trim() || null : null,
           p_tracking_url:
             nextStatus === "shipped"
-              ? trackingUrl.trim() || null
+              ? officialTrackingUrl(courier.trim()) ||
+                trackingUrl.trim() ||
+                null
               : null,
         }
       );
@@ -725,13 +750,20 @@ export default function AdminOrdersPage() {
                                   <div className={styles.adminShipForm}>
                                     <label>
                                       <span>COURIER *</span>
-                                      <input
+                                      <select
                                         value={courier}
                                         onChange={(event) =>
                                           setCourier(event.target.value)
                                         }
-                                        placeholder="SPX / J&T / DHL / Ninja Van"
-                                      />
+                                      >
+                                        <option value="">SELECT COURIER</option>
+                                        <option value="SPX Express">
+                                          SPX EXPRESS
+                                        </option>
+                                        <option value="J&T Express">
+                                          J&T EXPRESS
+                                        </option>
+                                      </select>
                                     </label>
                                     <label>
                                       <span>TRACKING NUMBER *</span>
@@ -741,16 +773,6 @@ export default function AdminOrdersPage() {
                                           setTracking(event.target.value)
                                         }
                                         placeholder="Tracking number"
-                                      />
-                                    </label>
-                                    <label>
-                                      <span>TRACKING URL</span>
-                                      <input
-                                        value={trackingUrl}
-                                        onChange={(event) =>
-                                          setTrackingUrl(event.target.value)
-                                        }
-                                        placeholder="Optional tracking link"
                                       />
                                     </label>
 
