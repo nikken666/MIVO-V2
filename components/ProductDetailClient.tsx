@@ -2,10 +2,15 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import type { Product, ProductVariant } from "@/data/products";
+import type {
+  Product,
+  ProductPublicReview,
+  ProductVariant,
+} from "@/data/products";
 import type { FitmentStatus } from "@/data/fitments";
 import { formatPrice } from "@/data/products";
 import { useMarketplace } from "./MarketplaceProvider";
+import ProductCard from "./ProductCard";
 
 function uniqueValues(values: Array<string | null | undefined>) {
   return Array.from(
@@ -13,13 +18,24 @@ function uniqueValues(values: Array<string | null | undefined>) {
   );
 }
 
+function stockCopy(stock: number | undefined) {
+  if (typeof stock !== "number") return "Select a variation";
+  if (stock <= 0) return "Out of stock";
+  if (stock <= 20) return "Only " + stock + " left";
+  return "In stock";
+}
+
 export default function ProductDetailClient({
   product,
+  productReviews = [],
+  relatedProducts = [],
   fitmentStatus,
   variantFitmentStatuses = {},
   selectedVehicleLabel,
 }: {
   product: Product;
+  productReviews?: ProductPublicReview[];
+  relatedProducts?: Product[];
   fitmentStatus?: FitmentStatus;
   variantFitmentStatuses?: Record<string, FitmentStatus>;
   selectedVehicleLabel?: string;
@@ -39,6 +55,9 @@ export default function ProductDetailClient({
   );
 
   const [activeImage, setActiveImage] = useState(0);
+  const [reviewFilter, setReviewFilter] = useState<
+    "all" | "photos" | 1 | 2 | 3 | 4 | 5
+  >("all");
 
   const activeVariants = useMemo(
     () =>
@@ -189,6 +208,22 @@ export default function ProductDetailClient({
     selectionComplete &&
     Boolean(selectedVariant) &&
     Number(selectedVariant?.stock || 0) > 0;
+
+  const filteredReviews = productReviews.filter((review) => {
+    if (reviewFilter === "all") return true;
+    if (reviewFilter === "photos") return review.imageUrls.length > 0;
+    return review.rating === reviewFilter;
+  });
+
+  const reviewCounts = [5, 4, 3, 2, 1].reduce<Record<number, number>>(
+    (counts, rating) => {
+      counts[rating] = productReviews.filter(
+        (review) => review.rating === rating
+      ).length;
+      return counts;
+    },
+    {}
+  );
 
   function selectOption1(value: string) {
     setOption1(value);
@@ -372,7 +407,7 @@ export default function ProductDetailClient({
                     <small>{selectedVehicleLabel}</small>
                     {confirmedFitmentCount > 0 ? (
                       <small>
-                        {confirmedFitmentCount} compatible SKU
+                        {confirmedFitmentCount} compatible option
                         {confirmedFitmentCount === 1 ? "" : "s"} available
                       </small>
                     ) : null}
@@ -459,10 +494,12 @@ export default function ProductDetailClient({
               <div>
                 <span>QUANTITY</span>
                 <small>
-                  {selectionComplete && typeof displayStock === "number"
-                    ? displayStock > 0
-                      ? displayStock + " available"
-                      : "Out of stock"
+                  {selectionComplete
+                    ? stockCopy(
+                        typeof displayStock === "number"
+                          ? displayStock
+                          : undefined
+                      )
                     : "Select variation first"}
                 </small>
               </div>
@@ -570,6 +607,26 @@ export default function ProductDetailClient({
                   <span>Condition</span>
                   <strong>New</strong>
                 </div>
+                {product.variation1Name ? (
+                  <div>
+                    <span>{product.variation1Name}</span>
+                    <strong>
+                      {selectedVariant?.variation1Value ||
+                        option1 ||
+                        "Select a variation"}
+                    </strong>
+                  </div>
+                ) : null}
+                {product.variation2Name ? (
+                  <div>
+                    <span>{product.variation2Name}</span>
+                    <strong>
+                      {selectedVariant?.variation2Value ||
+                        option2 ||
+                        "Select a variation"}
+                    </strong>
+                  </div>
+                ) : null}
                 <div>
                   <span>Warranty</span>
                   <strong>
@@ -583,9 +640,11 @@ export default function ProductDetailClient({
                 <div>
                   <span>Stock</span>
                   <strong>
-                    {typeof displayStock === "number"
-                      ? displayStock + " available"
-                      : "Select a variation"}
+                    {stockCopy(
+                      typeof displayStock === "number"
+                        ? displayStock
+                        : undefined
+                    )}
                   </strong>
                 </div>
                 {selectedVariant?.weightKg ? (
@@ -646,6 +705,146 @@ export default function ProductDetailClient({
             </section>
           </div>
         </section>
+
+        <section className="productReviewsSection">
+          <div className="productReviewsHeader">
+            <div>
+              <span>PRODUCT RATINGS</span>
+              <h2>
+                {displayRating.toFixed(1)}
+                <small> / 5</small>
+              </h2>
+              <p>
+                {Array.from({ length: 5 }, (_, index) =>
+                  index < roundedRating ? "★" : "☆"
+                ).join("")}
+              </p>
+            </div>
+
+            <div className="productReviewFilters">
+              <button
+                type="button"
+                className={reviewFilter === "all" ? "active" : ""}
+                onClick={() => setReviewFilter("all")}
+              >
+                ALL ({productReviews.length})
+              </button>
+              {[5, 4, 3, 2, 1].map((rating) => (
+                <button
+                  type="button"
+                  key={rating}
+                  className={reviewFilter === rating ? "active" : ""}
+                  onClick={() =>
+                    setReviewFilter(rating as 1 | 2 | 3 | 4 | 5)
+                  }
+                >
+                  {rating} STAR ({reviewCounts[rating] || 0})
+                </button>
+              ))}
+              <button
+                type="button"
+                className={reviewFilter === "photos" ? "active" : ""}
+                onClick={() => setReviewFilter("photos")}
+              >
+                WITH PHOTOS (
+                {
+                  productReviews.filter(
+                    (review) => review.imageUrls.length > 0
+                  ).length
+                }
+                )
+              </button>
+            </div>
+          </div>
+
+          {filteredReviews.length > 0 ? (
+            <div className="productReviewList">
+              {filteredReviews.map((review) => (
+                <article className="productReviewItem" key={review.id}>
+                  <div className="productReviewBuyer">
+                    <div className="productReviewAvatar">M</div>
+                    <div>
+                      <strong>Verified Buyer</strong>
+                      <span>
+                        {review.verifiedPurchase
+                          ? "✓ VERIFIED PURCHASE"
+                          : "CUSTOMER REVIEW"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="productReviewBody">
+                    <div className="productReviewStars">
+                      {Array.from({ length: 5 }, (_, index) =>
+                        index < review.rating ? "★" : "☆"
+                      ).join("")}
+                    </div>
+
+                    <div className="productReviewMeta">
+                      <span>
+                        {new Date(review.createdAt).toLocaleDateString(
+                          "en-MY",
+                          {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          }
+                        )}
+                      </span>
+                      {review.variantName ? (
+                        <span>Variation: {review.variantName}</span>
+                      ) : null}
+                    </div>
+
+                    {review.comment ? <p>{review.comment}</p> : null}
+
+                    {review.imageUrls.length > 0 ? (
+                      <div className="productReviewPhotos">
+                        {review.imageUrls.map((url) => (
+                          <a
+                            href={url}
+                            target="_blank"
+                            rel="noreferrer"
+                            key={url}
+                          >
+                            <img src={url} alt="Customer review" />
+                          </a>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="productReviewEmpty">
+              <strong>No reviews in this filter yet.</strong>
+              <span>Choose another rating filter to see more feedback.</span>
+            </div>
+          )}
+        </section>
+
+        {relatedProducts.length > 0 ? (
+          <section className="relatedProductsSection">
+            <div className="relatedProductsHead">
+              <div>
+                <span>RELATED PARTS</span>
+                <h2>You may also like</h2>
+              </div>
+              <Link href="/products">VIEW ALL PARTS →</Link>
+            </div>
+
+            <div className="relatedProductsGrid">
+              {relatedProducts.map((related) => (
+                <ProductCard
+                  key={related.slug}
+                  product={related}
+                  compact
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
       </div>
 
       <div className="mobileProductBar">
