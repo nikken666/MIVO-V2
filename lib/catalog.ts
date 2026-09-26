@@ -12,6 +12,8 @@ type ProductRow = {
   slug: string;
   name: string;
   description: string | null;
+  short_description: string | null;
+  warranty_months: number | null;
   primary_image_url: string | null;
   variation_1_name: string | null;
   variation_2_name: string | null;
@@ -109,6 +111,9 @@ function mapProduct(row: ProductRow): Product | null {
     icon: "🔧",
     description:
       row.description || "Product details will be updated by the seller.",
+    shortDescription: row.short_description || undefined,
+    warrantyMonths:
+      row.warranty_months === null ? null : Number(row.warranty_months),
     imageUrl:
       row.primary_image_url ||
       row.product_images?.slice().sort((a, b) => a.sort_order - b.sort_order)[0]?.image_url ||
@@ -134,7 +139,7 @@ function mapProduct(row: ProductRow): Product | null {
 }
 
 const selectQuery =
-  "id, slug, name, description, primary_image_url, variation_1_name, variation_2_name, brands(name), categories(name), sellers(shop_name), product_images(image_url, sort_order), product_variants(id, title, variation_1_value, variation_2_value, sku, price, compare_at_price, stock_on_hand, stock_reserved, weight_kg, length_cm, width_cm, height_cm, is_active)";
+  "id, slug, name, description, short_description, warranty_months, primary_image_url, variation_1_name, variation_2_name, brands(name), categories(name), sellers(shop_name), product_images(image_url, sort_order), product_variants(id, title, variation_1_value, variation_2_value, sku, price, compare_at_price, stock_on_hand, stock_reserved, weight_kg, length_cm, width_cm, height_cm, is_active)";
 
 type ReviewStat = {
   rating: number;
