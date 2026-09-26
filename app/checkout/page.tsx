@@ -670,7 +670,7 @@ export default function CheckoutPage() {
                       <strong>{line.product.name}</strong>
                       {line.variant ? (
                         <small>
-                          {line.variant.title} · {line.variant.sku}
+                          {line.variant.title}
                         </small>
                       ) : null}
                     </div>
