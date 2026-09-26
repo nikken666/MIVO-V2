@@ -70,7 +70,7 @@ function orderBucket(order: OrderRow): Exclude<OrderTab, "all"> {
   return "to_pay";
 }
 
-function statusCopy(order: OrderRow) {
+function statusCopy(order: OrderRow, reviewed = false) {
   const bucket = orderBucket(order);
 
   if (bucket === "to_pay") {
@@ -100,7 +100,9 @@ function statusCopy(order: OrderRow) {
   if (bucket === "completed") {
     return {
       title: "Order completed",
-      text: "Your parcel has been received. You can now rate your order.",
+      text: reviewed
+        ? "Your parcel has been received and this order has been reviewed."
+        : "Your parcel has been received. You can now rate your order.",
     };
   }
 
@@ -113,6 +115,7 @@ function statusCopy(order: OrderRow) {
 export default function OrdersPage() {
   const router = useRouter();
   const [orders, setOrders] = useState<OrderRow[]>([]);
+  const [reviewedOrderIds, setReviewedOrderIds] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<OrderTab>("all");
   const [loading, setLoading] = useState(true);
   const [busyOrder, setBusyOrder] = useState("");
@@ -142,7 +145,52 @@ export default function OrdersPage() {
 
     if (orderError) throw orderError;
 
-    setOrders((data as OrderRow[] | null) || []);
+    const loadedOrders = (data as OrderRow[] | null) || [];
+    const completedOrders = loadedOrders.filter(
+      (order) => order.status === "delivered"
+    );
+    const completedOrderIds = completedOrders.map((order) => order.id);
+    const reviewedIds: string[] = [];
+
+    if (completedOrderIds.length > 0) {
+      const { data: reviewData, error: reviewError } = await supabase
+        .from("product_reviews")
+        .select("order_id, order_item_id")
+        .eq("user_id", user.id)
+        .in("order_id", completedOrderIds);
+
+      if (reviewError) throw reviewError;
+
+      const reviewsByOrder = new Map<string, Set<string>>();
+
+      (
+        (reviewData as Array<{
+          order_id: string;
+          order_item_id: string;
+        }> | null) || []
+      ).forEach((review) => {
+        const current =
+          reviewsByOrder.get(review.order_id) || new Set<string>();
+        current.add(review.order_item_id);
+        reviewsByOrder.set(review.order_id, current);
+      });
+
+      completedOrders.forEach((order) => {
+        const itemIds = (order.order_items || []).map((item) => item.id);
+        const reviewedItems = reviewsByOrder.get(order.id);
+
+        if (
+          itemIds.length > 0 &&
+          reviewedItems &&
+          itemIds.every((itemId) => reviewedItems.has(itemId))
+        ) {
+          reviewedIds.push(order.id);
+        }
+      });
+    }
+
+    setOrders(loadedOrders);
+    setReviewedOrderIds(reviewedIds);
   }
 
   useEffect(() => {
@@ -260,7 +308,8 @@ export default function OrdersPage() {
             <div className="shopOrderList">
               {visibleOrders.map((order) => {
                 const bucket = orderBucket(order);
-                const copy = statusCopy(order);
+                const reviewed = reviewedOrderIds.includes(order.id);
+                const copy = statusCopy(order, reviewed);
                 const date = new Date(order.created_at);
                 const items = order.order_items || [];
                 const totalQty = items.reduce(
@@ -374,16 +423,26 @@ export default function OrdersPage() {
                         ) : null}
 
                         {bucket === "completed" ? (
-                          <Link
-                            href={
-                              "/orders/" +
-                              encodeURIComponent(order.order_number) +
-                              "/review"
-                            }
-                            className="orderPrimaryButton"
-                          >
-                            RATE ORDER
-                          </Link>
+                          reviewed ? (
+                            <button
+                              type="button"
+                              className="orderGhostButton"
+                              disabled
+                            >
+                              REVIEWED
+                            </button>
+                          ) : (
+                            <Link
+                              href={
+                                "/orders/" +
+                                encodeURIComponent(order.order_number) +
+                                "/review"
+                              }
+                              className="orderPrimaryButton"
+                            >
+                              RATE ORDER
+                            </Link>
+                          )
                         ) : null}
                       </div>
                     </div>
