@@ -17,6 +17,7 @@ type OrderItem = {
   product_name: string;
   variant_name: string | null;
   sku: string;
+  image_url: string | null;
 };
 
 type ReviewRow = {
@@ -98,6 +99,66 @@ export default function OrderReviewPage() {
 
         if (itemError) throw itemError;
 
+        const rawItems = (itemData as Omit<OrderItem, "image_url">[] | null) || [];
+        const productIds = Array.from(
+          new Set(
+            rawItems
+              .map((item) => item.product_id)
+              .filter((value): value is string => Boolean(value))
+          )
+        );
+
+        const productImageMap = new Map<string, string>();
+
+        if (productIds.length) {
+          const { data: productData, error: productError } = await supabase
+            .from("products")
+            .select("id, primary_image_url")
+            .in("id", productIds);
+
+          if (productError) throw productError;
+
+          ((productData as Array<{
+            id: string;
+            primary_image_url: string | null;
+          }> | null) || []).forEach((product) => {
+            if (product.primary_image_url) {
+              productImageMap.set(product.id, product.primary_image_url);
+            }
+          });
+
+          const missingProductIds = productIds.filter(
+            (productId) => !productImageMap.has(productId)
+          );
+
+          if (missingProductIds.length) {
+            const { data: imageData, error: imageError } = await supabase
+              .from("product_images")
+              .select("product_id, image_url, sort_order")
+              .in("product_id", missingProductIds)
+              .order("sort_order", { ascending: true });
+
+            if (imageError) throw imageError;
+
+            ((imageData as Array<{
+              product_id: string;
+              image_url: string;
+              sort_order: number;
+            }> | null) || []).forEach((image) => {
+              if (!productImageMap.has(image.product_id) && image.image_url) {
+                productImageMap.set(image.product_id, image.image_url);
+              }
+            });
+          }
+        }
+
+        const enrichedItems: OrderItem[] = rawItems.map((item) => ({
+          ...item,
+          image_url: item.product_id
+            ? productImageMap.get(item.product_id) || null
+            : null,
+        }));
+
         const { data: reviewData, error: reviewError } = await supabase
           .from("product_reviews")
           .select("order_item_id, rating, comment, image_urls")
@@ -126,7 +187,7 @@ export default function OrderReviewPage() {
         if (!active) return;
 
         setOrder(orderData as OrderRow);
-        setItems((itemData as OrderItem[] | null) || []);
+        setItems(enrichedItems);
         setDrafts(nextDrafts);
       } catch (caught) {
         if (!active) return;
@@ -413,9 +474,17 @@ export default function OrderReviewPage() {
             return (
               <article className="reviewProductCard" key={item.id}>
                 <div className="reviewProductHead">
-                  <div className="reviewProductImage">M</div>
+                  <div className="reviewProductImage">
+                    {item.image_url ? (
+                      <img
+                        src={item.image_url}
+                        alt={item.product_name}
+                      />
+                    ) : (
+                      <span>M</span>
+                    )}
+                  </div>
                   <div>
-                    <span>{item.sku}</span>
                     <strong>{item.product_name}</strong>
                     <small>{item.variant_name || "Default"}</small>
                   </div>
