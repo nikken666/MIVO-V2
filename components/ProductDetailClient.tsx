@@ -162,6 +162,8 @@ export default function ProductDetailClient({
     (!product.variation2Name || Boolean(option2));
 
   const displayPrice = selectedVariant?.price ?? product.price;
+  const displayRating = Number(product.rating || 0);
+  const roundedRating = Math.round(displayRating);
   const displayComparePrice =
     selectedVariant?.compareAtPrice &&
     selectedVariant.compareAtPrice > displayPrice
@@ -322,9 +324,14 @@ export default function ProductDetailClient({
 
               <div className="productTitleMeta">
                 <span className="productRating">
-                  <b>4.8</b> ★★★★★
+                  <b>{displayRating.toFixed(1)}</b>{" "}
+                  {Array.from({ length: 5 }, (_, index) =>
+                    index < roundedRating ? "★" : "☆"
+                  ).join("")}
                 </span>
-                <span>{product.reviews} reviews</span>
+                <span>
+                  {product.reviews} review{product.reviews === 1 ? "" : "s"}
+                </span>
                 {displaySku ? <span>SKU {displaySku}</span> : null}
               </div>
             </div>
