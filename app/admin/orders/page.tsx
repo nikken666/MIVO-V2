@@ -114,8 +114,19 @@ function customerName(order: OrderView) {
   );
 }
 
-function officialTrackingUrl(courier: string) {
+function officialTrackingUrl(courier: string, trackingNumber: string) {
   const value = courier.toLowerCase().replaceAll("&", "and");
+  const tracking = trackingNumber.trim();
+
+  if (
+    value.includes("spx") ||
+    value.includes("shopee xpress") ||
+    value.includes("shopee express")
+  ) {
+    return tracking
+      ? "https://spx.com.my/track?" + encodeURIComponent(tracking)
+      : "https://spx.com.my/track";
+  }
 
   if (
     value.includes("j&t") ||
@@ -124,14 +135,6 @@ function officialTrackingUrl(courier: string) {
     value.includes("jt express")
   ) {
     return "https://www.jtexpress.my/tracking";
-  }
-
-  if (
-    value.includes("spx") ||
-    value.includes("shopee xpress") ||
-    value.includes("shopee express")
-  ) {
-    return "https://spx.com.my/en";
   }
 
   return "";
@@ -395,7 +398,7 @@ export default function AdminOrdersPage() {
             nextStatus === "shipped" ? tracking.trim() || null : null,
           p_tracking_url:
             nextStatus === "shipped"
-              ? officialTrackingUrl(courier.trim()) ||
+              ? officialTrackingUrl(courier.trim(), tracking.trim()) ||
                 trackingUrl.trim() ||
                 null
               : null,
