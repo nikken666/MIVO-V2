@@ -546,18 +546,112 @@ export default function ProductDetailClient({
         </section>
 
         <section className="productInfoSection">
-          <nav className="productInfoTabs">
-            <span className="active">PRODUCT DETAILS</span>
-            <span>FITMENT</span>
-            <span>DELIVERY</span>
-          </nav>
+          <div className="productShopeeDetails">
+            <section className="productSpecificationCard">
+              <div className="productInfoSectionTitle">
+                <span>PRODUCT DETAILS</span>
+                <h2>Product Specifications</h2>
+              </div>
 
-          <div className="productDescriptionCard">
-            <div>
-              <span>DESCRIPTION</span>
-              <h2>Product information</h2>
-            </div>
-            <p>{product.description}</p>
+              <div className="productSpecificationGrid">
+                <div>
+                  <span>Brand</span>
+                  <strong>{product.brand}</strong>
+                </div>
+                <div>
+                  <span>Category</span>
+                  <strong>{product.category}</strong>
+                </div>
+                <div>
+                  <span>SKU</span>
+                  <strong>{displaySku || "Select a variation"}</strong>
+                </div>
+                <div>
+                  <span>Condition</span>
+                  <strong>New</strong>
+                </div>
+                <div>
+                  <span>Warranty</span>
+                  <strong>
+                    {product.warrantyMonths
+                      ? product.warrantyMonths +
+                        " Month" +
+                        (product.warrantyMonths === 1 ? "" : "s")
+                      : "Not specified"}
+                  </strong>
+                </div>
+                <div>
+                  <span>Stock</span>
+                  <strong>
+                    {typeof displayStock === "number"
+                      ? displayStock + " available"
+                      : "Select a variation"}
+                  </strong>
+                </div>
+                <div>
+                  <span>Ships From</span>
+                  <strong>Malaysia</strong>
+                </div>
+                <div>
+                  <span>Sold By</span>
+                  <strong>{product.seller || "MIVO Direct Store"}</strong>
+                </div>
+                {selectedVariant?.weightKg ? (
+                  <div>
+                    <span>Weight</span>
+                    <strong>{selectedVariant.weightKg} kg</strong>
+                  </div>
+                ) : null}
+                {selectedVariant?.lengthCm &&
+                selectedVariant?.widthCm &&
+                selectedVariant?.heightCm ? (
+                  <div>
+                    <span>Package Size</span>
+                    <strong>
+                      {selectedVariant.lengthCm} × {selectedVariant.widthCm} ×{" "}
+                      {selectedVariant.heightCm} cm
+                    </strong>
+                  </div>
+                ) : null}
+              </div>
+            </section>
+
+            <section className="productDescriptionCard productShopeeDescription">
+              <div className="productInfoSectionTitle">
+                <span>DESCRIPTION</span>
+                <h2>Product Description</h2>
+              </div>
+
+              {product.shortDescription ? (
+                <p className="productShortDescription">
+                  {product.shortDescription}
+                </p>
+              ) : null}
+
+              <p>{product.description}</p>
+            </section>
+
+            <section className="productWarrantyCard">
+              <div className="productInfoSectionTitle">
+                <span>AFTER-SALES</span>
+                <h2>Warranty</h2>
+              </div>
+
+              <div className="productWarrantySummary">
+                <strong>
+                  {product.warrantyMonths
+                    ? product.warrantyMonths +
+                      " Month" +
+                      (product.warrantyMonths === 1 ? "" : "s") +
+                      " Warranty"
+                    : "Warranty information not specified"}
+                </strong>
+                <p>
+                  Warranty eligibility is subject to the product condition,
+                  order record and the applicable warranty terms.
+                </p>
+              </div>
+            </section>
           </div>
         </section>
       </div>
