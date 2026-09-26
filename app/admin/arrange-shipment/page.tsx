@@ -52,7 +52,7 @@ type OrderView = OrderRow & {
   shipment?: ShipmentRow;
 };
 
-type PageTab = "ready" | "arranged" | "all";
+type PageTab = "ready" | "arranged";
 
 function money(value: number) {
   return new Intl.NumberFormat("en-MY", {
@@ -272,7 +272,6 @@ export default function ArrangeShipmentPage() {
     return {
       ready,
       arranged,
-      all: orders.length,
     };
   }, [orders]);
 
@@ -282,7 +281,6 @@ export default function ArrangeShipmentPage() {
     return orders.filter((order) => {
       const arranged = isArranged(order);
       const tabMatch =
-        tab === "all" ||
         (tab === "ready" && !arranged) ||
         (tab === "arranged" && arranged);
 
@@ -517,14 +515,6 @@ export default function ArrangeShipmentPage() {
               >
                 <span>ARRANGED</span>
                 <b>{counts.arranged}</b>
-              </button>
-              <button
-                type="button"
-                className={tab === "all" ? styles.active : ""}
-                onClick={() => setTab("all")}
-              >
-                <span>ALL PAID</span>
-                <b>{counts.all}</b>
               </button>
             </nav>
 
