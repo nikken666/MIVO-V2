@@ -14,6 +14,16 @@ export type ProductVariant = {
   isActive: boolean;
 };
 
+export type ProductPublicReview = {
+  id: string;
+  rating: number;
+  comment: string | null;
+  imageUrls: string[];
+  createdAt: string;
+  variantName: string | null;
+  verifiedPurchase: boolean;
+};
+
 export type Product = {
   id?: string;
   slug: string;
