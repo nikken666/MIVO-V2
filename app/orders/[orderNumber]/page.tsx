@@ -39,6 +39,13 @@ type OrderItem = {
   line_subtotal: number | string;
 };
 
+type ShipmentInfo = {
+  courier_name: string | null;
+  tracking_number: string | null;
+  tracking_url: string | null;
+  status: string;
+};
+
 const steps = [
   { key: "placed", label: "ORDER PLACED" },
   { key: "paid", label: "PAID" },
@@ -66,6 +73,7 @@ export default function OrderDetailsPage() {
 
   const [order, setOrder] = useState<OrderRow | null>(null);
   const [items, setItems] = useState<OrderItem[]>([]);
+  const [shipment, setShipment] = useState<ShipmentInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [showUnpaidCancel, setShowUnpaidCancel] = useState(false);
@@ -109,8 +117,34 @@ export default function OrderDetailsPage() {
 
     if (itemError) throw itemError;
 
+    const { data: sellerOrderData, error: sellerOrderError } = await supabase
+      .from("seller_orders")
+      .select("id")
+      .eq("order_id", orderData.id)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (sellerOrderError) throw sellerOrderError;
+
+    let shipmentData: ShipmentInfo | null = null;
+
+    if (sellerOrderData?.id) {
+      const { data: foundShipment, error: shipmentError } = await supabase
+        .from("shipments")
+        .select("courier_name, tracking_number, tracking_url, status")
+        .eq("seller_order_id", sellerOrderData.id)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (shipmentError) throw shipmentError;
+      shipmentData = (foundShipment as ShipmentInfo | null) || null;
+    }
+
     setOrder(orderData as OrderRow);
     setItems((itemData as OrderItem[] | null) || []);
+    setShipment(shipmentData);
   }
 
   useEffect(() => {
@@ -296,6 +330,34 @@ export default function OrderDetailsPage() {
                 {address.postcode} {address.city}, {address.state}
               </p>
             </section>
+
+            {shipment?.tracking_number ? (
+              <section className="orderSideCard">
+                <span>SHIPMENT TRACKING</span>
+                <div className="orderPaymentStatus">
+                  <strong>{shipment.courier_name || "COURIER"}</strong>
+                  <small>{formatStatus(shipment.status)}</small>
+                </div>
+
+                <div className="orderSideRows">
+                  <div>
+                    <span>Tracking number</span>
+                    <strong>{shipment.tracking_number}</strong>
+                  </div>
+                </div>
+
+                {shipment.tracking_url ? (
+                  <a
+                    href={shipment.tracking_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="orderPrimaryButton orderSideMainAction"
+                  >
+                    TRACK PARCEL
+                  </a>
+                ) : null}
+              </section>
+            ) : null}
 
             <section className="orderSideCard">
               <span>PAYMENT</span>
