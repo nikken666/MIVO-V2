@@ -664,7 +664,7 @@ export default function AdminOrdersPage() {
                     }
                     key={order.id}
                   >
-                    {bucket(order) === "to_ship" ? (
+                    {tab === "to_ship" && bucket(order) === "to_ship" ? (
                       <label
                         className={styles.adminOrderBatchCheck}
                         onClick={(event) => event.stopPropagation()}
