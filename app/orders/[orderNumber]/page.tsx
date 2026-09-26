@@ -347,15 +347,14 @@ export default function OrderDetailsPage() {
                 </div>
 
                 {shipment.tracking_url ? (
-                  <Link
-                    href={
-                      "/track-order?order=" +
-                      encodeURIComponent(order.order_number)
-                    }
+                  <a
+                    href={shipment.tracking_url}
+                    target="_blank"
+                    rel="noreferrer"
                     className="orderPrimaryButton orderSideMainAction"
                   >
                     TRACK PARCEL
-                  </Link>
+                  </a>
                 ) : null}
               </section>
             ) : null}
