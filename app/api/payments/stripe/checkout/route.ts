@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { stripeRequest } from "@/lib/stripe/server";
@@ -220,12 +221,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const requestFingerprint = createHash("sha256")
+      .update(params.toString())
+      .digest("hex")
+      .slice(0, 16);
+
     const session = await stripeRequest<StripeCheckoutSession>(
       "/checkout/sessions",
       {
         method: "POST",
         body: params,
-        idempotencyKey: "mivo-checkout-" + order.id,
+        idempotencyKey:
+          "mivo-checkout-" + order.id + "-" + requestFingerprint,
       }
     );
 
