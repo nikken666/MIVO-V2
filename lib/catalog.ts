@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   products as demoProducts,
   type Product,
+  type ProductPublicReview,
   type ProductVariant,
 } from "@/data/products";
 
@@ -250,4 +251,41 @@ export async function getActiveProductBySlug(
   }
 
   return demoProducts.find((product) => product.slug === slug) || null;
+}
+
+
+export async function getProductPublicReviews(
+  productId: string
+): Promise<ProductPublicReview[]> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc(
+      "get_product_public_reviews",
+      { p_product_id: productId }
+    );
+
+    if (error) throw error;
+
+    return (
+      (data as Array<{
+        id: string;
+        rating: number;
+        comment: string | null;
+        image_urls: string[] | null;
+        created_at: string;
+        variant_name: string | null;
+        verified_purchase: boolean;
+      }> | null) || []
+    ).map((review) => ({
+      id: review.id,
+      rating: Number(review.rating || 0),
+      comment: review.comment,
+      imageUrls: review.image_urls || [],
+      createdAt: review.created_at,
+      variantName: review.variant_name,
+      verifiedPurchase: Boolean(review.verified_purchase),
+    }));
+  } catch {
+    return [];
+  }
 }
