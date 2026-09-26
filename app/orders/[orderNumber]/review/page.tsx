@@ -23,11 +23,18 @@ type ReviewRow = {
   order_item_id: string;
   rating: number;
   comment: string | null;
+  image_urls: string[] | null;
 };
 
 type ReviewDraft = {
   rating: number;
   comment: string;
+  imageUrls: string[];
+};
+
+type ReviewPhotoDraft = {
+  file: File;
+  preview: string;
 };
 
 export default function OrderReviewPage() {
@@ -38,6 +45,9 @@ export default function OrderReviewPage() {
   const [order, setOrder] = useState<OrderRow | null>(null);
   const [items, setItems] = useState<OrderItem[]>([]);
   const [drafts, setDrafts] = useState<Record<string, ReviewDraft>>({});
+  const [photoDrafts, setPhotoDrafts] = useState<
+    Record<string, ReviewPhotoDraft[]>
+  >({});
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -90,7 +100,7 @@ export default function OrderReviewPage() {
 
         const { data: reviewData, error: reviewError } = await supabase
           .from("product_reviews")
-          .select("order_item_id, rating, comment")
+          .select("order_item_id, rating, comment, image_urls")
           .eq("order_id", orderData.id)
           .eq("user_id", user.id);
 
@@ -109,6 +119,7 @@ export default function OrderReviewPage() {
           nextDrafts[item.id] = {
             rating: review?.rating || 0,
             comment: review?.comment || "",
+            imageUrls: review?.image_urls || [],
           };
         });
 
@@ -142,6 +153,7 @@ export default function OrderReviewPage() {
       [itemId]: {
         rating,
         comment: current[itemId]?.comment || "",
+        imageUrls: current[itemId]?.imageUrls || [],
       },
     }));
   }
@@ -152,6 +164,83 @@ export default function OrderReviewPage() {
       [itemId]: {
         rating: current[itemId]?.rating || 0,
         comment,
+        imageUrls: current[itemId]?.imageUrls || [],
+      },
+    }));
+  }
+
+  async function addPhotos(itemId: string, files: FileList | null) {
+    if (!files?.length) return;
+
+    const currentSaved = drafts[itemId]?.imageUrls.length || 0;
+    const currentLocal = photoDrafts[itemId]?.length || 0;
+    const available = Math.max(0, 5 - currentSaved - currentLocal);
+
+    if (available < 1) {
+      setError("You can upload up to 5 photos per product.");
+      return;
+    }
+
+    const incoming = Array.from(files).slice(0, available);
+    const allowedTypes = new Set([
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+    ]);
+
+    for (const file of incoming) {
+      if (!allowedTypes.has(file.type)) {
+        setError("Only JPG, PNG and WEBP photos are allowed.");
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        setError("Each photo must be 5MB or smaller.");
+        return;
+      }
+    }
+
+    const previews = await Promise.all(
+      incoming.map(
+        (file) =>
+          new Promise<ReviewPhotoDraft>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () =>
+              resolve({
+                file,
+                preview: String(reader.result || ""),
+              });
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(file);
+          })
+      )
+    );
+
+    setError("");
+    setPhotoDrafts((current) => ({
+      ...current,
+      [itemId]: [...(current[itemId] || []), ...previews],
+    }));
+  }
+
+  function removeLocalPhoto(itemId: string, index: number) {
+    setPhotoDrafts((current) => ({
+      ...current,
+      [itemId]: (current[itemId] || []).filter(
+        (_, photoIndex) => photoIndex !== index
+      ),
+    }));
+  }
+
+  function removeSavedPhoto(itemId: string, url: string) {
+    setDrafts((current) => ({
+      ...current,
+      [itemId]: {
+        rating: current[itemId]?.rating || 0,
+        comment: current[itemId]?.comment || "",
+        imageUrls: (current[itemId]?.imageUrls || []).filter(
+          (imageUrl) => imageUrl !== url
+        ),
       },
     }));
   }
@@ -183,6 +272,41 @@ export default function OrderReviewPage() {
 
       if (!user) throw new Error("Your session has expired.");
 
+      const uploadedByItem: Record<string, string[]> = {};
+
+      for (const item of items) {
+        const photos = photoDrafts[item.id] || [];
+
+        if (!photos.length) {
+          uploadedByItem[item.id] = [];
+          continue;
+        }
+
+        const formData = new FormData();
+        formData.append("orderNumber", order.order_number);
+        formData.append("orderItemId", item.id);
+
+        photos.forEach((photo) => {
+          formData.append("images", photo.file);
+        });
+
+        const response = await fetch("/api/reviews/images", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = (await response.json()) as {
+          urls?: string[];
+          error?: string;
+        };
+
+        if (!response.ok) {
+          throw new Error(result.error || "Unable to upload review photos.");
+        }
+
+        uploadedByItem[item.id] = result.urls || [];
+      }
+
       const payload = items.map((item) => ({
         user_id: user.id,
         order_id: order.id,
@@ -190,6 +314,10 @@ export default function OrderReviewPage() {
         product_id: item.product_id,
         rating: drafts[item.id].rating,
         comment: drafts[item.id].comment.trim() || null,
+        image_urls: [
+          ...(drafts[item.id].imageUrls || []),
+          ...(uploadedByItem[item.id] || []),
+        ].slice(0, 5),
         updated_at: new Date().toISOString(),
       }));
 
@@ -199,7 +327,24 @@ export default function OrderReviewPage() {
 
       if (reviewError) throw reviewError;
 
-      setMessage("Thank you. Your ratings have been saved.");
+      setDrafts((current) => {
+        const next = { ...current };
+
+        items.forEach((item) => {
+          next[item.id] = {
+            rating: current[item.id]?.rating || 0,
+            comment: current[item.id]?.comment || "",
+            imageUrls: [
+              ...(current[item.id]?.imageUrls || []),
+              ...(uploadedByItem[item.id] || []),
+            ].slice(0, 5),
+          };
+        });
+
+        return next;
+      });
+      setPhotoDrafts({});
+      setMessage("Thank you. Your ratings and photos have been saved.");
     } catch (caught) {
       setError(
         caught instanceof Error
@@ -260,7 +405,10 @@ export default function OrderReviewPage() {
             const draft = drafts[item.id] || {
               rating: 0,
               comment: "",
+              imageUrls: [],
             };
+            const localPhotos = photoDrafts[item.id] || [];
+            const photoCount = draft.imageUrls.length + localPhotos.length;
 
             return (
               <article className="reviewProductCard" key={item.id}>
@@ -305,17 +453,85 @@ export default function OrderReviewPage() {
                   </small>
                 </div>
 
-                <label className="reviewComment">
-                  <span>COMMENTS</span>
-                  <textarea
-                    rows={4}
-                    value={draft.comment}
-                    onChange={(event) =>
-                      setComment(item.id, event.target.value)
-                    }
-                    placeholder="Share your experience with this product (optional)"
-                  />
-                </label>
+                <div className="reviewFeedbackColumn">
+                  <label className="reviewComment">
+                    <span>COMMENTS</span>
+                    <textarea
+                      rows={4}
+                      value={draft.comment}
+                      onChange={(event) =>
+                        setComment(item.id, event.target.value)
+                      }
+                      placeholder="Share your experience with this product (optional)"
+                    />
+                  </label>
+
+                  <div className="reviewPhotoUpload">
+                    <div className="reviewPhotoUploadHead">
+                      <div>
+                        <span>PHOTOS</span>
+                        <small>JPG, PNG or WEBP · Max 5MB each</small>
+                      </div>
+                      <b>{photoCount} / 5</b>
+                    </div>
+
+                    {photoCount > 0 ? (
+                      <div className="reviewPhotoGrid">
+                        {draft.imageUrls.map((url) => (
+                          <div className="reviewPhotoThumb" key={url}>
+                            <img src={url} alt="Review upload" />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                removeSavedPhoto(item.id, url)
+                              }
+                              aria-label="Remove saved review photo"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+
+                        {localPhotos.map((photo, photoIndex) => (
+                          <div
+                            className="reviewPhotoThumb"
+                            key={photo.preview + photoIndex}
+                          >
+                            <img
+                              src={photo.preview}
+                              alt="Selected review upload"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                removeLocalPhoto(item.id, photoIndex)
+                              }
+                              aria-label="Remove selected review photo"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    {photoCount < 5 ? (
+                      <label className="reviewPhotoAdd">
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          multiple
+                          onChange={(event) => {
+                            void addPhotos(item.id, event.target.files);
+                            event.currentTarget.value = "";
+                          }}
+                        />
+                        <span>＋ ADD PHOTOS</span>
+                        <small>Up to {5 - photoCount} more</small>
+                      </label>
+                    ) : null}
+                  </div>
+                </div>
               </article>
             );
           })}
