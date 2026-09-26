@@ -244,15 +244,28 @@ export async function POST(request: NextRequest) {
       })
       .eq("id", order.id);
 
-    if (linkError) throw linkError;
+    if (linkError) {
+      console.error("MIVO Stripe checkout: unable to link session to order", {
+        orderId: order.id,
+        orderNumber: order.order_number,
+        message: linkError.message,
+        code: linkError.code,
+      });
+    }
 
     return NextResponse.json({
       url: session.url,
       sessionId: session.id,
+      orderLinked: !linkError,
     });
   } catch (caught) {
     const message =
       caught instanceof Error ? caught.message : "Unable to start payment.";
+
+    console.error("MIVO Stripe checkout failed", {
+      message,
+      caught,
+    });
 
     return NextResponse.json({ error: message }, { status: 500 });
   }
