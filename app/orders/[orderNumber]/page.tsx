@@ -46,6 +46,13 @@ type ShipmentInfo = {
   status: string;
 };
 
+type OrderStatusHistoryRow = {
+  id: string;
+  new_status: string;
+  note: string | null;
+  created_at: string;
+};
+
 const steps = [
   { key: "placed", label: "ORDER PLACED" },
   { key: "paid", label: "PAID" },
@@ -74,6 +81,7 @@ export default function OrderDetailsPage() {
   const [order, setOrder] = useState<OrderRow | null>(null);
   const [items, setItems] = useState<OrderItem[]>([]);
   const [shipment, setShipment] = useState<ShipmentInfo | null>(null);
+  const [statusHistory, setStatusHistory] = useState<OrderStatusHistoryRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [showUnpaidCancel, setShowUnpaidCancel] = useState(false);
@@ -142,9 +150,20 @@ export default function OrderDetailsPage() {
       shipmentData = (foundShipment as ShipmentInfo | null) || null;
     }
 
+    const { data: historyData, error: historyError } = await supabase
+      .from("order_status_history")
+      .select("id, new_status, note, created_at")
+      .eq("order_id", orderData.id)
+      .order("created_at", { ascending: true });
+
+    if (historyError) throw historyError;
+
     setOrder(orderData as OrderRow);
     setItems((itemData as OrderItem[] | null) || []);
     setShipment(shipmentData);
+    setStatusHistory(
+      (historyData as OrderStatusHistoryRow[] | null) || []
+    );
   }
 
   useEffect(() => {
@@ -231,6 +250,57 @@ export default function OrderDetailsPage() {
     order.status === "refunded" ||
     order.status === "partially_refunded";
 
+  const timelineSteps = [
+    {
+      key: "placed",
+      title: "Order Placed",
+      description: "Your order has been received by MIVO.",
+      complete: progress >= 0,
+      timestamp: order.created_at,
+    },
+    {
+      key: "paid",
+      title: "Payment Confirmed",
+      description: "Your payment has been verified successfully.",
+      complete: progress >= 1,
+      timestamp:
+        statusHistory.find((entry) => entry.new_status === "paid")
+          ?.created_at || null,
+    },
+    {
+      key: "packed",
+      title: "Packed",
+      description: "Your order is packed and ready for courier handover.",
+      complete: progress >= 2,
+      timestamp:
+        statusHistory.find((entry) =>
+          ["processing", "packed"].includes(entry.new_status)
+        )?.created_at || null,
+    },
+    {
+      key: "shipped",
+      title: "Shipped",
+      description: shipment?.tracking_number
+        ? (shipment.courier_name || "Courier") +
+          " · " +
+          shipment.tracking_number
+        : "Your parcel has been handed over to the courier.",
+      complete: progress >= 3,
+      timestamp:
+        statusHistory.find((entry) => entry.new_status === "shipped")
+          ?.created_at || null,
+    },
+    {
+      key: "delivered",
+      title: "Delivered",
+      description: "Your parcel has been delivered.",
+      complete: progress >= 4,
+      timestamp:
+        statusHistory.find((entry) => entry.new_status === "delivered")
+          ?.created_at || null,
+    },
+  ];
+
   return (
     <main className="accountDataPage orderDetailPage">
       <div className="container">
@@ -274,46 +344,102 @@ export default function OrderDetailsPage() {
         )}
 
         <div className="orderDetailLayout">
-          <section className="orderDetailMain">
-            <div className="orderDetailSectionHead">
-              <div>
-                <span>ORDER ITEMS</span>
-                <h2>
-                  {items.length} item{items.length === 1 ? "" : "s"}
-                </h2>
+          <div className="orderDetailMainColumn">
+            <section className="orderDetailMain">
+              <div className="orderDetailSectionHead">
+                <div>
+                  <span>ORDER ITEMS</span>
+                  <h2>
+                    {items.length} item{items.length === 1 ? "" : "s"}
+                  </h2>
+                </div>
               </div>
-            </div>
 
-            <div className="orderDetailItems">
-              {items.map((item) => (
-                <article className="orderDetailItem" key={item.id}>
-                  <div className="orderDetailItemImage">M</div>
+              <div className="orderDetailItems">
+                {items.map((item) => (
+                  <article className="orderDetailItem" key={item.id}>
+                    <div className="orderDetailItemImage">M</div>
 
-                  <div className="orderDetailItemInfo">
-                    <strong>{item.product_name}</strong>
-                    <span>
-                      {item.variant_name || "Default"} · SKU {item.sku}
-                    </span>
-                    <small>Qty {item.quantity}</small>
-                  </div>
+                    <div className="orderDetailItemInfo">
+                      <strong>{item.product_name}</strong>
+                      <span>
+                        {item.variant_name || "Default"} · SKU {item.sku}
+                      </span>
+                      <small>Qty {item.quantity}</small>
+                    </div>
 
-                  <div className="orderDetailItemPrice">
-                    <span>{formatPrice(Number(item.unit_price))} each</span>
-                    <strong>
-                      {formatPrice(Number(item.line_subtotal))}
-                    </strong>
-                  </div>
-                </article>
-              ))}
-            </div>
-
-            {order.customer_note ? (
-              <div className="orderCustomerNote">
-                <span>ORDER NOTE</span>
-                <p>{order.customer_note}</p>
+                    <div className="orderDetailItemPrice">
+                      <span>{formatPrice(Number(item.unit_price))} each</span>
+                      <strong>
+                        {formatPrice(Number(item.line_subtotal))}
+                      </strong>
+                    </div>
+                  </article>
+                ))}
               </div>
+
+              {order.customer_note ? (
+                <div className="orderCustomerNote">
+                  <span>ORDER NOTE</span>
+                  <p>{order.customer_note}</p>
+                </div>
+              ) : null}
+            </section>
+
+            {!cancelled ? (
+              <section className="orderTimelineCard">
+                <div className="orderTimelineHead">
+                  <div>
+                    <span>SHIPMENT UPDATES</span>
+                    <h2>Tracking Timeline</h2>
+                  </div>
+                  {shipment?.courier_name ? (
+                    <strong>{shipment.courier_name}</strong>
+                  ) : null}
+                </div>
+
+                <div className="orderTimelineList">
+                  {timelineSteps.map((step, index) => (
+                    <div
+                      className={
+                        "orderTimelineItem" +
+                        (step.complete ? " complete" : "")
+                      }
+                      key={step.key}
+                    >
+                      <div className="orderTimelineMarker">
+                        <i>{step.complete ? "✓" : index + 1}</i>
+                        {index < timelineSteps.length - 1 ? <span /> : null}
+                      </div>
+
+                      <div className="orderTimelineContent">
+                        <div>
+                          <strong>{step.title}</strong>
+                          {step.timestamp ? (
+                            <time>
+                              {new Date(step.timestamp).toLocaleString(
+                                "en-MY",
+                                {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )}
+                            </time>
+                          ) : (
+                            <time>{step.complete ? "Completed" : "Pending"}</time>
+                          )}
+                        </div>
+                        <p>{step.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
             ) : null}
-          </section>
+          </div>
 
           <aside className="orderDetailSide">
             <section className="orderSideCard">
