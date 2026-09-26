@@ -53,6 +53,7 @@ export default function OrderReviewPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -405,13 +406,8 @@ export default function OrderReviewPage() {
         return next;
       });
       setPhotoDrafts({});
-      setMessage("Thank you. Your ratings and photos have been saved.");
-
-      window.setTimeout(() => {
-        router.replace(
-          "/orders/" + encodeURIComponent(order.order_number)
-        );
-      }, 700);
+      setMessage("");
+      setSubmitted(true);
     } catch (caught) {
       setError(
         caught instanceof Error
@@ -442,6 +438,43 @@ export default function OrderReviewPage() {
             <p>{error}</p>
             <Link href="/orders">BACK TO MY ORDERS →</Link>
           </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (submitted && order) {
+    return (
+      <main className="accountDataPage reviewOrderPage reviewThanksPage">
+        <div className="container">
+          <section className="reviewThanksCard">
+            <div className="reviewThanksIcon">✓</div>
+            <span>REVIEW SUBMITTED</span>
+            <h1>Thank You for Your Review</h1>
+            <p>
+              Your feedback has been saved successfully. Thank you for helping
+              other MIVO customers shop with more confidence.
+            </p>
+
+            <div className="reviewThanksOrder">
+              <span>ORDER</span>
+              <strong>{order.order_number}</strong>
+            </div>
+
+            <div className="reviewThanksActions">
+              <Link
+                href={
+                  "/orders/" + encodeURIComponent(order.order_number)
+                }
+                className="orderPrimaryButton"
+              >
+                BACK TO ORDER
+              </Link>
+              <Link href="/products" className="orderGhostButton">
+                CONTINUE SHOPPING
+              </Link>
+            </div>
+          </section>
         </div>
       </main>
     );
