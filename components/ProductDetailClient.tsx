@@ -588,14 +588,6 @@ export default function ProductDetailClient({
                       : "Select a variation"}
                   </strong>
                 </div>
-                <div>
-                  <span>Ships From</span>
-                  <strong>Malaysia</strong>
-                </div>
-                <div>
-                  <span>Sold By</span>
-                  <strong>{product.seller || "MIVO Direct Store"}</strong>
-                </div>
                 {selectedVariant?.weightKg ? (
                   <div>
                     <span>Weight</span>
