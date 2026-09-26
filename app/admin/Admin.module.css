@@ -1926,8 +1926,8 @@
   position:absolute;
   z-index:4;
   left:12px;
-  top:50%;
-  transform:translateY(-50%);
+  top:27px;
+  transform:none;
   display:flex;
   align-items:center;
   gap:6px;
@@ -1944,7 +1944,7 @@
   letter-spacing:.08em;
 }
 .adminOrderBatchCheck + .adminOrderCardMain{
-  padding-left:92px;
+  padding-left:102px;
 }
 .adminModalBackdrop{
   position:fixed;
