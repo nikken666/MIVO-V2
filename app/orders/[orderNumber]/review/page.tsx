@@ -168,15 +168,31 @@ export default function OrderReviewPage() {
 
         if (reviewError) throw reviewError;
 
+        const savedReviews = (reviewData as ReviewRow[] | null) || [];
+        const reviewedItemIds = new Set(
+          savedReviews.map((review) => review.order_item_id)
+        );
+        const loadedItems = (itemData as OrderItem[] | null) || [];
+
+        if (
+          loadedItems.length > 0 &&
+          loadedItems.every((item) => reviewedItemIds.has(item.id))
+        ) {
+          router.replace(
+            "/orders/" + encodeURIComponent(orderNumber)
+          );
+          return;
+        }
+
         const saved = new Map(
-          ((reviewData as ReviewRow[] | null) || []).map((review) => [
+          savedReviews.map((review) => [
             review.order_item_id,
             review,
           ])
         );
 
         const nextDrafts: Record<string, ReviewDraft> = {};
-        ((itemData as OrderItem[] | null) || []).forEach((item) => {
+        loadedItems.forEach((item) => {
           const review = saved.get(item.id);
           nextDrafts[item.id] = {
             rating: review?.rating || 0,
