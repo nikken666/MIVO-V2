@@ -137,7 +137,6 @@ export default function CartPage() {
                           </span>
                         ) : null}
 
-                        <span>SKU: {line.variant.sku}</span>
                       </div>
                     ) : null}
 
