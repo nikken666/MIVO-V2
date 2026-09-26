@@ -695,7 +695,7 @@ export default function ArrangeShipmentPage() {
                         <div className={styles.adminArrangedTracking}>
                           <label>
                             <span>COURIER *</span>
-                            <input
+                            <select
                               value={
                                 courierInputs[order.order_number] ??
                                 order.shipment?.courier_name ??
@@ -707,8 +707,11 @@ export default function ArrangeShipmentPage() {
                                   [order.order_number]: event.target.value,
                                 }))
                               }
-                              placeholder="SPX Express / J&T Express"
-                            />
+                            >
+                              <option value="">SELECT COURIER</option>
+                              <option value="SPX Express">SPX EXPRESS</option>
+                              <option value="J&T Express">J&T EXPRESS</option>
+                            </select>
                           </label>
 
                           <label>
