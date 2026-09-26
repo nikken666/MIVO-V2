@@ -515,7 +515,9 @@ export default function AdminOrdersPage() {
   }
 
   function openOrder(order: OrderView) {
-    setSelected(order.order_number);
+    setSelected((current) =>
+      current === order.order_number ? "" : order.order_number
+    );
     setMessage("");
     setError("");
   }
@@ -736,7 +738,11 @@ export default function AdminOrdersPage() {
                       <div className={styles.adminOrderAmount}>
                         <span>TOTAL</span>
                         <strong>{money(Number(order.total_amount))}</strong>
-                        <small>VIEW →</small>
+                        <small>
+                          {selected === order.order_number
+                            ? "CLOSE ↑"
+                            : "VIEW →"}
+                        </small>
                       </div>
                     </button>
 
