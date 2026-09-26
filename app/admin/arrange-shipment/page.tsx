@@ -27,6 +27,8 @@ type ShipmentRow = {
   id: string;
   seller_order_id: string;
   courier_name: string | null;
+  tracking_number: string | null;
+  tracking_url: string | null;
   status: string;
   arrangement_method: string | null;
   pickup_date: string | null;
@@ -103,6 +105,10 @@ export default function ArrangeShipmentPage() {
   >("drop_off");
   const [pickupDate, setPickupDate] = useState("");
   const [courierOverride, setCourierOverride] = useState("");
+  const [courierInputs, setCourierInputs] = useState<Record<string, string>>({});
+  const [trackingInputs, setTrackingInputs] = useState<Record<string, string>>({});
+  const [trackingUrlInputs, setTrackingUrlInputs] = useState<Record<string, string>>({});
+  const [shippingBusy, setShippingBusy] = useState("");
 
   async function loadOrders() {
     const supabase = createClient();
@@ -201,7 +207,7 @@ export default function ArrangeShipmentPage() {
       ? await supabase
           .from("shipments")
           .select(
-            "id, seller_order_id, courier_name, status, arrangement_method, pickup_date"
+            "id, seller_order_id, courier_name, tracking_number, tracking_url, status, arrangement_method, pickup_date"
           )
           .in("seller_order_id", sellerOrderIds)
       : { data: [], error: null };
@@ -372,6 +378,61 @@ export default function ArrangeShipmentPage() {
       );
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function markShipped(order: OrderView) {
+    const orderNumber = order.order_number;
+    const courier = (
+      courierInputs[orderNumber] ??
+      order.shipment?.courier_name ??
+      ""
+    ).trim();
+    const tracking = (
+      trackingInputs[orderNumber] ??
+      order.shipment?.tracking_number ??
+      ""
+    ).trim();
+    const trackingUrl = (
+      trackingUrlInputs[orderNumber] ??
+      order.shipment?.tracking_url ??
+      ""
+    ).trim();
+
+    if (!courier || !tracking) {
+      setError("Courier and tracking number are required.");
+      return;
+    }
+
+    setShippingBusy(orderNumber);
+    setError("");
+    setMessage("");
+
+    try {
+      const supabase = createClient();
+      const { error: shipError } = await supabase.rpc(
+        "admin_update_order_fulfilment",
+        {
+          p_order_number: orderNumber,
+          p_status: "shipped",
+          p_courier_name: courier,
+          p_tracking_number: tracking,
+          p_tracking_url: trackingUrl || null,
+        }
+      );
+
+      if (shipError) throw shipError;
+
+      await loadOrders();
+      setMessage(orderNumber + " marked as SHIPPED.");
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Unable to mark this order as shipped."
+      );
+    } finally {
+      setShippingBusy("");
     }
   }
 
@@ -619,6 +680,87 @@ export default function ArrangeShipmentPage() {
                           </small>
                         </div>
                       </div>
+
+                      {arranged ? (
+                        <div className={styles.adminArrangedTracking}>
+                          <label>
+                            <span>COURIER *</span>
+                            <input
+                              value={
+                                courierInputs[order.order_number] ??
+                                order.shipment?.courier_name ??
+                                ""
+                              }
+                              onChange={(event) =>
+                                setCourierInputs((current) => ({
+                                  ...current,
+                                  [order.order_number]: event.target.value,
+                                }))
+                              }
+                              placeholder="SPX Express / J&T Express"
+                            />
+                          </label>
+
+                          <label>
+                            <span>TRACKING NUMBER *</span>
+                            <input
+                              value={
+                                trackingInputs[order.order_number] ??
+                                order.shipment?.tracking_number ??
+                                ""
+                              }
+                              onChange={(event) =>
+                                setTrackingInputs((current) => ({
+                                  ...current,
+                                  [order.order_number]: event.target.value,
+                                }))
+                              }
+                              placeholder="Enter tracking number"
+                            />
+                          </label>
+
+                          <label>
+                            <span>TRACKING URL</span>
+                            <input
+                              value={
+                                trackingUrlInputs[order.order_number] ??
+                                order.shipment?.tracking_url ??
+                                ""
+                              }
+                              onChange={(event) =>
+                                setTrackingUrlInputs((current) => ({
+                                  ...current,
+                                  [order.order_number]: event.target.value,
+                                }))
+                              }
+                              placeholder="Optional"
+                            />
+                          </label>
+
+                          <button
+                            type="button"
+                            className={styles.adminAction}
+                            disabled={
+                              shippingBusy === order.order_number ||
+                              !(
+                                courierInputs[order.order_number] ??
+                                order.shipment?.courier_name ??
+                                ""
+                              ).trim() ||
+                              !(
+                                trackingInputs[order.order_number] ??
+                                order.shipment?.tracking_number ??
+                                ""
+                              ).trim()
+                            }
+                            onClick={() => void markShipped(order)}
+                          >
+                            {shippingBusy === order.order_number
+                              ? "SAVING..."
+                              : "SAVE TRACKING & MARK SHIPPED"}
+                          </button>
+                        </div>
+                      ) : null}
                     </article>
                   );
                 })}
