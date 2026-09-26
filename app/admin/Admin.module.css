@@ -2136,3 +2136,51 @@
     grid-template-columns:1fr 1fr;
   }
 }
+
+
+.adminArrangedTracking{
+  display:grid;
+  grid-template-columns:minmax(150px,.8fr) minmax(190px,1fr) minmax(190px,1fr) auto;
+  gap:10px;
+  align-items:end;
+  padding:14px 16px 16px;
+  border-top:1px solid #eceeef;
+  background:#fafafa;
+}
+.adminArrangedTracking label{
+  display:grid;
+  gap:5px;
+}
+.adminArrangedTracking label>span{
+  color:#777f83;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.adminArrangedTracking input{
+  width:100%;
+  min-height:40px;
+  padding:0 10px;
+  border:1px solid #d7dbdd;
+  border-radius:8px;
+  background:#fff;
+  outline:0;
+  font-size:9px;
+}
+.adminArrangedTracking input:focus{
+  border-color:#111417;
+}
+.adminArrangedTracking .adminAction{
+  min-height:40px;
+  white-space:nowrap;
+}
+@media(max-width:1050px){
+  .adminArrangedTracking{
+    grid-template-columns:1fr 1fr;
+  }
+}
+@media(max-width:650px){
+  .adminArrangedTracking{
+    grid-template-columns:1fr;
+  }
+}
