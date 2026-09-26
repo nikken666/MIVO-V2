@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   products as demoProducts,
   type Product,
@@ -105,6 +106,7 @@ function mapProduct(row: ProductRow): Product | null {
     category: relationName(row.categories, "Automotive Parts"),
     price: lowestPrice,
     reviews: 0,
+    rating: 0,
     icon: "🔧",
     description:
       row.description || "Product details will be updated by the seller.",
@@ -135,6 +137,88 @@ function mapProduct(row: ProductRow): Product | null {
 const selectQuery =
   "id, slug, name, description, primary_image_url, variation_1_name, variation_2_name, brands(name), categories(name), sellers(shop_name), product_images(image_url, sort_order), product_variants(id, title, variation_1_value, variation_2_value, sku, price, compare_at_price, stock_on_hand, stock_reserved, weight_kg, length_cm, width_cm, height_cm, is_active)";
 
+type ReviewStat = {
+  rating: number;
+  reviews: number;
+};
+
+async function getReviewStats(
+  productIds: string[]
+): Promise<Map<string, ReviewStat>> {
+  const stats = new Map<string, ReviewStat>();
+
+  if (productIds.length === 0) return stats;
+
+  try {
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from("product_reviews")
+      .select("product_id, rating")
+      .in("product_id", productIds);
+
+    if (error) throw error;
+
+    const totals = new Map<
+      string,
+      { total: number; count: number }
+    >();
+
+    (
+      (data as Array<{
+        product_id: string | null;
+        rating: number;
+      }> | null) || []
+    ).forEach((review) => {
+      if (!review.product_id) return;
+
+      const current = totals.get(review.product_id) || {
+        total: 0,
+        count: 0,
+      };
+
+      current.total += Number(review.rating || 0);
+      current.count += 1;
+      totals.set(review.product_id, current);
+    });
+
+    totals.forEach((value, productId) => {
+      stats.set(productId, {
+        rating:
+          value.count > 0
+            ? Math.round((value.total / value.count) * 10) / 10
+            : 0,
+        reviews: value.count,
+      });
+    });
+  } catch {
+    // Ratings should never prevent the catalog from loading.
+  }
+
+  return stats;
+}
+
+async function attachReviewStats(
+  products: Product[]
+): Promise<Product[]> {
+  const productIds = products
+    .map((product) => product.id)
+    .filter((id): id is string => Boolean(id));
+
+  const stats = await getReviewStats(productIds);
+
+  return products.map((product) => {
+    if (!product.id) return product;
+
+    const reviewStat = stats.get(product.id);
+
+    return {
+      ...product,
+      rating: reviewStat?.rating || 0,
+      reviews: reviewStat?.reviews || 0,
+    };
+  });
+}
+
 export async function getActiveProducts(): Promise<Product[]> {
   try {
     const supabase = await createClient();
@@ -150,7 +234,7 @@ export async function getActiveProducts(): Promise<Product[]> {
       .map(mapProduct)
       .filter((product): product is Product => Boolean(product));
 
-    return live.length > 0 ? live : demoProducts;
+    return live.length > 0 ? await attachReviewStats(live) : demoProducts;
   } catch {
     return demoProducts;
   }
@@ -173,7 +257,10 @@ export async function getActiveProductBySlug(
     const row = (data?.[0] || null) as unknown as ProductRow | null;
     const mapped = row ? mapProduct(row) : null;
 
-    if (mapped) return mapped;
+    if (mapped) {
+      const [withReviews] = await attachReviewStats([mapped]);
+      return withReviews;
+    }
   } catch {
     // Fall back to demo products.
   }
