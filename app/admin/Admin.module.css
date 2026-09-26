@@ -2209,3 +2209,18 @@
   color:#8b9195;
   font-size:7px;
 }
+
+
+.adminArrangedTracking select{
+  width:100%;
+  min-height:40px;
+  padding:0 10px;
+  border:1px solid #d7dbdd;
+  border-radius:8px;
+  background:#fff;
+  outline:0;
+  font-size:9px;
+}
+.adminArrangedTracking select:focus{
+  border-color:#111417;
+}
