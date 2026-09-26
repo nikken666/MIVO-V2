@@ -2,7 +2,11 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import ProductDetailClient from "@/components/ProductDetailClient";
-import { getActiveProductBySlug } from "@/lib/catalog";
+import {
+  getActiveProductBySlug,
+  getActiveProducts,
+  getProductPublicReviews,
+} from "@/lib/catalog";
 import { getLiveProductFitmentDetail } from "@/lib/liveFitment";
 import {
   getProductFitmentStatus,
@@ -72,12 +76,134 @@ export default async function ProductPage({
     .filter(Boolean)
     .join(" ");
 
+  const [productReviews, allProducts] = await Promise.all([
+    product.id ? getProductPublicReviews(product.id) : Promise.resolve([]),
+    getActiveProducts(),
+  ]);
+
+  const relatedProducts = allProducts
+    .filter((item) => item.slug !== product.slug)
+    .map((item) => ({
+      item,
+      score:
+        (item.category === product.category ? 2 : 0) +
+        (item.brand === product.brand ? 1 : 0),
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 4)
+    .map(({ item }) => item);
+
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+    "https://mivo-v2.vercel.app";
+  const productUrl = siteUrl + "/products/" + product.slug;
+  const activeVariants = (product.variants || []).filter(
+    (item) => item.isActive
+  );
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": activeVariants.length > 1 ? "ProductGroup" : "Product",
+    name: product.name,
+    description: product.description,
+    image: product.imageUrls?.length
+      ? product.imageUrls
+      : product.imageUrl
+        ? [product.imageUrl]
+        : undefined,
+    brand: {
+      "@type": "Brand",
+      name: product.brand,
+    },
+    url: productUrl,
+    productGroupID:
+      activeVariants.length > 1 ? product.id || product.slug : undefined,
+    sku:
+      activeVariants.length === 1
+        ? activeVariants[0]?.sku
+        : product.sku,
+    aggregateRating:
+      product.reviews > 0
+        ? {
+            "@type": "AggregateRating",
+            ratingValue: Number(product.rating || 0).toFixed(1),
+            reviewCount: product.reviews,
+          }
+        : undefined,
+    review:
+      productReviews.length > 0
+        ? productReviews.slice(0, 10).map((review) => ({
+            "@type": "Review",
+            reviewRating: {
+              "@type": "Rating",
+              ratingValue: review.rating,
+              bestRating: 5,
+            },
+            author: {
+              "@type": "Person",
+              name: "Verified MIVO Buyer",
+            },
+            reviewBody: review.comment || undefined,
+          }))
+        : undefined,
+    offers:
+      activeVariants.length <= 1
+        ? {
+            "@type": "Offer",
+            priceCurrency: "MYR",
+            price: String(activeVariants[0]?.price ?? product.price),
+            availability:
+              Number(activeVariants[0]?.stock ?? product.stock ?? 0) > 0
+                ? "https://schema.org/InStock"
+                : "https://schema.org/OutOfStock",
+            url: productUrl,
+          }
+        : undefined,
+    hasVariant:
+      activeVariants.length > 1
+        ? activeVariants.map((item) => ({
+            "@type": "Product",
+            name:
+              product.name +
+              (item.title && item.title !== "Default"
+                ? " - " + item.title
+                : ""),
+            sku: item.sku,
+            image: product.imageUrl,
+            brand: {
+              "@type": "Brand",
+              name: product.brand,
+            },
+            offers: {
+              "@type": "Offer",
+              priceCurrency: "MYR",
+              price: String(item.price),
+              availability:
+                item.stock > 0
+                  ? "https://schema.org/InStock"
+                  : "https://schema.org/OutOfStock",
+              url: productUrl,
+            },
+          }))
+        : undefined,
+  };
+
   return (
-    <ProductDetailClient
-      product={product}
-      fitmentStatus={fitmentStatus}
-      variantFitmentStatuses={variantFitmentStatuses}
-      selectedVehicleLabel={selectedVehicleLabel}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
+      <ProductDetailClient
+        product={product}
+        productReviews={productReviews}
+        relatedProducts={relatedProducts}
+        fitmentStatus={fitmentStatus}
+        variantFitmentStatuses={variantFitmentStatuses}
+        selectedVehicleLabel={selectedVehicleLabel}
+      />
+    </>
   );
 }
