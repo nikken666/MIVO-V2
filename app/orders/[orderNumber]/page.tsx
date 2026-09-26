@@ -82,6 +82,7 @@ export default function OrderDetailsPage() {
   const [items, setItems] = useState<OrderItem[]>([]);
   const [shipment, setShipment] = useState<ShipmentInfo | null>(null);
   const [statusHistory, setStatusHistory] = useState<OrderStatusHistoryRow[]>([]);
+  const [reviewedAll, setReviewedAll] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [showUnpaidCancel, setShowUnpaidCancel] = useState(false);
@@ -158,9 +159,33 @@ export default function OrderDetailsPage() {
 
     if (historyError) throw historyError;
 
+    const loadedItems = (itemData as OrderItem[] | null) || [];
+    let allReviewed = false;
+
+    if (orderData.status === "delivered" && loadedItems.length > 0) {
+      const { data: reviewData, error: reviewError } = await supabase
+        .from("product_reviews")
+        .select("order_item_id")
+        .eq("order_id", orderData.id)
+        .eq("user_id", user.id);
+
+      if (reviewError) throw reviewError;
+
+      const reviewedItemIds = new Set(
+        ((reviewData as Array<{ order_item_id: string }> | null) || []).map(
+          (review) => review.order_item_id
+        )
+      );
+
+      allReviewed = loadedItems.every((item) =>
+        reviewedItemIds.has(item.id)
+      );
+    }
+
     setOrder(orderData as OrderRow);
-    setItems((itemData as OrderItem[] | null) || []);
+    setItems(loadedItems);
     setShipment(shipmentData);
+    setReviewedAll(allReviewed);
     setStatusHistory(
       (historyData as OrderStatusHistoryRow[] | null) || []
     );
@@ -580,16 +605,26 @@ export default function OrderDetailsPage() {
             ) : null}
 
             {order.status === "delivered" ? (
-              <Link
-                href={
-                  "/orders/" +
-                  encodeURIComponent(order.order_number) +
-                  "/review"
-                }
-                className="orderPrimaryButton orderSideMainAction"
-              >
-                RATE ORDER
-              </Link>
+              reviewedAll ? (
+                <button
+                  type="button"
+                  className="orderGhostButton orderSideMainAction"
+                  disabled
+                >
+                  REVIEWED
+                </button>
+              ) : (
+                <Link
+                  href={
+                    "/orders/" +
+                    encodeURIComponent(order.order_number) +
+                    "/review"
+                  }
+                  className="orderPrimaryButton orderSideMainAction"
+                >
+                  RATE ORDER
+                </Link>
+              )
             ) : null}
 
             {cancelled &&
