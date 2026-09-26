@@ -406,6 +406,12 @@ export default function OrderReviewPage() {
       });
       setPhotoDrafts({});
       setMessage("Thank you. Your ratings and photos have been saved.");
+
+      window.setTimeout(() => {
+        router.replace(
+          "/orders/" + encodeURIComponent(order.order_number)
+        );
+      }, 700);
     } catch (caught) {
       setError(
         caught instanceof Error
