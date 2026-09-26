@@ -5576,3 +5576,103 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
     box-shadow:none !important;
   }
 }
+
+
+/* PRODUCT DETAIL — SHOPEE-STYLE INFORMATION */
+.productShopeeDetails{
+  display:grid;
+  gap:16px;
+}
+.productSpecificationCard,
+.productWarrantyCard{
+  padding:24px 26px;
+  border:1px solid #e0e3e4;
+  border-radius:16px;
+  background:#fff;
+}
+.productInfoSectionTitle span{
+  display:block;
+  color:#92989c;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+.productInfoSectionTitle h2{
+  margin:5px 0 0;
+  color:#171b1e;
+  font-size:20px;
+  letter-spacing:-.03em;
+}
+.productSpecificationGrid{
+  margin-top:20px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:0 34px;
+}
+.productSpecificationGrid>div{
+  min-width:0;
+  min-height:42px;
+  display:grid;
+  grid-template-columns:135px minmax(0,1fr);
+  gap:16px;
+  align-items:center;
+  border-bottom:1px solid #eef0f1;
+}
+.productSpecificationGrid span{
+  color:#8a9195;
+  font-size:9px;
+}
+.productSpecificationGrid strong{
+  min-width:0;
+  color:#252b2f;
+  font-size:9px;
+  font-weight:800;
+  overflow-wrap:anywhere;
+}
+.productShopeeDescription{
+  padding:24px 26px;
+}
+.productShopeeDescription>div:first-child{
+  min-width:220px;
+}
+.productShortDescription{
+  margin:18px 0 0 !important;
+  color:#31373a !important;
+  font-size:10px !important;
+  font-weight:700;
+}
+.productShopeeDescription>p:last-child{
+  white-space:pre-line;
+}
+.productWarrantySummary{
+  margin-top:18px;
+  padding:16px 18px;
+  border-radius:10px;
+  background:#f7f8f8;
+}
+.productWarrantySummary strong{
+  display:block;
+  color:#1e2427;
+  font-size:11px;
+}
+.productWarrantySummary p{
+  margin:7px 0 0;
+  color:#757c80;
+  font-size:9px;
+  line-height:1.55;
+}
+@media(max-width:800px){
+  .productSpecificationGrid{
+    grid-template-columns:1fr;
+  }
+}
+@media(max-width:560px){
+  .productSpecificationCard,
+  .productWarrantyCard,
+  .productShopeeDescription{
+    padding:20px 18px;
+  }
+  .productSpecificationGrid>div{
+    grid-template-columns:110px minmax(0,1fr);
+  }
+}
