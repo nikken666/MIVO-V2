@@ -422,7 +422,7 @@ export default function OrderReviewPage() {
                 </div>
 
                 <div className="reviewStars">
-                  <span>YOUR RATING</span>
+                  <span>PRODUCT RATING</span>
                   <div>
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
@@ -454,6 +454,79 @@ export default function OrderReviewPage() {
                 </div>
 
                 <div className="reviewFeedbackColumn">
+                  <div className="reviewPhotoUpload">
+                    <div className="reviewPhotoUploadHead">
+                      <div>
+                        <span>ADD PHOTOS</span>
+                        <small>Show other buyers what you received</small>
+                      </div>
+                      <b>{photoCount} / 5</b>
+                    </div>
+
+                    <div className="reviewPhotoArea">
+                      {photoCount > 0 ? (
+                        <div className="reviewPhotoGrid">
+                          {draft.imageUrls.map((url) => (
+                            <div className="reviewPhotoThumb" key={url}>
+                              <img src={url} alt="Review upload" />
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  removeSavedPhoto(item.id, url)
+                                }
+                                aria-label="Remove saved review photo"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+
+                          {localPhotos.map((photo, photoIndex) => (
+                            <div
+                              className="reviewPhotoThumb"
+                              key={photo.preview + photoIndex}
+                            >
+                              <img
+                                src={photo.preview}
+                                alt="Selected review upload"
+                              />
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  removeLocalPhoto(item.id, photoIndex)
+                                }
+                                aria-label="Remove selected review photo"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      {photoCount < 5 ? (
+                        <label className="reviewPhotoAdd">
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            multiple
+                            onChange={(event) => {
+                              void addPhotos(item.id, event.target.files);
+                              event.currentTarget.value = "";
+                            }}
+                          />
+                          <b>＋</b>
+                          <span>ADD PHOTOS</span>
+                          <small>{5 - photoCount} remaining</small>
+                        </label>
+                      ) : null}
+                    </div>
+
+                    <small className="reviewPhotoHint">
+                      JPG, PNG or WEBP · Max 5MB each
+                    </small>
+                  </div>
+
                   <label className="reviewComment">
                     <span>COMMENTS</span>
                     <textarea
@@ -462,75 +535,9 @@ export default function OrderReviewPage() {
                       onChange={(event) =>
                         setComment(item.id, event.target.value)
                       }
-                      placeholder="Share your experience with this product (optional)"
+                      placeholder="Share more about the product quality, fitment and your experience."
                     />
                   </label>
-
-                  <div className="reviewPhotoUpload">
-                    <div className="reviewPhotoUploadHead">
-                      <div>
-                        <span>PHOTOS</span>
-                        <small>JPG, PNG or WEBP · Max 5MB each</small>
-                      </div>
-                      <b>{photoCount} / 5</b>
-                    </div>
-
-                    {photoCount > 0 ? (
-                      <div className="reviewPhotoGrid">
-                        {draft.imageUrls.map((url) => (
-                          <div className="reviewPhotoThumb" key={url}>
-                            <img src={url} alt="Review upload" />
-                            <button
-                              type="button"
-                              onClick={() =>
-                                removeSavedPhoto(item.id, url)
-                              }
-                              aria-label="Remove saved review photo"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        ))}
-
-                        {localPhotos.map((photo, photoIndex) => (
-                          <div
-                            className="reviewPhotoThumb"
-                            key={photo.preview + photoIndex}
-                          >
-                            <img
-                              src={photo.preview}
-                              alt="Selected review upload"
-                            />
-                            <button
-                              type="button"
-                              onClick={() =>
-                                removeLocalPhoto(item.id, photoIndex)
-                              }
-                              aria-label="Remove selected review photo"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    ) : null}
-
-                    {photoCount < 5 ? (
-                      <label className="reviewPhotoAdd">
-                        <input
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp"
-                          multiple
-                          onChange={(event) => {
-                            void addPhotos(item.id, event.target.files);
-                            event.currentTarget.value = "";
-                          }}
-                        />
-                        <span>＋ ADD PHOTOS</span>
-                        <small>Up to {5 - photoCount} more</small>
-                      </label>
-                    ) : null}
-                  </div>
                 </div>
               </article>
             );
