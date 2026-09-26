@@ -513,6 +513,19 @@ export default function OrderDetailsPage() {
               </div>
             </section>
 
+            {order.payment_status === "paid" ? (
+              <Link
+                href={
+                  "/orders/" +
+                  encodeURIComponent(order.order_number) +
+                  "/receipt"
+                }
+                className="orderGhostButton orderSideMainAction"
+              >
+                VIEW RECEIPT
+              </Link>
+            ) : null}
+
             {order.status === "pending_payment" ? (
               <>
                 <section className="orderCancellationNotice">
