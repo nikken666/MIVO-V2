@@ -15,6 +15,7 @@ type OrderItemPreview = {
   product_name: string;
   quantity: number;
   image_url?: string | null;
+  warranty_months?: number | null;
 };
 
 type OrderRow = {
@@ -140,7 +141,7 @@ export default function OrdersPage() {
     const { data, error: orderError } = await supabase
       .from("orders")
       .select(
-        "id, order_number, status, payment_status, total_amount, created_at, shipping_address, order_items(id, product_id, product_name, quantity)"
+        "id, order_number, status, payment_status, total_amount, created_at, shipping_address, order_items(id, product_id, product_name, quantity, warranty_months)"
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
@@ -522,6 +523,22 @@ export default function OrdersPage() {
                               RATE ORDER
                             </Link>
                           )
+                        ) : null}
+
+                        {bucket === "completed" &&
+                        items.some(
+                          (item) => Number(item.warranty_months || 0) > 0
+                        ) ? (
+                          <Link
+                            href={
+                              "/orders/" +
+                              encodeURIComponent(order.order_number) +
+                              "/warranty"
+                            }
+                            className="orderGhostButton"
+                          >
+                            WARRANTY
+                          </Link>
                         ) : null}
                       </div>
                     </div>
