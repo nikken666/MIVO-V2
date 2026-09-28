@@ -2921,3 +2921,210 @@
     flex-direction:column;
   }
 }
+
+
+/* CAMPAIGN STYLE MANAGER */
+.campaignStyleManager{
+  grid-column:1/-1;
+  padding:14px;
+  border:1px solid #dfe2e3;
+  border-radius:12px;
+  background:#fafafa;
+}
+.campaignStyleHead{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:11px;
+}
+.campaignStyleHead span,
+.campaignStyleHead strong,
+.campaignStyleHead small{
+  display:block;
+}
+.campaignStyleHead span{
+  color:#d8242f;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.campaignStyleHead strong{
+  margin-top:3px;
+  font-size:10px;
+}
+.campaignStyleHead small{
+  color:#90969a;
+  font-size:7px;
+}
+.campaignPresetGrid{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:8px;
+}
+.campaignPresetCard{
+  min-width:0;
+  padding:8px;
+  display:grid;
+  gap:4px;
+  border:1px solid #dfe2e3;
+  border-radius:9px;
+  background:#fff;
+  text-align:left;
+  cursor:pointer;
+}
+.campaignPresetCard:hover{
+  border-color:#aeb4b7;
+}
+.campaignPresetCard.activePreset{
+  border-color:#d8242f;
+  box-shadow:inset 0 0 0 1px #d8242f;
+}
+.campaignPresetCard i{
+  width:100%;
+  height:30px;
+  display:block;
+  border-radius:6px;
+}
+.campaignPresetCard span{
+  color:#24292c;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.04em;
+}
+.campaignPresetCard small{
+  overflow:hidden;
+  color:#92989c;
+  font-size:6px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.campaignColourGrid{
+  margin-top:12px;
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+}
+.campaignColourField{
+  min-width:0;
+}
+.campaignColourField>span{
+  display:block;
+  margin-bottom:5px;
+  color:#80878b;
+  font-size:6px;
+  font-weight:900;
+  letter-spacing:.07em;
+}
+.campaignColourField>div{
+  height:38px;
+  display:grid;
+  grid-template-columns:40px minmax(0,1fr);
+  overflow:hidden;
+  border:1px solid #dfe2e3;
+  border-radius:8px;
+  background:#fff;
+}
+.campaignColourField input[type="color"]{
+  width:40px;
+  height:38px;
+  padding:0;
+  border:0;
+  background:transparent;
+  cursor:pointer;
+}
+.campaignColourField input[type="color"]::-webkit-color-swatch-wrapper{
+  padding:0;
+}
+.campaignColourField input[type="color"]::-webkit-color-swatch{
+  border:0;
+}
+.campaignColourField input:not([type="color"]){
+  min-width:0;
+  padding:0 8px;
+  border:0;
+  outline:0;
+  color:#4d5458;
+  font-size:7px;
+  font-weight:800;
+  text-transform:uppercase;
+}
+.campaignMiniPreview{
+  min-height:125px;
+  margin-top:12px;
+  padding:16px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  overflow:hidden;
+  border-radius:11px;
+}
+.campaignMiniPreview>div{
+  min-width:0;
+}
+.campaignMiniPreview>div>span,
+.campaignMiniPreview>div>strong,
+.campaignMiniPreview>div>small,
+.campaignMiniPreview>div>b{
+  display:block;
+}
+.campaignMiniPreview>div>span{
+  font-size:6px;
+  font-weight:900;
+  letter-spacing:.09em;
+}
+.campaignMiniPreview>div>strong{
+  margin-top:5px;
+  font-size:18px;
+  letter-spacing:-.035em;
+}
+.campaignMiniPreview>div>small{
+  max-width:330px;
+  margin-top:5px;
+  font-size:6px;
+}
+.campaignMiniPreview>div>b{
+  width:max-content;
+  min-height:27px;
+  margin-top:9px;
+  padding:0 9px;
+  display:flex;
+  align-items:center;
+  border-radius:6px;
+  font-size:6px;
+  font-weight:900;
+}
+.campaignMiniPreview>i{
+  min-width:170px;
+  padding:13px 12px;
+  border-radius:9px;
+  text-align:center;
+  font-size:11px;
+  font-style:normal;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+@media(max-width:900px){
+  .campaignPresetGrid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .campaignColourGrid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:620px){
+  .campaignStyleHead,
+  .campaignMiniPreview{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .campaignPresetGrid,
+  .campaignColourGrid{
+    grid-template-columns:1fr;
+  }
+  .campaignMiniPreview>i{
+    width:100%;
+    min-width:0;
+  }
+}
