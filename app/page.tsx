@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getActiveProducts } from "@/lib/catalog";
 import ProductCard from "@/components/ProductCard";
 import Logo from "@/components/Logo";
 import VehicleFinder from "@/components/VehicleFinder";
@@ -30,52 +30,136 @@ export default async function HomePage({
   const addVehicle =
     typeof query.addVehicle === "string" && query.addVehicle === "1";
 
-  if (!addVehicle) {
-    let signedIn = false;
+  let signedIn = false;
+  let savedVehicle:
+    | {
+        make: string | null;
+        model: string | null;
+        generation: string | null;
+        year: string | null;
+        variant: string | null;
+        transmission: string | null;
+      }
+    | null = null;
 
-    try {
-      const supabase = await createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-      signedIn = Boolean(user);
-    } catch {}
+    signedIn = Boolean(user);
 
-    if (signedIn) {
-      redirect("/products");
+    if (user) {
+      const { data } = await supabase
+        .from("customer_vehicles")
+        .select("make, model, generation, year, variant, transmission")
+        .eq("user_id", user.id)
+        .eq("is_default", true)
+        .maybeSingle();
+
+      savedVehicle = data || null;
     }
-  }
+  } catch {}
 
-  const featured = products.slice(0, 8);
+  const liveProducts = await getActiveProducts();
+  const featured = (liveProducts.length ? liveProducts : products).slice(0, 8);
+
+  const savedVehicleLabel = savedVehicle
+    ? [
+        savedVehicle.make,
+        savedVehicle.model,
+        savedVehicle.generation,
+        savedVehicle.year,
+        savedVehicle.variant,
+        savedVehicle.transmission,
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : "";
 
   return (
     <main className="home">
-      <section className="hero">
-        <div className="heroTexture" />
-        <Logo variant="watermark" className="heroLogoWatermark" decorative />
-        <div className="container heroGrid">
-          <div className="heroCopy">
-            <span className="heroEyebrow">PREMIUM AUTOMOTIVE PARTS · MALAYSIA</span>
-            <h1>THE RIGHT PART.<br /><em>WITHOUT THE GUESSWORK.</em></h1>
-            <p>
-              Shop trusted automotive parts through a cleaner, more precise buying experience —
-              built around your vehicle, not endless listings.
-            </p>
-            <div className="heroButtons">
-              <a href="#fitment" className="btn btnLight">Find parts for my car <span>→</span></a>
-              <Link href="/products" className="btn btnGhost">Browse all parts</Link>
+      {signedIn && !addVehicle ? (
+        <section className="memberHomeHero">
+          <div className="container memberHomeHeroGrid">
+            <div className="memberHomePromo">
+              <span className="memberHomeEyebrow">MIVO · YOUR AUTOMOTIVE STORE</span>
+              <h1>WELCOME BACK.</h1>
+              <p>
+                Shop parts, manage your vehicle and keep track of every order
+                from one place.
+              </p>
+              <div className="memberHomeActions">
+                <Link href="/products" className="btn btnLight">
+                  SHOP PARTS <span>→</span>
+                </Link>
+                <Link href="/orders" className="btn btnGhost">
+                  MY ORDERS
+                </Link>
+              </div>
             </div>
-            <div className="heroProof">
-              <span><b>01</b> Vehicle-matched catalogue</span>
-              <span><b>02</b> Trusted brands & clear specs</span>
-              <span><b>03</b> Malaysia-wide delivery</span>
+
+            <div className="memberGarageCard">
+              <div className="memberGarageHead">
+                <div>
+                  <span>MY GARAGE</span>
+                  <strong>
+                    {savedVehicle
+                      ? [savedVehicle.make, savedVehicle.model]
+                          .filter(Boolean)
+                          .join(" ")
+                      : "No vehicle selected"}
+                  </strong>
+                </div>
+                <Link href="/garage">MANAGE →</Link>
+              </div>
+
+              {savedVehicle ? (
+                <>
+                  <p>{savedVehicleLabel}</p>
+                  <Link href="/products" className="memberGarageShop">
+                    SHOP COMPATIBLE PARTS <span>→</span>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <p>Add your vehicle once and MIVO will prioritise compatible parts.</p>
+                  <Link href="/?addVehicle=1#fitment" className="memberGarageShop">
+                    + ADD VEHICLE <span>→</span>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
+        </section>
+      ) : (
+        <section className="hero">
+          <div className="heroTexture" />
+          <Logo variant="watermark" className="heroLogoWatermark" decorative />
+          <div className="container heroGrid">
+            <div className="heroCopy">
+              <span className="heroEyebrow">PREMIUM AUTOMOTIVE PARTS · MALAYSIA</span>
+              <h1>THE RIGHT PART.<br /><em>WITHOUT THE GUESSWORK.</em></h1>
+              <p>
+                Shop trusted automotive parts through a cleaner, more precise buying experience —
+                built around your vehicle, not endless listings.
+              </p>
+              <div className="heroButtons">
+                <a href="#fitment" className="btn btnLight">Find parts for my car <span>→</span></a>
+                <Link href="/products" className="btn btnGhost">Browse all parts</Link>
+              </div>
+              <div className="heroProof">
+                <span><b>01</b> Vehicle-matched catalogue</span>
+                <span><b>02</b> Trusted brands & clear specs</span>
+                <span><b>03</b> Malaysia-wide delivery</span>
+              </div>
+            </div>
 
-          <VehicleFinder />
-        </div>
-      </section>
+            <VehicleFinder />
+          </div>
+        </section>
+      )}
 
       <section className="trustBar">
         <div className="container trustBarInner">
@@ -95,7 +179,11 @@ export default async function HomePage({
 
           <div className="categoryGrid">
             {categories.map((cat, index) => (
-              <Link href="/products" className={"categoryCard " + cat.tone} key={cat.name}>
+              <Link
+                href={"/products?group=" + cat.name.toLowerCase()}
+                className={"categoryCard " + cat.tone}
+                key={cat.name}
+              >
                 <div className="categoryVisual">
                   <span className="categoryIndex">0{index + 1}</span>
                   <strong>{cat.mark}</strong>
