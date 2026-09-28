@@ -11,6 +11,8 @@ type OrderRow = {
   payment_status: string;
   total_amount: number | string;
   shipping_amount: number | string;
+  discount_amount: number | string;
+  voucher_code: string | null;
   currency: string;
   stripe_checkout_session_id: string | null;
 };
@@ -27,6 +29,10 @@ type StripeCheckoutSession = {
   id: string;
   url: string | null;
   expires_at?: number;
+};
+
+type StripeCoupon = {
+  id: string;
 };
 
 export async function POST(request: NextRequest) {
@@ -56,7 +62,7 @@ export async function POST(request: NextRequest) {
     const { data: orderData, error: orderError } = await supabase
       .from("orders")
       .select(
-        "id, order_number, status, payment_status, total_amount, shipping_amount, currency, stripe_checkout_session_id"
+        "id, order_number, status, payment_status, total_amount, shipping_amount, discount_amount, voucher_code, currency, stripe_checkout_session_id"
       )
       .eq("order_number", orderNumber)
       .eq("user_id", user.id)
@@ -207,13 +213,46 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const discountAmount = Math.round(
+      Number(order.discount_amount || 0) * 100
+    );
+
+    if (discountAmount > 0) {
+      const coupon = await stripeRequest<StripeCoupon>(
+        "/coupons",
+        {
+          method: "POST",
+          body: new URLSearchParams({
+            duration: "once",
+            amount_off: String(discountAmount),
+            currency: String(order.currency || "MYR").toLowerCase(),
+            name: (
+              order.voucher_code
+                ? "MIVO Voucher " + order.voucher_code
+                : "MIVO Order Discount"
+            ).slice(0, 40),
+            "metadata[order_id]": order.id,
+            "metadata[order_number]": order.order_number,
+          }),
+          idempotencyKey:
+            "mivo-coupon-" +
+            order.id +
+            "-" +
+            String(discountAmount),
+        }
+      );
+
+      params.set("discounts[0][coupon]", coupon.id);
+    }
+
     const expectedTotal = Math.round(Number(order.total_amount) * 100);
     const itemTotal = items.reduce(
       (sum, item) =>
         sum + Math.round(Number(item.unit_price) * 100) * item.quantity,
       0
     );
-    const checkoutTotal = itemTotal + Math.max(0, shippingAmount);
+    const checkoutTotal =
+      itemTotal + Math.max(0, shippingAmount) - Math.max(0, discountAmount);
 
     if (checkoutTotal !== expectedTotal) {
       throw new Error(
