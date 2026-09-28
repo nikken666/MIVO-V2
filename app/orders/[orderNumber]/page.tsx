@@ -16,6 +16,8 @@ type OrderRow = {
   payment_status: string;
   subtotal: number | string;
   shipping_amount: number | string;
+  discount_amount: number | string;
+  voucher_code: string | null;
   total_amount: number | string;
   shipping_address: Record<string, string>;
   customer_note: string | null;
@@ -108,7 +110,7 @@ export default function OrderDetailsPage() {
     const { data: orderData, error: orderError } = await supabase
       .from("orders")
       .select(
-        "id, order_number, status, payment_status, subtotal, shipping_amount, total_amount, shipping_address, customer_note, created_at, payment_processing_fee_amount, cancellation_platform_fee_amount, cancellation_service_fee_amount, cancellation_fee_total, cancellation_refund_amount, refund_status"
+        "id, order_number, status, payment_status, subtotal, shipping_amount, discount_amount, voucher_code, total_amount, shipping_address, customer_note, created_at, payment_processing_fee_amount, cancellation_platform_fee_amount, cancellation_service_fee_amount, cancellation_fee_total, cancellation_refund_amount, refund_status"
       )
       .eq("order_number", orderNumber)
       .eq("user_id", user.id)
@@ -601,6 +603,16 @@ export default function OrderDetailsPage() {
                       : "—"}
                   </strong>
                 </div>
+                {Number(order.discount_amount || 0) > 0 ? (
+                  <div>
+                    <span>
+                      Voucher{order.voucher_code ? " (" + order.voucher_code + ")" : ""}
+                    </span>
+                    <strong className="orderDiscountValue">
+                      − {formatPrice(Number(order.discount_amount))}
+                    </strong>
+                  </div>
+                ) : null}
               </div>
 
               <div className="orderSideTotal">
