@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { formatPrice } from "@/data/products";
 import { useMarketplace } from "@/components/MarketplaceProvider";
+import CartVoucherStrip from "@/components/CartVoucherStrip";
 
 export default function CartPage() {
   const {
@@ -83,6 +84,8 @@ export default function CartPage() {
               </div>
               <span>IN STOCK</span>
             </div>
+
+            <CartVoucherStrip />
 
             {cart.map((line) => {
               const price = line.variant?.price ?? line.product.price;
