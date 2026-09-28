@@ -470,28 +470,25 @@ export default function AdminOrdersPage() {
 
           <nav className={styles.adminSideNav}>
             <a href="/admin">
-              <span>01</span>
-              Dashboard
+              <span>01</span>Dashboard
             </a>
             <a href="/admin/orders" className={styles.active}>
-              <span>02</span>
-              Orders
+              <span>02</span>Orders
             </a>
             <a href="/admin/arrange-shipment">
-              <span>03</span>
-              Arrange Shipment
+              <span>03</span>Arrange Shipment
+            </a>
+            <a href="/admin/claims">
+              <span>04</span>Claims
             </a>
             <a href="/admin/products">
-              <span>04</span>
-              Products
+              <span>05</span>Products
             </a>
             <a href="/admin/products/new">
-              <span>05</span>
-              Add Product
+              <span>06</span>Add Product
             </a>
             <a href="/admin/shipping">
-              <span>06</span>
-              Shipping
+              <span>07</span>Shipping
             </a>
           </nav>
 
