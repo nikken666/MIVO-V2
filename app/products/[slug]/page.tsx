@@ -4,8 +4,8 @@ import { notFound } from "next/navigation";
 import ProductDetailClient from "@/components/ProductDetailClient";
 import {
   getActiveProductBySlug,
-  getActiveProducts,
   getProductPublicReviews,
+  getRelatedProducts,
 } from "@/lib/catalog";
 import { getLiveProductFitmentDetail } from "@/lib/liveFitment";
 import {
@@ -52,19 +52,6 @@ export default async function ProductPage({
     : undefined;
   let variantFitmentStatuses: Record<string, import("@/data/fitments").FitmentStatus> = {};
 
-  if (selectedVehicle && product.id) {
-    const live = await getLiveProductFitmentDetail(
-      product.id,
-      (product.variants || []).map((variant) => variant.id),
-      selectedVehicle
-    );
-
-    if (live) {
-      fitmentStatus = live.productStatus;
-      variantFitmentStatuses = live.variantStatuses;
-    }
-  }
-
   const selectedVehicleLabel = [
     make,
     model,
@@ -76,22 +63,24 @@ export default async function ProductPage({
     .filter(Boolean)
     .join(" ");
 
-  const [productReviews, allProducts] = await Promise.all([
-    product.id ? getProductPublicReviews(product.id) : Promise.resolve([]),
-    getActiveProducts(),
+  const [liveFitment, productReviews, relatedProducts] = await Promise.all([
+    selectedVehicle && product.id
+      ? getLiveProductFitmentDetail(
+          product.id,
+          (product.variants || []).map((item) => item.id),
+          selectedVehicle
+        )
+      : Promise.resolve(null),
+    product.id
+      ? getProductPublicReviews(product.id)
+      : Promise.resolve([]),
+    getRelatedProducts(product),
   ]);
 
-  const relatedProducts = allProducts
-    .filter((item) => item.slug !== product.slug)
-    .map((item) => ({
-      item,
-      score:
-        (item.category === product.category ? 2 : 0) +
-        (item.brand === product.brand ? 1 : 0),
-    }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 4)
-    .map(({ item }) => item);
+  if (liveFitment) {
+    fitmentStatus = liveFitment.productStatus;
+    variantFitmentStatuses = liveFitment.variantStatuses;
+  }
 
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
