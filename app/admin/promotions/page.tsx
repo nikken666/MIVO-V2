@@ -15,6 +15,12 @@ type Campaign = {
   starts_at: string;
   ends_at: string;
   sort_order: number;
+  desktop_image_url: string | null;
+  mobile_image_url: string | null;
+  display_mode: "overlay" | "image_only";
+  overlay_opacity: number | string;
+  show_countdown: boolean;
+  image_position: "center" | "left" | "right" | "top" | "bottom";
   is_active: boolean;
 };
 
@@ -68,6 +74,7 @@ export default function AdminPromotionsPage() {
   const [message, setMessage] = useState("");
   const [editingCampaignId, setEditingCampaignId] = useState("");
   const [editingVoucherId, setEditingVoucherId] = useState("");
+  const [campaignImageBusy, setCampaignImageBusy] = useState("");
 
   const [campaignForm, setCampaignForm] = useState({
     title: "",
@@ -76,6 +83,12 @@ export default function AdminPromotionsPage() {
     cta_label: "SHOP NOW",
     landing_path: "/products",
     theme: "red",
+    desktop_image_url: "",
+    mobile_image_url: "",
+    display_mode: "overlay" as "overlay" | "image_only",
+    overlay_opacity: "0.35",
+    show_countdown: true,
+    image_position: "center" as "center" | "left" | "right" | "top" | "bottom",
     starts_at: toLocalInput(),
     ends_at: toLocalInput(
       new Date(Date.now() + 14 * 86400000).toISOString()
@@ -133,7 +146,7 @@ export default function AdminPromotionsPage() {
       supabase
         .from("promotion_campaigns")
         .select(
-          "id, title, subtitle, badge, cta_label, landing_path, theme, starts_at, ends_at, sort_order, is_active"
+          "id, title, subtitle, badge, cta_label, landing_path, theme, desktop_image_url, mobile_image_url, display_mode, overlay_opacity, show_countdown, image_position, starts_at, ends_at, sort_order, is_active"
         )
         .order("starts_at", { ascending: false }),
       supabase
@@ -199,6 +212,55 @@ export default function AdminPromotionsPage() {
     return [];
   }, [voucherForm.scope_type, brands, categories, products]);
 
+  async function uploadCampaignImage(
+    file: File,
+    kind: "desktop" | "mobile"
+  ) {
+    setCampaignImageBusy(kind);
+    setError("");
+    setMessage("");
+
+    try {
+      const body = new FormData();
+      body.append("image", file);
+      body.append("kind", kind);
+
+      const response = await fetch("/api/admin/promotions/banner", {
+        method: "POST",
+        body,
+      });
+
+      const result = (await response.json()) as {
+        url?: string;
+        error?: string;
+      };
+
+      if (!response.ok || !result.url) {
+        throw new Error(result.error || "Unable to upload banner image.");
+      }
+
+      setCampaignForm((current) => ({
+        ...current,
+        [kind === "desktop"
+          ? "desktop_image_url"
+          : "mobile_image_url"]: result.url,
+      }));
+      setMessage(
+        kind === "desktop"
+          ? "Desktop banner uploaded."
+          : "Mobile banner uploaded."
+      );
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Unable to upload banner image."
+      );
+    } finally {
+      setCampaignImageBusy("");
+    }
+  }
+
   async function createCampaign(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy("campaign");
@@ -214,6 +276,12 @@ export default function AdminPromotionsPage() {
         cta_label: campaignForm.cta_label.trim() || "SHOP NOW",
         landing_path: campaignForm.landing_path.trim() || "/products",
         theme: campaignForm.theme,
+        desktop_image_url: campaignForm.desktop_image_url || null,
+        mobile_image_url: campaignForm.mobile_image_url || null,
+        display_mode: campaignForm.display_mode,
+        overlay_opacity: Number(campaignForm.overlay_opacity || 0.35),
+        show_countdown: campaignForm.show_countdown,
+        image_position: campaignForm.image_position,
         starts_at: new Date(campaignForm.starts_at).toISOString(),
         ends_at: new Date(campaignForm.ends_at).toISOString(),
         is_active: true,
@@ -238,6 +306,12 @@ export default function AdminPromotionsPage() {
         badge: "LIMITED TIME",
         cta_label: "SHOP NOW",
         landing_path: "/products",
+        desktop_image_url: "",
+        mobile_image_url: "",
+        display_mode: "overlay",
+        overlay_opacity: "0.35",
+        show_countdown: true,
+        image_position: "center",
       }));
       setMessage(
         editingCampaignId ? "Campaign updated." : "Campaign created."
@@ -334,6 +408,12 @@ export default function AdminPromotionsPage() {
       cta_label: campaign.cta_label,
       landing_path: campaign.landing_path,
       theme: campaign.theme,
+      desktop_image_url: campaign.desktop_image_url || "",
+      mobile_image_url: campaign.mobile_image_url || "",
+      display_mode: campaign.display_mode || "overlay",
+      overlay_opacity: String(campaign.overlay_opacity ?? 0.35),
+      show_countdown: campaign.show_countdown !== false,
+      image_position: campaign.image_position || "center",
       starts_at: toLocalInput(campaign.starts_at),
       ends_at: toLocalInput(campaign.ends_at),
     });
@@ -524,6 +604,189 @@ export default function AdminPromotionsPage() {
                       />
                     </label>
 
+                    <div className={styles.campaignImageManager}>
+                      <div className={styles.campaignImageManagerHead}>
+                        <div>
+                          <span>BANNER IMAGE</span>
+                          <strong>Upload your own campaign artwork</strong>
+                        </div>
+                        <small>JPG, PNG or WEBP · Max 8MB</small>
+                      </div>
+
+                      <div className={styles.campaignImageGrid}>
+                        <label className={styles.campaignImageUpload}>
+                          <span>DESKTOP BANNER</span>
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={(event) => {
+                              const file = event.target.files?.[0];
+                              if (file) void uploadCampaignImage(file, "desktop");
+                              event.currentTarget.value = "";
+                            }}
+                          />
+                          {campaignForm.desktop_image_url ? (
+                            <img
+                              src={campaignForm.desktop_image_url}
+                              alt="Desktop campaign preview"
+                            />
+                          ) : (
+                            <div>
+                              <b>＋</b>
+                              <strong>
+                                {campaignImageBusy === "desktop"
+                                  ? "UPLOADING..."
+                                  : "UPLOAD DESKTOP"}
+                              </strong>
+                              <small>Recommended wide banner</small>
+                            </div>
+                          )}
+                        </label>
+
+                        <label className={styles.campaignImageUpload}>
+                          <span>MOBILE BANNER</span>
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={(event) => {
+                              const file = event.target.files?.[0];
+                              if (file) void uploadCampaignImage(file, "mobile");
+                              event.currentTarget.value = "";
+                            }}
+                          />
+                          {campaignForm.mobile_image_url ? (
+                            <img
+                              src={campaignForm.mobile_image_url}
+                              alt="Mobile campaign preview"
+                            />
+                          ) : (
+                            <div>
+                              <b>＋</b>
+                              <strong>
+                                {campaignImageBusy === "mobile"
+                                  ? "UPLOADING..."
+                                  : "UPLOAD MOBILE"}
+                              </strong>
+                              <small>Optional mobile crop</small>
+                            </div>
+                          )}
+                        </label>
+                      </div>
+
+                      {(campaignForm.desktop_image_url ||
+                        campaignForm.mobile_image_url) ? (
+                        <div className={styles.campaignImageClearRow}>
+                          {campaignForm.desktop_image_url ? (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setCampaignForm((current) => ({
+                                  ...current,
+                                  desktop_image_url: "",
+                                }))
+                              }
+                            >
+                              REMOVE DESKTOP
+                            </button>
+                          ) : null}
+                          {campaignForm.mobile_image_url ? (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setCampaignForm((current) => ({
+                                  ...current,
+                                  mobile_image_url: "",
+                                }))
+                              }
+                            >
+                              REMOVE MOBILE
+                            </button>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <label className={styles.adminField}>
+                      <span>BANNER MODE</span>
+                      <select
+                        value={campaignForm.display_mode}
+                        onChange={(event) =>
+                          setCampaignForm((current) => ({
+                            ...current,
+                            display_mode: event.target.value as
+                              | "overlay"
+                              | "image_only",
+                          }))
+                        }
+                      >
+                        <option value="overlay">Image + text overlay</option>
+                        <option value="image_only">Image only</option>
+                      </select>
+                    </label>
+
+                    <label className={styles.adminField}>
+                      <span>IMAGE POSITION</span>
+                      <select
+                        value={campaignForm.image_position}
+                        onChange={(event) =>
+                          setCampaignForm((current) => ({
+                            ...current,
+                            image_position: event.target.value as
+                              | "center"
+                              | "left"
+                              | "right"
+                              | "top"
+                              | "bottom",
+                          }))
+                        }
+                      >
+                        <option value="center">Center</option>
+                        <option value="left">Left</option>
+                        <option value="right">Right</option>
+                        <option value="top">Top</option>
+                        <option value="bottom">Bottom</option>
+                      </select>
+                    </label>
+
+                    {campaignForm.display_mode === "overlay" ? (
+                      <label className={styles.adminField}>
+                        <span>
+                          DARK OVERLAY ·{" "}
+                          {Math.round(
+                            Number(campaignForm.overlay_opacity || 0) * 100
+                          )}
+                          %
+                        </span>
+                        <input
+                          type="range"
+                          min="0"
+                          max="0.85"
+                          step="0.05"
+                          value={campaignForm.overlay_opacity}
+                          onChange={(event) =>
+                            setCampaignForm((current) => ({
+                              ...current,
+                              overlay_opacity: event.target.value,
+                            }))
+                          }
+                        />
+                      </label>
+                    ) : null}
+
+                    <label className={styles.promotionCheck}>
+                      <input
+                        type="checkbox"
+                        checked={campaignForm.show_countdown}
+                        onChange={(event) =>
+                          setCampaignForm((current) => ({
+                            ...current,
+                            show_countdown: event.target.checked,
+                          }))
+                        }
+                      />
+                      <span>SHOW COUNTDOWN</span>
+                    </label>
+
                     <label className={styles.adminField}>
                       <span>LANDING PATH</span>
                       <input
@@ -592,6 +855,12 @@ export default function AdminPromotionsPage() {
                           badge: "LIMITED TIME",
                           cta_label: "SHOP NOW",
                           landing_path: "/products",
+                          desktop_image_url: "",
+                          mobile_image_url: "",
+                          display_mode: "overlay",
+                          overlay_opacity: "0.35",
+                          show_countdown: true,
+                          image_position: "center",
                         }));
                       }}
                     >
@@ -611,6 +880,11 @@ export default function AdminPromotionsPage() {
                           {" → "}
                           {new Date(campaign.ends_at).toLocaleDateString("en-MY")}
                         </small>
+                        {campaign.desktop_image_url ? (
+                          <small>✓ CUSTOM BANNER IMAGE</small>
+                        ) : (
+                          <small>DEFAULT DESIGN</small>
+                        )}
                       </div>
                       <div className={styles.promotionRowActions}>
                         <button
