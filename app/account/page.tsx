@@ -110,6 +110,11 @@ export default function AccountPage() {
             <span>Warranty</span>
             <strong>My Claims</strong>
           </Link>
+
+          <Link href="/account/vouchers" className={styles.stat}>
+            <span>Promotions</span>
+            <strong>My Vouchers</strong>
+          </Link>
         </div>
 
         <div className={styles.actions}>
