@@ -2635,3 +2635,20 @@
     grid-template-columns:1fr;
   }
 }
+
+
+.promotionRowActions{
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+.promotionEdit{
+  min-width:58px !important;
+  background:#fff !important;
+  color:#60676b !important;
+  border:1px solid #d9dddf !important;
+}
+.promotionEdit:hover{
+  border-color:#aeb4b7 !important;
+  color:#111417 !important;
+}
