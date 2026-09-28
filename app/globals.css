@@ -7525,3 +7525,8 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
     width:max-content;
   }
 }
+
+
+.orderDiscountValue{
+  color:#d8242f !important;
+}
