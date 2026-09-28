@@ -8130,3 +8130,56 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
     width:100%;
   }
 }
+
+
+/* CAMPAIGN BANNER ARTWORK */
+.campaignBanner{
+  position:relative;
+}
+.campaignBanner.hasImage{
+  background:#111417;
+}
+.campaignBannerMedia{
+  position:absolute;
+  inset:0;
+  z-index:0;
+  display:block;
+}
+.campaignBannerMedia img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+}
+.campaignBannerShade{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  background:#080b0d;
+  pointer-events:none;
+}
+.campaignBannerCopy,
+.campaignCountdown{
+  position:relative;
+  z-index:2;
+}
+.campaignBanner.imageOnly{
+  min-height:0;
+  aspect-ratio:5.15/1;
+  padding:0;
+  background:#111417;
+}
+.campaignBanner.imageOnly .campaignBannerMedia{
+  position:absolute;
+  inset:0;
+}
+.campaignBannerImageLink{
+  position:absolute;
+  inset:0;
+  z-index:3;
+}
+@media(max-width:680px){
+  .campaignBanner.imageOnly{
+    aspect-ratio:16/7;
+  }
+}
