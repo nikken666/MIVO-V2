@@ -2652,3 +2652,126 @@
   border-color:#aeb4b7 !important;
   color:#111417 !important;
 }
+
+
+/* CAMPAIGN BANNER MANAGER */
+.campaignImageManager{
+  grid-column:1/-1;
+  padding:14px;
+  border:1px solid #dfe2e3;
+  border-radius:12px;
+  background:#fafafa;
+}
+.campaignImageManagerHead{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:10px;
+}
+.campaignImageManagerHead span,
+.campaignImageManagerHead strong,
+.campaignImageManagerHead small{
+  display:block;
+}
+.campaignImageManagerHead span{
+  color:#d8242f;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.campaignImageManagerHead strong{
+  margin-top:3px;
+  font-size:10px;
+}
+.campaignImageManagerHead small{
+  color:#90969a;
+  font-size:7px;
+}
+.campaignImageGrid{
+  display:grid;
+  grid-template-columns:1.6fr 1fr;
+  gap:10px;
+}
+.campaignImageUpload{
+  min-height:150px;
+  position:relative;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+  border:1px dashed #cbd0d2;
+  border-radius:10px;
+  background:#fff;
+  cursor:pointer;
+}
+.campaignImageUpload>span{
+  position:absolute;
+  top:8px;
+  left:9px;
+  z-index:2;
+  padding:4px 6px;
+  border-radius:999px;
+  background:rgba(17,20,23,.82);
+  color:#fff;
+  font-size:6px;
+  font-weight:900;
+  letter-spacing:.07em;
+}
+.campaignImageUpload input{
+  display:none;
+}
+.campaignImageUpload img{
+  width:100%;
+  height:100%;
+  min-height:150px;
+  display:block;
+  object-fit:cover;
+}
+.campaignImageUpload>div{
+  display:grid;
+  place-items:center;
+  gap:4px;
+  padding:20px;
+  text-align:center;
+}
+.campaignImageUpload>div b{
+  color:#d8242f;
+  font-size:26px;
+  font-weight:400;
+}
+.campaignImageUpload>div strong{
+  font-size:8px;
+}
+.campaignImageUpload>div small{
+  color:#92989c;
+  font-size:7px;
+}
+.campaignImageClearRow{
+  margin-top:8px;
+  display:flex;
+  gap:7px;
+}
+.campaignImageClearRow button{
+  min-height:30px;
+  padding:0 10px;
+  border:1px solid #d9dddf;
+  border-radius:7px;
+  background:#fff;
+  color:#646b6f;
+  font-size:7px;
+  font-weight:900;
+  cursor:pointer;
+}
+.campaignImageClearRow button:hover{
+  border-color:#d8242f;
+  color:#d8242f;
+}
+@media(max-width:760px){
+  .campaignImageGrid{
+    grid-template-columns:1fr;
+  }
+  .campaignImageManagerHead{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+}
