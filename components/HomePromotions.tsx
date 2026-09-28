@@ -14,6 +14,12 @@ type Campaign = {
   cta_label: string;
   landing_path: string;
   theme: string;
+  desktop_image_url: string | null;
+  mobile_image_url: string | null;
+  display_mode: "overlay" | "image_only";
+  overlay_opacity: number | string;
+  show_countdown: boolean;
+  image_position: "center" | "left" | "right" | "top" | "bottom";
   ends_at: string;
 };
 
@@ -109,7 +115,7 @@ export default function HomePromotions({
           supabase
             .from("promotion_campaigns")
             .select(
-              "id, title, subtitle, badge, cta_label, landing_path, theme, ends_at"
+              "id, title, subtitle, badge, cta_label, landing_path, theme, desktop_image_url, mobile_image_url, display_mode, overlay_opacity, show_countdown, image_position, ends_at"
             )
             .eq("is_active", true)
             .order("sort_order", { ascending: true })
@@ -212,48 +218,92 @@ export default function HomePromotions({
     return null;
   }
 
-  const countdown = campaign
-    ? countdownLabel(campaign.ends_at, now)
-    : null;
+  const countdown =
+    campaign && campaign.show_countdown
+      ? countdownLabel(campaign.ends_at, now)
+      : null;
 
   return (
     <section className="homePromotions">
       <div className="container">
         {campaign ? (
-          <div className="campaignBanner">
-            <div className="campaignBannerCopy">
-              <span>{campaign.badge || "MIVO CAMPAIGN"}</span>
-              <h2>{campaign.title}</h2>
-              <p>{campaign.subtitle}</p>
-              <Link href={campaign.landing_path || "/products"}>
-                {campaign.cta_label || "SHOP NOW"} <b>→</b>
-              </Link>
-            </div>
-
-            {countdown ? (
-              <div className="campaignCountdown">
-                <span>ENDS IN</span>
-                <div>
-                  <strong>{countdown.days}</strong>
-                  <small>DAYS</small>
-                </div>
-                <i>:</i>
-                <div>
-                  <strong>{countdown.hours}</strong>
-                  <small>HRS</small>
-                </div>
-                <i>:</i>
-                <div>
-                  <strong>{countdown.minutes}</strong>
-                  <small>MIN</small>
-                </div>
-                <i>:</i>
-                <div>
-                  <strong>{countdown.seconds}</strong>
-                  <small>SEC</small>
-                </div>
-              </div>
+          <div
+            className={
+              "campaignBanner" +
+              (campaign.desktop_image_url ? " hasImage" : "") +
+              (campaign.display_mode === "image_only" ? " imageOnly" : "")
+            }
+          >
+            {campaign.desktop_image_url ? (
+              <picture className="campaignBannerMedia">
+                {campaign.mobile_image_url ? (
+                  <source
+                    media="(max-width: 680px)"
+                    srcSet={campaign.mobile_image_url}
+                  />
+                ) : null}
+                <img
+                  src={campaign.desktop_image_url}
+                  alt={campaign.title}
+                  style={{ objectPosition: campaign.image_position || "center" }}
+                />
+              </picture>
             ) : null}
+
+            {campaign.desktop_image_url &&
+            campaign.display_mode !== "image_only" ? (
+              <div
+                className="campaignBannerShade"
+                style={{
+                  opacity: Number(campaign.overlay_opacity ?? 0.35),
+                }}
+              />
+            ) : null}
+
+            {campaign.display_mode === "image_only" &&
+            campaign.desktop_image_url ? (
+              <Link
+                href={campaign.landing_path || "/products"}
+                className="campaignBannerImageLink"
+                aria-label={campaign.title}
+              />
+            ) : (
+              <>
+                <div className="campaignBannerCopy">
+                  <span>{campaign.badge || "MIVO CAMPAIGN"}</span>
+                  <h2>{campaign.title}</h2>
+                  <p>{campaign.subtitle}</p>
+                  <Link href={campaign.landing_path || "/products"}>
+                    {campaign.cta_label || "SHOP NOW"} <b>→</b>
+                  </Link>
+                </div>
+
+                {countdown ? (
+                  <div className="campaignCountdown">
+                    <span>ENDS IN</span>
+                    <div>
+                      <strong>{countdown.days}</strong>
+                      <small>DAYS</small>
+                    </div>
+                    <i>:</i>
+                    <div>
+                      <strong>{countdown.hours}</strong>
+                      <small>HRS</small>
+                    </div>
+                    <i>:</i>
+                    <div>
+                      <strong>{countdown.minutes}</strong>
+                      <small>MIN</small>
+                    </div>
+                    <i>:</i>
+                    <div>
+                      <strong>{countdown.seconds}</strong>
+                      <small>SEC</small>
+                    </div>
+                  </div>
+                ) : null}
+              </>
+            )}
           </div>
         ) : null}
 
