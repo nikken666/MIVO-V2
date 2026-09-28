@@ -1,8 +1,14 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../../Admin.module.css";
+
+type TemplateType =
+  | "mega_sale"
+  | "voucher_blast"
+  | "flash_deal_grid"
+  | "category_festival";
 
 type Campaign = {
   id: string;
@@ -12,6 +18,11 @@ type Campaign = {
   cta_label: string;
   landing_path: string;
   theme: string;
+  template_type: TemplateType;
+  highlight_text: string | null;
+  voucher_text: string | null;
+  benefit_items: string[] | null;
+  featured_product_ids: string[] | null;
   primary_color: string;
   secondary_color: string;
   text_color: string;
@@ -32,10 +43,51 @@ type Campaign = {
   is_active: boolean;
 };
 
+type ProductOption = {
+  id: string;
+  name: string;
+  primary_image_url: string | null;
+};
+
+const templates: Array<{
+  key: TemplateType;
+  name: string;
+  kicker: string;
+  description: string;
+}> = [
+  {
+    key: "mega_sale",
+    name: "Mega Sale Hero",
+    kicker: "BIG EVENT",
+    description:
+      "Large 10.10 / 11.11 style hero with highlight, countdown and benefit strip.",
+  },
+  {
+    key: "voucher_blast",
+    name: "Voucher Blast",
+    kicker: "VOUCHER EVENT",
+    description:
+      "Campaign headline plus large claimable voucher tickets and countdown.",
+  },
+  {
+    key: "flash_deal_grid",
+    name: "Flash Deal Grid",
+    kicker: "PRODUCT EVENT",
+    description:
+      "Hero headline with selected discounted products displayed inside the campaign.",
+  },
+  {
+    key: "category_festival",
+    name: "Auto Parts Festival",
+    kicker: "CATEGORY EVENT",
+    description:
+      "Big event hero with direct category shortcuts for Braking, Suspension and more.",
+  },
+];
+
 const campaignPresets = {
   red_sale: {
     label: "MIVO RED",
-    description: "Bold campaign red",
     primary_color: "#D8242F",
     secondary_color: "#6F0D14",
     text_color: "#FFFFFF",
@@ -47,7 +99,6 @@ const campaignPresets = {
   },
   orange_market: {
     label: "ORANGE SALE",
-    description: "Marketplace promo",
     primary_color: "#F4511E",
     secondary_color: "#C62828",
     text_color: "#FFFFFF",
@@ -59,7 +110,6 @@ const campaignPresets = {
   },
   black_premium: {
     label: "BLACK PREMIUM",
-    description: "Dark luxury look",
     primary_color: "#17191B",
     secondary_color: "#050607",
     text_color: "#FFFFFF",
@@ -71,7 +121,6 @@ const campaignPresets = {
   },
   blue_tech: {
     label: "BLUE TECH",
-    description: "Cool technology",
     primary_color: "#1769AA",
     secondary_color: "#0A2B4C",
     text_color: "#FFFFFF",
@@ -83,7 +132,6 @@ const campaignPresets = {
   },
   gold_premium: {
     label: "GOLD PREMIUM",
-    description: "Premium seasonal",
     primary_color: "#B8892E",
     secondary_color: "#3B2A0E",
     text_color: "#FFFFFF",
@@ -112,6 +160,11 @@ type CampaignForm = {
   badge: string;
   cta_label: string;
   landing_path: string;
+  template_type: TemplateType;
+  highlight_text: string;
+  voucher_text: string;
+  benefits: string[];
+  featured_product_ids: string[];
   theme: string;
   primary_color: string;
   secondary_color: string;
@@ -153,8 +206,18 @@ function blankCampaign(): CampaignForm {
     title: "",
     subtitle: "",
     badge: "LIMITED TIME",
-    cta_label: "SHOP NOW",
+    cta_label: "SHOP 10.10 DEALS",
     landing_path: "/products",
+    template_type: "mega_sale",
+    highlight_text: "UP TO 50% OFF",
+    voucher_text: "EXTRA VOUCHERS AVAILABLE",
+    benefits: [
+      "FREE SHIPPING DEALS",
+      "FLASH DISCOUNTS",
+      "LIMITED VOUCHERS",
+      "POPULAR AUTO PARTS",
+    ],
+    featured_product_ids: [],
     theme: "red_sale",
     primary_color: campaignPresets.red_sale.primary_color,
     secondary_color: campaignPresets.red_sale.secondary_color,
@@ -179,11 +242,13 @@ function blankCampaign(): CampaignForm {
 
 export default function MarketingCampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [products, setProducts] = useState<ProductOption[]>([]);
   const [form, setForm] = useState<CampaignForm>(blankCampaign());
   const [editingId, setEditingId] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
   const [imageBusy, setImageBusy] = useState("");
+  const [productQuery, setProductQuery] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
@@ -208,15 +273,25 @@ export default function MarketingCampaignsPage() {
       return;
     }
 
-    const { data, error: loadError } = await supabase
-      .from("promotion_campaigns")
-      .select(
-        "id, title, subtitle, badge, cta_label, landing_path, theme, primary_color, secondary_color, text_color, muted_text_color, countdown_bg_color, countdown_text_color, button_bg_color, button_text_color, desktop_image_url, mobile_image_url, display_mode, overlay_opacity, show_countdown, image_position, starts_at, ends_at, sort_order, is_active"
-      )
-      .order("starts_at", { ascending: false });
+    const [campaignResult, productResult] = await Promise.all([
+      supabase
+        .from("promotion_campaigns")
+        .select(
+          "id, title, subtitle, badge, cta_label, landing_path, theme, template_type, highlight_text, voucher_text, benefit_items, featured_product_ids, primary_color, secondary_color, text_color, muted_text_color, countdown_bg_color, countdown_text_color, button_bg_color, button_text_color, desktop_image_url, mobile_image_url, display_mode, overlay_opacity, show_countdown, image_position, starts_at, ends_at, sort_order, is_active"
+        )
+        .order("starts_at", { ascending: false }),
+      supabase
+        .from("products")
+        .select("id, name, primary_image_url")
+        .eq("status", "active")
+        .order("name"),
+    ]);
 
-    if (loadError) throw loadError;
-    setCampaigns((data as Campaign[] | null) || []);
+    if (campaignResult.error) throw campaignResult.error;
+    if (productResult.error) throw productResult.error;
+
+    setCampaigns((campaignResult.data as Campaign[] | null) || []);
+    setProducts((productResult.data as ProductOption[] | null) || []);
   }
 
   useEffect(() => {
@@ -244,6 +319,14 @@ export default function MarketingCampaignsPage() {
     };
   }, []);
 
+  const filteredProducts = useMemo(() => {
+    const query = productQuery.trim().toLowerCase();
+    if (!query) return products.slice(0, 24);
+    return products
+      .filter((product) => product.name.toLowerCase().includes(query))
+      .slice(0, 24);
+  }, [products, productQuery]);
+
   function applyPreset(key: CampaignPresetKey) {
     const preset = campaignPresets[key];
     setForm((current) => ({
@@ -266,6 +349,34 @@ export default function MarketingCampaignsPage() {
       theme: "custom",
       [field]: value.toUpperCase(),
     }));
+  }
+
+  function updateBenefit(index: number, value: string) {
+    setForm((current) => {
+      const benefits = [...current.benefits];
+      benefits[index] = value;
+      return { ...current, benefits };
+    });
+  }
+
+  function toggleFeaturedProduct(id: string) {
+    setForm((current) => {
+      if (current.featured_product_ids.includes(id)) {
+        return {
+          ...current,
+          featured_product_ids: current.featured_product_ids.filter(
+            (item) => item !== id
+          ),
+        };
+      }
+
+      if (current.featured_product_ids.length >= 4) return current;
+
+      return {
+        ...current,
+        featured_product_ids: [...current.featured_product_ids, id],
+      };
+    });
   }
 
   async function uploadImage(file: File, kind: "desktop" | "mobile") {
@@ -319,6 +430,17 @@ export default function MarketingCampaignsPage() {
     setMessage("");
 
     try {
+      const start = new Date(form.starts_at);
+      const end = new Date(form.ends_at);
+
+      if (
+        Number.isNaN(start.getTime()) ||
+        Number.isNaN(end.getTime()) ||
+        end <= start
+      ) {
+        throw new Error("Choose a valid campaign start and end time.");
+      }
+
       const supabase = createClient();
       const payload = {
         title: form.title.trim(),
@@ -326,6 +448,14 @@ export default function MarketingCampaignsPage() {
         badge: form.badge.trim() || null,
         cta_label: form.cta_label.trim() || "SHOP NOW",
         landing_path: form.landing_path.trim() || "/products",
+        template_type: form.template_type,
+        highlight_text: form.highlight_text.trim() || null,
+        voucher_text: form.voucher_text.trim() || null,
+        benefit_items: form.benefits
+          .map((item) => item.trim())
+          .filter(Boolean)
+          .slice(0, 4),
+        featured_product_ids: form.featured_product_ids.slice(0, 4),
         theme: form.theme,
         primary_color: form.primary_color,
         secondary_color: form.secondary_color,
@@ -341,8 +471,8 @@ export default function MarketingCampaignsPage() {
         overlay_opacity: Number(form.overlay_opacity || 0.35),
         show_countdown: form.show_countdown,
         image_position: form.image_position,
-        starts_at: new Date(form.starts_at).toISOString(),
-        ends_at: new Date(form.ends_at).toISOString(),
+        starts_at: start.toISOString(),
+        ends_at: end.toISOString(),
         is_active: true,
         updated_at: new Date().toISOString(),
       };
@@ -356,10 +486,12 @@ export default function MarketingCampaignsPage() {
 
       if (result.error) throw result.error;
 
+      const wasEditing = Boolean(editingId);
       await load();
       setForm(blankCampaign());
       setEditingId("");
-      setMessage(editingId ? "Campaign updated." : "Campaign created.");
+      setProductQuery("");
+      setMessage(wasEditing ? "Campaign updated." : "Campaign created.");
     } catch (caught) {
       setError(
         caught instanceof Error ? caught.message : "Unable to save campaign."
@@ -370,6 +502,10 @@ export default function MarketingCampaignsPage() {
   }
 
   function editCampaign(campaign: Campaign) {
+    const benefits = Array.isArray(campaign.benefit_items)
+      ? campaign.benefit_items.slice(0, 4)
+      : [];
+
     setEditingId(campaign.id);
     setForm({
       title: campaign.title,
@@ -377,6 +513,16 @@ export default function MarketingCampaignsPage() {
       badge: campaign.badge || "",
       cta_label: campaign.cta_label,
       landing_path: campaign.landing_path,
+      template_type: campaign.template_type || "mega_sale",
+      highlight_text: campaign.highlight_text || "",
+      voucher_text: campaign.voucher_text || "",
+      benefits: [
+        benefits[0] || "",
+        benefits[1] || "",
+        benefits[2] || "",
+        benefits[3] || "",
+      ],
+      featured_product_ids: campaign.featured_product_ids || [],
       theme: campaign.theme || "red_sale",
       primary_color:
         campaign.primary_color || campaignPresets.red_sale.primary_color,
@@ -526,7 +672,8 @@ export default function MarketingCampaignsPage() {
               </span>
               <h1>Campaigns</h1>
               <p>
-                Homepage banners, countdown campaigns and seasonal creative.
+                Big-event templates for 10.10, 11.11, Payday and seasonal
+                campaigns.
               </p>
             </div>
             <div className={styles.adminHeaderActions}>
@@ -555,20 +702,71 @@ export default function MarketingCampaignsPage() {
               <div className={styles.adminPanelHead}>
                 <div>
                   <span className={styles.adminPanelKicker}>
-                    {editingId ? "EDIT CAMPAIGN" : "CREATE CAMPAIGN"}
+                    {editingId ? "EDIT CAMPAIGN" : "CREATE BIG EVENT"}
                   </span>
-                  <h2>Homepage Campaign</h2>
+                  <h2>Campaign Builder</h2>
                   <p>
-                    Build the campaign banner first, then connect vouchers and
-                    product discounts from Marketing Centre.
+                    Choose the event layout first. Colours and artwork are the
+                    finishing layer, not the whole template.
                   </p>
                 </div>
               </div>
 
               <form className={styles.adminForm} onSubmit={saveCampaign}>
                 <div className={styles.adminFormGrid}>
+                  <div className={styles.campaignTemplateManager}>
+                    <div className={styles.campaignTemplateHead}>
+                      <div>
+                        <span>STEP 1 · EVENT TEMPLATE</span>
+                        <strong>Choose the campaign experience</strong>
+                      </div>
+                      <small>
+                        Each template changes the actual homepage layout.
+                      </small>
+                    </div>
+
+                    <div className={styles.campaignTemplateGrid}>
+                      {templates.map((template) => (
+                        <button
+                          type="button"
+                          key={template.key}
+                          className={
+                            styles.campaignTemplateCard +
+                            (form.template_type === template.key
+                              ? " " + styles.campaignTemplateActive
+                              : "")
+                          }
+                          onClick={() =>
+                            setForm((current) => ({
+                              ...current,
+                              template_type: template.key,
+                            }))
+                          }
+                        >
+                          <div
+                            className={
+                              styles.campaignTemplateVisual +
+                              " " +
+                              styles[
+                                "template_" +
+                                  template.key.replaceAll("-", "_")
+                              ]
+                            }
+                          >
+                            <i />
+                            <b />
+                            <em />
+                          </div>
+                          <span>{template.kicker}</span>
+                          <strong>{template.name}</strong>
+                          <small>{template.description}</small>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <label className={styles.adminField}>
-                    <span>TITLE</span>
+                    <span>MAIN TITLE</span>
                     <input
                       required
                       value={form.title}
@@ -578,12 +776,12 @@ export default function MarketingCampaignsPage() {
                           title: event.target.value,
                         }))
                       }
-                      placeholder="10.10 AUTO SALE"
+                      placeholder="10.10 MEGA SALE"
                     />
                   </label>
 
                   <label className={styles.adminField}>
-                    <span>BADGE</span>
+                    <span>EVENT TAG</span>
                     <input
                       value={form.badge}
                       onChange={(event) =>
@@ -592,6 +790,7 @@ export default function MarketingCampaignsPage() {
                           badge: event.target.value,
                         }))
                       }
+                      placeholder="LIMITED TIME"
                     />
                   </label>
 
@@ -605,8 +804,40 @@ export default function MarketingCampaignsPage() {
                           subtitle: event.target.value,
                         }))
                       }
+                      placeholder="Big automotive savings for a limited time."
                     />
                   </label>
+
+                  <label className={styles.adminField}>
+                    <span>HIGHLIGHT TEXT</span>
+                    <input
+                      value={form.highlight_text}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          highlight_text: event.target.value,
+                        }))
+                      }
+                      placeholder="UP TO 50% OFF"
+                    />
+                  </label>
+
+                  {(form.template_type === "mega_sale" ||
+                    form.template_type === "voucher_blast") ? (
+                    <label className={styles.adminField}>
+                      <span>VOUCHER HIGHLIGHT</span>
+                      <input
+                        value={form.voucher_text}
+                        onChange={(event) =>
+                          setForm((current) => ({
+                            ...current,
+                            voucher_text: event.target.value,
+                          }))
+                        }
+                        placeholder="EXTRA VOUCHERS AVAILABLE"
+                      />
+                    </label>
+                  ) : null}
 
                   <label className={styles.adminField}>
                     <span>CTA LABEL</span>
@@ -634,10 +865,93 @@ export default function MarketingCampaignsPage() {
                     />
                   </label>
 
+                  {(form.template_type === "mega_sale" ||
+                    form.template_type === "category_festival") ? (
+                    <div className={styles.campaignBenefitsEditor}>
+                      <div>
+                        <span>BENEFIT STRIP</span>
+                        <strong>Four event highlights</strong>
+                      </div>
+                      <div>
+                        {form.benefits.map((benefit, index) => (
+                          <label key={index}>
+                            <span>0{index + 1}</span>
+                            <input
+                              value={benefit}
+                              onChange={(event) =>
+                                updateBenefit(index, event.target.value)
+                              }
+                              placeholder="FLASH DISCOUNTS"
+                            />
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {form.template_type === "flash_deal_grid" ? (
+                    <div className={styles.campaignProductPicker}>
+                      <div className={styles.campaignProductPickerHead}>
+                        <div>
+                          <span>FEATURED PRODUCTS</span>
+                          <strong>
+                            Select up to 4 discounted products
+                          </strong>
+                        </div>
+                        <small>
+                          {form.featured_product_ids.length}/4 selected
+                        </small>
+                      </div>
+                      <input
+                        value={productQuery}
+                        onChange={(event) =>
+                          setProductQuery(event.target.value)
+                        }
+                        placeholder="Search product name"
+                      />
+                      <div className={styles.campaignProductPickerGrid}>
+                        {filteredProducts.map((product) => {
+                          const selected =
+                            form.featured_product_ids.includes(product.id);
+                          return (
+                            <button
+                              type="button"
+                              key={product.id}
+                              className={
+                                styles.campaignProductChoice +
+                                (selected
+                                  ? " " + styles.campaignProductSelected
+                                  : "")
+                              }
+                              onClick={() =>
+                                toggleFeaturedProduct(product.id)
+                              }
+                            >
+                              <div>
+                                {product.primary_image_url ? (
+                                  <img
+                                    src={product.primary_image_url}
+                                    alt=""
+                                  />
+                                ) : (
+                                  <span>M</span>
+                                )}
+                              </div>
+                              <strong>{product.name}</strong>
+                              <small>
+                                {selected ? "SELECTED" : "+ ADD"}
+                              </small>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+
                   <div className={styles.campaignImageManager}>
                     <div className={styles.campaignImageManagerHead}>
                       <div>
-                        <span>BANNER ARTWORK</span>
+                        <span>CAMPAIGN ARTWORK</span>
                         <strong>Desktop & mobile images</strong>
                       </div>
                       <small>JPG, PNG or WEBP · Max 8MB</small>
@@ -665,7 +979,7 @@ export default function MarketingCampaignsPage() {
                                 ? "UPLOADING..."
                                 : "UPLOAD DESKTOP"}
                             </strong>
-                            <small>Wide homepage banner</small>
+                            <small>Wide event artwork</small>
                           </div>
                         )}
                       </label>
@@ -730,7 +1044,7 @@ export default function MarketingCampaignsPage() {
                   </div>
 
                   <label className={styles.adminField}>
-                    <span>BANNER MODE</span>
+                    <span>ARTWORK MODE</span>
                     <select
                       value={form.display_mode}
                       onChange={(event) =>
@@ -742,8 +1056,12 @@ export default function MarketingCampaignsPage() {
                         }))
                       }
                     >
-                      <option value="overlay">Image + text overlay</option>
-                      <option value="image_only">Image only</option>
+                      <option value="overlay">
+                        Template + artwork background
+                      </option>
+                      <option value="image_only">
+                        Full artwork only
+                      </option>
                     </select>
                   </label>
 
@@ -774,10 +1092,12 @@ export default function MarketingCampaignsPage() {
                   <div className={styles.campaignStyleManager}>
                     <div className={styles.campaignStyleHead}>
                       <div>
-                        <span>BANNER STYLE</span>
-                        <strong>Preset & custom colours</strong>
+                        <span>STEP 2 · EVENT LOOK</span>
+                        <strong>Colour direction</strong>
                       </div>
-                      <small>Select a preset or customise every colour.</small>
+                      <small>
+                        The template stays the same; this changes its finish.
+                      </small>
                     </div>
 
                     <div className={styles.campaignPresetGrid}>
@@ -811,7 +1131,6 @@ export default function MarketingCampaignsPage() {
                             }}
                           />
                           <span>{preset.label}</span>
-                          <small>{preset.description}</small>
                         </button>
                       ))}
                     </div>
@@ -841,45 +1160,6 @@ export default function MarketingCampaignsPage() {
                           </div>
                         </label>
                       ))}
-                    </div>
-
-                    <div
-                      className={styles.campaignMiniPreview}
-                      style={{
-                        background:
-                          "linear-gradient(120deg," +
-                          form.primary_color +
-                          "," +
-                          form.secondary_color +
-                          ")",
-                        color: form.text_color,
-                      }}
-                    >
-                      <div>
-                        <span style={{ color: form.muted_text_color }}>
-                          {form.badge || "LIMITED TIME"}
-                        </span>
-                        <strong>{form.title || "10.10 AUTO SALE"}</strong>
-                        <small style={{ color: form.muted_text_color }}>
-                          {form.subtitle || "Campaign subtitle preview"}
-                        </small>
-                        <b
-                          style={{
-                            background: form.button_bg_color,
-                            color: form.button_text_color,
-                          }}
-                        >
-                          {form.cta_label || "SHOP NOW"} →
-                        </b>
-                      </div>
-                      <i
-                        style={{
-                          background: form.countdown_bg_color,
-                          color: form.countdown_text_color,
-                        }}
-                      >
-                        12 : 11 : 48 : 55
-                      </i>
                     </div>
                   </div>
 
@@ -984,7 +1264,7 @@ export default function MarketingCampaignsPage() {
                 <div>
                   <span className={styles.adminPanelKicker}>CAMPAIGN LIST</span>
                   <h2>{campaigns.length} Campaigns</h2>
-                  <p>Manage visibility, editing and deletion.</p>
+                  <p>Each campaign now has its own event layout.</p>
                 </div>
               </div>
 
@@ -993,80 +1273,93 @@ export default function MarketingCampaignsPage() {
               ) : campaigns.length === 0 ? (
                 <div className={styles.adminEmptyState}>
                   <strong>No campaigns yet.</strong>
-                  <span>Create your first campaign on the left.</span>
+                  <span>Create your first big event on the left.</span>
                 </div>
               ) : (
                 <div className={styles.marketingList}>
-                  {campaigns.map((campaign) => (
-                    <article key={campaign.id}>
-                      <div className={styles.marketingListVisual}>
-                        {campaign.desktop_image_url ? (
-                          <img src={campaign.desktop_image_url} alt="" />
-                        ) : (
-                          <i
-                            style={{
-                              background:
-                                "linear-gradient(135deg," +
-                                (campaign.primary_color || "#D8242F") +
-                                "," +
-                                (campaign.secondary_color || "#6F0D14") +
-                                ")",
-                            }}
-                          />
-                        )}
-                      </div>
-                      <div className={styles.marketingListCopy}>
-                        <span>{campaign.badge || "CAMPAIGN"}</span>
-                        <strong>{campaign.title}</strong>
-                        <small>
-                          {new Date(campaign.starts_at).toLocaleString("en-MY", {
-                            day: "2-digit",
-                            month: "short",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                          {" → "}
-                          {new Date(campaign.ends_at).toLocaleString("en-MY", {
-                            day: "2-digit",
-                            month: "short",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </small>
-                      </div>
-                      <div className={styles.promotionRowActions}>
-                        <button
-                          type="button"
-                          className={styles.promotionEdit}
-                          onClick={() => editCampaign(campaign)}
-                        >
-                          EDIT
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => void toggleCampaign(campaign)}
-                          disabled={busy === "toggle-" + campaign.id}
-                          className={
-                            campaign.is_active
-                              ? styles.promotionOn
-                              : styles.promotionOff
-                          }
-                        >
-                          {campaign.is_active ? "ACTIVE" : "OFF"}
-                        </button>
-                        <button
-                          type="button"
-                          className={styles.promotionDelete}
-                          onClick={() => void deleteCampaign(campaign)}
-                          disabled={busy === "delete-" + campaign.id}
-                        >
-                          {busy === "delete-" + campaign.id
-                            ? "DELETING..."
-                            : "DELETE"}
-                        </button>
-                      </div>
-                    </article>
-                  ))}
+                  {campaigns.map((campaign) => {
+                    const template =
+                      templates.find(
+                        (item) => item.key === campaign.template_type
+                      ) || templates[0];
+
+                    return (
+                      <article key={campaign.id}>
+                        <div className={styles.marketingListVisual}>
+                          {campaign.desktop_image_url ? (
+                            <img src={campaign.desktop_image_url} alt="" />
+                          ) : (
+                            <i
+                              style={{
+                                background:
+                                  "linear-gradient(135deg," +
+                                  (campaign.primary_color || "#D8242F") +
+                                  "," +
+                                  (campaign.secondary_color || "#6F0D14") +
+                                  ")",
+                              }}
+                            />
+                          )}
+                        </div>
+                        <div className={styles.marketingListCopy}>
+                          <span>{template.name.toUpperCase()}</span>
+                          <strong>{campaign.title}</strong>
+                          <small>
+                            {new Date(campaign.starts_at).toLocaleString(
+                              "en-MY",
+                              {
+                                day: "2-digit",
+                                month: "short",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            )}
+                            {" → "}
+                            {new Date(campaign.ends_at).toLocaleString(
+                              "en-MY",
+                              {
+                                day: "2-digit",
+                                month: "short",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            )}
+                          </small>
+                        </div>
+                        <div className={styles.promotionRowActions}>
+                          <button
+                            type="button"
+                            className={styles.promotionEdit}
+                            onClick={() => editCampaign(campaign)}
+                          >
+                            EDIT
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void toggleCampaign(campaign)}
+                            disabled={busy === "toggle-" + campaign.id}
+                            className={
+                              campaign.is_active
+                                ? styles.promotionOn
+                                : styles.promotionOff
+                            }
+                          >
+                            {campaign.is_active ? "ACTIVE" : "OFF"}
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.promotionDelete}
+                            onClick={() => void deleteCampaign(campaign)}
+                            disabled={busy === "delete-" + campaign.id}
+                          >
+                            {busy === "delete-" + campaign.id
+                              ? "DELETING..."
+                              : "DELETE"}
+                          </button>
+                        </div>
+                      </article>
+                    );
+                  })}
                 </div>
               )}
             </section>
