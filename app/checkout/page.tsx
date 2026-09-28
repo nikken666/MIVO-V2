@@ -35,6 +35,27 @@ type ShippingQuote = {
   total_amount: number;
 };
 
+type VoucherOption = {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  discount_type: "fixed" | "percent" | "free_shipping";
+  discount_value: number | string;
+  minimum_spend: number | string;
+  max_discount: number | string | null;
+  first_order_only: boolean;
+};
+
+type VoucherPreview = {
+  voucher_id: string;
+  code: string;
+  name: string;
+  discount_type: string;
+  discount_amount: number;
+  total_after_discount: number;
+};
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, cartCount, cartReady, clearCart } = useMarketplace();
@@ -50,6 +71,12 @@ export default function CheckoutPage() {
   const [selectedCourier, setSelectedCourier] = useState("");
   const [shippingLoading, setShippingLoading] = useState(false);
   const [shippingError, setShippingError] = useState("");
+  const [vouchers, setVouchers] = useState<VoucherOption[]>([]);
+  const [selectedVoucherId, setSelectedVoucherId] = useState("");
+  const [voucherPreview, setVoucherPreview] =
+    useState<VoucherPreview | null>(null);
+  const [voucherLoading, setVoucherLoading] = useState(false);
+  const [voucherError, setVoucherError] = useState("");
 
   useEffect(() => {
     const supabase = createClient();
@@ -99,6 +126,31 @@ export default function CheckoutPage() {
           "",
       });
 
+      try {
+        const { data: claimed } = await supabase
+          .from("customer_vouchers")
+          .select("voucher_id")
+          .eq("user_id", user.id);
+
+        const ids =
+          ((claimed as Array<{ voucher_id: string }> | null) || []).map(
+            (row) => row.voucher_id
+          );
+
+        if (ids.length > 0) {
+          const { data: voucherData } = await supabase
+            .from("vouchers")
+            .select(
+              "id, code, name, description, discount_type, discount_value, minimum_spend, max_discount, first_order_only"
+            )
+            .in("id", ids)
+            .eq("is_active", true)
+            .order("created_at", { ascending: true });
+
+          setVouchers((voucherData as VoucherOption[] | null) || []);
+        }
+      } catch {}
+
       setLoading(false);
     }
 
@@ -116,6 +168,32 @@ export default function CheckoutPage() {
     ) ||
     shippingQuotes[0] ||
     null;
+
+  const checkoutItems = cart
+    .map((line) =>
+      line.variant?.id
+        ? {
+            variant_id: line.variant.id,
+            quantity: line.quantity,
+          }
+        : null
+    )
+    .filter(
+      (
+        item
+      ): item is {
+        variant_id: string;
+        quantity: number;
+      } => Boolean(item)
+    );
+
+  const discountAmount = Number(voucherPreview?.discount_amount || 0);
+  const checkoutTotal = shippingQuote
+    ? Math.max(
+        0,
+        subtotal + Number(shippingQuote.shipping_amount || 0) - discountAmount
+      )
+    : subtotal;
 
   useEffect(() => {
     let active = true;
@@ -200,6 +278,100 @@ export default function CheckoutPage() {
     };
   }, [cart, shippingState, shippingPostcode]);
 
+  useEffect(() => {
+    let active = true;
+
+    async function preview() {
+      if (!selectedVoucherId || !shippingQuote || checkoutItems.length !== cart.length) {
+        setVoucherPreview(null);
+        setVoucherError("");
+        return;
+      }
+
+      setVoucherLoading(true);
+      setVoucherError("");
+
+      try {
+        const supabase = createClient();
+        const { data, error: previewError } = await supabase.rpc(
+          "preview_voucher",
+          {
+            p_voucher_id: selectedVoucherId,
+            p_items: checkoutItems,
+            p_shipping_amount: shippingQuote.shipping_amount,
+          }
+        );
+
+        if (previewError) throw previewError;
+        if (!active) return;
+
+        setVoucherPreview(data as VoucherPreview);
+      } catch (caught) {
+        if (!active) return;
+        setVoucherPreview(null);
+        setVoucherError(
+          caught instanceof Error ? caught.message : "Voucher cannot be applied."
+        );
+      } finally {
+        if (active) setVoucherLoading(false);
+      }
+    }
+
+    void preview();
+
+    return () => {
+      active = false;
+    };
+  }, [
+    selectedVoucherId,
+    shippingQuote?.courier_code,
+    shippingQuote?.shipping_amount,
+    subtotal,
+    cart.length,
+  ]);
+
+  async function applyBestVoucher() {
+    if (!shippingQuote || vouchers.length === 0) return;
+
+    setVoucherLoading(true);
+    setVoucherError("");
+
+    try {
+      const supabase = createClient();
+      const results = await Promise.all(
+        vouchers.map(async (voucher) => {
+          const { data, error } = await supabase.rpc("preview_voucher", {
+            p_voucher_id: voucher.id,
+            p_items: checkoutItems,
+            p_shipping_amount: shippingQuote.shipping_amount,
+          });
+
+          return error
+            ? null
+            : (data as VoucherPreview);
+        })
+      );
+
+      const best = results
+        .filter((value): value is VoucherPreview => Boolean(value))
+        .sort(
+          (a, b) =>
+            Number(b.discount_amount || 0) -
+            Number(a.discount_amount || 0)
+        )[0];
+
+      if (!best) {
+        setVoucherError("No claimed voucher is eligible for this order.");
+        return;
+      }
+
+      setSelectedVoucherId(best.voucher_id);
+      setVoucherPreview(best);
+    } finally {
+      setVoucherLoading(false);
+    }
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
@@ -267,6 +439,7 @@ export default function CheckoutPage() {
           p_customer_note:
             String(form.get("customer_note") || "").trim() ||
             null,
+          p_voucher_id: selectedVoucherId || null,
         }
       );
 
@@ -603,9 +776,7 @@ export default function CheckoutPage() {
               <div>
                 <span>ORDER TOTAL</span>
                 <strong>
-                  {formatPrice(
-                    shippingQuote?.total_amount ?? subtotal
-                  )}
+                  {formatPrice(checkoutTotal)}
                 </strong>
                 <small>
                   {shippingQuote
@@ -620,7 +791,9 @@ export default function CheckoutPage() {
                 disabled={
                   busy ||
                   shippingLoading ||
-                  !shippingQuote
+                  voucherLoading ||
+                  !shippingQuote ||
+                  Boolean(selectedVoucherId && !voucherPreview)
                 }
               >
                 <span>
@@ -708,6 +881,78 @@ export default function CheckoutPage() {
               </div>
             </div>
 
+            <div className="checkoutVoucherBox">
+              <div className="checkoutVoucherHead">
+                <div>
+                  <span>MIVO VOUCHER</span>
+                  <strong>
+                    {vouchers.length
+                      ? vouchers.length + " claimed"
+                      : "No claimed vouchers"}
+                  </strong>
+                </div>
+                {vouchers.length > 0 && shippingQuote ? (
+                  <button
+                    type="button"
+                    onClick={() => void applyBestVoucher()}
+                    disabled={voucherLoading}
+                  >
+                    BEST VOUCHER
+                  </button>
+                ) : (
+                  <Link href="/">CLAIM →</Link>
+                )}
+              </div>
+
+              {vouchers.length > 0 ? (
+                <div className="checkoutVoucherOptions">
+                  <button
+                    type="button"
+                    className={!selectedVoucherId ? "active" : ""}
+                    onClick={() => {
+                      setSelectedVoucherId("");
+                      setVoucherPreview(null);
+                      setVoucherError("");
+                    }}
+                  >
+                    NO VOUCHER
+                  </button>
+
+                  {vouchers.map((voucher) => (
+                    <button
+                      type="button"
+                      key={voucher.id}
+                      className={
+                        selectedVoucherId === voucher.id ? "active" : ""
+                      }
+                      onClick={() => setSelectedVoucherId(voucher.id)}
+                    >
+                      <strong>{voucher.code}</strong>
+                      <span>{voucher.name}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+
+              {voucherLoading ? (
+                <small>Checking voucher...</small>
+              ) : voucherPreview ? (
+                <small className="success">
+                  {voucherPreview.code} saves{" "}
+                  {formatPrice(Number(voucherPreview.discount_amount))}
+                </small>
+              ) : voucherError ? (
+                <small className="error">{voucherError}</small>
+              ) : null}
+            </div>
+
+            {voucherPreview && discountAmount > 0 ? (
+              <div className="checkoutDiscountRow">
+                <span>Voucher ({voucherPreview.code})</span>
+                <strong>− {formatPrice(discountAmount)}</strong>
+              </div>
+            ) : null}
+
             <div className="checkoutSummaryTotal">
               <div>
                 <span>TOTAL</span>
@@ -720,9 +965,7 @@ export default function CheckoutPage() {
                 </small>
               </div>
               <strong>
-                {formatPrice(
-                  shippingQuote?.total_amount ?? subtotal
-                )}
+                {formatPrice(checkoutTotal)}
               </strong>
             </div>
 
