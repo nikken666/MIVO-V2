@@ -6,6 +6,8 @@ export type ProductVariant = {
   sku: string;
   price: number;
   compareAtPrice?: number | null;
+  discountPercent?: number | null;
+  discountEndsAt?: string | null;
   stock: number;
   weightKg?: number;
   lengthCm?: number;
