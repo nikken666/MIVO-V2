@@ -6069,3 +6069,141 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
     justify-self:start;
   }
 }
+
+
+/* FAST PRODUCT NAVIGATION LOADING STATES */
+.skeletonBlock{
+  position:relative;
+  overflow:hidden;
+  background:#eef0f1;
+}
+.skeletonBlock::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  transform:translateX(-100%);
+  background:linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.72),
+    transparent
+  );
+  animation:mivoSkeleton 1.05s infinite;
+}
+@keyframes mivoSkeleton{
+  100%{transform:translateX(100%)}
+}
+.catalogLoadingHeader{
+  width:min(360px,72%);
+  height:48px;
+  margin:34px 0 24px;
+  border-radius:10px;
+}
+.catalogLoadingGrid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:14px;
+}
+.catalogLoadingCard{
+  min-width:0;
+  padding:14px;
+  border:1px solid #e2e5e6;
+  border-radius:16px;
+  background:#fff;
+}
+.catalogLoadingImage{
+  width:100%;
+  aspect-ratio:1.2/1;
+  border-radius:11px;
+}
+.catalogLoadingLine{
+  height:14px;
+  margin-top:14px;
+  border-radius:999px;
+}
+.catalogLoadingLine.short{
+  width:66%;
+  margin-top:9px;
+}
+.catalogLoadingLine.price{
+  width:42%;
+  height:18px;
+  margin-top:20px;
+}
+.detailLoadingBreadcrumb{
+  width:44%;
+  height:12px;
+  margin:30px 0 18px;
+  border-radius:999px;
+}
+.detailLoadingGallery{
+  min-height:540px;
+  border-radius:16px;
+}
+.detailLoadingPanel{
+  padding:26px 0 0;
+}
+.detailLoadingLine{
+  height:14px;
+  border-radius:999px;
+}
+.detailLoadingLine.small{
+  width:90px;
+}
+.detailLoadingLine.title{
+  width:82%;
+  height:30px;
+  margin-top:14px;
+}
+.detailLoadingLine.medium{
+  width:42%;
+  margin-top:14px;
+}
+.detailLoadingPrice{
+  height:68px;
+  margin-top:24px;
+  border-radius:12px;
+}
+.detailLoadingBox{
+  height:96px;
+  margin-top:18px;
+  border-radius:12px;
+}
+.detailLoadingOptions{
+  margin-top:18px;
+  display:flex;
+  gap:10px;
+}
+.detailLoadingOption{
+  width:118px;
+  height:44px;
+  border-radius:9px;
+}
+.detailLoadingActions{
+  margin-top:28px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.detailLoadingActions>div{
+  height:60px;
+  border-radius:10px;
+}
+@media(max-width:1000px){
+  .catalogLoadingGrid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:760px){
+  .detailLoadingGallery{
+    min-height:380px;
+  }
+}
+@media(max-width:560px){
+  .catalogLoadingGrid{
+    grid-template-columns:1fr;
+  }
+  .detailLoadingActions{
+    grid-template-columns:1fr;
+  }
+}
