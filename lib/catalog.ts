@@ -38,6 +38,10 @@ type ProductRow = {
         sku: string;
         price: number | string;
         compare_at_price: number | string | null;
+        discount_enabled: boolean;
+        discount_percent: number | string | null;
+        discount_starts_at: string | null;
+        discount_ends_at: string | null;
         stock_on_hand: number;
         stock_reserved: number;
         weight_kg: number | string | null;
@@ -67,28 +71,55 @@ function sellerName(
 function mapVariants(row: ProductRow): ProductVariant[] {
   return (row.product_variants || [])
     .filter((variant) => variant.is_active)
-    .map((variant) => ({
-      id: variant.id,
-      title: variant.title?.trim() || "Default",
-      variation1Value: variant.variation_1_value,
-      variation2Value: variant.variation_2_value,
-      sku: variant.sku,
-      price: Number(variant.price),
-      compareAtPrice:
-        variant.compare_at_price === null
-          ? null
-          : Number(variant.compare_at_price),
-      stock: Math.max(
-        0,
-        Number(variant.stock_on_hand || 0) -
-          Number(variant.stock_reserved || 0)
-      ),
-      weightKg: Number(variant.weight_kg || 0),
-      lengthCm: Number(variant.length_cm || 0),
-      widthCm: Number(variant.width_cm || 0),
-      heightCm: Number(variant.height_cm || 0),
-      isActive: true,
-    }));
+    .map((variant) => {
+      const regularPrice = Number(variant.price);
+      const discountPercent = Number(variant.discount_percent || 0);
+      const now = Date.now();
+      const startsAt = variant.discount_starts_at
+        ? new Date(variant.discount_starts_at).getTime()
+        : null;
+      const endsAt = variant.discount_ends_at
+        ? new Date(variant.discount_ends_at).getTime()
+        : null;
+      const discountActive =
+        Boolean(variant.discount_enabled) &&
+        discountPercent > 0 &&
+        (!startsAt || now >= startsAt) &&
+        (!endsAt || now <= endsAt);
+      const effectivePrice = discountActive
+        ? Math.round(
+            regularPrice * (1 - discountPercent / 100) * 100
+          ) / 100
+        : regularPrice;
+
+      return {
+        id: variant.id,
+        title: variant.title?.trim() || "Default",
+        variation1Value: variant.variation_1_value,
+        variation2Value: variant.variation_2_value,
+        sku: variant.sku,
+        price: effectivePrice,
+        compareAtPrice: discountActive
+          ? regularPrice
+          : variant.compare_at_price === null
+            ? null
+            : Number(variant.compare_at_price),
+        discountPercent: discountActive ? discountPercent : null,
+        discountEndsAt: discountActive
+          ? variant.discount_ends_at
+          : null,
+        stock: Math.max(
+          0,
+          Number(variant.stock_on_hand || 0) -
+            Number(variant.stock_reserved || 0)
+        ),
+        weightKg: Number(variant.weight_kg || 0),
+        lengthCm: Number(variant.length_cm || 0),
+        widthCm: Number(variant.width_cm || 0),
+        heightCm: Number(variant.height_cm || 0),
+        isActive: true,
+      };
+    });
 }
 
 function mapProduct(row: ProductRow): Product | null {
@@ -144,7 +175,7 @@ function mapProduct(row: ProductRow): Product | null {
 }
 
 const selectQuery =
-  "id, category_id, brand_id, slug, name, description, short_description, warranty_months, primary_image_url, variation_1_name, variation_2_name, brands(name), categories(name), sellers(shop_name), product_images(image_url, sort_order), product_variants(id, title, variation_1_value, variation_2_value, sku, price, compare_at_price, stock_on_hand, stock_reserved, weight_kg, length_cm, width_cm, height_cm, is_active)";
+  "id, category_id, brand_id, slug, name, description, short_description, warranty_months, primary_image_url, variation_1_name, variation_2_name, brands(name), categories(name), sellers(shop_name), product_images(image_url, sort_order), product_variants(id, title, variation_1_value, variation_2_value, sku, price, compare_at_price, discount_enabled, discount_percent, discount_starts_at, discount_ends_at, stock_on_hand, stock_reserved, weight_kg, length_cm, width_cm, height_cm, is_active)";
 
 type ReviewStat = {
   rating: number;
