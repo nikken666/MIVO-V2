@@ -190,6 +190,15 @@ export default function ProductDetailClient({
     selectedVariant.compareAtPrice > displayPrice
       ? selectedVariant.compareAtPrice
       : null;
+  const displayDiscountPercent =
+    selectedVariant?.discountPercent ||
+    (displayComparePrice
+      ? Math.round(
+          ((displayComparePrice - displayPrice) /
+            displayComparePrice) *
+            100
+        )
+      : null);
   const displayStock = selectedVariant?.stock ?? product.stock;
   const displaySku = selectedVariant?.sku ?? product.sku;
   const maxQuantity =
@@ -379,8 +388,15 @@ export default function ProductDetailClient({
                   <del>{formatPrice(displayComparePrice)}</del>
                 ) : null}
                 <strong>{formatPrice(displayPrice)}</strong>
+                {displayDiscountPercent ? (
+                  <b className="productDetailDiscountBadge">
+                    -{Math.round(displayDiscountPercent)}%
+                  </b>
+                ) : null}
               </div>
-              <span>PRICE</span>
+              <span>
+                {displayDiscountPercent ? "SALE PRICE" : "PRICE"}
+              </span>
             </div>
 
             <div
