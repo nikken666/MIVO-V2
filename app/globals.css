@@ -6967,8 +6967,13 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
   border-radius:18px;
   background:
     radial-gradient(circle at 86% 25%,rgba(255,255,255,.16),transparent 34%),
-    linear-gradient(120deg,#d8242f,#b5121d 58%,#6f0d14);
-  color:#fff;
+    linear-gradient(
+      120deg,
+      var(--campaign-primary,#d8242f),
+      var(--campaign-primary,#d8242f) 42%,
+      var(--campaign-secondary,#6f0d14)
+    );
+  color:var(--campaign-text,#fff);
   box-shadow:0 16px 34px rgba(129,13,21,.16);
 }
 .campaignBannerCopy{
@@ -6976,7 +6981,7 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
 }
 .campaignBannerCopy>span{
   display:block;
-  color:#ffd7da;
+  color:var(--campaign-muted,#ffd7da);
   font-size:8px;
   font-weight:900;
   letter-spacing:.15em;
@@ -6990,7 +6995,7 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
 .campaignBannerCopy p{
   max-width:560px;
   margin:14px 0 0;
-  color:#ffe9ea;
+  color:var(--campaign-muted,#ffe9ea);
   font-size:11px;
   line-height:1.55;
 }
@@ -7003,8 +7008,8 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
   align-items:center;
   gap:16px;
   border-radius:9px;
-  background:#fff;
-  color:#b61923;
+  background:var(--campaign-button-bg,#fff);
+  color:var(--campaign-button-text,#b61923);
   font-size:8px;
   font-weight:900;
   letter-spacing:.07em;
@@ -7021,12 +7026,17 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
   gap:10px;
   border:1px solid rgba(255,255,255,.18);
   border-radius:14px;
-  background:rgba(15,16,18,.26);
+  background:color-mix(
+    in srgb,
+    var(--campaign-countdown-bg,#2b1014) 88%,
+    transparent
+  );
+  color:var(--campaign-countdown-text,#fff);
   backdrop-filter:blur(8px);
 }
 .campaignCountdown>span{
   margin-right:7px;
-  color:#ffd7da;
+  color:var(--campaign-muted,#ffd7da);
   font-size:7px;
   font-weight:900;
   letter-spacing:.13em;
@@ -7045,12 +7055,20 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
 }
 .campaignCountdown small{
   margin-top:3px;
-  color:#f2bec2;
+  color:color-mix(
+    in srgb,
+    var(--campaign-countdown-text,#fff) 72%,
+    transparent
+  );
   font-size:6px;
   font-weight:900;
 }
 .campaignCountdown i{
-  color:#efb6ba;
+  color:color-mix(
+    in srgb,
+    var(--campaign-countdown-text,#fff) 65%,
+    transparent
+  );
   font-size:18px;
   font-style:normal;
 }
@@ -8265,4 +8283,66 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
   font-size:7px;
   font-weight:900;
   letter-spacing:.03em;
+}
+
+
+/* CAMPAIGN STYLE PRESETS */
+.campaignBanner.theme-red_sale::after,
+.campaignBanner.theme-orange_market::after,
+.campaignBanner.theme-blue_tech::after,
+.campaignBanner.theme-gold_premium::after,
+.campaignBanner.theme-black_premium::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+}
+.campaignBanner.theme-red_sale::after{
+  background:
+    linear-gradient(110deg,transparent 0 58%,rgba(255,255,255,.04) 58% 59%,transparent 59% 100%),
+    radial-gradient(circle at 78% 18%,rgba(255,255,255,.12),transparent 26%);
+}
+.campaignBanner.theme-orange_market::after{
+  background:
+    repeating-linear-gradient(
+      125deg,
+      transparent 0 34px,
+      rgba(255,255,255,.035) 34px 36px
+    ),
+    radial-gradient(circle at 84% 22%,rgba(255,255,255,.18),transparent 28%);
+}
+.campaignBanner.theme-black_premium{
+  border:1px solid rgba(255,255,255,.07);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 18px 38px rgba(0,0,0,.18);
+}
+.campaignBanner.theme-black_premium::after{
+  background:
+    linear-gradient(115deg,rgba(255,255,255,.05),transparent 32%),
+    radial-gradient(circle at 82% 22%,rgba(216,36,47,.16),transparent 27%);
+}
+.campaignBanner.theme-blue_tech::after{
+  background:
+    linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px),
+    radial-gradient(circle at 82% 20%,rgba(96,190,255,.18),transparent 29%);
+  background-size:22px 22px,22px 22px,auto;
+}
+.campaignBanner.theme-gold_premium{
+  box-shadow:
+    inset 0 0 0 1px rgba(255,236,184,.16),
+    0 18px 38px rgba(70,49,10,.2);
+}
+.campaignBanner.theme-gold_premium::after{
+  background:
+    radial-gradient(circle at 82% 18%,rgba(255,236,184,.2),transparent 28%),
+    linear-gradient(120deg,transparent 35%,rgba(255,255,255,.045) 48%,transparent 61%);
+}
+.campaignBanner.hasImage::after{
+  opacity:.35;
+}
+.campaignBanner.imageOnly::after{
+  display:none;
 }
