@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
       const { error: createBucketError } = await admin.storage.createBucket(
         BUCKET,
         {
-          public: true,
+          public: false,
           fileSizeLimit: MAX_FILE_SIZE,
           allowedMimeTypes: Array.from(ALLOWED_TYPES),
         }
@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const urls: string[] = [];
+    const paths: string[] = [];
 
     for (const file of files) {
       const path =
@@ -201,11 +201,10 @@ export async function POST(request: NextRequest) {
 
       if (uploadError) throw uploadError;
 
-      const { data: publicUrl } = admin.storage.from(BUCKET).getPublicUrl(path);
-      urls.push(publicUrl.publicUrl);
+      paths.push(path);
     }
 
-    return NextResponse.json({ urls });
+    return NextResponse.json({ paths });
   } catch (caught) {
     const message =
       caught instanceof Error
