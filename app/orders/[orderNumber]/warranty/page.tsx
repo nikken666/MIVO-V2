@@ -22,6 +22,14 @@ type WarrantyItem = {
   image_url?: string | null;
 };
 
+type WarrantyClaimSummary = {
+  id: string;
+  claim_number: string;
+  order_item_id: string;
+  status: string;
+  created_at: string;
+};
+
 function addMonths(value: string, months: number) {
   const date = new Date(value);
   const result = new Date(date);
@@ -59,6 +67,9 @@ export default function OrderWarrantyPage() {
   const [order, setOrder] = useState<WarrantyOrder | null>(null);
   const [items, setItems] = useState<WarrantyItem[]>([]);
   const [warrantyStart, setWarrantyStart] = useState<string | null>(null);
+  const [claimsByItem, setClaimsByItem] = useState<
+    Record<string, WarrantyClaimSummary>
+  >({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -184,8 +195,28 @@ export default function OrderWarrantyPage() {
           .limit(1)
           .maybeSingle();
 
+        const { data: claimData, error: claimError } = await supabase
+          .from("warranty_claims")
+          .select("id, claim_number, order_item_id, status, created_at")
+          .eq("order_id", orderData.id)
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+
+        if (claimError) throw claimError;
+
+        const latestClaims: Record<string, WarrantyClaimSummary> = {};
+
+        (
+          (claimData as WarrantyClaimSummary[] | null) || []
+        ).forEach((claim) => {
+          if (!latestClaims[claim.order_item_id]) {
+            latestClaims[claim.order_item_id] = claim;
+          }
+        });
+
         if (!active) return;
 
+        setClaimsByItem(latestClaims);
         setOrder(orderData as WarrantyOrder);
         setWarrantyStart(
           deliveredHistory?.created_at ||
@@ -328,6 +359,41 @@ export default function OrderWarrantyPage() {
                   <b className={active ? "active" : "expired"}>
                     {active ? "ACTIVE" : "EXPIRED"}
                   </b>
+                </div>
+
+                <div className="warrantyItemActions">
+                  {claimsByItem[item.id] ? (
+                    <small>
+                      LATEST CLAIM {claimsByItem[item.id].claim_number} ·{" "}
+                      {claimsByItem[item.id].status
+                        .replaceAll("_", " ")
+                        .toUpperCase()}
+                    </small>
+                  ) : null}
+
+                  {active &&
+                  !["new", "reviewing", "approved"].includes(
+                    claimsByItem[item.id]?.status || ""
+                  ) ? (
+                    <Link
+                      href={
+                        "/orders/" +
+                        encodeURIComponent(order.order_number) +
+                        "/warranty/claim?item=" +
+                        encodeURIComponent(item.id)
+                      }
+                      className="orderPrimaryButton"
+                    >
+                      SUBMIT CLAIM
+                    </Link>
+                  ) : claimsByItem[item.id] ? (
+                    <Link
+                      href="/account/claims"
+                      className="orderGhostButton"
+                    >
+                      VIEW CLAIM
+                    </Link>
+                  ) : null}
                 </div>
               </article>
             );
