@@ -24,6 +24,7 @@ type ClaimRow = {
   issue_type: string;
   description: string;
   image_urls: string[];
+  display_image_urls?: string[];
   status: ClaimStatus;
   admin_note: string | null;
   resolution_note: string | null;
@@ -132,9 +133,37 @@ export default function AdminClaimsPage() {
       ])
     );
 
+    const privatePaths = Array.from(
+      new Set(
+        baseClaims
+          .flatMap((claim) => claim.image_urls || [])
+          .filter((url) => url && !url.startsWith("http"))
+      )
+    );
+    const signedMap = new Map<string, string>();
+
+    if (privatePaths.length > 0) {
+      const { data: signedData, error: signedError } = await supabase.storage
+        .from("warranty-claim-images")
+        .createSignedUrls(privatePaths, 3600);
+
+      if (signedError) throw signedError;
+
+      (signedData || []).forEach((item, index) => {
+        if (item.signedUrl) {
+          signedMap.set(privatePaths[index], item.signedUrl);
+        }
+      });
+    }
+
     const next = baseClaims.map((claim) => ({
       ...claim,
       customer: profiles.get(claim.user_id),
+      display_image_urls: (claim.image_urls || [])
+        .map((url) =>
+          url.startsWith("http") ? url : signedMap.get(url) || ""
+        )
+        .filter(Boolean),
     }));
 
     setClaims(next);
@@ -457,11 +486,11 @@ export default function AdminClaimsPage() {
                       <p>{selected.description}</p>
                     </div>
 
-                    {selected.image_urls.length > 0 ? (
+                    {(selected.display_image_urls || []).length > 0 ? (
                       <div className={styles.claimEvidence}>
                         <span>EVIDENCE</span>
                         <div>
-                          {selected.image_urls.map((url) => (
+                          {(selected.display_image_urls || []).map((url) => (
                             <a
                               href={url}
                               target="_blank"
