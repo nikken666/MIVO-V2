@@ -4,6 +4,7 @@ import { getActiveProducts } from "@/lib/catalog";
 import ProductCard from "@/components/ProductCard";
 import Logo from "@/components/Logo";
 import VehicleFinder from "@/components/VehicleFinder";
+import HomePromotions from "@/components/HomePromotions";
 import { products } from "@/data/products";
 
 const categories = [
@@ -169,6 +170,8 @@ export default async function HomePage({
           <span><i>✓</i> MALAYSIA DELIVERY</span>
         </div>
       </section>
+
+      <HomePromotions products={(liveProducts.length ? liveProducts : products).slice(0, 20)} />
 
       <section className="section categorySection">
         <div className="container">
