@@ -61,6 +61,27 @@ export default function ProductCard({
       ? activeVariants.every((variant) => variant.stock <= 0)
       : product.stock === 0;
 
+  const cheapestVariant =
+    activeVariants.length > 0
+      ? activeVariants.reduce((best, variant) =>
+          variant.price < best.price ? variant : best
+        )
+      : undefined;
+  const cardComparePrice =
+    cheapestVariant?.compareAtPrice &&
+    cheapestVariant.compareAtPrice > cheapestVariant.price
+      ? cheapestVariant.compareAtPrice
+      : null;
+  const cardDiscountPercent =
+    cheapestVariant?.discountPercent ||
+    (cardComparePrice && cheapestVariant
+      ? Math.round(
+          ((cardComparePrice - cheapestVariant.price) /
+            cardComparePrice) *
+            100
+        )
+      : null);
+
   const maxQuantity =
     typeof singleVariant?.stock === "number"
       ? singleVariant.stock
@@ -116,6 +137,12 @@ export default function ProductCard({
         <span className={pillClass}>
           {fitment?.pill || "FITMENT CHECK"}
         </span>
+
+        {cardDiscountPercent ? (
+          <span className="productDiscountBadge">
+            -{Math.round(cardDiscountPercent)}%
+          </span>
+        ) : null}
       </Link>
 
       <div className="productMeta">
@@ -145,10 +172,15 @@ export default function ProductCard({
         </p>
 
         <div className="productBottom">
-          <strong>
-            {requiresSelection ? "From " : ""}
-            {formatPrice(product.price)}
-          </strong>
+          <div className="productCardPriceStack">
+            {cardComparePrice ? (
+              <del>{formatPrice(cardComparePrice)}</del>
+            ) : null}
+            <strong>
+              {requiresSelection ? "From " : ""}
+              {formatPrice(product.price)}
+            </strong>
+          </div>
 
           {requiresSelection ? (
             <Link href={detailHref} className="miniCartButton">
