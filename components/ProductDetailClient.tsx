@@ -11,6 +11,7 @@ import type { FitmentStatus } from "@/data/fitments";
 import { formatPrice } from "@/data/products";
 import { useMarketplace } from "./MarketplaceProvider";
 import ProductCard from "./ProductCard";
+import ProductVehicleSelector from "./ProductVehicleSelector";
 
 function uniqueValues(values: Array<string | null | undefined>) {
   return Array.from(
@@ -107,6 +108,7 @@ export default function ProductDetailClient({
   const [option1, setOption1] = useState("");
   const [option2, setOption2] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [vehicleSelectorOpen, setVehicleSelectorOpen] = useState(false);
 
   const option2Values = useMemo(
     () =>
@@ -414,9 +416,13 @@ export default function ProductDetailClient({
                   </>
                 ) : null}
               </div>
-              <Link href="/#fitment">
+              <button
+                type="button"
+                className="productFitmentSelectButton"
+                onClick={() => setVehicleSelectorOpen(true)}
+              >
                 {selectedVehicleLabel ? "CHANGE VEHICLE →" : "SELECT VEHICLE →"}
-              </Link>
+              </button>
             </div>
 
             {product.variation1Name ? (
@@ -846,6 +852,11 @@ export default function ProductDetailClient({
           </section>
         ) : null}
       </div>
+
+      <ProductVehicleSelector
+        open={vehicleSelectorOpen}
+        onClose={() => setVehicleSelectorOpen(false)}
+      />
 
       <div className="mobileProductBar">
         <button
