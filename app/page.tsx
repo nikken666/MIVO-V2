@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import ProductCard from "@/components/ProductCard";
 import Logo from "@/components/Logo";
 import VehicleFinder from "@/components/VehicleFinder";
@@ -19,7 +21,28 @@ const brands = [
   { name: "GSP", logo: "/brands/gsp-logo.svg" },
 ];
 
-export default function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const query = await searchParams;
+  const addVehicle =
+    typeof query.addVehicle === "string" && query.addVehicle === "1";
+
+  if (!addVehicle) {
+    try {
+      const supabase = await createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        redirect("/products");
+      }
+    } catch {}
+  }
+
   const featured = products.slice(0, 8);
 
   return (
