@@ -2548,3 +2548,90 @@
     flex-direction:column;
   }
 }
+
+
+/* PROMOTIONS ADMIN */
+.promotionAdminGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  align-items:start;
+}
+.promotionList{
+  margin-top:18px;
+  border-top:1px solid #eceeef;
+}
+.promotionList article{
+  min-height:70px;
+  padding:11px 0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  border-bottom:1px solid #eceeef;
+}
+.promotionList article>div{
+  min-width:0;
+}
+.promotionList span,
+.promotionList strong,
+.promotionList small{
+  display:block;
+}
+.promotionList span{
+  color:#d8242f;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.promotionList strong{
+  margin-top:4px;
+  font-size:10px;
+}
+.promotionList small{
+  margin-top:4px;
+  color:#90969a;
+  font-size:7px;
+}
+.promotionList button{
+  min-width:68px;
+  min-height:31px;
+  border:0;
+  border-radius:999px;
+  font-size:7px;
+  font-weight:900;
+  cursor:pointer;
+}
+.promotionOn{
+  background:#eaf6ed;
+  color:#26743c;
+}
+.promotionOff{
+  background:#eef0f1;
+  color:#656c70;
+}
+.promotionCheck{
+  min-height:44px;
+  padding:10px 12px;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  border:1px solid #dfe2e3;
+  border-radius:10px;
+  background:#fafafa;
+}
+.promotionCheck input{
+  width:16px;
+  height:16px;
+}
+.promotionCheck span{
+  color:#555c60;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.06em;
+}
+@media(max-width:1050px){
+  .promotionAdminGrid{
+    grid-template-columns:1fr;
+  }
+}
