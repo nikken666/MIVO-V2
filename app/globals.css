@@ -1,10 +1,17 @@
 :root{
   --black:#0b0d0f;--black2:#14171a;--ink:#17191c;--grey:#6f7479;--line:#e3e5e7;
   --soft:#f4f5f5;--paper:#fff;--warm:#f1eee8;--red:#d8242f;--silver:#d9dde0;
-  --radius:20px;--shadow:0 22px 60px rgba(12,15,18,.09)
+  --radius:20px;--shadow:0 22px 60px rgba(12,15,18,.09);
+  --mivo-ui-font:var(--font-shopee),Roboto,"Helvetica Neue",Helvetica,Arial,sans-serif
 }
-*{box-sizing:border-box}html{scroll-behavior:smooth;max-width:100%;overflow-x:hidden}body{margin:0;max-width:100%;overflow-x:hidden;background:#fff;color:var(--ink);font-family:var(--font-shopee),Roboto,"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-a{color:inherit;text-decoration:none}button,input,select,textarea{font:inherit}.container{width:min(1360px,calc(100% - 48px));margin:0 auto}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;max-width:100%;overflow-x:hidden;font-family:var(--mivo-ui-font)}
+body{margin:0;max-width:100%;overflow-x:hidden;background:#fff;color:var(--ink);font-family:var(--mivo-ui-font);font-synthesis:none;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea,option,optgroup,table,th,td{font-family:var(--mivo-ui-font)}
+button,input,select,textarea{font-size:inherit}
+input::placeholder,textarea::placeholder{font-family:var(--mivo-ui-font)}
+.container{width:min(1360px,calc(100% - 48px));margin:0 auto}
 .announcementBar{background:#090b0d;color:#aeb3b8;font-size:10px;letter-spacing:.12em}.announcementBar .container{height:30px;display:flex;align-items:center;justify-content:space-between}
 .siteHeader{position:sticky;top:0;z-index:80;background:rgba(255,255,255,.96);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
 .headerMain{height:84px;display:grid;grid-template-columns:160px minmax(320px,1fr) auto;gap:30px;align-items:center}.brand{display:flex;align-items:center;width:145px;height:48px}.brandImage{display:block;max-width:100%;max-height:36px;object-fit:contain}
