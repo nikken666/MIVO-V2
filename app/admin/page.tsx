@@ -357,6 +357,10 @@ export default function AdminPage() {
                 <span>PROMOTIONS</span>
                 <strong>Campaigns & vouchers →</strong>
               </a>
+              <a href="/admin/discounts">
+                <span>DISCOUNTS</span>
+                <strong>Schedule sale prices →</strong>
+              </a>
               <a href="/admin/products">
                 <span>CATALOGUE</span>
                 <strong>Open products →</strong>
