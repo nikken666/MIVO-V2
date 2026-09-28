@@ -1,7 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+} from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Product } from "@/data/products";
 import { formatPrice } from "@/data/products";
@@ -14,6 +19,14 @@ type Campaign = {
   cta_label: string;
   landing_path: string;
   theme: string;
+  primary_color: string;
+  secondary_color: string;
+  text_color: string;
+  muted_text_color: string;
+  countdown_bg_color: string;
+  countdown_text_color: string;
+  button_bg_color: string;
+  button_text_color: string;
   desktop_image_url: string | null;
   mobile_image_url: string | null;
   display_mode: "overlay" | "image_only";
@@ -115,7 +128,7 @@ export default function HomePromotions({
           supabase
             .from("promotion_campaigns")
             .select(
-              "id, title, subtitle, badge, cta_label, landing_path, theme, desktop_image_url, mobile_image_url, display_mode, overlay_opacity, show_countdown, image_position, ends_at"
+              "id, title, subtitle, badge, cta_label, landing_path, theme, primary_color, secondary_color, text_color, muted_text_color, countdown_bg_color, countdown_text_color, button_bg_color, button_text_color, desktop_image_url, mobile_image_url, display_mode, overlay_opacity, show_countdown, image_position, ends_at"
             )
             .eq("is_active", true)
             .order("sort_order", { ascending: true })
@@ -223,6 +236,27 @@ export default function HomePromotions({
       ? countdownLabel(campaign.ends_at, now)
       : null;
 
+  const campaignStyle = campaign
+    ? ({
+        "--campaign-primary": campaign.primary_color || "#D8242F",
+        "--campaign-secondary": campaign.secondary_color || "#6F0D14",
+        "--campaign-text": campaign.text_color || "#FFFFFF",
+        "--campaign-muted": campaign.muted_text_color || "#FFE9EA",
+        "--campaign-countdown-bg":
+          campaign.countdown_bg_color || "#2B1014",
+        "--campaign-countdown-text":
+          campaign.countdown_text_color || "#FFFFFF",
+        "--campaign-button-bg": campaign.button_bg_color || "#FFFFFF",
+        "--campaign-button-text":
+          campaign.button_text_color || "#B61923",
+      } as CSSProperties)
+    : undefined;
+
+  const campaignThemeClass =
+    campaign?.theme && /^[a-z0-9_-]+$/i.test(campaign.theme)
+      ? " theme-" + campaign.theme
+      : "";
+
   return (
     <section className="homePromotions">
       <div className="container">
@@ -230,9 +264,11 @@ export default function HomePromotions({
           <div
             className={
               "campaignBanner" +
+              campaignThemeClass +
               (campaign.desktop_image_url ? " hasImage" : "") +
               (campaign.display_mode === "image_only" ? " imageOnly" : "")
             }
+            style={campaignStyle}
           >
             {campaign.desktop_image_url ? (
               <picture className="campaignBannerMedia">
