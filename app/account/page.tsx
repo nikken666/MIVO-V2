@@ -105,6 +105,11 @@ export default function AccountPage() {
             <span>Account</span>
             <strong>Addresses</strong>
           </Link>
+
+          <Link href="/account/claims" className={styles.stat}>
+            <span>Warranty</span>
+            <strong>My Claims</strong>
+          </Link>
         </div>
 
         <div className={styles.actions}>
