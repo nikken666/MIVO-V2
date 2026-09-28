@@ -198,7 +198,7 @@
 }
 .dashboardStats{
   display:grid;
-  grid-template-columns:1.45fr repeat(5,1fr);
+  grid-template-columns:1.45fr repeat(6,1fr);
   gap:10px;
   margin-bottom:16px;
 }
