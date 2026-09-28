@@ -5,7 +5,11 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useMarketplace } from "@/components/MarketplaceProvider";
-import { formatPrice } from "@/data/products";
+import {
+  formatPrice,
+  type Product,
+  type ProductVariant,
+} from "@/data/products";
 import {
   loadDefaultAddress,
   saveDefaultAddress,
@@ -56,9 +60,51 @@ type VoucherPreview = {
   total_after_discount: number;
 };
 
+type AddonSuggestion = {
+  product: Product;
+  variant: ProductVariant;
+  price: number;
+};
+
+function friendlyVoucherReason(message: string) {
+  const value = message.toLowerCase();
+
+  if (value.includes("first orders only")) {
+    return "This voucher is only available for a customer's first paid order.";
+  }
+
+  if (value.includes("already used")) {
+    return "You have already used this voucher.";
+  }
+
+  if (value.includes("usage limit")) {
+    return "This voucher has reached its usage limit.";
+  }
+
+  if (value.includes("does not apply")) {
+    return "This voucher is only valid for selected products, brands or categories in your cart.";
+  }
+
+  if (value.includes("not available")) {
+    return "This voucher is no longer available or is outside its valid campaign period.";
+  }
+
+  if (value.includes("claim this voucher")) {
+    return "Claim this voucher before using it at checkout.";
+  }
+
+  return message || "This voucher cannot be applied to the current order.";
+}
+
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, cartCount, cartReady, clearCart } = useMarketplace();
+  const {
+    cart,
+    cartCount,
+    cartReady,
+    addToCart,
+    clearCart,
+  } = useMarketplace();
 
   const [buyer, setBuyer] = useState<Buyer | null>(null);
   const [loading, setLoading] = useState(true);
@@ -195,6 +241,65 @@ export default function CheckoutPage() {
       )
     : subtotal;
 
+  const selectedVoucher =
+    vouchers.find((voucher) => voucher.id === selectedVoucherId) || null;
+  const selectedMinimumSpend = Number(selectedVoucher?.minimum_spend || 0);
+  const voucherShortfall = selectedVoucher
+    ? Math.max(0, selectedMinimumSpend - subtotal)
+    : 0;
+  const voucherProgress =
+    selectedMinimumSpend > 0
+      ? Math.min(100, (subtotal / selectedMinimumSpend) * 100)
+      : 100;
+
+  const cartVariantIds = new Set(
+    cart
+      .map((line) => line.variant?.id)
+      .filter((value): value is string => Boolean(value))
+  );
+
+  const addonSuggestions: AddonSuggestion[] =
+    voucherShortfall > 0 && voucherShortfall <= 100
+      ? Array.from(
+          new Map(
+            cart
+              .flatMap((line) =>
+                (line.product.variants || [])
+                  .filter(
+                    (variant) =>
+                      variant.isActive &&
+                      variant.stock > 0 &&
+                      !cartVariantIds.has(variant.id)
+                  )
+                  .map((variant) => ({
+                    product: line.product,
+                    variant,
+                    price: Number(variant.price),
+                  }))
+              )
+              .sort(
+                (a, b) =>
+                  Math.abs(a.price - voucherShortfall) -
+                  Math.abs(b.price - voucherShortfall)
+              )
+              .map((item) => [item.variant.id, item] as const)
+          ).values()
+        ).slice(0, 3)
+      : [];
+
+  const voucherReason =
+    selectedVoucher && voucherShortfall > 0
+      ? "Add " +
+        formatPrice(voucherShortfall) +
+        " more to use " +
+        selectedVoucher.code +
+        ". Minimum spend is " +
+        formatPrice(selectedMinimumSpend) +
+        "."
+      : voucherError
+        ? friendlyVoucherReason(voucherError)
+        : "";
+
   useEffect(() => {
     let active = true;
 
@@ -288,6 +393,20 @@ export default function CheckoutPage() {
         return;
       }
 
+      const voucher = vouchers.find(
+        (item) => item.id === selectedVoucherId
+      );
+
+      if (
+        voucher &&
+        subtotal < Number(voucher.minimum_spend || 0)
+      ) {
+        setVoucherPreview(null);
+        setVoucherError("");
+        setVoucherLoading(false);
+        return;
+      }
+
       setVoucherLoading(true);
       setVoucherError("");
 
@@ -328,6 +447,7 @@ export default function CheckoutPage() {
     shippingQuote?.shipping_amount,
     subtotal,
     cart.length,
+    vouchers,
   ]);
 
   async function applyBestVoucher() {
@@ -941,8 +1061,111 @@ export default function CheckoutPage() {
                   {voucherPreview.code} saves{" "}
                   {formatPrice(Number(voucherPreview.discount_amount))}
                 </small>
-              ) : voucherError ? (
-                <small className="error">{voucherError}</small>
+              ) : selectedVoucherId && voucherReason ? (
+                <div className="checkoutVoucherUnavailable">
+                  <div className="checkoutVoucherReason">
+                    <strong>VOUCHER NOT AVAILABLE YET</strong>
+                    <p>{voucherReason}</p>
+                  </div>
+
+                  {selectedVoucher && voucherShortfall > 0 ? (
+                    <>
+                      <div className="checkoutVoucherProgress">
+                        <div>
+                          <span>
+                            {formatPrice(subtotal)} /{" "}
+                            {formatPrice(selectedMinimumSpend)}
+                          </span>
+                          <strong>
+                            {Math.max(0, Math.round(voucherProgress))}%
+                          </strong>
+                        </div>
+                        <i>
+                          <b
+                            style={{
+                              width:
+                                Math.max(
+                                  2,
+                                  Math.min(100, voucherProgress)
+                                ) + "%",
+                            }}
+                          />
+                        </i>
+                        <small>
+                          You&apos;re only{" "}
+                          <strong>{formatPrice(voucherShortfall)}</strong>{" "}
+                          away from unlocking {selectedVoucher.code}.
+                        </small>
+                      </div>
+
+                      {voucherShortfall <= 100 ? (
+                        <div className="checkoutAddonSection">
+                          <div className="checkoutAddonHead">
+                            <div>
+                              <span>ADD-ON TO UNLOCK</span>
+                              <strong>
+                                Add a little more and use your voucher.
+                              </strong>
+                            </div>
+                            <Link href="/products">MORE PARTS →</Link>
+                          </div>
+
+                          {addonSuggestions.length > 0 ? (
+                            <div className="checkoutAddonGrid">
+                              {addonSuggestions.map((item) => (
+                                <article
+                                  className="checkoutAddonCard"
+                                  key={item.variant.id}
+                                >
+                                  <div className="checkoutAddonImage">
+                                    {item.product.imageUrl ? (
+                                      <img
+                                        src={item.product.imageUrl}
+                                        alt={item.product.name}
+                                      />
+                                    ) : (
+                                      <span>{item.product.icon}</span>
+                                    )}
+                                  </div>
+
+                                  <div className="checkoutAddonInfo">
+                                    <span>{item.product.brand}</span>
+                                    <strong>{item.variant.title}</strong>
+                                    <small>{item.product.name}</small>
+                                    <b>{formatPrice(item.price)}</b>
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      addToCart(
+                                        item.product,
+                                        item.variant,
+                                        1
+                                      )
+                                    }
+                                  >
+                                    + ADD
+                                  </button>
+                                </article>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="checkoutAddonEmpty">
+                              <span>
+                                No quick add-on is available in your current
+                                product selection yet.
+                              </span>
+                              <Link href="/products">
+                                BROWSE PARTS TO UNLOCK →
+                              </Link>
+                            </div>
+                          )}
+                        </div>
+                      ) : null}
+                    </>
+                  ) : null}
+                </div>
               ) : null}
             </div>
 
