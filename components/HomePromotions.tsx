@@ -11,6 +11,12 @@ import { createClient } from "@/lib/supabase/client";
 import type { Product } from "@/data/products";
 import { formatPrice } from "@/data/products";
 
+type TemplateType =
+  | "mega_sale"
+  | "voucher_blast"
+  | "flash_deal_grid"
+  | "category_festival";
+
 type Campaign = {
   id: string;
   title: string;
@@ -18,6 +24,11 @@ type Campaign = {
   badge: string | null;
   cta_label: string;
   landing_path: string;
+  template_type: TemplateType;
+  highlight_text: string | null;
+  voucher_text: string | null;
+  benefit_items: string[] | null;
+  featured_product_ids: string[] | null;
   theme: string;
   primary_color: string;
   secondary_color: string;
@@ -38,6 +49,7 @@ type Campaign = {
 
 type Voucher = {
   id: string;
+  campaign_id: string | null;
   code: string;
   name: string;
   description: string | null;
@@ -48,6 +60,15 @@ type Voucher = {
   first_order_only: boolean;
   ends_at: string;
 };
+
+const eventCategories = [
+  { label: "MAINTENANCE", mark: "M", href: "/products?group=maintenance" },
+  { label: "BRAKING", mark: "B", href: "/products?group=braking" },
+  { label: "SUSPENSION", mark: "S", href: "/products?group=suspension" },
+  { label: "STEERING", mark: "R", href: "/products?group=steering" },
+  { label: "DRIVETRAIN", mark: "D", href: "/products?group=drivetrain" },
+  { label: "COOLING", mark: "C", href: "/products?group=cooling" },
+];
 
 function countdownLabel(endsAt: string, now: number) {
   const diff = Math.max(0, new Date(endsAt).getTime() - now);
@@ -100,6 +121,15 @@ function dealInfo(product: Product) {
   };
 }
 
+function lowestPrice(product: Product) {
+  const prices = (product.variants || [])
+    .filter((variant) => variant.isActive)
+    .map((variant) => Number(variant.price))
+    .filter((value) => Number.isFinite(value));
+
+  return prices.length ? Math.min(...prices) : Number(product.price || 0);
+}
+
 export default function HomePromotions({
   products,
 }: {
@@ -128,18 +158,22 @@ export default function HomePromotions({
           supabase
             .from("promotion_campaigns")
             .select(
-              "id, title, subtitle, badge, cta_label, landing_path, theme, primary_color, secondary_color, text_color, muted_text_color, countdown_bg_color, countdown_text_color, button_bg_color, button_text_color, desktop_image_url, mobile_image_url, display_mode, overlay_opacity, show_countdown, image_position, ends_at"
+              "id, title, subtitle, badge, cta_label, landing_path, template_type, highlight_text, voucher_text, benefit_items, featured_product_ids, theme, primary_color, secondary_color, text_color, muted_text_color, countdown_bg_color, countdown_text_color, button_bg_color, button_text_color, desktop_image_url, mobile_image_url, display_mode, overlay_opacity, show_countdown, image_position, ends_at"
             )
             .eq("is_active", true)
+            .lte("starts_at", new Date().toISOString())
+            .gte("ends_at", new Date().toISOString())
             .order("sort_order", { ascending: true })
             .limit(1)
             .maybeSingle(),
           supabase
             .from("vouchers")
             .select(
-              "id, code, name, description, discount_type, discount_value, minimum_spend, max_discount, first_order_only, ends_at"
+              "id, campaign_id, code, name, description, discount_type, discount_value, minimum_spend, max_discount, first_order_only, ends_at"
             )
             .eq("is_active", true)
+            .lte("starts_at", new Date().toISOString())
+            .gte("ends_at", new Date().toISOString())
             .order("created_at", { ascending: true }),
           supabase.auth.getUser(),
         ]);
@@ -192,6 +226,27 @@ export default function HomePromotions({
         .slice(0, 4),
     [products]
   );
+
+  const campaignVouchers = useMemo(() => {
+    if (!campaign) return [];
+    const linked = vouchers.filter(
+      (voucher) => voucher.campaign_id === campaign.id
+    );
+    return (linked.length ? linked : vouchers).slice(0, 3);
+  }, [campaign, vouchers]);
+
+  const campaignProducts = useMemo(() => {
+    if (!campaign) return [];
+    const ids = campaign.featured_product_ids || [];
+    const selected = ids
+      .map((id) => products.find((product) => product.id === id))
+      .filter((product): product is Product => Boolean(product));
+
+    return (selected.length ? selected : deals.map((row) => row.product)).slice(
+      0,
+      4
+    );
+  }, [campaign, products, deals]);
 
   async function claim(voucher: Voucher) {
     setMessage("");
@@ -257,13 +312,55 @@ export default function HomePromotions({
       ? " theme-" + campaign.theme
       : "";
 
+  function Countdown({
+    compact = false,
+  }: {
+    compact?: boolean;
+  }) {
+    if (!countdown) return null;
+
+    return (
+      <div
+        className={
+          "campaignCountdown" + (compact ? " campaignCountdownCompact" : "")
+        }
+      >
+        <span>ENDS IN</span>
+        <div>
+          <strong>{countdown.days}</strong>
+          <small>DAYS</small>
+        </div>
+        <i>:</i>
+        <div>
+          <strong>{countdown.hours}</strong>
+          <small>HRS</small>
+        </div>
+        <i>:</i>
+        <div>
+          <strong>{countdown.minutes}</strong>
+          <small>MIN</small>
+        </div>
+        <i>:</i>
+        <div>
+          <strong>{countdown.seconds}</strong>
+          <small>SEC</small>
+        </div>
+      </div>
+    );
+  }
+
+  const templateType = campaign?.template_type || "mega_sale";
+  const benefits =
+    campaign?.benefit_items?.filter(Boolean).slice(0, 4) || [];
+
   return (
     <section className="homePromotions">
       <div className="container">
         {campaign ? (
           <div
             className={
-              "campaignBanner" +
+              "campaignEvent campaignEvent-" +
+              templateType +
               campaignThemeClass +
               (campaign.desktop_image_url ? " hasImage" : "") +
               (campaign.display_mode === "image_only" ? " imageOnly" : "")
@@ -281,7 +378,9 @@ export default function HomePromotions({
                 <img
                   src={campaign.desktop_image_url}
                   alt={campaign.title}
-                  style={{ objectPosition: campaign.image_position || "center" }}
+                  style={{
+                    objectPosition: campaign.image_position || "center",
+                  }}
                 />
               </picture>
             ) : null}
@@ -303,47 +402,235 @@ export default function HomePromotions({
                 className="campaignBannerImageLink"
                 aria-label={campaign.title}
               />
-            ) : (
-              <>
-                <div className="campaignBannerCopy">
-                  <span>{campaign.badge || "MIVO CAMPAIGN"}</span>
+            ) : templateType === "voucher_blast" ? (
+              <div className="campaignVoucherBlast">
+                <div className="campaignEventCopy">
+                  <span>{campaign.badge || "LIMITED TIME"}</span>
+                  {campaign.highlight_text ? (
+                    <b>{campaign.highlight_text}</b>
+                  ) : null}
                   <h2>{campaign.title}</h2>
                   <p>{campaign.subtitle}</p>
-                  <Link href={campaign.landing_path || "/products"}>
-                    {campaign.cta_label || "SHOP NOW"} <b>→</b>
-                  </Link>
+                  {campaign.voucher_text ? (
+                    <em>{campaign.voucher_text}</em>
+                  ) : null}
+                  <div className="campaignEventActions">
+                    <Link href={campaign.landing_path || "/products"}>
+                      {campaign.cta_label || "SHOP NOW"} <b>→</b>
+                    </Link>
+                    <Countdown compact />
+                  </div>
                 </div>
 
-                {countdown ? (
-                  <div className="campaignCountdown">
-                    <span>ENDS IN</span>
-                    <div>
-                      <strong>{countdown.days}</strong>
-                      <small>DAYS</small>
+                <div className="campaignVoucherStack">
+                  <div className="campaignVoucherStackHead">
+                    <span>CLAIM & SAVE</span>
+                    <strong>Event Vouchers</strong>
+                  </div>
+                  {campaignVouchers.length > 0 ? (
+                    campaignVouchers.map((voucher) => {
+                      const claimed = claimedIds.includes(voucher.id);
+
+                      return (
+                        <article key={voucher.id}>
+                          <div>
+                            <span>{voucher.code}</span>
+                            <strong>{voucherValue(voucher)}</strong>
+                            <small>
+                              Min. Spend{" "}
+                              {formatPrice(Number(voucher.minimum_spend))}
+                              {voucher.max_discount
+                                ? " · Cap " +
+                                  formatPrice(Number(voucher.max_discount))
+                                : ""}
+                            </small>
+                          </div>
+                          <button
+                            type="button"
+                            disabled={claimed || busyId === voucher.id}
+                            onClick={() => void claim(voucher)}
+                          >
+                            {claimed
+                              ? "CLAIMED"
+                              : busyId === voucher.id
+                                ? "..."
+                                : "CLAIM"}
+                          </button>
+                        </article>
+                      );
+                    })
+                  ) : (
+                    <div className="campaignVoucherEmpty">
+                      Vouchers linked to this campaign will appear here.
                     </div>
-                    <i>:</i>
-                    <div>
-                      <strong>{countdown.hours}</strong>
-                      <small>HRS</small>
+                  )}
+                </div>
+              </div>
+            ) : templateType === "flash_deal_grid" ? (
+              <div className="campaignFlashLayout">
+                <div className="campaignEventCopy">
+                  <span>{campaign.badge || "FLASH EVENT"}</span>
+                  {campaign.highlight_text ? (
+                    <b>{campaign.highlight_text}</b>
+                  ) : null}
+                  <h2>{campaign.title}</h2>
+                  <p>{campaign.subtitle}</p>
+                  <div className="campaignEventActions">
+                    <Link href={campaign.landing_path || "/products"}>
+                      {campaign.cta_label || "SHOP DEALS"} <b>→</b>
+                    </Link>
+                    <Countdown compact />
+                  </div>
+                </div>
+
+                <div className="campaignProductGrid">
+                  {campaignProducts.map((product) => {
+                    const deal = dealInfo(product);
+                    const price = deal?.price ?? lowestPrice(product);
+
+                    return (
+                      <Link
+                        href={"/products/" + product.slug}
+                        key={product.id || product.slug}
+                        className="campaignProductCard"
+                      >
+                        <div>
+                          {product.imageUrl ? (
+                            <img src={product.imageUrl} alt={product.name} />
+                          ) : (
+                            <span>{product.icon}</span>
+                          )}
+                          {deal ? <b>-{deal.percent}%</b> : null}
+                        </div>
+                        <small>{product.brand}</small>
+                        <strong>{product.name}</strong>
+                        <footer>
+                          <b>{formatPrice(price)}</b>
+                          {deal ? (
+                            <del>{formatPrice(deal.compareAt)}</del>
+                          ) : null}
+                        </footer>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : templateType === "category_festival" ? (
+              <div className="campaignCategoryLayout">
+                <div className="campaignEventTop">
+                  <div className="campaignEventCopy">
+                    <span>{campaign.badge || "AUTO PARTS FESTIVAL"}</span>
+                    {campaign.highlight_text ? (
+                      <b>{campaign.highlight_text}</b>
+                    ) : null}
+                    <h2>{campaign.title}</h2>
+                    <p>{campaign.subtitle}</p>
+                  </div>
+                  <Countdown />
+                </div>
+
+                <div className="campaignCategoryGrid">
+                  {eventCategories.map((category) => (
+                    <Link href={category.href} key={category.label}>
+                      <b>{category.mark}</b>
+                      <span>{category.label}</span>
+                      <i>→</i>
+                    </Link>
+                  ))}
+                </div>
+
+                <div className="campaignEventFooter">
+                  <div className="campaignBenefitStrip">
+                    {(benefits.length
+                      ? benefits
+                      : [
+                          "TRUSTED BRANDS",
+                          "VEHICLE FITMENT",
+                          "FAST CHECKOUT",
+                          "MALAYSIA DELIVERY",
+                        ]
+                    ).map((item, index) => (
+                      <span key={item + index}>
+                        <b>0{index + 1}</b>
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                  <Link href={campaign.landing_path || "/products"}>
+                    {campaign.cta_label || "SHOP ALL PARTS"} →
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="campaignMegaLayout">
+                <div className="campaignEventTop">
+                  <div className="campaignEventCopy">
+                    <span>{campaign.badge || "BIG EVENT"}</span>
+                    {campaign.highlight_text ? (
+                      <b>{campaign.highlight_text}</b>
+                    ) : null}
+                    <h2>{campaign.title}</h2>
+                    <p>{campaign.subtitle}</p>
+
+                    <div className="campaignMegaPromos">
+                      {campaign.voucher_text ? (
+                        <em>{campaign.voucher_text}</em>
+                      ) : null}
+                      {campaignVouchers[0] ? (
+                        <div>
+                          <span>{campaignVouchers[0].code}</span>
+                          <strong>{voucherValue(campaignVouchers[0])}</strong>
+                          <small>
+                            Min. Spend{" "}
+                            {formatPrice(
+                              Number(campaignVouchers[0].minimum_spend)
+                            )}
+                          </small>
+                        </div>
+                      ) : null}
                     </div>
-                    <i>:</i>
-                    <div>
-                      <strong>{countdown.minutes}</strong>
-                      <small>MIN</small>
-                    </div>
-                    <i>:</i>
-                    <div>
-                      <strong>{countdown.seconds}</strong>
-                      <small>SEC</small>
+
+                    <div className="campaignEventActions">
+                      <Link href={campaign.landing_path || "/products"}>
+                        {campaign.cta_label || "SHOP EVENT"} <b>→</b>
+                      </Link>
                     </div>
                   </div>
-                ) : null}
-              </>
+
+                  <div className="campaignMegaRight">
+                    <div className="campaignBigNumber">
+                      <span>MEGA</span>
+                      <strong>
+                        {campaign.title.match(/\d+\.\d+/)?.[0] || "SALE"}
+                      </strong>
+                      <small>PARTS · VOUCHERS · DEALS</small>
+                    </div>
+                    <Countdown />
+                  </div>
+                </div>
+
+                <div className="campaignBenefitStrip">
+                  {(benefits.length
+                    ? benefits
+                    : [
+                        "FREE SHIPPING DEALS",
+                        "FLASH DISCOUNTS",
+                        "LIMITED VOUCHERS",
+                        "POPULAR AUTO PARTS",
+                      ]
+                  ).map((item, index) => (
+                    <span key={item + index}>
+                      <b>0{index + 1}</b>
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         ) : null}
 
-        {vouchers.length > 0 ? (
+        {vouchers.length > 0 && templateType !== "voucher_blast" ? (
           <div className="voucherSection">
             <div className="voucherSectionHead">
               <div>
@@ -398,7 +685,7 @@ export default function HomePromotions({
           </div>
         ) : null}
 
-        {deals.length > 0 ? (
+        {deals.length > 0 && templateType !== "flash_deal_grid" ? (
           <div className="flashDealsSection">
             <div className="flashDealsHead">
               <div>
