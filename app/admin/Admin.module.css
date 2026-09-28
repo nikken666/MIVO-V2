@@ -2775,3 +2775,149 @@
     flex-direction:column;
   }
 }
+
+
+/* DISCOUNTS ADMIN */
+.discountBuilder{
+  display:grid;
+  grid-template-columns:180px minmax(210px,1fr) minmax(210px,1fr);
+  gap:12px;
+  align-items:end;
+}
+.discountBuilderActions{
+  grid-column:1/-1;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding-top:4px;
+}
+.discountBuilderActions>span{
+  margin-right:auto;
+  color:#777e82;
+  font-size:8px;
+  font-weight:800;
+}
+.discountToolbar{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:14px;
+}
+.discountToolbar>label{
+  width:min(520px,100%);
+}
+.discountToolbar span{
+  display:block;
+  margin-bottom:6px;
+  color:#90969a;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.discountToolbar input{
+  width:100%;
+  min-height:40px;
+  padding:0 12px;
+  border:1px solid #d9dddf;
+  border-radius:9px;
+  outline:0;
+  font-size:9px;
+}
+.discountTable td{
+  vertical-align:middle;
+}
+.discountTable td>small{
+  display:block;
+  color:#8f969a;
+  font-size:7px;
+  margin-top:3px;
+  white-space:nowrap;
+}
+.discountProductCell{
+  min-width:230px;
+  display:grid;
+  grid-template-columns:46px minmax(0,1fr);
+  gap:10px;
+  align-items:center;
+}
+.discountProductCell img,
+.discountProductCell>span{
+  width:46px;
+  height:46px;
+  border:1px solid #e3e6e7;
+  border-radius:8px;
+  background:#f7f8f8;
+}
+.discountProductCell img{
+  object-fit:contain;
+  padding:3px;
+}
+.discountProductCell>span{
+  display:grid;
+  place-items:center;
+  font-size:10px;
+  font-weight:900;
+}
+.discountProductCell strong{
+  font-size:8px;
+  line-height:1.4;
+}
+.discountSalePrice{
+  color:#d8242f !important;
+}
+.discountStatus{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:72px;
+  min-height:26px;
+  padding:0 8px;
+  border-radius:999px;
+  font-size:7px;
+  font-weight:900;
+}
+.discountLive{
+  background:#eaf6ed;
+  color:#26743c;
+}
+.discountScheduled{
+  background:#eaf3fb;
+  color:#28689d;
+}
+.discountEnded{
+  background:#fff1df;
+  color:#986300;
+}
+.discountOff{
+  background:#eef0f1;
+  color:#646b6f;
+}
+.discountRemove{
+  min-height:30px;
+  padding:0 9px;
+  border:1px solid #e2b9bc;
+  border-radius:7px;
+  background:#fff;
+  color:#bd2832;
+  font-size:7px;
+  font-weight:900;
+  cursor:pointer;
+}
+@media(max-width:900px){
+  .discountBuilder{
+    grid-template-columns:1fr;
+  }
+  .discountBuilderActions{
+    grid-column:1;
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .discountBuilderActions>span{
+    margin-right:0;
+  }
+  .discountToolbar{
+    align-items:stretch;
+    flex-direction:column;
+  }
+}
