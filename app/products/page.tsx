@@ -86,6 +86,7 @@ export default async function ProductsPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
+  const productsPromise = getActiveProducts();
 
   const q = typeof params.q === "string" ? params.q.toLowerCase() : "";
   const category =
@@ -155,7 +156,7 @@ export default async function ProductsPage({
       }
     : null;
 
-  const products = await getActiveProducts();
+  const products = await productsPromise;
 
   const baseFiltered = products.filter(
     (product) =>
