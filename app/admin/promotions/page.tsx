@@ -66,6 +66,8 @@ export default function AdminPromotionsPage() {
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [editingCampaignId, setEditingCampaignId] = useState("");
+  const [editingVoucherId, setEditingVoucherId] = useState("");
 
   const [campaignForm, setCampaignForm] = useState({
     title: "",
@@ -205,29 +207,41 @@ export default function AdminPromotionsPage() {
 
     try {
       const supabase = createClient();
-      const { error: insertError } = await supabase
-        .from("promotion_campaigns")
-        .insert({
-          title: campaignForm.title.trim(),
-          subtitle: campaignForm.subtitle.trim() || null,
-          badge: campaignForm.badge.trim() || null,
-          cta_label: campaignForm.cta_label.trim() || "SHOP NOW",
-          landing_path: campaignForm.landing_path.trim() || "/products",
-          theme: campaignForm.theme,
-          starts_at: new Date(campaignForm.starts_at).toISOString(),
-          ends_at: new Date(campaignForm.ends_at).toISOString(),
-          is_active: true,
-        });
+      const payload = {
+        title: campaignForm.title.trim(),
+        subtitle: campaignForm.subtitle.trim() || null,
+        badge: campaignForm.badge.trim() || null,
+        cta_label: campaignForm.cta_label.trim() || "SHOP NOW",
+        landing_path: campaignForm.landing_path.trim() || "/products",
+        theme: campaignForm.theme,
+        starts_at: new Date(campaignForm.starts_at).toISOString(),
+        ends_at: new Date(campaignForm.ends_at).toISOString(),
+        is_active: true,
+        updated_at: new Date().toISOString(),
+      };
 
-      if (insertError) throw insertError;
+      const result = editingCampaignId
+        ? await supabase
+            .from("promotion_campaigns")
+            .update(payload)
+            .eq("id", editingCampaignId)
+        : await supabase.from("promotion_campaigns").insert(payload);
+
+      if (result.error) throw result.error;
 
       await load();
+      setEditingCampaignId("");
       setCampaignForm((current) => ({
         ...current,
         title: "",
         subtitle: "",
+        badge: "LIMITED TIME",
+        cta_label: "SHOP NOW",
+        landing_path: "/products",
       }));
-      setMessage("Campaign created.");
+      setMessage(
+        editingCampaignId ? "Campaign updated." : "Campaign created."
+      );
     } catch (caught) {
       setError(
         caught instanceof Error ? caught.message : "Unable to create campaign."
@@ -249,7 +263,7 @@ export default function AdminPromotionsPage() {
       }
 
       const supabase = createClient();
-      const { error: insertError } = await supabase.from("vouchers").insert({
+      const payload = {
         campaign_id: voucherForm.campaign_id || null,
         code: voucherForm.code.trim().toUpperCase(),
         name: voucherForm.name.trim(),
@@ -276,18 +290,32 @@ export default function AdminPromotionsPage() {
             ? null
             : voucherForm.scope_id || null,
         is_active: true,
-      });
+        updated_at: new Date().toISOString(),
+      };
 
-      if (insertError) throw insertError;
+      const result = editingVoucherId
+        ? await supabase
+            .from("vouchers")
+            .update(payload)
+            .eq("id", editingVoucherId)
+        : await supabase.from("vouchers").insert(payload);
+
+      if (result.error) throw result.error;
 
       await load();
+      setEditingVoucherId("");
       setVoucherForm((current) => ({
         ...current,
+        campaign_id: "",
         code: "",
         name: "",
         description: "",
+        scope_type: "all",
+        scope_id: "",
       }));
-      setMessage("Voucher created.");
+      setMessage(
+        editingVoucherId ? "Voucher updated." : "Voucher created."
+      );
     } catch (caught) {
       setError(
         caught instanceof Error ? caught.message : "Unable to create voucher."
@@ -295,6 +323,49 @@ export default function AdminPromotionsPage() {
     } finally {
       setBusy("");
     }
+  }
+
+  function editCampaign(campaign: Campaign) {
+    setEditingCampaignId(campaign.id);
+    setCampaignForm({
+      title: campaign.title,
+      subtitle: campaign.subtitle || "",
+      badge: campaign.badge || "",
+      cta_label: campaign.cta_label,
+      landing_path: campaign.landing_path,
+      theme: campaign.theme,
+      starts_at: toLocalInput(campaign.starts_at),
+      ends_at: toLocalInput(campaign.ends_at),
+    });
+    setMessage("");
+    setError("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function editVoucher(voucher: Voucher) {
+    setEditingVoucherId(voucher.id);
+    setVoucherForm({
+      campaign_id: voucher.campaign_id || "",
+      code: voucher.code,
+      name: voucher.name,
+      description: voucher.description || "",
+      discount_type: voucher.discount_type,
+      discount_value: String(voucher.discount_value || 0),
+      minimum_spend: String(voucher.minimum_spend || 0),
+      max_discount:
+        voucher.max_discount === null ? "" : String(voucher.max_discount),
+      starts_at: toLocalInput(voucher.starts_at),
+      ends_at: toLocalInput(voucher.ends_at),
+      usage_limit:
+        voucher.usage_limit === null ? "" : String(voucher.usage_limit),
+      per_user_limit: String(voucher.per_user_limit || 1),
+      first_order_only: voucher.first_order_only,
+      scope_type: voucher.scope_type,
+      scope_id: voucher.scope_id || "",
+    });
+    setMessage("");
+    setError("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function toggleCampaign(campaign: Campaign) {
@@ -502,8 +573,31 @@ export default function AdminPromotionsPage() {
                     className={styles.adminAction}
                     disabled={busy === "campaign"}
                   >
-                    {busy === "campaign" ? "CREATING..." : "+ CREATE CAMPAIGN"}
+                    {busy === "campaign"
+                      ? "SAVING..."
+                      : editingCampaignId
+                        ? "SAVE CAMPAIGN"
+                        : "+ CREATE CAMPAIGN"}
                   </button>
+                  {editingCampaignId ? (
+                    <button
+                      type="button"
+                      className={styles.adminSecondaryAction}
+                      onClick={() => {
+                        setEditingCampaignId("");
+                        setCampaignForm((current) => ({
+                          ...current,
+                          title: "",
+                          subtitle: "",
+                          badge: "LIMITED TIME",
+                          cta_label: "SHOP NOW",
+                          landing_path: "/products",
+                        }));
+                      }}
+                    >
+                      CANCEL EDIT
+                    </button>
+                  ) : null}
                 </form>
 
                 <div className={styles.promotionList}>
@@ -518,18 +612,27 @@ export default function AdminPromotionsPage() {
                           {new Date(campaign.ends_at).toLocaleDateString("en-MY")}
                         </small>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => void toggleCampaign(campaign)}
-                        disabled={busy === campaign.id}
-                        className={
-                          campaign.is_active
-                            ? styles.promotionOn
-                            : styles.promotionOff
-                        }
-                      >
-                        {campaign.is_active ? "ACTIVE" : "OFF"}
-                      </button>
+                      <div className={styles.promotionRowActions}>
+                        <button
+                          type="button"
+                          className={styles.promotionEdit}
+                          onClick={() => editCampaign(campaign)}
+                        >
+                          EDIT
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void toggleCampaign(campaign)}
+                          disabled={busy === campaign.id}
+                          className={
+                            campaign.is_active
+                              ? styles.promotionOn
+                              : styles.promotionOff
+                          }
+                        >
+                          {campaign.is_active ? "ACTIVE" : "OFF"}
+                        </button>
+                      </div>
                     </article>
                   ))}
                 </div>
@@ -811,8 +914,32 @@ export default function AdminPromotionsPage() {
                     className={styles.adminAction}
                     disabled={busy === "voucher"}
                   >
-                    {busy === "voucher" ? "CREATING..." : "+ CREATE VOUCHER"}
+                    {busy === "voucher"
+                      ? "SAVING..."
+                      : editingVoucherId
+                        ? "SAVE VOUCHER"
+                        : "+ CREATE VOUCHER"}
                   </button>
+                  {editingVoucherId ? (
+                    <button
+                      type="button"
+                      className={styles.adminSecondaryAction}
+                      onClick={() => {
+                        setEditingVoucherId("");
+                        setVoucherForm((current) => ({
+                          ...current,
+                          campaign_id: "",
+                          code: "",
+                          name: "",
+                          description: "",
+                          scope_type: "all",
+                          scope_id: "",
+                        }));
+                      }}
+                    >
+                      CANCEL EDIT
+                    </button>
+                  ) : null}
                 </form>
 
                 <div className={styles.promotionList}>
@@ -826,18 +953,27 @@ export default function AdminPromotionsPage() {
                           {voucher.scope_type.toUpperCase()}
                         </small>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => void toggleVoucher(voucher)}
-                        disabled={busy === voucher.id}
-                        className={
-                          voucher.is_active
-                            ? styles.promotionOn
-                            : styles.promotionOff
-                        }
-                      >
-                        {voucher.is_active ? "ACTIVE" : "OFF"}
-                      </button>
+                      <div className={styles.promotionRowActions}>
+                        <button
+                          type="button"
+                          className={styles.promotionEdit}
+                          onClick={() => editVoucher(voucher)}
+                        >
+                          EDIT
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void toggleVoucher(voucher)}
+                          disabled={busy === voucher.id}
+                          className={
+                            voucher.is_active
+                              ? styles.promotionOn
+                              : styles.promotionOff
+                          }
+                        >
+                          {voucher.is_active ? "ACTIVE" : "OFF"}
+                        </button>
+                      </div>
                     </article>
                   ))}
                 </div>
