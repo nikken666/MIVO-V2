@@ -312,7 +312,7 @@ export default function WarrantyClaimPage() {
         );
 
         const upload = (await response.json()) as {
-          urls?: string[];
+          paths?: string[];
           error?: string;
         };
 
@@ -322,7 +322,7 @@ export default function WarrantyClaimPage() {
           );
         }
 
-        imageUrls = upload.urls || [];
+        imageUrls = upload.paths || [];
       }
 
       const supabase = createClient();
