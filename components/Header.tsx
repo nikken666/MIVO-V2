@@ -121,12 +121,12 @@ export default function Header() {
           <div className="container navInner">
             <nav className="mainNav" aria-label="Main navigation">
               <Link href="/products">ALL PARTS</Link>
-              <Link href="/products">MAINTENANCE</Link>
-              <Link href="/products">BRAKING</Link>
-              <Link href="/products">SUSPENSION</Link>
-              <Link href="/products">STEERING</Link>
-              <Link href="/products">DRIVETRAIN</Link>
-              <Link href="/products">COOLING</Link>
+              <Link href="/products?group=maintenance">MAINTENANCE</Link>
+              <Link href="/products?group=braking">BRAKING</Link>
+              <Link href="/products?group=suspension">SUSPENSION</Link>
+              <Link href="/products?group=steering">STEERING</Link>
+              <Link href="/products?group=drivetrain">DRIVETRAIN</Link>
+              <Link href="/products?group=cooling">COOLING</Link>
               <Link href="/brands">BRANDS</Link>
             </nav>
             <div className="navUtilityLinks">
