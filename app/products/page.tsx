@@ -11,6 +11,75 @@ import {
 } from "@/data/fitments";
 import { getLiveFitmentStatuses } from "@/lib/liveFitment";
 
+
+type ProductGroup =
+  | "maintenance"
+  | "braking"
+  | "suspension"
+  | "steering"
+  | "drivetrain"
+  | "cooling";
+
+const groupKeywords: Record<ProductGroup, string[]> = {
+  maintenance: [
+    "maintenance",
+    "engine oil",
+    "oil filter",
+    "filter",
+    "lubricant",
+    "additive",
+    "spark plug",
+    "wiper",
+  ],
+  braking: ["brake", "braking"],
+  suspension: [
+    "suspension",
+    "shock absorber",
+    "spring",
+    "sway bar",
+    "stabilizer",
+    "ball joint",
+    "bush",
+  ],
+  steering: ["steering", "tie rod", "hydraulic"],
+  drivetrain: [
+    "drive shaft",
+    "transmission",
+    "clutch",
+    "half-axle",
+    "tripod",
+    "wheel hub",
+    "bearing",
+  ],
+  cooling: [
+    "cooling",
+    "radiator",
+    "thermatic fan",
+    "engine hose",
+    "water pump",
+  ],
+};
+
+function matchesProductGroup(category: string, group: string) {
+  if (!(group in groupKeywords)) return true;
+
+  const value = category.toLowerCase();
+
+  return groupKeywords[group as ProductGroup].some((keyword) =>
+    value.includes(keyword)
+  );
+}
+
+function groupHeading(group: string) {
+  if (!(group in groupKeywords)) return "";
+
+  return (
+    group.charAt(0).toUpperCase() +
+    group.slice(1) +
+    " Parts"
+  );
+}
+
 export default async function ProductsPage({
   searchParams,
 }: {
@@ -21,6 +90,8 @@ export default async function ProductsPage({
   const q = typeof params.q === "string" ? params.q.toLowerCase() : "";
   const category =
     typeof params.category === "string" ? params.category.toLowerCase() : "";
+  const group =
+    typeof params.group === "string" ? params.group.toLowerCase() : "";
 
   let selectedVehicleId =
     typeof params.vehicle === "string" ? params.vehicle : "";
@@ -92,7 +163,8 @@ export default async function ProductsPage({
         (product.name + " " + product.brand + " " + product.category)
           .toLowerCase()
           .includes(q)) &&
-      (!category || product.category.toLowerCase().includes(category))
+      (!category || product.category.toLowerCase().includes(category)) &&
+      (!group || matchesProductGroup(product.category, group))
   );
 
   const liveFitmentStatuses = selectedVehicle
@@ -176,7 +248,13 @@ export default async function ProductsPage({
 
       <div className="pageHeading">
         <div>
-          <h1>{selectedVehicle ? "Parts for your vehicle" : "All Products"}</h1>
+          <h1>
+            {group
+              ? groupHeading(group)
+              : selectedVehicle
+                ? "Parts for your vehicle"
+                : "All Products"}
+          </h1>
           <p>{visible.length} products shown</p>
         </div>
       </div>
