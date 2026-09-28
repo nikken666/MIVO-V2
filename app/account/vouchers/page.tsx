@@ -182,7 +182,7 @@ export default function MyVouchersPage() {
                   </div>
 
                   <Link
-                    href={expired ? "/" : "/checkout"}
+                    href={expired ? "/" : "/products"}
                     className={expired ? "disabled" : ""}
                   >
                     {expired ? "EXPIRED" : "USE NOW →"}
