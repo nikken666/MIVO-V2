@@ -249,7 +249,7 @@ export default function HomePromotions({
         "--campaign-button-bg": campaign.button_bg_color || "#FFFFFF",
         "--campaign-button-text":
           campaign.button_text_color || "#B61923",
-      } as CSSProperties)
+      } as CSSProperties & Record<string, string>)
     : undefined;
 
   const campaignThemeClass =
