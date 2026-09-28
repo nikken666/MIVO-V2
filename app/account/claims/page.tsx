@@ -19,6 +19,7 @@ type ClaimRow = {
   issue_type: string;
   description: string;
   image_urls: string[];
+  display_image_urls?: string[];
   status: string;
   admin_note: string | null;
   resolution_note: string | null;
@@ -103,6 +104,29 @@ export default function MyWarrantyClaimsPage() {
           });
         }
 
+        const privatePaths = Array.from(
+          new Set(
+            rows
+              .flatMap((claim) => claim.image_urls || [])
+              .filter((url) => url && !url.startsWith("http"))
+          )
+        );
+        const signedMap = new Map<string, string>();
+
+        if (privatePaths.length > 0) {
+          const { data: signedData, error: signedError } = await supabase.storage
+            .from("warranty-claim-images")
+            .createSignedUrls(privatePaths, 3600);
+
+          if (signedError) throw signedError;
+
+          (signedData || []).forEach((item, index) => {
+            if (item.signedUrl) {
+              signedMap.set(privatePaths[index], item.signedUrl);
+            }
+          });
+        }
+
         if (!active) return;
 
         const enriched = rows.map((claim) => ({
@@ -110,6 +134,11 @@ export default function MyWarrantyClaimsPage() {
           image_url: claim.product_id
             ? imageMap.get(claim.product_id) || null
             : null,
+          display_image_urls: (claim.image_urls || [])
+            .map((url) =>
+              url.startsWith("http") ? url : signedMap.get(url) || ""
+            )
+            .filter(Boolean),
         }));
 
         setClaims(enriched);
@@ -244,11 +273,11 @@ export default function MyWarrantyClaimsPage() {
                   <p>{selected.description}</p>
                 </div>
 
-                {selected.image_urls.length > 0 ? (
+                {(selected.display_image_urls || []).length > 0 ? (
                   <div className="myClaimEvidence">
                     <span>YOUR PHOTOS</span>
                     <div>
-                      {selected.image_urls.map((url) => (
+                      {(selected.display_image_urls || []).map((url) => (
                         <a
                           href={url}
                           target="_blank"
