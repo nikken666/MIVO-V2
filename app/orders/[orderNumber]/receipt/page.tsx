@@ -15,6 +15,7 @@ type ReceiptOrder = {
   subtotal: number | string;
   shipping_amount: number | string;
   discount_amount: number | string;
+  voucher_code: string | null;
   tax_amount: number | string;
   total_amount: number | string;
   shipping_address: Record<string, string> | null;
@@ -91,7 +92,7 @@ export default function OrderReceiptPage() {
         const { data: orderData, error: orderError } = await supabase
           .from("orders")
           .select(
-            "id, order_number, status, payment_status, currency, subtotal, shipping_amount, discount_amount, tax_amount, total_amount, shipping_address, billing_address, created_at, paid_at, payment_provider, stripe_payment_method, payment_paid_amount, payment_currency, refund_status, cancellation_refund_amount"
+            "id, order_number, status, payment_status, currency, subtotal, shipping_amount, discount_amount, voucher_code, tax_amount, total_amount, shipping_address, billing_address, created_at, paid_at, payment_provider, stripe_payment_method, payment_paid_amount, payment_currency, refund_status, cancellation_refund_amount"
           )
           .eq("order_number", orderNumber)
           .eq("user_id", user.id)
@@ -302,7 +303,9 @@ export default function OrderReceiptPage() {
               </div>
               {Number(order.discount_amount) > 0 ? (
                 <div>
-                  <span>Discount</span>
+                  <span>
+                    Discount{order.voucher_code ? " (" + order.voucher_code + ")" : ""}
+                  </span>
                   <strong>− {formatPrice(Number(order.discount_amount))}</strong>
                 </div>
               ) : null}
