@@ -353,13 +353,9 @@ export default function AdminPage() {
                 <span>AFTER-SALES</span>
                 <strong>Review warranty claims →</strong>
               </a>
-              <a href="/admin/promotions">
-                <span>PROMOTIONS</span>
-                <strong>Campaigns & vouchers →</strong>
-              </a>
-              <a href="/admin/discounts">
-                <span>DISCOUNTS</span>
-                <strong>Schedule sale prices →</strong>
+              <a href="/admin/marketing">
+                <span>MARKETING CENTRE</span>
+                <strong>Campaigns, vouchers & discounts →</strong>
               </a>
               <a href="/admin/products">
                 <span>CATALOGUE</span>
