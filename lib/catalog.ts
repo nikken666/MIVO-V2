@@ -10,6 +10,8 @@ type NamedRelation = { name: string } | Array<{ name: string }> | null;
 
 type ProductRow = {
   id: string;
+  category_id: string | null;
+  brand_id: string | null;
   slug: string;
   name: string;
   description: string | null;
@@ -102,6 +104,8 @@ function mapProduct(row: ProductRow): Product | null {
 
   return {
     id: row.id,
+    categoryId: row.category_id || undefined,
+    brandId: row.brand_id || undefined,
     slug: row.slug,
     name: row.name,
     brand: relationName(row.brands, "MIVO"),
@@ -140,7 +144,7 @@ function mapProduct(row: ProductRow): Product | null {
 }
 
 const selectQuery =
-  "id, slug, name, description, short_description, warranty_months, primary_image_url, variation_1_name, variation_2_name, brands(name), categories(name), sellers(shop_name), product_images(image_url, sort_order), product_variants(id, title, variation_1_value, variation_2_value, sku, price, compare_at_price, stock_on_hand, stock_reserved, weight_kg, length_cm, width_cm, height_cm, is_active)";
+  "id, category_id, brand_id, slug, name, description, short_description, warranty_months, primary_image_url, variation_1_name, variation_2_name, brands(name), categories(name), sellers(shop_name), product_images(image_url, sort_order), product_variants(id, title, variation_1_value, variation_2_value, sku, price, compare_at_price, stock_on_hand, stock_reserved, weight_kg, length_cm, width_cm, height_cm, is_active)";
 
 type ReviewStat = {
   rating: number;
@@ -285,6 +289,77 @@ export async function getProductPublicReviews(
       variantName: review.variant_name,
       verifiedPurchase: Boolean(review.verified_purchase),
     }));
+  } catch {
+    return [];
+  }
+}
+
+
+export async function getRelatedProducts(
+  product: Product,
+  limit = 4
+): Promise<Product[]> {
+  if (!product.id) return [];
+
+  try {
+    const supabase = await createClient();
+
+    async function runQuery(
+      relation:
+        | { categoryId: string }
+        | { brandId: string }
+        | { fallback: true }
+    ) {
+      let query = supabase
+        .from("products")
+        .select(selectQuery)
+        .eq("status", "active")
+        .neq("id", product.id!)
+        .limit(limit);
+
+      if ("categoryId" in relation) {
+        query = query.eq("category_id", relation.categoryId);
+      } else if ("brandId" in relation) {
+        query = query.eq("brand_id", relation.brandId);
+      }
+
+      const { data, error } = await query.order("created_at", {
+        ascending: false,
+      });
+
+      if (error) throw error;
+
+      return ((data || []) as unknown as ProductRow[])
+        .map(mapProduct)
+        .filter((item): item is Product => Boolean(item));
+    }
+
+    let related =
+      product.categoryId
+        ? await runQuery({ categoryId: product.categoryId })
+        : [];
+
+    if (related.length < limit && product.brandId) {
+      const branded = await runQuery({ brandId: product.brandId });
+      const seen = new Set(related.map((item) => item.id));
+
+      related = [
+        ...related,
+        ...branded.filter((item) => !seen.has(item.id)),
+      ].slice(0, limit);
+    }
+
+    if (related.length < limit) {
+      const fallback = await runQuery({ fallback: true });
+      const seen = new Set(related.map((item) => item.id));
+
+      related = [
+        ...related,
+        ...fallback.filter((item) => !seen.has(item.id)),
+      ].slice(0, limit);
+    }
+
+    return await attachReviewStats(related);
   } catch {
     return [];
   }
