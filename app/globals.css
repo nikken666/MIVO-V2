@@ -6207,3 +6207,579 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
     grid-template-columns:1fr;
   }
 }
+
+
+/* WARRANTY CLAIMS */
+.warrantyItemActions{
+  grid-column:2/-1;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+}
+.warrantyItemActions>small{
+  margin-right:auto;
+  color:#7f868a;
+  font-size:7px;
+  font-weight:800;
+  letter-spacing:.04em;
+}
+.warrantyItemActions>a{
+  min-height:38px;
+  padding:0 14px;
+}
+.warrantyClaimLayout{
+  display:grid;
+  grid-template-columns:330px minmax(0,1fr);
+  gap:18px;
+  align-items:start;
+}
+.warrantyClaimProductCard,
+.warrantyClaimForm{
+  border:1px solid #e0e3e4;
+  border-radius:16px;
+  background:#fff;
+}
+.warrantyClaimProductCard{
+  padding:20px;
+  position:sticky;
+  top:18px;
+}
+.warrantyClaimProductImage{
+  width:100%;
+  aspect-ratio:1.25/1;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  border:1px solid #e5e7e8;
+  border-radius:12px;
+  background:#f7f8f8;
+}
+.warrantyClaimProductImage img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:contain;
+  padding:8px;
+}
+.warrantyClaimProductCard>span{
+  display:block;
+  margin-top:16px;
+  color:#92989c;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.11em;
+}
+.warrantyClaimProductCard>strong{
+  display:block;
+  margin-top:7px;
+  color:#1a1f22;
+  font-size:13px;
+  line-height:1.4;
+}
+.warrantyClaimProductCard>small{
+  display:block;
+  margin-top:6px;
+  color:#858c90;
+  font-size:8px;
+}
+.warrantyClaimCoverage{
+  margin-top:18px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  border-top:1px solid #eceeef;
+}
+.warrantyClaimCoverage>div{
+  padding:14px 10px 0 0;
+}
+.warrantyClaimCoverage span,
+.warrantyClaimCoverage strong{
+  display:block;
+}
+.warrantyClaimCoverage span{
+  color:#969ca0;
+  font-size:7px;
+  font-weight:900;
+}
+.warrantyClaimCoverage strong{
+  margin-top:5px;
+  font-size:9px;
+}
+.warrantyClaimForm{
+  padding:24px 26px;
+}
+.warrantyClaimFormHead{
+  padding-bottom:18px;
+  border-bottom:1px solid #eceeef;
+}
+.warrantyClaimFormHead>span{
+  display:block;
+  color:#d8242f;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.11em;
+}
+.warrantyClaimFormHead h2{
+  margin:5px 0 0;
+  font-size:23px;
+  letter-spacing:-.035em;
+}
+.warrantyClaimFormHead p{
+  margin:7px 0 0;
+  color:#7d8488;
+  font-size:9px;
+  line-height:1.55;
+}
+.warrantyClaimField{
+  margin-top:18px;
+  display:grid;
+  gap:7px;
+}
+.warrantyClaimField>span,
+.warrantyClaimPhotosHead span{
+  color:#636a6e;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.07em;
+}
+.warrantyClaimField select,
+.warrantyClaimField textarea{
+  width:100%;
+  border:1px solid #d9dddf;
+  border-radius:10px;
+  background:#fff;
+  padding:12px 13px;
+  outline:0;
+  font-size:10px;
+}
+.warrantyClaimField textarea{
+  resize:vertical;
+  min-height:140px;
+}
+.warrantyClaimField select:focus,
+.warrantyClaimField textarea:focus{
+  border-color:#8d9397;
+}
+.warrantyClaimField>small{
+  color:#999fa3;
+  font-size:7px;
+  text-align:right;
+}
+.warrantyClaimPhotos{
+  margin-top:18px;
+}
+.warrantyClaimPhotosHead{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:14px;
+}
+.warrantyClaimPhotosHead small{
+  display:block;
+  margin-top:4px;
+  color:#999fa3;
+  font-size:7px;
+}
+.warrantyClaimPhotosHead b{
+  color:#7e8589;
+  font-size:8px;
+}
+.warrantyClaimPhotoGrid{
+  margin-top:10px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.warrantyClaimPhoto,
+.warrantyClaimPhotoAdd{
+  width:92px;
+  height:92px;
+  flex:0 0 92px;
+  border-radius:9px;
+}
+.warrantyClaimPhoto{
+  position:relative;
+  overflow:hidden;
+  border:1px solid #e0e3e4;
+  background:#f7f8f8;
+}
+.warrantyClaimPhoto img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+}
+.warrantyClaimPhoto button{
+  position:absolute;
+  top:5px;
+  right:5px;
+  width:23px;
+  height:23px;
+  display:grid;
+  place-items:center;
+  border:0;
+  border-radius:50%;
+  background:rgba(17,20,23,.84);
+  color:#fff;
+  cursor:pointer;
+}
+.warrantyClaimPhotoAdd{
+  display:grid;
+  place-items:center;
+  align-content:center;
+  gap:3px;
+  border:1px dashed #cbd0d2;
+  background:#fafafa;
+  cursor:pointer;
+  text-align:center;
+}
+.warrantyClaimPhotoAdd input{
+  display:none;
+}
+.warrantyClaimPhotoAdd b{
+  font-size:22px;
+  font-weight:400;
+}
+.warrantyClaimPhotoAdd span{
+  font-size:7px;
+  font-weight:900;
+}
+.warrantyClaimPhotoAdd small{
+  color:#90969a;
+  font-size:6px;
+}
+.warrantyClaimSubmitRow{
+  margin-top:24px;
+  padding-top:18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  border-top:1px solid #eceeef;
+}
+.warrantyClaimSubmitRow p{
+  max-width:520px;
+  margin:0;
+  color:#858c90;
+  font-size:8px;
+  line-height:1.5;
+}
+.warrantyClaimSubmitRow button{
+  min-width:160px;
+}
+.warrantyClaimThanksPage .container{
+  min-height:68vh;
+  display:grid;
+  place-items:center;
+}
+.warrantyClaimThanks{
+  width:min(700px,100%);
+  padding:52px 44px;
+  border:1px solid #e0e3e4;
+  border-radius:22px;
+  background:#fff;
+  text-align:center;
+  box-shadow:0 18px 50px rgba(17,20,23,.05);
+}
+.warrantyClaimThanksIcon{
+  width:64px;
+  height:64px;
+  margin:0 auto 20px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#eaf6ed;
+  color:#24733c;
+  font-size:25px;
+  font-weight:900;
+}
+.warrantyClaimThanks>span{
+  color:#8e9599;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.13em;
+}
+.warrantyClaimThanks h1{
+  margin:9px 0 0;
+  font-size:34px;
+  letter-spacing:-.045em;
+}
+.warrantyClaimThanks>p{
+  max-width:520px;
+  margin:14px auto 0;
+  color:#747b7f;
+  font-size:10px;
+  line-height:1.65;
+}
+.warrantyClaimNumber{
+  width:min(360px,100%);
+  margin:26px auto 0;
+  padding:14px;
+  border:1px solid #e3e6e7;
+  border-radius:10px;
+  background:#fafafa;
+}
+.warrantyClaimNumber span,
+.warrantyClaimNumber strong{
+  display:block;
+}
+.warrantyClaimNumber span{
+  color:#979da1;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.1em;
+}
+.warrantyClaimNumber strong{
+  margin-top:5px;
+  font-size:13px;
+}
+.warrantyClaimThanksActions{
+  width:min(460px,100%);
+  margin:22px auto 0;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.myClaimsLayout{
+  display:grid;
+  grid-template-columns:360px minmax(0,1fr);
+  gap:16px;
+  align-items:start;
+}
+.myClaimsList{
+  overflow:hidden;
+  border:1px solid #e0e3e4;
+  border-radius:16px;
+  background:#fff;
+}
+.myClaimListItem{
+  width:100%;
+  padding:15px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  border:0;
+  border-bottom:1px solid #eceeef;
+  background:#fff;
+  text-align:left;
+  cursor:pointer;
+}
+.myClaimListItem:last-child{
+  border-bottom:0;
+}
+.myClaimListItem.active{
+  background:#f8f9f9;
+}
+.myClaimListItem>div{
+  min-width:0;
+}
+.myClaimListItem span,
+.myClaimListItem strong,
+.myClaimListItem small{
+  display:block;
+}
+.myClaimListItem span{
+  color:#969ca0;
+  font-size:7px;
+  font-weight:900;
+}
+.myClaimListItem strong{
+  margin-top:5px;
+  overflow:hidden;
+  color:#1d2225;
+  font-size:9px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.myClaimListItem small{
+  margin-top:4px;
+  color:#9aa0a4;
+  font-size:7px;
+}
+.claimStatus{
+  flex:0 0 auto;
+  padding:6px 8px;
+  border-radius:999px;
+  font-size:7px;
+  font-weight:900;
+}
+.claimStatus.status-new{
+  background:#fff1df;
+  color:#9a6500;
+}
+.claimStatus.status-reviewing{
+  background:#eaf3fb;
+  color:#28689d;
+}
+.claimStatus.status-approved{
+  background:#eaf6ed;
+  color:#26743c;
+}
+.claimStatus.status-rejected{
+  background:#fff0f1;
+  color:#bd2832;
+}
+.claimStatus.status-completed{
+  background:#eef0f1;
+  color:#61676b;
+}
+.myClaimDetail{
+  padding:24px;
+  border:1px solid #e0e3e4;
+  border-radius:16px;
+  background:#fff;
+}
+.myClaimDetailHead{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:20px;
+  padding-bottom:18px;
+  border-bottom:1px solid #eceeef;
+}
+.myClaimDetailHead span{
+  color:#92989c;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.myClaimDetailHead h2{
+  margin:5px 0 0;
+  font-size:20px;
+  line-height:1.35;
+}
+.myClaimDetailHead p{
+  margin:5px 0 0;
+  color:#858c90;
+  font-size:8px;
+}
+.myClaimSummary{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  border-bottom:1px solid #eceeef;
+}
+.myClaimSummary>div{
+  padding:16px 12px 16px 0;
+}
+.myClaimSummary span,
+.myClaimSummary strong{
+  display:block;
+}
+.myClaimSummary span,
+.myClaimDescription>span,
+.myClaimEvidence>span,
+.myClaimUpdate>span,
+.myClaimResolution>span{
+  color:#92989c;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.myClaimSummary strong{
+  margin-top:5px;
+  font-size:8px;
+}
+.myClaimDescription,
+.myClaimEvidence,
+.myClaimUpdate,
+.myClaimResolution{
+  padding:18px 0;
+  border-bottom:1px solid #eceeef;
+}
+.myClaimDescription p,
+.myClaimUpdate p,
+.myClaimResolution p{
+  margin:8px 0 0;
+  color:#4d5458;
+  font-size:9px;
+  line-height:1.65;
+  white-space:pre-line;
+}
+.myClaimEvidence>div{
+  margin-top:10px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.myClaimEvidence a{
+  width:90px;
+  height:90px;
+  display:block;
+  overflow:hidden;
+  border:1px solid #e1e4e5;
+  border-radius:9px;
+}
+.myClaimEvidence img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+}
+.myClaimUpdate{
+  padding:16px;
+  margin-top:16px;
+  border:0;
+  border-radius:10px;
+  background:#f4f7fb;
+}
+.myClaimResolution{
+  padding:16px;
+  margin-top:10px;
+  border:0;
+  border-radius:10px;
+  background:#f2f7f3;
+}
+.myClaimActions{
+  margin-top:18px;
+  display:flex;
+  gap:9px;
+  justify-content:flex-end;
+}
+@media(max-width:900px){
+  .warrantyClaimLayout,
+  .myClaimsLayout{
+    grid-template-columns:1fr;
+  }
+  .warrantyClaimProductCard{
+    position:static;
+  }
+  .myClaimSummary{
+    grid-template-columns:1fr 1fr;
+  }
+}
+@media(max-width:620px){
+  .warrantyItemActions,
+  .warrantyClaimSubmitRow{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .warrantyItemActions{
+    grid-column:1/-1;
+  }
+  .warrantyItemActions>small{
+    margin-right:0;
+  }
+  .warrantyClaimForm,
+  .myClaimDetail{
+    padding:18px;
+  }
+  .warrantyClaimPhoto,
+  .warrantyClaimPhotoAdd{
+    width:76px;
+    height:76px;
+    flex-basis:76px;
+  }
+  .warrantyClaimThanks{
+    padding:38px 22px;
+  }
+  .warrantyClaimThanksActions{
+    grid-template-columns:1fr;
+  }
+  .myClaimSummary{
+    grid-template-columns:1fr;
+  }
+  .myClaimDetailHead{
+    flex-direction:column;
+  }
+}
