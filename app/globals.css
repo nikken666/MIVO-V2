@@ -2802,11 +2802,19 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
   margin-top:3px;
   font-size:10px;
 }
-.productFitmentCompact>a{
+.productFitmentCompact>a,
+.productFitmentSelectButton{
   color:#d8242f;
   font-size:7px;
   font-weight:900;
   letter-spacing:.08em;
+}
+.productFitmentSelectButton{
+  padding:7px 0;
+  border:0;
+  background:transparent;
+  cursor:pointer;
+  white-space:nowrap;
 }
 .productFitmentCompact small{
   display:block;
@@ -7529,4 +7537,375 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
 
 .orderDiscountValue{
   color:#d8242f !important;
+}
+
+
+/* PRODUCT INLINE VEHICLE SELECTOR */
+.productVehicleModalBackdrop{
+  position:fixed;
+  inset:0;
+  z-index:420;
+  display:grid;
+  place-items:center;
+  padding:24px;
+  background:rgba(12,15,18,.52);
+  backdrop-filter:blur(4px);
+}
+.productVehicleModal{
+  width:min(760px,100%);
+  max-height:min(760px,calc(100vh - 48px));
+  overflow:auto;
+  border:1px solid #dfe2e3;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 28px 80px rgba(0,0,0,.2);
+}
+.productVehicleModalHead{
+  position:sticky;
+  top:0;
+  z-index:2;
+  padding:22px 24px 18px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:20px;
+  border-bottom:1px solid #eceeef;
+  background:rgba(255,255,255,.97);
+  backdrop-filter:blur(8px);
+}
+.productVehicleModalHead>div>span{
+  color:#d8242f;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+.productVehicleModalHead h2{
+  margin:5px 0 0;
+  font-size:24px;
+  letter-spacing:-.04em;
+}
+.productVehicleModalHead p{
+  margin:6px 0 0;
+  color:#7f868a;
+  font-size:9px;
+}
+.productVehicleModalClose{
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  flex:0 0 auto;
+  border:1px solid #e0e3e4;
+  border-radius:50%;
+  background:#fff;
+  color:#202528;
+  font-size:20px;
+  line-height:1;
+  cursor:pointer;
+}
+.productVehicleSaved{
+  width:calc(100% - 48px);
+  min-height:70px;
+  margin:18px 24px 0;
+  padding:14px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  border:1px solid #cfe0d4;
+  border-radius:12px;
+  background:#f4faf5;
+  text-align:left;
+  cursor:pointer;
+}
+.productVehicleSaved.loading{
+  color:#777e82;
+  font-size:8px;
+  cursor:default;
+}
+.productVehicleSaved span,
+.productVehicleSaved strong{
+  display:block;
+}
+.productVehicleSaved span{
+  color:#5a8a66;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.productVehicleSaved strong{
+  margin-top:5px;
+  color:#243029;
+  font-size:10px;
+  line-height:1.45;
+}
+.productVehicleSaved>b{
+  flex:0 0 auto;
+  color:#25743b;
+  font-size:8px;
+}
+.productVehicleProgress{
+  height:3px;
+  margin:20px 24px 0;
+  overflow:hidden;
+  border-radius:999px;
+  background:#eceeef;
+}
+.productVehicleProgress i{
+  height:100%;
+  display:block;
+  border-radius:999px;
+  background:#d8242f;
+  transition:width .2s ease;
+}
+.productVehicleStepTop{
+  padding:13px 24px 0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+}
+.productVehicleStepTop>span{
+  color:#92989c;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.09em;
+}
+.productVehicleStepTop button{
+  border:0;
+  background:transparent;
+  color:#d8242f;
+  font-size:7px;
+  font-weight:900;
+  cursor:pointer;
+}
+.productVehicleBody{
+  padding:18px 24px 26px;
+}
+.productVehicleBody>h3{
+  margin:0 0 14px;
+  font-size:20px;
+  letter-spacing:-.03em;
+}
+.productVehicleChoiceGrid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px;
+}
+.productVehicleChoiceGrid button{
+  min-height:54px;
+  padding:12px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  border:1px solid #dfe2e3;
+  border-radius:10px;
+  background:#fff;
+  text-align:left;
+  cursor:pointer;
+}
+.productVehicleChoiceGrid button:hover{
+  border-color:#d8242f;
+  background:#fff8f8;
+}
+.productVehicleChoiceGrid strong,
+.productVehicleChoiceGrid small{
+  display:block;
+}
+.productVehicleChoiceGrid strong{
+  font-size:9px;
+}
+.productVehicleChoiceGrid small{
+  margin-top:4px;
+  color:#90969a;
+  font-size:7px;
+}
+.productVehicleChoiceGrid button>span{
+  color:#d8242f;
+  font-size:14px;
+}
+.productVehicleYearGrid{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:8px;
+}
+.productVehicleYearGrid button{
+  min-height:42px;
+  border:1px solid #dfe2e3;
+  border-radius:9px;
+  background:#fff;
+  font-size:8px;
+  font-weight:900;
+  cursor:pointer;
+}
+.productVehicleYearGrid button:hover{
+  border-color:#d8242f;
+  color:#d8242f;
+}
+.productVehicleTransmissionGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.productVehicleTransmissionGrid button{
+  min-height:88px;
+  display:grid;
+  grid-template-columns:44px 1fr;
+  align-items:center;
+  gap:12px;
+  padding:14px;
+  border:1px solid #dfe2e3;
+  border-radius:11px;
+  background:#fff;
+  text-align:left;
+  cursor:pointer;
+}
+.productVehicleTransmissionGrid button:hover{
+  border-color:#d8242f;
+  background:#fff8f8;
+}
+.productVehicleTransmissionGrid button>span{
+  width:44px;
+  height:44px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  background:#111417;
+  color:#fff;
+  font-size:16px;
+  font-weight:900;
+}
+.productVehicleTransmissionGrid strong{
+  font-size:10px;
+}
+.productVehicleConfirm{
+  text-align:center;
+}
+.productVehicleConfirmIcon{
+  width:48px;
+  height:48px;
+  margin:0 auto 10px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#eaf6ed;
+  color:#26743c;
+  font-size:20px;
+  font-weight:900;
+}
+.productVehicleConfirm h3{
+  margin:0;
+  font-size:21px;
+}
+.productVehicleSummary{
+  margin-top:16px;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  overflow:hidden;
+  border:1px solid #e1e4e5;
+  border-radius:11px;
+  text-align:left;
+}
+.productVehicleSummary>div{
+  min-height:65px;
+  padding:12px;
+  border-right:1px solid #eceeef;
+  border-bottom:1px solid #eceeef;
+}
+.productVehicleSummary>div:nth-child(3n){
+  border-right:0;
+}
+.productVehicleSummary>div:nth-last-child(-n+3){
+  border-bottom:0;
+}
+.productVehicleSummary span,
+.productVehicleSummary strong{
+  display:block;
+}
+.productVehicleSummary span{
+  color:#969ca0;
+  font-size:6px;
+  font-weight:900;
+}
+.productVehicleSummary strong{
+  margin-top:5px;
+  font-size:8px;
+  line-height:1.4;
+}
+.productVehicleApply{
+  width:100%;
+  min-height:48px;
+  margin-top:16px;
+  border:0;
+  border-radius:9px;
+  background:#d8242f;
+  color:#fff;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.06em;
+  cursor:pointer;
+}
+.productVehicleApply:disabled{
+  opacity:.5;
+}
+.productVehicleRestart{
+  margin-top:9px;
+  border:0;
+  background:transparent;
+  color:#777e82;
+  font-size:7px;
+  font-weight:900;
+  cursor:pointer;
+}
+@media(max-width:680px){
+  .productVehicleModalBackdrop{
+    align-items:end;
+    padding:0;
+  }
+  .productVehicleModal{
+    width:100%;
+    max-height:88vh;
+    border-radius:18px 18px 0 0;
+  }
+  .productVehicleModalHead{
+    padding:18px 16px 15px;
+  }
+  .productVehicleModalHead h2{
+    font-size:21px;
+  }
+  .productVehicleSaved{
+    width:calc(100% - 32px);
+    margin:14px 16px 0;
+  }
+  .productVehicleProgress{
+    margin:16px 16px 0;
+  }
+  .productVehicleStepTop{
+    padding:12px 16px 0;
+  }
+  .productVehicleBody{
+    padding:16px 16px 22px;
+  }
+  .productVehicleChoiceGrid{
+    grid-template-columns:1fr;
+  }
+  .productVehicleYearGrid{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+  .productVehicleSummary{
+    grid-template-columns:1fr 1fr;
+  }
+  .productVehicleSummary>div,
+  .productVehicleSummary>div:nth-child(3n),
+  .productVehicleSummary>div:nth-last-child(-n+3){
+    border-right:1px solid #eceeef;
+    border-bottom:1px solid #eceeef;
+  }
+  .productVehicleSummary>div:nth-child(2n){
+    border-right:0;
+  }
+  .productVehicleSummary>div:nth-last-child(-n+2){
+    border-bottom:0;
+  }
 }
