@@ -655,6 +655,99 @@ export default function AdminPromotionsPage() {
     }
   }
 
+  async function deleteCampaign(campaign: Campaign) {
+    const confirmed = window.confirm(
+      "Delete campaign \"" +
+        campaign.title +
+        "\"? Linked vouchers will be kept as standalone vouchers."
+    );
+
+    if (!confirmed) return;
+
+    setBusy("delete-campaign-" + campaign.id);
+    setError("");
+    setMessage("");
+
+    try {
+      const supabase = createClient();
+      const { data, error: deleteError } = await supabase.rpc(
+        "admin_delete_campaign",
+        { p_campaign_id: campaign.id }
+      );
+
+      if (deleteError) throw deleteError;
+
+      if (editingCampaignId === campaign.id) {
+        setEditingCampaignId("");
+      }
+
+      await load();
+
+      const kept = Number(
+        (data as { linked_vouchers_kept?: number } | null)
+          ?.linked_vouchers_kept || 0
+      );
+
+      setMessage(
+        "Campaign deleted." +
+          (kept > 0
+            ? " " +
+              kept +
+              " linked voucher" +
+              (kept === 1 ? " was" : "s were") +
+              " kept."
+            : "")
+      );
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Unable to delete campaign."
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function deleteVoucher(voucher: Voucher) {
+    const confirmed = window.confirm(
+      "Delete voucher " +
+        voucher.code +
+        "? This will remove it from customers who claimed it but have not used it."
+    );
+
+    if (!confirmed) return;
+
+    setBusy("delete-voucher-" + voucher.id);
+    setError("");
+    setMessage("");
+
+    try {
+      const supabase = createClient();
+      const { error: deleteError } = await supabase.rpc(
+        "admin_delete_voucher",
+        { p_voucher_id: voucher.id }
+      );
+
+      if (deleteError) throw deleteError;
+
+      if (editingVoucherId === voucher.id) {
+        setEditingVoucherId("");
+      }
+
+      await load();
+      setMessage("Voucher " + voucher.code + " deleted.");
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Unable to delete voucher."
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
   async function toggleVoucher(voucher: Voucher) {
     setBusy(voucher.id);
     setError("");
@@ -1233,6 +1326,18 @@ export default function AdminPromotionsPage() {
                         >
                           {campaign.is_active ? "ACTIVE" : "OFF"}
                         </button>
+                        <button
+                          type="button"
+                          className={styles.promotionDelete}
+                          onClick={() => void deleteCampaign(campaign)}
+                          disabled={
+                            busy === "delete-campaign-" + campaign.id
+                          }
+                        >
+                          {busy === "delete-campaign-" + campaign.id
+                            ? "DELETING..."
+                            : "DELETE"}
+                        </button>
                       </div>
                     </article>
                   ))}
@@ -1573,6 +1678,18 @@ export default function AdminPromotionsPage() {
                           }
                         >
                           {voucher.is_active ? "ACTIVE" : "OFF"}
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.promotionDelete}
+                          onClick={() => void deleteVoucher(voucher)}
+                          disabled={
+                            busy === "delete-voucher-" + voucher.id
+                          }
+                        >
+                          {busy === "delete-voucher-" + voucher.id
+                            ? "DELETING..."
+                            : "DELETE"}
                         </button>
                       </div>
                     </article>
