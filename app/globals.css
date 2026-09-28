@@ -6783,3 +6783,157 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
     flex-direction:column;
   }
 }
+
+
+/* SIGNED-IN STOREFRONT HOME */
+.memberHomeHero{
+  padding:24px 0;
+  background:#f3f4f4;
+}
+.memberHomeHeroGrid{
+  display:grid;
+  grid-template-columns:minmax(0,1.45fr) minmax(320px,.75fr);
+  gap:16px;
+}
+.memberHomePromo,
+.memberGarageCard{
+  min-height:280px;
+  border-radius:18px;
+  overflow:hidden;
+}
+.memberHomePromo{
+  position:relative;
+  padding:34px 38px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  background:
+    radial-gradient(circle at 85% 20%,rgba(218,36,47,.24),transparent 34%),
+    linear-gradient(120deg,#101417,#171c20 68%,#291416);
+  color:#fff;
+}
+.memberHomePromo::after{
+  content:"MIVO";
+  position:absolute;
+  right:-18px;
+  bottom:-38px;
+  color:rgba(255,255,255,.035);
+  font-size:150px;
+  font-weight:950;
+  letter-spacing:-.09em;
+}
+.memberHomeEyebrow{
+  position:relative;
+  z-index:1;
+  color:#aab0b4;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.14em;
+}
+.memberHomePromo h1{
+  position:relative;
+  z-index:1;
+  margin:10px 0 0;
+  font-size:48px;
+  line-height:.95;
+  letter-spacing:-.055em;
+}
+.memberHomePromo p{
+  position:relative;
+  z-index:1;
+  max-width:540px;
+  margin:15px 0 0;
+  color:#c1c6c9;
+  font-size:12px;
+  line-height:1.65;
+}
+.memberHomeActions{
+  position:relative;
+  z-index:1;
+  margin-top:22px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.memberGarageCard{
+  padding:28px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  border:1px solid #e0e3e4;
+  background:#fff;
+}
+.memberGarageHead{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+}
+.memberGarageHead span,
+.memberGarageHead strong{
+  display:block;
+}
+.memberGarageHead span{
+  color:#92989c;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+.memberGarageHead strong{
+  margin-top:8px;
+  font-size:25px;
+  line-height:1.05;
+  letter-spacing:-.04em;
+}
+.memberGarageHead>a{
+  color:#d8242f;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.06em;
+}
+.memberGarageCard>p{
+  margin:20px 0;
+  color:#71787c;
+  font-size:10px;
+  line-height:1.55;
+}
+.memberGarageShop{
+  min-height:54px;
+  padding:0 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  border-radius:10px;
+  background:#d8242f;
+  color:#fff;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.055em;
+}
+.memberGarageShop span{
+  font-size:18px;
+  font-weight:500;
+}
+@media(max-width:900px){
+  .memberHomeHeroGrid{
+    grid-template-columns:1fr;
+  }
+  .memberHomePromo,
+  .memberGarageCard{
+    min-height:230px;
+  }
+}
+@media(max-width:620px){
+  .memberHomeHero{
+    padding:12px 0;
+  }
+  .memberHomePromo,
+  .memberGarageCard{
+    padding:24px 20px;
+    border-radius:14px;
+  }
+  .memberHomePromo h1{
+    font-size:38px;
+  }
+}
