@@ -47,6 +47,8 @@ type OrderRow = {
   total_amount: number | string;
   subtotal: number | string;
   shipping_amount: number | string;
+  discount_amount: number | string;
+  voucher_code: string | null;
   shipping_address: Record<string, string> | null;
   customer_note: string | null;
   created_at: string;
@@ -179,7 +181,7 @@ export default function AdminOrdersPage() {
     const { data: orderData, error: orderError } = await supabase
       .from("orders")
       .select(
-        "id, order_number, user_id, status, payment_status, total_amount, subtotal, shipping_amount, shipping_address, customer_note, created_at, paid_at, refund_status, cancellation_refund_amount"
+        "id, order_number, user_id, status, payment_status, total_amount, subtotal, shipping_amount, discount_amount, voucher_code, shipping_address, customer_note, created_at, paid_at, refund_status, cancellation_refund_amount"
       )
       .order("created_at", { ascending: false });
 
@@ -865,6 +867,19 @@ export default function AdminOrdersPage() {
                                 {money(Number(order.shipping_amount || 0))}
                               </strong>
                             </div>
+                            {Number(order.discount_amount || 0) > 0 ? (
+                              <div>
+                                <span>
+                                  VOUCHER
+                                  {order.voucher_code
+                                    ? " · " + order.voucher_code
+                                    : ""}
+                                </span>
+                                <strong style={{ color: "#d8242f" }}>
+                                  − {money(Number(order.discount_amount || 0))}
+                                </strong>
+                              </div>
+                            ) : null}
                             <div className={styles.total}>
                               <span>TOTAL</span>
                               <strong>
