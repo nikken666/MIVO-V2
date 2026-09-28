@@ -49,6 +49,9 @@ type VoucherOption = {
   minimum_spend: number | string;
   max_discount: number | string | null;
   first_order_only: boolean;
+  scope_type: "all" | "brand" | "category" | "product";
+  starts_at: string;
+  ends_at: string;
 };
 
 type VoucherPreview = {
@@ -65,6 +68,20 @@ type AddonSuggestion = {
   variant: ProductVariant;
   price: number;
 };
+
+function voucherScopeLabel(scope: VoucherOption["scope_type"]) {
+  if (scope === "brand") return "Selected brand";
+  if (scope === "category") return "Selected category";
+  if (scope === "product") return "Selected products";
+  return "All products";
+}
+
+function voucherValidLabel(value: string) {
+  return new Date(value).toLocaleDateString("en-MY", {
+    day: "2-digit",
+    month: "short",
+  });
+}
 
 function friendlyVoucherReason(message: string) {
   const value = message.toLowerCase();
@@ -187,7 +204,7 @@ export default function CheckoutPage() {
           const { data: voucherData } = await supabase
             .from("vouchers")
             .select(
-              "id, code, name, description, discount_type, discount_value, minimum_spend, max_discount, first_order_only"
+              "id, code, name, description, discount_type, discount_value, minimum_spend, max_discount, first_order_only, scope_type, starts_at, ends_at"
             )
             .in("id", ids)
             .eq("is_active", true)
@@ -1038,19 +1055,59 @@ export default function CheckoutPage() {
                     NO VOUCHER
                   </button>
 
-                  {vouchers.map((voucher) => (
-                    <button
-                      type="button"
-                      key={voucher.id}
-                      className={
-                        selectedVoucherId === voucher.id ? "active" : ""
-                      }
-                      onClick={() => setSelectedVoucherId(voucher.id)}
-                    >
-                      <strong>{voucher.code}</strong>
-                      <span>{voucher.name}</span>
-                    </button>
-                  ))}
+                  {vouchers.map((voucher) => {
+                    const minSpend = Number(voucher.minimum_spend || 0);
+                    const shortBy = Math.max(0, minSpend - subtotal);
+                    const cap = Number(voucher.max_discount || 0);
+
+                    return (
+                      <button
+                        type="button"
+                        key={voucher.id}
+                        className={
+                          selectedVoucherId === voucher.id ? "active" : ""
+                        }
+                        onClick={() => setSelectedVoucherId(voucher.id)}
+                      >
+                        <strong>{voucher.code}</strong>
+                        <span className="checkoutVoucherDiscount">
+                          {voucher.name}
+                        </span>
+
+                        <div className="checkoutVoucherConditions">
+                          <small>
+                            Min. Spend {formatPrice(minSpend)}
+                          </small>
+
+                          {cap > 0 ? (
+                            <small>Max Discount {formatPrice(cap)}</small>
+                          ) : null}
+
+                          {voucher.first_order_only ? (
+                            <small>First Order Only</small>
+                          ) : null}
+
+                          {voucher.scope_type !== "all" ? (
+                            <small>
+                              {voucherScopeLabel(voucher.scope_type)}
+                            </small>
+                          ) : null}
+
+                          <small>
+                            Valid Till {voucherValidLabel(voucher.ends_at)}
+                          </small>
+                        </div>
+
+                        {shortBy > 0 ? (
+                          <em>
+                            Add {formatPrice(shortBy)} more
+                          </em>
+                        ) : (
+                          <em className="eligible">Eligible</em>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               ) : null}
 
