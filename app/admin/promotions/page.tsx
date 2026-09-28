@@ -123,6 +123,52 @@ const campaignPresets = {
 
 type CampaignPresetKey = keyof typeof campaignPresets;
 
+type CampaignColorField =
+  | "primary_color"
+  | "secondary_color"
+  | "text_color"
+  | "muted_text_color"
+  | "countdown_bg_color"
+  | "countdown_text_color"
+  | "button_bg_color"
+  | "button_text_color";
+
+type CampaignFormState = {
+  title: string;
+  subtitle: string;
+  badge: string;
+  cta_label: string;
+  landing_path: string;
+  theme: string;
+  primary_color: string;
+  secondary_color: string;
+  text_color: string;
+  muted_text_color: string;
+  countdown_bg_color: string;
+  countdown_text_color: string;
+  button_bg_color: string;
+  button_text_color: string;
+  desktop_image_url: string;
+  mobile_image_url: string;
+  display_mode: "overlay" | "image_only";
+  overlay_opacity: string;
+  show_countdown: boolean;
+  image_position: "center" | "left" | "right" | "top" | "bottom";
+  starts_at: string;
+  ends_at: string;
+};
+
+const campaignColorFields: Array<[string, CampaignColorField]> = [
+  ["PRIMARY", "primary_color"],
+  ["SECONDARY", "secondary_color"],
+  ["TEXT", "text_color"],
+  ["SUBTEXT", "muted_text_color"],
+  ["COUNTDOWN BG", "countdown_bg_color"],
+  ["COUNTDOWN TEXT", "countdown_text_color"],
+  ["BUTTON BG", "button_bg_color"],
+  ["BUTTON TEXT", "button_text_color"],
+];
+
 function toLocalInput(value?: string) {
   const date = value ? new Date(value) : new Date();
   const offset = date.getTimezoneOffset() * 60000;
@@ -150,7 +196,7 @@ export default function AdminPromotionsPage() {
   const [editingVoucherId, setEditingVoucherId] = useState("");
   const [campaignImageBusy, setCampaignImageBusy] = useState("");
 
-  const [campaignForm, setCampaignForm] = useState({
+  const [campaignForm, setCampaignForm] = useState<CampaignFormState>({
     title: "",
     subtitle: "",
     badge: "LIMITED TIME",
@@ -286,6 +332,17 @@ export default function AdminPromotionsPage() {
       active = false;
     };
   }, []);
+
+  function updateCampaignColor(
+    field: CampaignColorField,
+    value: string
+  ) {
+    setCampaignForm((current) => ({
+      ...current,
+      theme: "custom",
+      [field]: value.toUpperCase(),
+    }));
+  }
 
   function applyCampaignPreset(presetKey: CampaignPresetKey) {
     const preset = campaignPresets[presetKey];
@@ -898,16 +955,7 @@ export default function AdminPromotionsPage() {
                       </div>
 
                       <div className={styles.campaignColourGrid}>
-                        {[
-                          ["PRIMARY", "primary_color"],
-                          ["SECONDARY", "secondary_color"],
-                          ["TEXT", "text_color"],
-                          ["SUBTEXT", "muted_text_color"],
-                          ["COUNTDOWN BG", "countdown_bg_color"],
-                          ["COUNTDOWN TEXT", "countdown_text_color"],
-                          ["BUTTON BG", "button_bg_color"],
-                          ["BUTTON TEXT", "button_text_color"],
-                        ].map(([label, field]) => (
+                        {campaignColorFields.map(([label, field]) => (
                           <label
                             className={styles.campaignColourField}
                             key={field}
@@ -916,32 +964,22 @@ export default function AdminPromotionsPage() {
                             <div>
                               <input
                                 type="color"
-                                value={
-                                  campaignForm[
-                                    field as keyof typeof campaignForm
-                                  ] as string
-                                }
+                                value={campaignForm[field]}
                                 onChange={(event) =>
-                                  setCampaignForm((current) => ({
-                                    ...current,
-                                    theme: "custom",
-                                    [field]: event.target.value.toUpperCase(),
-                                  }))
+                                  updateCampaignColor(
+                                    field,
+                                    event.target.value
+                                  )
                                 }
                               />
                               <input
-                                value={
-                                  campaignForm[
-                                    field as keyof typeof campaignForm
-                                  ] as string
-                                }
+                                value={campaignForm[field]}
                                 maxLength={7}
                                 onChange={(event) =>
-                                  setCampaignForm((current) => ({
-                                    ...current,
-                                    theme: "custom",
-                                    [field]: event.target.value.toUpperCase(),
-                                  }))
+                                  updateCampaignColor(
+                                    field,
+                                    event.target.value
+                                  )
                                 }
                               />
                             </div>
