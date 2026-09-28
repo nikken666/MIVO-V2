@@ -592,15 +592,20 @@ export default function AdminNewProductPage() {
             <a href="/admin/orders">
               <span>02</span>Orders
             </a>
+            <a href="/admin/arrange-shipment">
+              <span>03</span>Arrange Shipment
+            </a>
+            <a href="/admin/claims">
+              <span>04</span>Claims
+            </a>
             <a href="/admin/products">
-              <span>03</span>Products
+              <span>05</span>Products
             </a>
             <a href="/admin/products/new" className={styles.active}>
-              <span>04</span>Add Product
+              <span>06</span>Add Product
             </a>
             <a href="/admin/shipping">
-              <span>05</span>
-              Shipping
+              <span>07</span>Shipping
             </a>
           </nav>
 
