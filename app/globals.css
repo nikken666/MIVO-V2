@@ -7909,3 +7909,224 @@ a{color:inherit;text-decoration:none}button,input,select{font:inherit}.container
     border-bottom:0;
   }
 }
+
+
+/* CHECKOUT VOUCHER ELIGIBILITY + ADD-ONS */
+.checkoutVoucherUnavailable{
+  margin-top:10px;
+  display:grid;
+  gap:12px;
+}
+.checkoutVoucherReason{
+  padding:11px 12px;
+  border:1px solid #efcfd2;
+  border-radius:9px;
+  background:#fff5f6;
+}
+.checkoutVoucherReason strong{
+  display:block;
+  color:#ba2630;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.07em;
+}
+.checkoutVoucherReason p{
+  margin:5px 0 0;
+  color:#6e4f52;
+  font-size:7px;
+  line-height:1.5;
+}
+.checkoutVoucherProgress{
+  padding:11px 12px;
+  border:1px solid #e4e7e8;
+  border-radius:9px;
+  background:#fff;
+}
+.checkoutVoucherProgress>div{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.checkoutVoucherProgress>div span{
+  color:#777e82;
+  font-size:7px;
+}
+.checkoutVoucherProgress>div strong{
+  color:#d8242f;
+  font-size:8px;
+}
+.checkoutVoucherProgress>i{
+  height:7px;
+  margin-top:8px;
+  display:block;
+  overflow:hidden;
+  border-radius:999px;
+  background:#eceeef;
+}
+.checkoutVoucherProgress>i>b{
+  height:100%;
+  display:block;
+  border-radius:999px;
+  background:#d8242f;
+  transition:width .2s ease;
+}
+.checkoutVoucherProgress>small{
+  display:block;
+  margin-top:7px;
+  color:#6f767a;
+  font-size:7px;
+  line-height:1.45;
+}
+.checkoutVoucherProgress>small strong{
+  color:#d8242f;
+}
+.checkoutAddonSection{
+  padding-top:2px;
+}
+.checkoutAddonHead{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+}
+.checkoutAddonHead span,
+.checkoutAddonHead strong{
+  display:block;
+}
+.checkoutAddonHead span{
+  color:#d8242f;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.checkoutAddonHead strong{
+  margin-top:3px;
+  color:#42494d;
+  font-size:8px;
+}
+.checkoutAddonHead>a{
+  color:#d8242f;
+  font-size:7px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.checkoutAddonGrid{
+  margin-top:9px;
+  display:grid;
+  gap:7px;
+}
+.checkoutAddonCard{
+  min-width:0;
+  padding:9px;
+  display:grid;
+  grid-template-columns:58px minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  border:1px solid #e3e6e7;
+  border-radius:9px;
+  background:#fff;
+}
+.checkoutAddonImage{
+  width:58px;
+  height:58px;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+  border:1px solid #eceeef;
+  border-radius:8px;
+  background:#f7f8f8;
+}
+.checkoutAddonImage img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:contain;
+  padding:4px;
+}
+.checkoutAddonInfo{
+  min-width:0;
+}
+.checkoutAddonInfo>span,
+.checkoutAddonInfo>strong,
+.checkoutAddonInfo>small,
+.checkoutAddonInfo>b{
+  display:block;
+}
+.checkoutAddonInfo>span{
+  color:#989ea2;
+  font-size:6px;
+  font-weight:900;
+}
+.checkoutAddonInfo>strong{
+  margin-top:2px;
+  color:#252a2d;
+  font-size:8px;
+}
+.checkoutAddonInfo>small{
+  margin-top:3px;
+  overflow:hidden;
+  color:#858c90;
+  font-size:6px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.checkoutAddonInfo>b{
+  margin-top:4px;
+  color:#d8242f;
+  font-size:9px;
+}
+.checkoutAddonCard>button{
+  min-width:56px;
+  min-height:30px;
+  border:0;
+  border-radius:7px;
+  background:#d8242f;
+  color:#fff;
+  font-size:7px;
+  font-weight:900;
+  cursor:pointer;
+}
+.checkoutAddonCard>button:hover{
+  background:#bd1d27;
+}
+.checkoutAddonEmpty{
+  margin-top:9px;
+  padding:10px 11px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  border:1px dashed #d9dddf;
+  border-radius:9px;
+  background:#fafafa;
+}
+.checkoutAddonEmpty span{
+  color:#7b8286;
+  font-size:7px;
+  line-height:1.45;
+}
+.checkoutAddonEmpty>a{
+  flex:0 0 auto;
+  color:#d8242f;
+  font-size:7px;
+  font-weight:900;
+}
+@media(max-width:560px){
+  .checkoutAddonHead,
+  .checkoutAddonEmpty{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .checkoutAddonCard{
+    grid-template-columns:52px minmax(0,1fr);
+  }
+  .checkoutAddonImage{
+    width:52px;
+    height:52px;
+  }
+  .checkoutAddonCard>button{
+    grid-column:1/-1;
+    width:100%;
+  }
+}
