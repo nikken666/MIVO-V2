@@ -31,16 +31,20 @@ export default async function HomePage({
     typeof query.addVehicle === "string" && query.addVehicle === "1";
 
   if (!addVehicle) {
+    let signedIn = false;
+
     try {
       const supabase = await createClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (user) {
-        redirect("/products");
-      }
+      signedIn = Boolean(user);
     } catch {}
+
+    if (signedIn) {
+      redirect("/products");
+    }
   }
 
   const featured = products.slice(0, 8);
