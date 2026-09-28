@@ -196,9 +196,10 @@ export default function AdminShippingPage() {
             <a href="/admin/arrange-shipment"><span>03</span>Arrange Shipment</a>
             <a href="/admin/claims"><span>04</span>Claims</a>
             <a href="/admin/promotions"><span>05</span>Promotions</a>
-            <a href="/admin/products"><span>06</span>Products</a>
-            <a href="/admin/products/new"><span>07</span>Add Product</a>
-            <a href="/admin/shipping" className={styles.active}><span>08</span>Shipping</a>
+            <a href="/admin/discounts"><span>06</span>Discounts</a>
+            <a href="/admin/products"><span>07</span>Products</a>
+            <a href="/admin/products/new"><span>08</span>Add Product</a>
+            <a href="/admin/shipping" className={styles.active}><span>09</span>Shipping</a>
           </nav>
 
           <div className={styles.adminSidebarFoot}>
