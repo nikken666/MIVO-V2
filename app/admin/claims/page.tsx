@@ -293,34 +293,14 @@ export default function AdminClaimsPage() {
           </a>
 
           <nav className={styles.adminSideNav}>
-            <a href="/admin">
-              <span>01</span>
-              Dashboard
-            </a>
-            <a href="/admin/orders">
-              <span>02</span>
-              Orders
-            </a>
-            <a href="/admin/arrange-shipment">
-              <span>03</span>
-              Arrange Shipment
-            </a>
-            <a href="/admin/claims" className={styles.active}>
-              <span>04</span>
-              Claims
-            </a>
-            <a href="/admin/products">
-              <span>05</span>
-              Products
-            </a>
-            <a href="/admin/products/new">
-              <span>06</span>
-              Add Product
-            </a>
-            <a href="/admin/shipping">
-              <span>07</span>
-              Shipping
-            </a>
+            <a href="/admin"><span>01</span>Dashboard</a>
+            <a href="/admin/orders"><span>02</span>Orders</a>
+            <a href="/admin/arrange-shipment"><span>03</span>Arrange Shipment</a>
+            <a href="/admin/claims" className={styles.active}><span>04</span>Claims</a>
+            <a href="/admin/promotions"><span>05</span>Promotions</a>
+            <a href="/admin/products"><span>06</span>Products</a>
+            <a href="/admin/products/new"><span>07</span>Add Product</a>
+            <a href="/admin/shipping"><span>08</span>Shipping</a>
           </nav>
 
           <div className={styles.adminSidebarFoot}>
