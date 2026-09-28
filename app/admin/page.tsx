@@ -28,6 +28,7 @@ type DashboardStats = {
   toShip: number;
   lowStock: number;
   activeProducts: number;
+  openClaims: number;
 };
 
 function money(value: number) {
@@ -49,6 +50,7 @@ export default function AdminPage() {
     toShip: 0,
     lowStock: 0,
     activeProducts: 0,
+    openClaims: 0,
   });
   const [recentOrders, setRecentOrders] = useState<OrderRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,6 +89,7 @@ export default function AdminPage() {
           { data: orderData, error: orderError },
           { data: variantData, error: variantError },
           { count: activeProducts, error: productError },
+          { count: openClaims, error: claimsError },
         ] = await Promise.all([
           supabase
             .from("orders")
@@ -104,10 +107,14 @@ export default function AdminPage() {
             .from("products")
             .select("*", { count: "exact", head: true })
             .eq("status", "active"),
+          supabase
+            .from("warranty_claims")
+            .select("*", { count: "exact", head: true })
+            .in("status", ["new", "reviewing", "approved"]),
         ]);
 
-        if (orderError || variantError || productError) {
-          throw orderError || variantError || productError;
+        if (orderError || variantError || productError || claimsError) {
+          throw orderError || variantError || productError || claimsError;
         }
 
         const orders = (orderData as OrderRow[] | null) || [];
@@ -151,6 +158,7 @@ export default function AdminPage() {
           toShip,
           lowStock,
           activeProducts: activeProducts || 0,
+          openClaims: openClaims || 0,
         });
         setRecentOrders(orders.slice(0, 6));
       } catch (caught) {
@@ -168,7 +176,11 @@ export default function AdminPage() {
   }, []);
 
   const alertCount = useMemo(
-    () => stats.pendingPayment + stats.toShip + stats.lowStock,
+    () =>
+      stats.pendingPayment +
+      stats.toShip +
+      stats.lowStock +
+      stats.openClaims,
     [stats]
   );
 
@@ -264,6 +276,12 @@ export default function AdminPage() {
               <small>At or below threshold · VIEW →</small>
             </a>
 
+            <a href="/admin/claims" className={styles.dashboardStat}>
+              <span>OPEN CLAIMS</span>
+              <strong>{loading ? "—" : stats.openClaims}</strong>
+              <small>Warranty cases needing attention · VIEW →</small>
+            </a>
+
             <a href="/admin/products?status=active" className={styles.dashboardStat}>
               <span>ACTIVE PRODUCTS</span>
               <strong>{loading ? "—" : stats.activeProducts}</strong>
@@ -343,6 +361,10 @@ export default function AdminPage() {
               <a href="/admin/arrange-shipment">
                 <span>FULFILMENT</span>
                 <strong>Arrange paid orders →</strong>
+              </a>
+              <a href="/admin/claims">
+                <span>AFTER-SALES</span>
+                <strong>Review warranty claims →</strong>
               </a>
               <a href="/admin/products">
                 <span>CATALOGUE</span>
