@@ -3145,3 +3145,363 @@
   opacity:.55;
   cursor:default;
 }
+
+
+/* MARKETING CENTRE */
+.marketingHero{
+  padding:24px;
+  display:grid;
+  grid-template-columns:minmax(0,1.35fr) minmax(360px,.65fr);
+  gap:24px;
+  align-items:center;
+  border-radius:16px;
+  background:
+    radial-gradient(circle at 82% 16%,rgba(255,255,255,.1),transparent 30%),
+    linear-gradient(120deg,#191b1e,#111315 58%,#2d0d11);
+  color:#fff;
+}
+.marketingHero>div:first-child>span{
+  color:#ef5a63;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+.marketingHero h2{
+  margin:7px 0 0;
+  font-size:28px;
+  letter-spacing:-.04em;
+}
+.marketingHero p{
+  max-width:640px;
+  margin:9px 0 0;
+  color:#bfc4c7;
+  font-size:9px;
+  line-height:1.55;
+}
+.marketingHeroStats{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+.marketingHeroStats article{
+  min-height:86px;
+  padding:12px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;
+  background:rgba(255,255,255,.045);
+}
+.marketingHeroStats span,
+.marketingHeroStats strong{
+  display:block;
+}
+.marketingHeroStats span{
+  color:#aeb4b7;
+  font-size:6px;
+  font-weight:900;
+  letter-spacing:.06em;
+}
+.marketingHeroStats strong{
+  margin-top:9px;
+  font-size:22px;
+}
+.marketingToolGrid{
+  margin-top:16px;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+}
+.marketingToolCard{
+  min-height:245px;
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  border:1px solid #dfe2e3;
+  border-radius:14px;
+  background:#fff;
+  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease;
+}
+.marketingToolCard:hover{
+  transform:translateY(-2px);
+  border-color:#c8cdcf;
+  box-shadow:0 12px 28px rgba(25,29,31,.08);
+}
+.marketingToolIcon{
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  background:#f5f6f6;
+  color:#d8242f;
+  font-size:8px;
+  font-weight:900;
+}
+.marketingToolCard>div:nth-child(2){
+  margin-top:18px;
+}
+.marketingToolCard>div:nth-child(2)>span{
+  color:#d8242f;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.09em;
+}
+.marketingToolCard h2{
+  margin:5px 0 0;
+  font-size:20px;
+  letter-spacing:-.03em;
+}
+.marketingToolCard p{
+  margin:8px 0 0;
+  color:#7d8488;
+  font-size:8px;
+  line-height:1.55;
+}
+.marketingToolCard footer{
+  margin-top:auto;
+  padding-top:16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  border-top:1px solid #eceeef;
+}
+.marketingToolCard footer span{
+  color:#8a9195;
+  font-size:7px;
+}
+.marketingToolCard footer strong{
+  color:#d8242f;
+  font-size:7px;
+  font-weight:900;
+}
+.marketingGuide{
+  margin-top:16px;
+  padding:18px 20px;
+  border:1px solid #dfe2e3;
+  border-radius:14px;
+  background:#fff;
+}
+.marketingGuide>div{
+  margin-top:13px;
+  display:grid;
+  grid-template-columns:1fr auto 1fr auto 1fr;
+  gap:12px;
+  align-items:center;
+}
+.marketingGuide article{
+  padding:14px;
+  border-radius:10px;
+  background:#f7f8f8;
+}
+.marketingGuide article b,
+.marketingGuide article strong,
+.marketingGuide article small{
+  display:block;
+}
+.marketingGuide article b{
+  color:#d8242f;
+  font-size:7px;
+}
+.marketingGuide article strong{
+  margin-top:4px;
+  font-size:8px;
+}
+.marketingGuide article small{
+  margin-top:4px;
+  color:#848b8f;
+  font-size:7px;
+}
+.marketingGuide>div>i{
+  color:#b5babd;
+  font-style:normal;
+}
+.marketingSubnav{
+  margin-bottom:16px;
+  padding:5px;
+  display:flex;
+  gap:5px;
+  width:max-content;
+  max-width:100%;
+  overflow:auto;
+  border:1px solid #dfe2e3;
+  border-radius:10px;
+  background:#fff;
+}
+.marketingSubnav a{
+  min-height:34px;
+  padding:0 14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:7px;
+  color:#737a7e;
+  font-size:8px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.marketingSubnav a:hover{
+  background:#f5f6f6;
+  color:#22272a;
+}
+.marketingSubnav .marketingSubnavActive{
+  background:#17191b;
+  color:#fff;
+}
+.marketingManagerGrid{
+  display:grid;
+  grid-template-columns:minmax(0,1.18fr) minmax(360px,.82fr);
+  gap:16px;
+  align-items:start;
+}
+.marketingFormActions{
+  margin-top:14px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.marketingList,
+.marketingVoucherList{
+  display:grid;
+  gap:9px;
+}
+.marketingList article{
+  padding:10px;
+  display:grid;
+  grid-template-columns:86px minmax(0,1fr) auto;
+  gap:12px;
+  align-items:center;
+  border:1px solid #e3e6e7;
+  border-radius:10px;
+  background:#fff;
+}
+.marketingListVisual{
+  width:86px;
+  height:58px;
+  overflow:hidden;
+  border-radius:7px;
+  background:#f3f4f4;
+}
+.marketingListVisual img,
+.marketingListVisual i{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+}
+.marketingListCopy{
+  min-width:0;
+}
+.marketingListCopy span,
+.marketingListCopy strong,
+.marketingListCopy small{
+  display:block;
+}
+.marketingListCopy span{
+  color:#d8242f;
+  font-size:6px;
+  font-weight:900;
+  letter-spacing:.07em;
+}
+.marketingListCopy strong{
+  margin-top:3px;
+  overflow:hidden;
+  font-size:9px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.marketingListCopy small{
+  margin-top:4px;
+  color:#8a9195;
+  font-size:6px;
+  line-height:1.4;
+}
+.marketingVoucherList article{
+  padding:11px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 120px auto;
+  gap:12px;
+  align-items:center;
+  border:1px solid #e3e6e7;
+  border-radius:10px;
+  background:#fff;
+}
+.marketingVoucherTicket{
+  min-width:0;
+  padding-left:11px;
+  border-left:3px solid #d8242f;
+}
+.marketingVoucherTicket span,
+.marketingVoucherTicket strong,
+.marketingVoucherTicket small{
+  display:block;
+}
+.marketingVoucherTicket span{
+  color:#d8242f;
+  font-size:7px;
+  font-weight:900;
+}
+.marketingVoucherTicket strong{
+  margin-top:3px;
+  font-size:10px;
+}
+.marketingVoucherTicket small{
+  margin-top:4px;
+  color:#858c90;
+  font-size:6px;
+}
+.marketingVoucherMeta span,
+.marketingVoucherMeta small,
+.marketingVoucherMeta b{
+  display:block;
+}
+.marketingVoucherMeta span{
+  color:#6e7579;
+  font-size:6px;
+  font-weight:900;
+}
+.marketingVoucherMeta small{
+  margin-top:4px;
+  color:#9aa0a4;
+  font-size:6px;
+}
+.marketingVoucherMeta b{
+  width:max-content;
+  margin-top:5px;
+  padding:4px 6px;
+  border-radius:999px;
+  background:#fff1e2;
+  color:#9a6200;
+  font-size:5px;
+}
+@media(max-width:1180px){
+  .marketingHero,
+  .marketingManagerGrid{
+    grid-template-columns:1fr;
+  }
+  .marketingToolGrid{
+    grid-template-columns:1fr;
+  }
+}
+@media(max-width:760px){
+  .marketingHeroStats{
+    grid-template-columns:1fr;
+  }
+  .marketingGuide>div{
+    grid-template-columns:1fr;
+  }
+  .marketingGuide>div>i{
+    display:none;
+  }
+  .marketingList article,
+  .marketingVoucherList article{
+    grid-template-columns:1fr;
+  }
+  .marketingListVisual{
+    width:100%;
+    height:110px;
+  }
+  .marketingFormActions{
+    align-items:stretch;
+    flex-direction:column;
+  }
+}
