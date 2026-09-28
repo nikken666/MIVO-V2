@@ -12,6 +12,14 @@ type Campaign = {
   cta_label: string;
   landing_path: string;
   theme: string;
+  primary_color: string;
+  secondary_color: string;
+  text_color: string;
+  muted_text_color: string;
+  countdown_bg_color: string;
+  countdown_text_color: string;
+  button_bg_color: string;
+  button_text_color: string;
   starts_at: string;
   ends_at: string;
   sort_order: number;
@@ -49,6 +57,72 @@ type RefOption = {
   name: string;
 };
 
+
+const campaignPresets = {
+  red_sale: {
+    label: "MIVO RED",
+    description: "Bold campaign red",
+    primary_color: "#D8242F",
+    secondary_color: "#6F0D14",
+    text_color: "#FFFFFF",
+    muted_text_color: "#FFE9EA",
+    countdown_bg_color: "#2B1014",
+    countdown_text_color: "#FFFFFF",
+    button_bg_color: "#FFFFFF",
+    button_text_color: "#B61923",
+  },
+  orange_market: {
+    label: "ORANGE SALE",
+    description: "Marketplace promo",
+    primary_color: "#F4511E",
+    secondary_color: "#C62828",
+    text_color: "#FFFFFF",
+    muted_text_color: "#FFF0E8",
+    countdown_bg_color: "#7A2414",
+    countdown_text_color: "#FFFFFF",
+    button_bg_color: "#FFFFFF",
+    button_text_color: "#E74616",
+  },
+  black_premium: {
+    label: "BLACK PREMIUM",
+    description: "Dark luxury look",
+    primary_color: "#17191B",
+    secondary_color: "#050607",
+    text_color: "#FFFFFF",
+    muted_text_color: "#C6C9CB",
+    countdown_bg_color: "#050607",
+    countdown_text_color: "#FFFFFF",
+    button_bg_color: "#D8242F",
+    button_text_color: "#FFFFFF",
+  },
+  blue_tech: {
+    label: "BLUE TECH",
+    description: "Cool technology",
+    primary_color: "#1769AA",
+    secondary_color: "#0A2B4C",
+    text_color: "#FFFFFF",
+    muted_text_color: "#D9EDFF",
+    countdown_bg_color: "#09243D",
+    countdown_text_color: "#FFFFFF",
+    button_bg_color: "#FFFFFF",
+    button_text_color: "#0D5E9B",
+  },
+  gold_premium: {
+    label: "GOLD PREMIUM",
+    description: "Premium seasonal",
+    primary_color: "#B8892E",
+    secondary_color: "#3B2A0E",
+    text_color: "#FFFFFF",
+    muted_text_color: "#F5E8C8",
+    countdown_bg_color: "#2C1F0A",
+    countdown_text_color: "#FFF7E3",
+    button_bg_color: "#FFF4D7",
+    button_text_color: "#5F430E",
+  },
+} as const;
+
+type CampaignPresetKey = keyof typeof campaignPresets;
+
 function toLocalInput(value?: string) {
   const date = value ? new Date(value) : new Date();
   const offset = date.getTimezoneOffset() * 60000;
@@ -82,7 +156,15 @@ export default function AdminPromotionsPage() {
     badge: "LIMITED TIME",
     cta_label: "SHOP NOW",
     landing_path: "/products",
-    theme: "red",
+    theme: "red_sale",
+    primary_color: campaignPresets.red_sale.primary_color,
+    secondary_color: campaignPresets.red_sale.secondary_color,
+    text_color: campaignPresets.red_sale.text_color,
+    muted_text_color: campaignPresets.red_sale.muted_text_color,
+    countdown_bg_color: campaignPresets.red_sale.countdown_bg_color,
+    countdown_text_color: campaignPresets.red_sale.countdown_text_color,
+    button_bg_color: campaignPresets.red_sale.button_bg_color,
+    button_text_color: campaignPresets.red_sale.button_text_color,
     desktop_image_url: "",
     mobile_image_url: "",
     display_mode: "overlay" as "overlay" | "image_only",
@@ -146,7 +228,7 @@ export default function AdminPromotionsPage() {
       supabase
         .from("promotion_campaigns")
         .select(
-          "id, title, subtitle, badge, cta_label, landing_path, theme, desktop_image_url, mobile_image_url, display_mode, overlay_opacity, show_countdown, image_position, starts_at, ends_at, sort_order, is_active"
+          "id, title, subtitle, badge, cta_label, landing_path, theme, primary_color, secondary_color, text_color, muted_text_color, countdown_bg_color, countdown_text_color, button_bg_color, button_text_color, desktop_image_url, mobile_image_url, display_mode, overlay_opacity, show_countdown, image_position, starts_at, ends_at, sort_order, is_active"
         )
         .order("starts_at", { ascending: false }),
       supabase
@@ -204,6 +286,23 @@ export default function AdminPromotionsPage() {
       active = false;
     };
   }, []);
+
+  function applyCampaignPreset(presetKey: CampaignPresetKey) {
+    const preset = campaignPresets[presetKey];
+
+    setCampaignForm((current) => ({
+      ...current,
+      theme: presetKey,
+      primary_color: preset.primary_color,
+      secondary_color: preset.secondary_color,
+      text_color: preset.text_color,
+      muted_text_color: preset.muted_text_color,
+      countdown_bg_color: preset.countdown_bg_color,
+      countdown_text_color: preset.countdown_text_color,
+      button_bg_color: preset.button_bg_color,
+      button_text_color: preset.button_text_color,
+    }));
+  }
 
   const scopeOptions = useMemo(() => {
     if (voucherForm.scope_type === "brand") return brands;
@@ -276,6 +375,14 @@ export default function AdminPromotionsPage() {
         cta_label: campaignForm.cta_label.trim() || "SHOP NOW",
         landing_path: campaignForm.landing_path.trim() || "/products",
         theme: campaignForm.theme,
+        primary_color: campaignForm.primary_color,
+        secondary_color: campaignForm.secondary_color,
+        text_color: campaignForm.text_color,
+        muted_text_color: campaignForm.muted_text_color,
+        countdown_bg_color: campaignForm.countdown_bg_color,
+        countdown_text_color: campaignForm.countdown_text_color,
+        button_bg_color: campaignForm.button_bg_color,
+        button_text_color: campaignForm.button_text_color,
         desktop_image_url: campaignForm.desktop_image_url || null,
         mobile_image_url: campaignForm.mobile_image_url || null,
         display_mode: campaignForm.display_mode,
@@ -306,6 +413,15 @@ export default function AdminPromotionsPage() {
         badge: "LIMITED TIME",
         cta_label: "SHOP NOW",
         landing_path: "/products",
+        theme: "red_sale",
+        primary_color: campaignPresets.red_sale.primary_color,
+        secondary_color: campaignPresets.red_sale.secondary_color,
+        text_color: campaignPresets.red_sale.text_color,
+        muted_text_color: campaignPresets.red_sale.muted_text_color,
+        countdown_bg_color: campaignPresets.red_sale.countdown_bg_color,
+        countdown_text_color: campaignPresets.red_sale.countdown_text_color,
+        button_bg_color: campaignPresets.red_sale.button_bg_color,
+        button_text_color: campaignPresets.red_sale.button_text_color,
         desktop_image_url: "",
         mobile_image_url: "",
         display_mode: "overlay",
@@ -407,7 +523,19 @@ export default function AdminPromotionsPage() {
       badge: campaign.badge || "",
       cta_label: campaign.cta_label,
       landing_path: campaign.landing_path,
-      theme: campaign.theme,
+      theme: campaign.theme || "red_sale",
+      primary_color: campaign.primary_color || campaignPresets.red_sale.primary_color,
+      secondary_color: campaign.secondary_color || campaignPresets.red_sale.secondary_color,
+      text_color: campaign.text_color || campaignPresets.red_sale.text_color,
+      muted_text_color: campaign.muted_text_color || campaignPresets.red_sale.muted_text_color,
+      countdown_bg_color:
+        campaign.countdown_bg_color || campaignPresets.red_sale.countdown_bg_color,
+      countdown_text_color:
+        campaign.countdown_text_color || campaignPresets.red_sale.countdown_text_color,
+      button_bg_color:
+        campaign.button_bg_color || campaignPresets.red_sale.button_bg_color,
+      button_text_color:
+        campaign.button_text_color || campaignPresets.red_sale.button_text_color,
       desktop_image_url: campaign.desktop_image_url || "",
       mobile_image_url: campaign.mobile_image_url || "",
       display_mode: campaign.display_mode || "overlay",
@@ -725,6 +853,153 @@ export default function AdminPromotionsPage() {
                       </select>
                     </label>
 
+                    <div className={styles.campaignStyleManager}>
+                      <div className={styles.campaignStyleHead}>
+                        <div>
+                          <span>BANNER STYLE</span>
+                          <strong>Preset & custom colours</strong>
+                        </div>
+                        <small>
+                          Pick a preset, then fine-tune any colour.
+                        </small>
+                      </div>
+
+                      <div className={styles.campaignPresetGrid}>
+                        {(
+                          Object.entries(campaignPresets) as Array<
+                            [CampaignPresetKey, (typeof campaignPresets)[CampaignPresetKey]]
+                          >
+                        ).map(([key, preset]) => (
+                          <button
+                            type="button"
+                            key={key}
+                            className={
+                              styles.campaignPresetCard +
+                              (campaignForm.theme === key
+                                ? " " + styles.activePreset
+                                : "")
+                            }
+                            onClick={() => applyCampaignPreset(key)}
+                          >
+                            <i
+                              style={{
+                                background:
+                                  "linear-gradient(135deg," +
+                                  preset.primary_color +
+                                  "," +
+                                  preset.secondary_color +
+                                  ")",
+                              }}
+                            />
+                            <span>{preset.label}</span>
+                            <small>{preset.description}</small>
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className={styles.campaignColourGrid}>
+                        {[
+                          ["PRIMARY", "primary_color"],
+                          ["SECONDARY", "secondary_color"],
+                          ["TEXT", "text_color"],
+                          ["SUBTEXT", "muted_text_color"],
+                          ["COUNTDOWN BG", "countdown_bg_color"],
+                          ["COUNTDOWN TEXT", "countdown_text_color"],
+                          ["BUTTON BG", "button_bg_color"],
+                          ["BUTTON TEXT", "button_text_color"],
+                        ].map(([label, field]) => (
+                          <label
+                            className={styles.campaignColourField}
+                            key={field}
+                          >
+                            <span>{label}</span>
+                            <div>
+                              <input
+                                type="color"
+                                value={
+                                  campaignForm[
+                                    field as keyof typeof campaignForm
+                                  ] as string
+                                }
+                                onChange={(event) =>
+                                  setCampaignForm((current) => ({
+                                    ...current,
+                                    theme: "custom",
+                                    [field]: event.target.value.toUpperCase(),
+                                  }))
+                                }
+                              />
+                              <input
+                                value={
+                                  campaignForm[
+                                    field as keyof typeof campaignForm
+                                  ] as string
+                                }
+                                maxLength={7}
+                                onChange={(event) =>
+                                  setCampaignForm((current) => ({
+                                    ...current,
+                                    theme: "custom",
+                                    [field]: event.target.value.toUpperCase(),
+                                  }))
+                                }
+                              />
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+
+                      <div
+                        className={styles.campaignMiniPreview}
+                        style={{
+                          background:
+                            "linear-gradient(120deg," +
+                            campaignForm.primary_color +
+                            "," +
+                            campaignForm.secondary_color +
+                            ")",
+                          color: campaignForm.text_color,
+                        }}
+                      >
+                        <div>
+                          <span
+                            style={{
+                              color: campaignForm.muted_text_color,
+                            }}
+                          >
+                            {campaignForm.badge || "LIMITED TIME"}
+                          </span>
+                          <strong>
+                            {campaignForm.title || "10.10 AUTO SALE"}
+                          </strong>
+                          <small
+                            style={{
+                              color: campaignForm.muted_text_color,
+                            }}
+                          >
+                            {campaignForm.subtitle ||
+                              "Campaign subtitle preview"}
+                          </small>
+                          <b
+                            style={{
+                              background: campaignForm.button_bg_color,
+                              color: campaignForm.button_text_color,
+                            }}
+                          >
+                            {campaignForm.cta_label || "SHOP NOW"} →
+                          </b>
+                        </div>
+                        <i
+                          style={{
+                            background: campaignForm.countdown_bg_color,
+                            color: campaignForm.countdown_text_color,
+                          }}
+                        >
+                          12 : 11 : 48 : 55
+                        </i>
+                      </div>
+                    </div>
+
                     <label className={styles.adminField}>
                       <span>IMAGE POSITION</span>
                       <select
@@ -856,6 +1131,19 @@ export default function AdminPromotionsPage() {
                           badge: "LIMITED TIME",
                           cta_label: "SHOP NOW",
                           landing_path: "/products",
+                          theme: "red_sale",
+                          primary_color: campaignPresets.red_sale.primary_color,
+                          secondary_color: campaignPresets.red_sale.secondary_color,
+                          text_color: campaignPresets.red_sale.text_color,
+                          muted_text_color: campaignPresets.red_sale.muted_text_color,
+                          countdown_bg_color:
+                            campaignPresets.red_sale.countdown_bg_color,
+                          countdown_text_color:
+                            campaignPresets.red_sale.countdown_text_color,
+                          button_bg_color:
+                            campaignPresets.red_sale.button_bg_color,
+                          button_text_color:
+                            campaignPresets.red_sale.button_text_color,
                           desktop_image_url: "",
                           mobile_image_url: "",
                           display_mode: "overlay",
