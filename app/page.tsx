@@ -171,7 +171,7 @@ export default async function HomePage({
         </div>
       </section>
 
-      <HomePromotions products={(liveProducts.length ? liveProducts : products).slice(0, 20)} />
+      <HomePromotions products={liveProducts.length ? liveProducts : products} />
 
       <section className="section categorySection">
         <div className="container">
