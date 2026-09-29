@@ -4763,3 +4763,169 @@
     grid-template-columns:1fr;
   }
 }
+
+
+/* MARKETING VOUCHER RESPONSIVE POLISH */
+.marketingVoucherList article{
+  min-width:0;
+  overflow:hidden;
+}
+.marketingVoucherTicket{
+  min-width:0;
+}
+.marketingVoucherTicket strong{
+  overflow-wrap:anywhere;
+}
+.marketingVoucherMeta{
+  min-width:0;
+}
+.marketingVoucherList .promotionRowActions{
+  flex-wrap:nowrap;
+  justify-content:flex-end;
+}
+.marketingVoucherList .promotionRowActions button{
+  min-width:64px;
+  min-height:34px;
+  padding:0 11px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid #dfe2e3;
+  border-radius:8px;
+  background:#fff;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.02em;
+  line-height:1;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.marketingVoucherList .promotionRowActions .promotionEdit{
+  min-width:64px!important;
+  border-color:#dfe2e3!important;
+  background:#fff!important;
+  color:#555d61!important;
+}
+.marketingVoucherList .promotionRowActions .promotionOn{
+  border-color:#bad8c2;
+  background:#eef8f1;
+  color:#26743c;
+}
+.marketingVoucherList .promotionRowActions .promotionOff{
+  border-color:#dfe2e3;
+  background:#f3f4f4;
+  color:#686f73;
+}
+.marketingVoucherList .promotionRowActions .promotionDelete{
+  border-color:#efd1d4;
+  background:#fff7f7;
+  color:#c52833;
+}
+.marketingVoucherList .promotionRowActions button:hover{
+  transform:translateY(-1px);
+}
+.adminHeaderActions .adminSecondaryAction{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:auto;
+  white-space:nowrap;
+}
+
+@media(max-width:1180px){
+  .marketingVoucherList article{
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:10px 14px;
+  }
+  .marketingVoucherMeta{
+    grid-column:1;
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:6px 10px;
+  }
+  .marketingVoucherMeta small,
+  .marketingVoucherMeta b{
+    margin-top:0;
+  }
+  .marketingVoucherList .promotionRowActions{
+    grid-column:2;
+    grid-row:1 / span 2;
+    align-self:center;
+  }
+}
+
+@media(max-width:760px){
+  .adminHeader{
+    min-height:0;
+    padding:14px 0 12px;
+    gap:10px;
+  }
+  .adminHeaderActions{
+    width:auto;
+  }
+  .adminHeaderActions .adminSecondaryAction{
+    min-height:34px;
+    padding:0 11px;
+    border-radius:8px;
+    font-size:7px;
+  }
+  .marketingSubnav{
+    width:100%;
+  }
+  .marketingSubnav a{
+    flex:1;
+    min-width:90px;
+  }
+  .marketingManagerGrid{
+    gap:12px;
+  }
+  .marketingVoucherList article{
+    grid-template-columns:1fr;
+    padding:13px;
+    gap:10px;
+  }
+  .marketingVoucherTicket{
+    padding:1px 0 1px 11px;
+  }
+  .marketingVoucherTicket span{
+    font-size:7px;
+  }
+  .marketingVoucherTicket strong{
+    font-size:12px;
+  }
+  .marketingVoucherTicket small{
+    font-size:7px;
+    line-height:1.45;
+  }
+  .marketingVoucherMeta{
+    grid-column:1;
+  }
+  .marketingVoucherList .promotionRowActions{
+    grid-column:1;
+    grid-row:auto;
+    width:100%;
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:7px;
+  }
+  .marketingVoucherList .promotionRowActions button,
+  .marketingVoucherList .promotionRowActions .promotionEdit{
+    width:100%;
+    min-width:0!important;
+    min-height:36px;
+  }
+}
+
+@media(max-width:440px){
+  .adminHeaderActions .adminSecondaryAction{
+    width:max-content;
+    max-width:100%;
+  }
+  .marketingVoucherList .promotionRowActions{
+    grid-template-columns:1fr 1fr;
+  }
+  .marketingVoucherList .promotionRowActions .promotionDelete{
+    grid-column:1/-1;
+  }
+}
