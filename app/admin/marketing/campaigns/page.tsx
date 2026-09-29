@@ -291,6 +291,7 @@ export default function MarketingCampaignsPage() {
   const [busy, setBusy] = useState("");
   const [imageBusy, setImageBusy] = useState("");
   const [productQuery, setProductQuery] = useState("");
+  const [productPickerOpen, setProductPickerOpen] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
@@ -412,7 +413,7 @@ export default function MarketingCampaignsPage() {
         };
       }
 
-      if (current.featured_product_ids.length >= 4) return current;
+      
 
       return {
         ...current,
@@ -499,7 +500,7 @@ export default function MarketingCampaignsPage() {
           .map((item) => item.trim())
           .filter(Boolean)
           .slice(0, 4),
-        featured_product_ids: form.featured_product_ids.slice(0, 4),
+        featured_product_ids: form.featured_product_ids,
         theme: form.theme,
         primary_color: form.primary_color,
         secondary_color: form.secondary_color,
@@ -617,6 +618,11 @@ export default function MarketingCampaignsPage() {
     setError("");
     setMessage("");
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function duplicateCampaign(campaign: Campaign) {
+    setBusy("duplicate-" + campaign.id); setError("");
+    try { const supabase=createClient(); const { id, ...copy }=campaign; const { error:e }=await supabase.from("promotion_campaigns").insert({...copy,title:campaign.title+" COPY",is_active:false,starts_at:new Date().toISOString(),ends_at:new Date(Date.now()+7*86400000).toISOString()}); if(e) throw e; await load(); setMessage("Campaign duplicated as draft."); } catch(caught){setError(caught instanceof Error?caught.message:"Unable to duplicate campaign.");} finally{setBusy("");}
   }
 
   async function toggleCampaign(campaign: Campaign) {
@@ -970,7 +976,7 @@ export default function MarketingCampaignsPage() {
                       <div className={styles.marketingCampaignActionsV2}>
                         <button type="button" onClick={() => editCampaign(campaign)}>
                           EDIT
-                        </button>
+                        </button><button type="button" className={styles.adminSecondaryAction} disabled={busy==="duplicate-"+campaign.id} onClick={()=>void duplicateCampaign(campaign)}>DUPLICATE</button>
                         <button
                           type="button"
                           disabled={busy === "duplicate-" + campaign.id}
@@ -1200,7 +1206,8 @@ export default function MarketingCampaignsPage() {
                       {form.template_type === "flash_deal_grid" ? (
                         <div className={styles.marketingProductsPickerV2}>
                           <div>
-                            <span>FEATURED PRODUCTS</span>
+                            <button type="button" className={styles.adminSecondaryAction} onClick={()=>setProductPickerOpen(true)}>SELECT CAMPAIGN PRODUCTS ({form.featured_product_ids.length})</button>
+<span>FEATURED PRODUCTS</span>
                             <small>Select up to 4 products.</small>
                           </div>
                           <input
