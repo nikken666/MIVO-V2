@@ -246,10 +246,7 @@ export default function HomePromotions({
       .map((id) => products.find((product) => product.id === id))
       .filter((product): product is Product => Boolean(product));
 
-    return (selected.length ? selected : deals.map((row) => row.product)).slice(
-      0,
-      4
-    );
+    return selected.length ? selected : deals.map((row) => row.product).slice(0, 4);
   }, [campaign, products, deals]);
 
   async function claim(voucher: Voucher) {
@@ -431,7 +428,7 @@ export default function HomePromotions({
                   ) : null}
                   <div className="campaignEventActions">
                     <Link href={campaign.landing_path || "/products"}>
-                      {campaign.cta_label || "SHOP NOW"} <b>→</b>
+                      {campaign.cta_label || "SHOP NOW"} <b aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></b>
                     </Link>
                     <Countdown compact />
                   </div>
@@ -492,7 +489,7 @@ export default function HomePromotions({
                   <p>{campaign.subtitle}</p>
                   <div className="campaignEventActions">
                     <Link href={campaign.landing_path || "/products"}>
-                      {campaign.cta_label || "SHOP DEALS"} <b>→</b>
+                      {campaign.cta_label || "SHOP DEALS"} <b aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></b>
                     </Link>
                     <Countdown compact />
                   </div>
@@ -549,7 +546,7 @@ export default function HomePromotions({
                     <Link href={category.href} key={category.label}>
                       <b>{category.mark}</b>
                       <span>{category.label}</span>
-                      <i>→</i>
+                      <i aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></i>
                     </Link>
                   ))}
                 </div>
@@ -572,8 +569,7 @@ export default function HomePromotions({
                     ))}
                   </div>
                   <Link href={campaign.landing_path || "/products"}>
-                    {campaign.cta_label || "SHOP ALL PARTS"} →
-                  </Link>
+                    {campaign.cta_label || "SHOP ALL PARTS"} <span aria-hidden="true">›</span></Link>
                 </div>
               </div>
             ) : (
@@ -608,7 +604,7 @@ export default function HomePromotions({
 
                     <div className="campaignEventActions">
                       <Link href={campaign.landing_path || "/products"}>
-                        {campaign.cta_label || "SHOP EVENT"} <b>→</b>
+                        {campaign.cta_label || "SHOP EVENT"} <b aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></b>
                       </Link>
                     </div>
                   </div>
