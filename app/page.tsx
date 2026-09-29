@@ -177,7 +177,7 @@ export default async function HomePage({
         <div className="container">
           <div className="sectionHeader">
             <div><span className="sectionEyebrow">SHOP BY SYSTEM</span><h2>Parts, organised the way<br />cars are built.</h2></div>
-            <Link href="/products" className="sectionLink">VIEW ALL CATEGORIES <span>↗</span></Link>
+            <Link href="/products" className="sectionLink">VIEW ALL CATEGORIES</Link>
           </div>
 
           <div className="categoryGrid">
@@ -195,7 +195,7 @@ export default async function HomePage({
                 <div className="categoryCopy">
                   <h3>{cat.name}</h3>
                   <p>{cat.desc}</p>
-                  <span>Shop category ↗</span>
+                  <span>Shop category</span>
                 </div>
               </Link>
             ))}
