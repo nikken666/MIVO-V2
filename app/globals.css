@@ -2,7 +2,7 @@
   --black:#0b0d0f;--black2:#14171a;--ink:#17191c;--grey:#6f7479;--line:#e3e5e7;
   --soft:#f4f5f5;--paper:#fff;--warm:#f1eee8;--red:#d8242f;--silver:#d9dde0;
   --radius:20px;--shadow:0 22px 60px rgba(12,15,18,.09);
-  --mivo-ui-font:var(--font-shopee),"Helvetica Neue",Helvetica,Arial,sans-serif
+  --mivo-ui-font:Arial,Helvetica,"Helvetica Neue",sans-serif
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;max-width:100%;overflow-x:hidden;font-family:var(--mivo-ui-font)}
@@ -8918,4 +8918,40 @@ button,input,select,textarea,option,optgroup,table,th,td{
 .productTitleBlock h1,
 .productPricePanel strong{
   font-weight:700;
+}
+
+
+/* FORCE CONSISTENT SHOPPING UI TYPEFACE */
+html,
+body,
+button,
+input,
+select,
+textarea,
+option,
+optgroup,
+table,
+thead,
+tbody,
+tfoot,
+tr,
+th,
+td,
+a,
+p,
+span,
+small,
+strong,
+b,
+em,
+label,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+li,
+div{
+  font-family:Arial,Helvetica,"Helvetica Neue",sans-serif !important;
 }
