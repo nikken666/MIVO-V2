@@ -127,7 +127,7 @@ export default function Header() {
               <Link href="/products?group=steering">STEERING</Link>
               <Link href="/products?group=drivetrain">DRIVETRAIN</Link>
               <Link href="/products?group=cooling">COOLING</Link>
-              <Link href="/brands">BRANDS</Link>
+              <Link href="/products?view=brands">BRANDS</Link>
             </nav>
             <div className="navUtilityLinks">
               <Link href="/?addVehicle=1#fitment" className="addCarLink">
