@@ -148,7 +148,12 @@ export default function OrdersPage() {
 
     if (orderError) throw orderError;
 
-    let loadedOrders = (data as OrderRow[] | null) || [];
+    const loadedOrders = (data as OrderRow[] | null) || [];
+
+    // Show the order list immediately. Product images and review status are
+    // enrichment only and should never block order tracking.
+    setOrders(loadedOrders);
+    setLoading(false);
 
     const productIds = Array.from(
       new Set(
@@ -159,15 +164,18 @@ export default function OrdersPage() {
       )
     );
 
-    const productImageMap = new Map<string, string>();
+    const completedOrders = loadedOrders.filter(
+      (order) => order.status === "delivered"
+    );
 
-    if (productIds.length > 0) {
-      const { data: productData, error: productError } = await supabase
+    const enrichImages = async () => {
+      if (productIds.length === 0) return;
+
+      const productImageMap = new Map<string, string>();
+      const { data: productData } = await supabase
         .from("products")
         .select("id, primary_image_url")
         .in("id", productIds);
-
-      if (productError) throw productError;
 
       (
         (productData as Array<{
@@ -185,13 +193,11 @@ export default function OrdersPage() {
       );
 
       if (missingProductIds.length > 0) {
-        const { data: imageData, error: imageError } = await supabase
+        const { data: imageData } = await supabase
           .from("product_images")
           .select("product_id, image_url, sort_order")
           .in("product_id", missingProductIds)
           .order("sort_order", { ascending: true });
-
-        if (imageError) throw imageError;
 
         (
           (imageData as Array<{
@@ -205,35 +211,34 @@ export default function OrdersPage() {
           }
         });
       }
-    }
 
-    loadedOrders = loadedOrders.map((order) => ({
-      ...order,
-      order_items: (order.order_items || []).map((item) => ({
-        ...item,
-        image_url: item.product_id
-          ? productImageMap.get(item.product_id) || null
-          : null,
-      })),
-    }));
+      setOrders((current) =>
+        current.map((order) => ({
+          ...order,
+          order_items: (order.order_items || []).map((item) => ({
+            ...item,
+            image_url: item.product_id
+              ? productImageMap.get(item.product_id) || item.image_url || null
+              : null,
+          })),
+        }))
+      );
+    };
 
-    const completedOrders = loadedOrders.filter(
-      (order) => order.status === "delivered"
-    );
-    const completedOrderIds = completedOrders.map((order) => order.id);
-    const reviewedIds: string[] = [];
+    const enrichReviews = async () => {
+      const completedOrderIds = completedOrders.map((order) => order.id);
+      if (completedOrderIds.length === 0) {
+        setReviewedOrderIds([]);
+        return;
+      }
 
-    if (completedOrderIds.length > 0) {
-      const { data: reviewData, error: reviewError } = await supabase
+      const { data: reviewData } = await supabase
         .from("product_reviews")
         .select("order_id, order_item_id")
         .eq("user_id", user.id)
         .in("order_id", completedOrderIds);
 
-      if (reviewError) throw reviewError;
-
       const reviewsByOrder = new Map<string, Set<string>>();
-
       (
         (reviewData as Array<{
           order_id: string;
@@ -246,24 +251,23 @@ export default function OrdersPage() {
         reviewsByOrder.set(review.order_id, current);
       });
 
-      completedOrders.forEach((order) => {
-        const itemIds = (order.order_items || []).map((item) => item.id);
-        const reviewedItems = reviewsByOrder.get(order.id);
+      const reviewedIds = completedOrders
+        .filter((order) => {
+          const itemIds = (order.order_items || []).map((item) => item.id);
+          const reviewedItems = reviewsByOrder.get(order.id);
+          return (
+            itemIds.length > 0 &&
+            reviewedItems &&
+            itemIds.every((itemId) => reviewedItems.has(itemId))
+          );
+        })
+        .map((order) => order.id);
 
-        if (
-          itemIds.length > 0 &&
-          reviewedItems &&
-          itemIds.every((itemId) => reviewedItems.has(itemId))
-        ) {
-          reviewedIds.push(order.id);
-        }
-      });
-    }
+      setReviewedOrderIds(reviewedIds);
+    };
 
-    setOrders(loadedOrders);
-    setReviewedOrderIds(reviewedIds);
+    void Promise.allSettled([enrichImages(), enrichReviews()]);
   }
-
   useEffect(() => {
     let active = true;
 
