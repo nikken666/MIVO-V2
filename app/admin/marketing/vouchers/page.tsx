@@ -240,26 +240,51 @@ export default function MarketingVouchersPage() {
         first_order_only: form.first_order_only,
         scope_type: form.scope_type,
         scope_id:
-          form.scope_type === "all" ? null : form.scope_id || null,
+          form.scope_type === "all" || form.scope_type === "product"
+            ? null
+            : form.scope_id || null,
         is_active: true,
         updated_at: new Date().toISOString(),
       };
 
-      const result = editingId
-        ? await supabase
-            .from("vouchers")
-            .update(payload)
-            .eq("id", editingId)
-        : await supabase.from("vouchers").insert(payload).select("id");
+      let voucherId = editingId;
 
-      if (result.error) throw result.error;
+      if (editingId) {
+        const { error: updateError } = await supabase
+          .from("vouchers")
+          .update(payload)
+          .eq("id", editingId);
 
-      const voucherId = editingId || ((result.data as { id?: string }[] | null)?.[0]?.id || "");
+        if (updateError) throw updateError;
+      } else {
+        const { data: insertedVoucher, error: insertError } = await supabase
+          .from("vouchers")
+          .insert(payload)
+          .select("id")
+          .single();
+
+        if (insertError) throw insertError;
+        voucherId = insertedVoucher?.id ? String(insertedVoucher.id) : "";
+      }
+
       if (voucherId && form.scope_type === "product") {
-        const { error: clearScopeError } = await supabase.from("voucher_products").delete().eq("voucher_id", voucherId);
+        const { error: clearScopeError } = await supabase
+          .from("voucher_products")
+          .delete()
+          .eq("voucher_id", voucherId);
+
         if (clearScopeError) throw clearScopeError;
+
         if (selectedProductIds.length) {
-          const { error: scopeError } = await supabase.from("voucher_products").insert(selectedProductIds.map((product_id) => ({ voucher_id: voucherId, product_id })));
+          const { error: scopeError } = await supabase
+            .from("voucher_products")
+            .insert(
+              selectedProductIds.map((productId) => ({
+                voucher_id: voucherId,
+                product_id: productId,
+              }))
+            );
+
           if (scopeError) throw scopeError;
         }
       }
@@ -307,8 +332,17 @@ export default function MarketingVouchersPage() {
     });
     if (voucher.scope_type === "product") {
       const supabase = createClient();
-      const { data } = await supabase.from("voucher_products").select("product_id").eq("voucher_id", voucher.id);
-      const ids = (data || []).map((row: { product_id: string }) => row.product_id);
+      const { data, error: productScopeError } = await supabase
+        .from("voucher_products")
+        .select("product_id")
+        .eq("voucher_id", voucher.id);
+
+      if (productScopeError) {
+        setError(productScopeError.message);
+        return;
+      }
+
+      const ids = (data || []).map((row) => String(row.product_id));
       setSelectedProductIds(ids.length ? ids : (voucher.scope_id ? [voucher.scope_id] : []));
     } else setSelectedProductIds([]);
     setError("");
