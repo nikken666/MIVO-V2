@@ -240,10 +240,10 @@ export default async function HomePage({
             <Link href="/products" className="btn btnDark">Explore the catalogue <span>→</span></Link>
           </div>
           <div className="standardCards">
-            <article><span>01</span><div className="standardIcon"></div><h3>Fitment clarity</h3><p>Vehicle compatibility is treated as core product data, not an afterthought.</p></article>
-            <article><span>02</span><div className="standardIcon"></div><h3>Product transparency</h3><p>Brand, specification, variant and product information are easy to understand.</p></article>
-            <article><span>03</span><div className="standardIcon"></div><h3>Built for repeat buyers</h3><p>Save vehicles to My Garage and return to a catalogue already tailored to you.</p></article>
-            <article><span>04</span><div className="standardIcon"></div><h3>Professional checkout</h3><p>A focused path from fitment to product to payment — without marketplace noise.</p></article>
+            <article><span>01</span><div className="standardIcon standardIconCheck" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M6 17l6 6L26 8"/></svg></div><h3>Fitment clarity</h3><p>Vehicle compatibility is treated as core product data, not an afterthought.</p></article>
+            <article><span>02</span><div className="standardIcon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 4L28 16 16 28 4 16Z"/></svg></div><h3>Product transparency</h3><p>Brand, specification, variant and product information are easy to understand.</p></article>
+            <article><span>03</span><div className="standardIcon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 24L24 8M13 8h11v11"/></svg></div><h3>Built for repeat buyers</h3><p>Save vehicles to My Garage and return to a catalogue already tailored to you.</p></article>
+            <article><span>04</span><div className="standardIcon" aria-hidden="true"><svg viewBox="0 0 32 32"><rect x="6" y="6" width="20" height="20"/></svg></div><h3>Professional checkout</h3><p>A focused path from fitment to product to payment — without marketplace noise.</p></article>
           </div>
         </div>
       </section>
