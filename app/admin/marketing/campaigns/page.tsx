@@ -291,6 +291,7 @@ export default function MarketingCampaignsPage() {
   const [busy, setBusy] = useState("");
   const [imageBusy, setImageBusy] = useState("");
   const [productQuery, setProductQuery] = useState("");
+  const [productPickerOpen, setProductPickerOpen] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
@@ -1199,34 +1200,15 @@ export default function MarketingCampaignsPage() {
                         <div className={styles.marketingProductsPickerV2}>
                           <div>
                             <span>FEATURED PRODUCTS</span>
-                            <small>Select campaign products. {form.featured_product_ids.length} selected.</small>
+                            <small>{form.featured_product_ids.length} selected.</small>
                           </div>
-                          <input
-                            value={productQuery}
-                            onChange={(event) => setProductQuery(event.target.value)}
-                            placeholder="Search products"
-                          />
-                          <div className={styles.marketingProductGridV2}>
-                            {filteredProducts.map((product) => (
-                              <button
-                                type="button"
-                                key={product.id}
-                                className={
-                                  form.featured_product_ids.includes(product.id)
-                                    ? styles.active
-                                    : ""
-                                }
-                                onClick={() => toggleFeaturedProduct(product.id)}
-                              >
-                                {product.primary_image_url ? (
-                                  <img src={product.primary_image_url} alt="" />
-                                ) : (
-                                  <i>M</i>
-                                )}
-                                <span>{product.name}</span>
-                              </button>
-                            ))}
-                          </div>
+                          <button
+                            type="button"
+                            className={styles.adminSecondaryAction}
+                            onClick={() => setProductPickerOpen(true)}
+                          >
+                            SELECT CAMPAIGN PRODUCTS
+                          </button>
                         </div>
                       ) : null}
                     </section>
@@ -1593,6 +1575,36 @@ export default function MarketingCampaignsPage() {
                 </div>
               </form>
             </section>
+          ) : null}
+
+          {productPickerOpen ? (
+            <div className={styles.productPickerOverlay} role="dialog" aria-modal="true">
+              <div className={styles.productPickerModal}>
+                <div className={styles.productPickerHead}>
+                  <div><span>CAMPAIGN PRODUCTS</span><h2>Select products</h2></div>
+                  <button type="button" onClick={() => setProductPickerOpen(false)}>CLOSE</button>
+                </div>
+                <div className={styles.productPickerSearch}>
+                  <input autoFocus value={productQuery} onChange={(event) => setProductQuery(event.target.value)} placeholder="Search products" />
+                  <span>{form.featured_product_ids.length} SELECTED</span>
+                </div>
+                <div className={styles.marketingProductGridV2}>
+                  {filteredProducts.map((product) => {
+                    const selected = form.featured_product_ids.includes(product.id);
+                    return (
+                      <button type="button" key={product.id} className={selected ? styles.active : ""} onClick={() => toggleFeaturedProduct(product.id)}>
+                        {product.primary_image_url ? <img src={product.primary_image_url} alt="" /> : <i>M</i>}
+                        <span>{product.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className={styles.productPickerFooter}>
+                  <span>{form.featured_product_ids.length} products selected</span>
+                  <button type="button" onClick={() => setProductPickerOpen(false)}>CONFIRM</button>
+                </div>
+              </div>
+            </div>
           ) : null}
         </section>
       </div>
