@@ -4978,3 +4978,8 @@
     grid-column:auto;
   }
 }
+
+
+/* Dashboard metric contrast fix */
+.dashboardStat strong{color:#111417!important;opacity:1!important}
+.dashboardStatPrimary strong{color:#fff!important;opacity:1!important}
