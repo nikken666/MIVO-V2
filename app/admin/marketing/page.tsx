@@ -4,16 +4,12 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
 
-type MarketingStats = {
-  campaigns: number;
-  vouchers: number;
-  liveDiscounts: number;
-  scheduledDiscounts: number;
-};
+type MarketingStats = { campaigns:number; upcomingCampaigns:number; vouchers:number; liveDiscounts:number; scheduledDiscounts:number; };
 
 export default function MarketingCentrePage() {
   const [stats, setStats] = useState<MarketingStats>({
     campaigns: 0,
+    upcomingCampaigns: 0,
     vouchers: 0,
     liveDiscounts: 0,
     scheduledDiscounts: 0,
@@ -49,6 +45,7 @@ export default function MarketingCentrePage() {
         const now = new Date().toISOString();
         const [
           { count: campaigns, error: campaignError },
+          { count: upcomingCampaigns, error: upcomingCampaignError },
           { count: vouchers, error: voucherError },
           { count: liveDiscounts, error: liveError },
           { count: scheduledDiscounts, error: scheduledError },
@@ -59,6 +56,11 @@ export default function MarketingCentrePage() {
             .eq("is_active", true)
             .lte("starts_at", now)
             .gte("ends_at", now),
+          supabase
+            .from("promotion_campaigns")
+            .select("*", { count: "exact", head: true })
+            .eq("is_active", true)
+            .gt("starts_at", now),
           supabase
             .from("vouchers")
             .select("*", { count: "exact", head: true })
@@ -81,13 +83,14 @@ export default function MarketingCentrePage() {
         ]);
 
         const firstError =
-          campaignError || voucherError || liveError || scheduledError;
+          campaignError || upcomingCampaignError || voucherError || liveError || scheduledError;
         if (firstError) throw firstError;
 
         if (!active) return;
 
         setStats({
           campaigns: campaigns || 0,
+          upcomingCampaigns: upcomingCampaigns || 0,
           vouchers: vouchers || 0,
           liveDiscounts: liveDiscounts || 0,
           scheduledDiscounts: scheduledDiscounts || 0,
@@ -140,7 +143,7 @@ export default function MarketingCentrePage() {
                 ? "—"
                 : stats.campaigns + stats.vouchers + stats.liveDiscounts}
             </strong>
-            <a href="/">OPEN STOREFRONT ↗</a>
+            <a href="/">OPEN STOREFRONT</a>
           </div>
         </aside>
 
@@ -175,7 +178,7 @@ export default function MarketingCentrePage() {
                 <strong>{loading ? "—" : stats.campaigns}</strong>
               </article>
               <article>
-                <span>ACTIVE VOUCHERS</span>
+                <span>UPCOMING CAMPAIGNS</span><strong>{loading ? "—" : stats.upcomingCampaigns}</strong></article><article><span>ACTIVE VOUCHERS</span>
                 <strong>{loading ? "—" : stats.vouchers}</strong>
               </article>
               <article>
@@ -203,7 +206,7 @@ export default function MarketingCentrePage() {
                 <span>
                   {loading ? "—" : stats.campaigns} active
                 </span>
-                <strong>MANAGE CAMPAIGNS →</strong>
+                <strong>MANAGE CAMPAIGNS</strong>
               </footer>
             </a>
 
@@ -222,7 +225,7 @@ export default function MarketingCentrePage() {
               </div>
               <footer>
                 <span>{loading ? "—" : stats.vouchers} active</span>
-                <strong>MANAGE VOUCHERS →</strong>
+                <strong>MANAGE VOUCHERS</strong>
               </footer>
             </a>
 
@@ -244,7 +247,7 @@ export default function MarketingCentrePage() {
                   {loading ? "—" : stats.liveDiscounts} live ·{" "}
                   {loading ? "—" : stats.scheduledDiscounts} scheduled
                 </span>
-                <strong>MANAGE DISCOUNTS →</strong>
+                <strong>MANAGE DISCOUNTS</strong>
               </footer>
             </a>
           </section>
@@ -257,13 +260,13 @@ export default function MarketingCentrePage() {
                 <strong>CREATE TRAFFIC</strong>
                 <small>Launch a homepage campaign banner.</small>
               </article>
-              <i>→</i>
+              <i aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></i>
               <article>
                 <b>2</b>
                 <strong>ADD INCENTIVE</strong>
                 <small>Attach vouchers with clear conditions.</small>
               </article>
-              <i>→</i>
+              <i aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></i>
               <article>
                 <b>3</b>
                 <strong>PUSH PRODUCTS</strong>
