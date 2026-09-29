@@ -164,10 +164,10 @@ export default async function HomePage({
 
       <section className="trustBar">
         <div className="container trustBarInner">
-          <span><i>✓</i> FITMENT-FOCUSED SHOPPING</span>
-          <span><i>✓</i> CURATED AUTOMOTIVE BRANDS</span>
-          <span><i>✓</i> SECURE CHECKOUT</span>
-          <span><i>✓</i> MALAYSIA DELIVERY</span>
+          <span><i></i> FITMENT-FOCUSED SHOPPING</span>
+          <span><i></i> CURATED AUTOMOTIVE BRANDS</span>
+          <span><i></i> SECURE CHECKOUT</span>
+          <span><i></i> MALAYSIA DELIVERY</span>
         </div>
       </section>
 
@@ -220,7 +220,7 @@ export default async function HomePage({
 
       <section className="brandBand">
         <div className="container">
-          <div className="brandBandTop"><span>TRUSTED NAMES. ONE CLEAN CATALOGUE.</span><Link href="/brands">EXPLORE BRANDS ↗</Link></div>
+          <div className="brandBandTop"><span>TRUSTED NAMES. ONE CLEAN CATALOGUE.</span><Link href="/brands">EXPLORE BRANDS </Link></div>
           <div className="brandGrid brandLogoGrid">
             {brands.map((brand) => (
               <Link href="/brands" className="brandLogoCard" key={brand.name} aria-label={brand.name}>
@@ -240,10 +240,10 @@ export default async function HomePage({
             <Link href="/products" className="btn btnDark">Explore the catalogue <span>→</span></Link>
           </div>
           <div className="standardCards">
-            <article><span>01</span><div className="standardIcon">✓</div><h3>Fitment clarity</h3><p>Vehicle compatibility is treated as core product data, not an afterthought.</p></article>
-            <article><span>02</span><div className="standardIcon">◇</div><h3>Product transparency</h3><p>Brand, specification, variant and product information are easy to understand.</p></article>
-            <article><span>03</span><div className="standardIcon">↗</div><h3>Built for repeat buyers</h3><p>Save vehicles to My Garage and return to a catalogue already tailored to you.</p></article>
-            <article><span>04</span><div className="standardIcon">□</div><h3>Professional checkout</h3><p>A focused path from fitment to product to payment — without marketplace noise.</p></article>
+            <article><span>01</span><div className="standardIcon"></div><h3>Fitment clarity</h3><p>Vehicle compatibility is treated as core product data, not an afterthought.</p></article>
+            <article><span>02</span><div className="standardIcon"></div><h3>Product transparency</h3><p>Brand, specification, variant and product information are easy to understand.</p></article>
+            <article><span>03</span><div className="standardIcon"></div><h3>Built for repeat buyers</h3><p>Save vehicles to My Garage and return to a catalogue already tailored to you.</p></article>
+            <article><span>04</span><div className="standardIcon"></div><h3>Professional checkout</h3><p>A focused path from fitment to product to payment — without marketplace noise.</p></article>
           </div>
         </div>
       </section>
