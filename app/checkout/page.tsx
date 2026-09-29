@@ -604,13 +604,13 @@ export default function CheckoutPage() {
         error?: string;
       };
 
-      clearCart();
-
       if (paymentResponse.ok && payment.url) {
+        clearCart();
         window.location.assign(payment.url);
         return;
       }
 
+      // Keep the cart intact when payment session creation fails so the buyer can retry.
       window.location.assign(
         "/orders/" +
           encodeURIComponent(order.order_number) +
@@ -661,7 +661,7 @@ export default function CheckoutPage() {
             <h1>Your cart is empty.</h1>
             <p>Add a product before continuing to checkout.</p>
             <Link href="/products" className="cartPrimaryButton">
-              SHOP PARTS →
+              SHOP PARTS
             </Link>
           </div>
         </div>
@@ -1037,7 +1037,7 @@ export default function CheckoutPage() {
                     BEST VOUCHER
                   </button>
                 ) : (
-                  <Link href="/">CLAIM →</Link>
+                  <Link href="/">CLAIM</Link>
                 )}
               </div>
 
@@ -1164,7 +1164,7 @@ export default function CheckoutPage() {
                                 Add a little more and use your voucher.
                               </strong>
                             </div>
-                            <Link href="/products">MORE PARTS →</Link>
+                            <Link href="/products">MORE PARTS</Link>
                           </div>
 
                           {addonSuggestions.length > 0 ? (
@@ -1214,7 +1214,7 @@ export default function CheckoutPage() {
                                 product selection yet.
                               </span>
                               <Link href="/products">
-                                BROWSE PARTS TO UNLOCK →
+                                BROWSE PARTS TO UNLOCK
                               </Link>
                             </div>
                           )}
