@@ -87,6 +87,7 @@ export default function AdminDiscountsPage() {
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   async function load() {
     const supabase = createClient();
@@ -342,7 +343,7 @@ export default function AdminDiscountsPage() {
           <div className={styles.adminSidebarFoot}>
             <span>LIVE DISCOUNTS</span>
             <strong>{loading ? "—" : counts.live}</strong>
-            <a href="/">OPEN STOREFRONT ↗</a>
+            <a href="/">OPEN STOREFRONT</a>
           </div>
         </aside>
 
@@ -431,6 +432,7 @@ export default function AdminDiscountsPage() {
               </label>
 
               <div className={styles.discountBuilderActions}>
+                <button type="button" className={styles.adminSecondaryAction} onClick={() => setPickerOpen(true)}>SELECT PRODUCTS</button>
                 <span>
                   {selected.length} SKU{selected.length === 1 ? "" : "s"} selected
                 </span>
@@ -629,6 +631,18 @@ export default function AdminDiscountsPage() {
             )}
           </section>
         </section>
+          {pickerOpen ? (
+            <div className={styles.productPickerOverlay} role="dialog" aria-modal="true">
+              <div className={styles.productPickerModal}>
+                <div className={styles.productPickerHead}><div><span>SELECT PRODUCTS & VARIATIONS</span><h2>Choose discount items</h2></div><button type="button" onClick={() => setPickerOpen(false)}>CLOSE</button></div>
+                <div className={styles.productPickerSearch}><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search product, variation or SKU" /><span>{filtered.length} ITEMS</span></div>
+                <div className={styles.discountPickerList}>
+                  {filtered.map((row) => { const product=productData(row.products); const checked=selected.includes(row.id); return <button type="button" key={row.id} className={checked ? styles.discountPickerSelected : ""} onClick={() => toggleSelected(row.id)}><i>{checked ? "✓" : ""}</i>{product?.primary_image_url ? <img src={product.primary_image_url} alt="" /> : <span className={styles.discountPickerFallback}>M</span>}<span><strong>{product?.name || "MIVO Product"}</strong><small>{row.title || "Default"} · {row.sku}</small><small>{money(row.price)}</small></span></button>})}
+                </div>
+                <div className={styles.productPickerFooter}><button type="button" className={styles.pickerSelectAll} onClick={toggleAllVisible}>{allVisibleSelected ? "CLEAR VISIBLE" : "SELECT ALL VISIBLE"}</button><span>{selected.length} SKU{selected.length===1?"":"s"} selected</span><button type="button" disabled={!selected.length} onClick={() => setPickerOpen(false)}>CONFIRM</button></div>
+              </div>
+            </div>
+          ) : null}
       </div>
     </main>
   );
