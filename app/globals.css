@@ -9166,3 +9166,63 @@ div{
     transform:none;
   }
 }
+
+
+/* AUTOMOTIVE ART LAYOUT */
+.campaignEvent.hasImage.bannerStyle-motorsport,
+.campaignEvent.hasImage.bannerStyle-garage,
+.campaignEvent.hasImage.bannerStyle-street{
+  background:
+    linear-gradient(110deg,#060708 0%,#0b0d0f 40%,#161011 100%);
+}
+.campaignEvent.hasImage.bannerStyle-motorsport .campaignBannerMedia,
+.campaignEvent.hasImage.bannerStyle-garage .campaignBannerMedia,
+.campaignEvent.hasImage.bannerStyle-street .campaignBannerMedia{
+  left:auto;
+  width:64%;
+}
+.campaignEvent.hasImage.bannerStyle-motorsport .campaignBannerMedia img,
+.campaignEvent.hasImage.bannerStyle-garage .campaignBannerMedia img,
+.campaignEvent.hasImage.bannerStyle-street .campaignBannerMedia img{
+  object-fit:cover;
+  object-position:center center!important;
+}
+.campaignEvent.hasImage.bannerStyle-motorsport .campaignBannerShade,
+.campaignEvent.hasImage.bannerStyle-garage .campaignBannerShade,
+.campaignEvent.hasImage.bannerStyle-street .campaignBannerShade{
+  opacity:1!important;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(5,7,8,.98) 0%,
+      rgba(5,7,8,.98) 25%,
+      rgba(5,7,8,.86) 39%,
+      rgba(5,7,8,.26) 62%,
+      rgba(5,7,8,.06) 100%
+    );
+}
+.campaignEvent.hasImage.bannerStyle-motorsport .campaignEventCopy,
+.campaignEvent.hasImage.bannerStyle-garage .campaignEventCopy,
+.campaignEvent.hasImage.bannerStyle-street .campaignEventCopy{
+  max-width:600px;
+}
+.campaignEvent.hasImage.bannerStyle-motorsport .campaignMegaRight,
+.campaignEvent.hasImage.bannerStyle-garage .campaignMegaRight,
+.campaignEvent.hasImage.bannerStyle-street .campaignMegaRight{
+  align-self:start;
+  padding-top:4px;
+}
+@media(max-width:900px){
+  .campaignEvent.hasImage.bannerStyle-motorsport .campaignBannerMedia,
+  .campaignEvent.hasImage.bannerStyle-garage .campaignBannerMedia,
+  .campaignEvent.hasImage.bannerStyle-street .campaignBannerMedia{
+    left:0;
+    width:100%;
+    opacity:.58;
+  }
+  .campaignEvent.hasImage.bannerStyle-motorsport .campaignBannerShade,
+  .campaignEvent.hasImage.bannerStyle-garage .campaignBannerShade,
+  .campaignEvent.hasImage.bannerStyle-street .campaignBannerShade{
+    background:linear-gradient(180deg,rgba(5,7,8,.9),rgba(5,7,8,.58));
+  }
+}
