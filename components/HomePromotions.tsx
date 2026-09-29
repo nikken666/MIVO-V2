@@ -17,6 +17,8 @@ type TemplateType =
   | "flash_deal_grid"
   | "category_festival";
 
+type BannerStyle = "formal" | "motorsport" | "garage" | "street";
+
 type Campaign = {
   id: string;
   title: string;
@@ -25,6 +27,8 @@ type Campaign = {
   cta_label: string;
   landing_path: string;
   template_type: TemplateType;
+  banner_style: BannerStyle;
+  event_code: string;
   highlight_text: string | null;
   voucher_text: string | null;
   benefit_items: string[] | null;
@@ -158,7 +162,7 @@ export default function HomePromotions({
           supabase
             .from("promotion_campaigns")
             .select(
-              "id, title, subtitle, badge, cta_label, landing_path, template_type, highlight_text, voucher_text, benefit_items, featured_product_ids, theme, primary_color, secondary_color, text_color, muted_text_color, countdown_bg_color, countdown_text_color, button_bg_color, button_text_color, desktop_image_url, mobile_image_url, display_mode, overlay_opacity, show_countdown, image_position, ends_at"
+              "id, title, subtitle, badge, cta_label, landing_path, template_type, banner_style, event_code, highlight_text, voucher_text, benefit_items, featured_product_ids, theme, primary_color, secondary_color, text_color, muted_text_color, countdown_bg_color, countdown_text_color, button_bg_color, button_text_color, desktop_image_url, mobile_image_url, display_mode, overlay_opacity, show_countdown, image_position, ends_at"
             )
             .eq("is_active", true)
             .lte("starts_at", new Date().toISOString())
@@ -350,6 +354,15 @@ export default function HomePromotions({
   }
 
   const templateType = campaign?.template_type || "mega_sale";
+  const bannerStyle = campaign?.banner_style || "formal";
+  const eventCode =
+    campaign?.event_code ||
+    campaign?.title.match(/\d+\.\d+/)?.[0] ||
+    "10.10";
+  const saleTitle =
+    campaign && campaign.title.startsWith(eventCode + " ")
+      ? campaign.title.slice(eventCode.length + 1)
+      : campaign?.title || "AUTO SALE";
   const benefits =
     campaign?.benefit_items?.filter(Boolean).slice(0, 4) || [];
 
@@ -361,6 +374,8 @@ export default function HomePromotions({
             className={
               "campaignEvent campaignEvent-" +
               templateType +
+              " bannerStyle-" +
+              bannerStyle +
               campaignThemeClass +
               (campaign.desktop_image_url ? " hasImage" : "") +
               (campaign.display_mode === "image_only" ? " imageOnly" : "")
@@ -569,7 +584,8 @@ export default function HomePromotions({
                     {campaign.highlight_text ? (
                       <b>{campaign.highlight_text}</b>
                     ) : null}
-                    <h2>{campaign.title}</h2>
+                    <div className="campaignEventCode">{eventCode}</div>
+                    <h2>{saleTitle}</h2>
                     <p>{campaign.subtitle}</p>
 
                     <div className="campaignMegaPromos">
@@ -600,9 +616,7 @@ export default function HomePromotions({
                   <div className="campaignMegaRight">
                     <div className="campaignBigNumber">
                       <span>MEGA</span>
-                      <strong>
-                        {campaign.title.match(/\d+\.\d+/)?.[0] || "SALE"}
-                      </strong>
+                      <strong>{eventCode}</strong>
                       <small>PARTS · VOUCHERS · DEALS</small>
                     </div>
                     <Countdown />
