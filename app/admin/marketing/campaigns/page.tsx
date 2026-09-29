@@ -10,6 +10,8 @@ type TemplateType =
   | "flash_deal_grid"
   | "category_festival";
 
+type BannerStyle = "formal" | "motorsport" | "garage" | "street";
+
 type Campaign = {
   id: string;
   title: string;
@@ -19,6 +21,8 @@ type Campaign = {
   landing_path: string;
   theme: string;
   template_type: TemplateType;
+  banner_style: BannerStyle;
+  event_code: string;
   highlight_text: string | null;
   voucher_text: string | null;
   benefit_items: string[] | null;
@@ -82,6 +86,38 @@ const templates: Array<{
     kicker: "CATEGORY EVENT",
     description:
       "Big event hero with direct category shortcuts for Braking, Suspension and more.",
+  },
+];
+
+const bannerStyles: Array<{
+  key: BannerStyle;
+  name: string;
+  kicker: string;
+  description: string;
+}> = [
+  {
+    key: "formal",
+    name: "Formal Premium",
+    kicker: "CLEAN",
+    description: "Refined official campaign with a premium corporate finish.",
+  },
+  {
+    key: "motorsport",
+    name: "Motorsport",
+    kicker: "PERFORMANCE",
+    description: "Aggressive racing graphics, speed lines and bold sale typography.",
+  },
+  {
+    key: "garage",
+    name: "Garage Workshop",
+    kicker: "MECHANICAL",
+    description: "Workshop-inspired styling with industrial panels and parts cues.",
+  },
+  {
+    key: "street",
+    name: "Street Performance",
+    kicker: "TUNING",
+    description: "Night-street energy with neon accents and a younger car-culture feel.",
   },
 ];
 
@@ -161,6 +197,8 @@ type CampaignForm = {
   cta_label: string;
   landing_path: string;
   template_type: TemplateType;
+  banner_style: BannerStyle;
+  event_code: string;
   highlight_text: string;
   voucher_text: string;
   benefits: string[];
@@ -203,12 +241,14 @@ function toLocalInput(value?: string) {
 
 function blankCampaign(): CampaignForm {
   return {
-    title: "",
+    title: "AUTO SALE",
     subtitle: "",
     badge: "LIMITED TIME",
     cta_label: "SHOP 10.10 DEALS",
     landing_path: "/products",
     template_type: "mega_sale",
+    banner_style: "formal",
+    event_code: "10.10",
     highlight_text: "UP TO 50% OFF",
     voucher_text: "EXTRA VOUCHERS AVAILABLE",
     benefits: [
@@ -279,7 +319,7 @@ export default function MarketingCampaignsPage() {
       supabase
         .from("promotion_campaigns")
         .select(
-          "id, title, subtitle, badge, cta_label, landing_path, theme, template_type, highlight_text, voucher_text, benefit_items, featured_product_ids, primary_color, secondary_color, text_color, muted_text_color, countdown_bg_color, countdown_text_color, button_bg_color, button_text_color, desktop_image_url, mobile_image_url, display_mode, overlay_opacity, show_countdown, image_position, starts_at, ends_at, sort_order, is_active"
+          "id, title, subtitle, badge, cta_label, landing_path, theme, template_type, banner_style, event_code, highlight_text, voucher_text, benefit_items, featured_product_ids, primary_color, secondary_color, text_color, muted_text_color, countdown_bg_color, countdown_text_color, button_bg_color, button_text_color, desktop_image_url, mobile_image_url, display_mode, overlay_opacity, show_countdown, image_position, starts_at, ends_at, sort_order, is_active"
         )
         .order("starts_at", { ascending: false }),
       supabase
@@ -451,6 +491,8 @@ export default function MarketingCampaignsPage() {
         cta_label: form.cta_label.trim() || "SHOP NOW",
         landing_path: form.landing_path.trim() || "/products",
         template_type: form.template_type,
+        banner_style: form.banner_style,
+        event_code: form.event_code.trim() || "10.10",
         highlight_text: form.highlight_text.trim() || null,
         voucher_text: form.voucher_text.trim() || null,
         benefit_items: form.benefits
@@ -522,12 +564,18 @@ export default function MarketingCampaignsPage() {
     setBuilderOpen(true);
     setPublishMode(campaign.is_active ? "publish" : "draft");
     setForm({
-      title: campaign.title,
+      title:
+        campaign.event_code &&
+        campaign.title.startsWith(campaign.event_code + " ")
+          ? campaign.title.slice(campaign.event_code.length + 1)
+          : campaign.title,
       subtitle: campaign.subtitle || "",
       badge: campaign.badge || "",
       cta_label: campaign.cta_label,
       landing_path: campaign.landing_path,
       template_type: campaign.template_type || "mega_sale",
+      banner_style: campaign.banner_style || "formal",
+      event_code: campaign.event_code || "10.10",
       highlight_text: campaign.highlight_text || "",
       voucher_text: campaign.voucher_text || "",
       benefits: [
@@ -669,6 +717,8 @@ export default function MarketingCampaignsPage() {
           landing_path: campaign.landing_path,
           theme: campaign.theme,
           template_type: campaign.template_type,
+          banner_style: campaign.banner_style,
+          event_code: campaign.event_code,
           highlight_text: campaign.highlight_text,
           voucher_text: campaign.voucher_text,
           benefit_items: campaign.benefit_items,
