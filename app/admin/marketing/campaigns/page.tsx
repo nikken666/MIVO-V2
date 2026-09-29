@@ -412,8 +412,6 @@ export default function MarketingCampaignsPage() {
         };
       }
 
-      if (current.featured_product_ids.length >= 4) return current;
-
       return {
         ...current,
         featured_product_ids: [...current.featured_product_ids, id],
@@ -499,7 +497,7 @@ export default function MarketingCampaignsPage() {
           .map((item) => item.trim())
           .filter(Boolean)
           .slice(0, 4),
-        featured_product_ids: form.featured_product_ids.slice(0, 4),
+        featured_product_ids: form.featured_product_ids,
         theme: form.theme,
         primary_color: form.primary_color,
         secondary_color: form.secondary_color,
@@ -1201,7 +1199,7 @@ export default function MarketingCampaignsPage() {
                         <div className={styles.marketingProductsPickerV2}>
                           <div>
                             <span>FEATURED PRODUCTS</span>
-                            <small>Select up to 4 products.</small>
+                            <small>Select campaign products. {form.featured_product_ids.length} selected.</small>
                           </div>
                           <input
                             value={productQuery}
