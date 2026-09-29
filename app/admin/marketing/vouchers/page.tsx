@@ -605,7 +605,7 @@ export default function MarketingVouchersPage() {
                     <span>SCOPE</span>
                     <select
                       value={form.scope_type}
-                      onChange={(event) =>
+                      onChange={(event) => {
                         setForm((current) => ({
                           ...current,
                           scope_type: event.target.value as
@@ -614,8 +614,9 @@ export default function MarketingVouchersPage() {
                             | "category"
                             | "product",
                           scope_id: "",
-                        })); setSelectedProductIds([]);
-                      }
+                        }));
+                        setSelectedProductIds([]);
+                      }}
                     >
                       <option value="all">All products</option>
                       <option value="brand">Selected brand</option>
