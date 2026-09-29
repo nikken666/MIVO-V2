@@ -4,7 +4,13 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
 
-type MarketingStats = { campaigns:number; upcomingCampaigns:number; vouchers:number; liveDiscounts:number; scheduledDiscounts:number; };
+type MarketingStats = {
+  campaigns: number;
+  upcomingCampaigns: number;
+  vouchers: number;
+  liveDiscounts: number;
+  scheduledDiscounts: number;
+};
 
 export default function MarketingCentrePage() {
   const [stats, setStats] = useState<MarketingStats>({
@@ -83,7 +89,11 @@ export default function MarketingCentrePage() {
         ]);
 
         const firstError =
-          campaignError || upcomingCampaignError || voucherError || liveError || scheduledError;
+          campaignError ||
+          upcomingCampaignError ||
+          voucherError ||
+          liveError ||
+          scheduledError;
         if (firstError) throw firstError;
 
         if (!active) return;
@@ -178,7 +188,11 @@ export default function MarketingCentrePage() {
                 <strong>{loading ? "—" : stats.campaigns}</strong>
               </article>
               <article>
-                <span>UPCOMING CAMPAIGNS</span><strong>{loading ? "—" : stats.upcomingCampaigns}</strong></article><article><span>ACTIVE VOUCHERS</span>
+                <span>UPCOMING CAMPAIGNS</span>
+                <strong>{loading ? "—" : stats.upcomingCampaigns}</strong>
+              </article>
+              <article>
+                <span>ACTIVE VOUCHERS</span>
                 <strong>{loading ? "—" : stats.vouchers}</strong>
               </article>
               <article>
