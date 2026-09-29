@@ -496,7 +496,7 @@ export default function HomePromotions({
                 </div>
 
                 <div className="campaignProductGrid">
-                  {campaignProducts.map((product) => {
+                  {campaignProducts.slice(0, 8).map((product) => {
                     const deal = dealInfo(product);
                     const price = deal?.price ?? lowestPrice(product);
 
@@ -569,7 +569,8 @@ export default function HomePromotions({
                     ))}
                   </div>
                   <Link href={campaign.landing_path || "/products"}>
-                    {campaign.cta_label || "SHOP ALL PARTS"} <span aria-hidden="true">›</span></Link>
+                    {campaign.cta_label || "SHOP ALL PARTS"} <span aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></span>
+                  </Link>
                 </div>
               </div>
             ) : (
@@ -647,7 +648,7 @@ export default function HomePromotions({
                 <span>MIVO VOUCHERS</span>
                 <h2>Claim before checkout.</h2>
               </div>
-              <Link href="/account/vouchers">MY VOUCHERS →</Link>
+              <Link href="/account/vouchers">MY VOUCHERS <span aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></span></Link>
             </div>
 
             <div className="voucherRail">
@@ -702,7 +703,7 @@ export default function HomePromotions({
                 <span>FLASH DEALS</span>
                 <h2>Limited-time part prices.</h2>
               </div>
-              <Link href="/products">VIEW ALL DEALS →</Link>
+              <Link href="/products">VIEW ALL DEALS <span aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></span></Link>
             </div>
 
             <div className="flashDealsGrid">
