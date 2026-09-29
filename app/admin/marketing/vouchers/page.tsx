@@ -78,6 +78,7 @@ export default function MarketingVouchersPage() {
   const [form, setForm] = useState(emptyVoucher());
   const [editingId, setEditingId] = useState("");
   const [productPickerOpen, setProductPickerOpen] = useState(false);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [productSearch, setProductSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
@@ -610,7 +611,7 @@ export default function MarketingVouchersPage() {
                       <div className={styles.adminField + " " + styles.full}>
                         <span>APPLIES TO</span>
                         <button type="button" className={styles.productPickerTrigger} onClick={() => setProductPickerOpen(true)}>
-                          <span>{form.scope_id ? products.find((item) => item.id === form.scope_id)?.name || "1 product selected" : "Select products"}</span>
+                          <span>{selectedProductIds.length ? selectedProductIds.length + " products selected" : form.scope_id ? "1 product selected" : "Select products"}</span>
                           <b>SELECT</b>
                         </button>
                       </div>
@@ -822,7 +823,7 @@ export default function MarketingVouchersPage() {
                 <div className={styles.productPickerHead}><div><span>SELECT PRODUCTS</span><h2>Choose eligible products</h2></div><button type="button" onClick={() => setProductPickerOpen(false)}>CLOSE</button></div>
                 <div className={styles.productPickerSearch}><input autoFocus placeholder="Search product name" value={productSearch} onChange={(event) => setProductSearch(event.target.value)} /><span>{filteredProducts.length} PRODUCTS</span></div>
                 <div className={styles.productPickerList}>
-                  {filteredProducts.map((product) => <button type="button" key={product.id} className={form.scope_id === product.id ? styles.productPickerSelected : ""} onClick={() => setForm((current) => ({...current, scope_id: product.id}))}><i>{form.scope_id === product.id ? "✓" : ""}</i><span>{product.name}</span></button>)}
+                  {filteredProducts.map((product) => { const selected = selectedProductIds.includes(product.id) || (!selectedProductIds.length && form.scope_id === product.id); return <button type="button" key={product.id} className={selected ? styles.productPickerSelected : ""} onClick={() => setSelectedProductIds((current) => current.includes(product.id) ? current.filter((id) => id !== product.id) : [...current, product.id])}><i>{selected ? "✓" : ""}</i><span>{product.name}</span></button>; })}
                 </div>
                 <div className={styles.productPickerFooter}><span>{form.scope_id ? "1 product selected" : "No product selected"}</span><button type="button" disabled={!form.scope_id} onClick={() => setProductPickerOpen(false)}>CONFIRM</button></div>
               </div>
