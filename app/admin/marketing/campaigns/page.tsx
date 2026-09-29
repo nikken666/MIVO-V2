@@ -245,6 +245,8 @@ export default function MarketingCampaignsPage() {
   const [products, setProducts] = useState<ProductOption[]>([]);
   const [form, setForm] = useState<CampaignForm>(blankCampaign());
   const [editingId, setEditingId] = useState("");
+  const [builderOpen, setBuilderOpen] = useState(false);
+  const [publishMode, setPublishMode] = useState<"draft" | "publish">("publish");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
   const [imageBusy, setImageBusy] = useState("");
@@ -473,7 +475,7 @@ export default function MarketingCampaignsPage() {
         image_position: form.image_position,
         starts_at: start.toISOString(),
         ends_at: end.toISOString(),
-        is_active: true,
+        is_active: publishMode === "publish",
         updated_at: new Date().toISOString(),
       };
 
@@ -490,8 +492,18 @@ export default function MarketingCampaignsPage() {
       await load();
       setForm(blankCampaign());
       setEditingId("");
+      setBuilderOpen(false);
+      setPublishMode("publish");
       setProductQuery("");
-      setMessage(wasEditing ? "Campaign updated." : "Campaign created.");
+      setMessage(
+        publishMode === "draft"
+          ? wasEditing
+            ? "Campaign saved as draft."
+            : "Draft campaign created."
+          : wasEditing
+            ? "Campaign updated."
+            : "Campaign published."
+      );
     } catch (caught) {
       setError(
         caught instanceof Error ? caught.message : "Unable to save campaign."
@@ -507,6 +519,8 @@ export default function MarketingCampaignsPage() {
       : [];
 
     setEditingId(campaign.id);
+    setBuilderOpen(true);
+    setPublishMode(campaign.is_active ? "publish" : "draft");
     setForm({
       title: campaign.title,
       subtitle: campaign.subtitle || "",
@@ -635,7 +649,97 @@ export default function MarketingCampaignsPage() {
     }
   }
 
-  const activeCount = campaigns.filter((item) => item.is_active).length;
+  async function duplicateCampaign(campaign: Campaign) {
+    setBusy("duplicate-" + campaign.id);
+    setError("");
+    setMessage("");
+
+    try {
+      const supabase = createClient();
+      const now = new Date();
+      const end = new Date(now.getTime() + 14 * 86400000);
+
+      const { error: insertError } = await supabase
+        .from("promotion_campaigns")
+        .insert({
+          title: campaign.title + " Copy",
+          subtitle: campaign.subtitle,
+          badge: campaign.badge,
+          cta_label: campaign.cta_label,
+          landing_path: campaign.landing_path,
+          theme: campaign.theme,
+          template_type: campaign.template_type,
+          highlight_text: campaign.highlight_text,
+          voucher_text: campaign.voucher_text,
+          benefit_items: campaign.benefit_items,
+          featured_product_ids: campaign.featured_product_ids,
+          primary_color: campaign.primary_color,
+          secondary_color: campaign.secondary_color,
+          text_color: campaign.text_color,
+          muted_text_color: campaign.muted_text_color,
+          countdown_bg_color: campaign.countdown_bg_color,
+          countdown_text_color: campaign.countdown_text_color,
+          button_bg_color: campaign.button_bg_color,
+          button_text_color: campaign.button_text_color,
+          desktop_image_url: campaign.desktop_image_url,
+          mobile_image_url: campaign.mobile_image_url,
+          display_mode: campaign.display_mode,
+          overlay_opacity: campaign.overlay_opacity,
+          show_countdown: campaign.show_countdown,
+          image_position: campaign.image_position,
+          starts_at: now.toISOString(),
+          ends_at: end.toISOString(),
+          sort_order: campaign.sort_order,
+          is_active: false,
+        });
+
+      if (insertError) throw insertError;
+      await load();
+      setMessage("Campaign duplicated as draft.");
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Unable to duplicate campaign."
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
+  function openNewCampaign() {
+    setEditingId("");
+    setForm(blankCampaign());
+    setPublishMode("publish");
+    setProductQuery("");
+    setBuilderOpen(true);
+    setError("");
+    setMessage("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function closeBuilder() {
+    setBuilderOpen(false);
+    setEditingId("");
+    setForm(blankCampaign());
+    setPublishMode("publish");
+    setProductQuery("");
+  }
+
+  function campaignStatus(campaign: Campaign) {
+    const now = Date.now();
+    const starts = new Date(campaign.starts_at).getTime();
+    const ends = new Date(campaign.ends_at).getTime();
+
+    if (!campaign.is_active) return "DRAFT";
+    if (now < starts) return "SCHEDULED";
+    if (now > ends) return "ENDED";
+    return "ACTIVE";
+  }
+
+  const activeCount = campaigns.filter(
+    (item) => campaignStatus(item) === "ACTIVE"
+  ).length;
 
   return (
     <main className={styles.adminShell}>
@@ -645,6 +749,7 @@ export default function MarketingCampaignsPage() {
             <span>MIVO</span>
             <small>STORE CONTROL</small>
           </a>
+
           <nav className={styles.adminSideNav}>
             <a href="/admin"><span>01</span>Dashboard</a>
             <a href="/admin/orders"><span>02</span>Orders</a>
@@ -657,37 +762,34 @@ export default function MarketingCampaignsPage() {
             <a href="/admin/products/new"><span>07</span>Add Product</a>
             <a href="/admin/shipping"><span>08</span>Shipping</a>
           </nav>
+
           <div className={styles.adminSidebarFoot}>
             <span>ACTIVE CAMPAIGNS</span>
             <strong>{loading ? "—" : activeCount}</strong>
-            <a href="/admin/marketing">MARKETING CENTRE →</a>
+            <a href="/">OPEN STOREFRONT →</a>
           </div>
         </aside>
 
         <section className={styles.adminContent}>
-          <header className={styles.adminHeader}>
+          <header className={styles.marketingV2Header}>
             <div>
-              <span className={styles.adminEyebrow}>
-                MARKETING CENTRE · CAMPAIGNS
-              </span>
+              <span>MARKETING CENTRE</span>
               <h1>Campaigns</h1>
               <p>
-                Big-event templates for 10.10, 11.11, Payday and seasonal
-                campaigns.
+                Build, schedule and manage homepage campaigns from one place.
               </p>
             </div>
-            <div className={styles.adminHeaderActions}>
-              <a
-                href="/admin/marketing"
-                className={styles.adminSecondaryAction}
-              >
-                ← MARKETING CENTRE
-              </a>
-            </div>
+            <button
+              type="button"
+              className={styles.marketingCreateButton}
+              onClick={openNewCampaign}
+            >
+              + CREATE CAMPAIGN
+            </button>
           </header>
 
-          <nav className={styles.marketingSubnav}>
-            <a className={styles.marketingSubnavActive} href="/admin/marketing/campaigns">
+          <nav className={styles.marketingV2Tabs}>
+            <a className={styles.active} href="/admin/marketing/campaigns">
               Campaigns
             </a>
             <a href="/admin/marketing/vouchers">Vouchers</a>
@@ -697,673 +799,685 @@ export default function MarketingCampaignsPage() {
           {error ? <p className={styles.adminError}>{error}</p> : null}
           {message ? <p className={styles.adminSuccess}>{message}</p> : null}
 
-          <div className={styles.marketingManagerGrid}>
-            <section className={styles.adminPanel}>
-              <div className={styles.adminPanelHead}>
-                <div>
-                  <span className={styles.adminPanelKicker}>
-                    {editingId ? "EDIT CAMPAIGN" : "CREATE BIG EVENT"}
-                  </span>
-                  <h2>Campaign Builder</h2>
-                  <p>
-                    Choose the event layout first. Colours and artwork are the
-                    finishing layer, not the whole template.
-                  </p>
-                </div>
+          <section className={styles.marketingCampaignOverview}>
+            <div className={styles.marketingSectionHead}>
+              <div>
+                <span>CAMPAIGN MANAGEMENT</span>
+                <h2>{loading ? "Campaigns" : campaigns.length + " Campaign" + (campaigns.length === 1 ? "" : "s")}</h2>
+                <p>
+                  Homepage campaigns with schedule, artwork and storefront status.
+                </p>
               </div>
+              <div className={styles.marketingStatusSummary}>
+                <b>{activeCount}</b>
+                <span>LIVE NOW</span>
+              </div>
+            </div>
 
-              <form className={styles.adminForm} onSubmit={saveCampaign}>
-                <div className={styles.adminFormGrid}>
-                  <div className={styles.campaignTemplateManager}>
-                    <div className={styles.campaignTemplateHead}>
-                      <div>
-                        <span>STEP 1 · EVENT TEMPLATE</span>
-                        <strong>Choose the campaign experience</strong>
+            {loading ? (
+              <div className={styles.marketingEmptyState}>Loading campaigns...</div>
+            ) : campaigns.length === 0 ? (
+              <div className={styles.marketingEmptyState}>
+                <strong>No campaign yet.</strong>
+                <span>Create your first homepage promotion.</span>
+                <button type="button" onClick={openNewCampaign}>
+                  CREATE CAMPAIGN
+                </button>
+              </div>
+            ) : (
+              <div className={styles.marketingCampaignListV2}>
+                {campaigns.map((campaign) => {
+                  const status = campaignStatus(campaign);
+                  const template =
+                    templates.find((item) => item.key === campaign.template_type) ||
+                    templates[0];
+
+                  return (
+                    <article className={styles.marketingCampaignCardV2} key={campaign.id}>
+                      <div
+                        className={styles.marketingCampaignThumbV2}
+                        style={{
+                          background: campaign.desktop_image_url
+                            ? undefined
+                            : "linear-gradient(135deg," +
+                              campaign.primary_color +
+                              "," +
+                              campaign.secondary_color +
+                              ")",
+                          backgroundImage: campaign.desktop_image_url
+                            ? "linear-gradient(rgba(0,0,0,.18),rgba(0,0,0,.18)),url(" +
+                              campaign.desktop_image_url +
+                              ")"
+                            : undefined,
+                          color: campaign.text_color,
+                        }}
+                      >
+                        <span>{campaign.badge || "CAMPAIGN"}</span>
+                        <strong>{campaign.title}</strong>
+                        <small>{campaign.highlight_text || template.name}</small>
                       </div>
-                      <small>
-                        Each template changes the actual homepage layout.
-                      </small>
-                    </div>
 
-                    <div className={styles.campaignTemplateGrid}>
-                      {templates.map((template) => (
-                        <button
-                          type="button"
-                          key={template.key}
-                          className={
-                            styles.campaignTemplateCard +
-                            (form.template_type === template.key
-                              ? " " + styles.campaignTemplateActive
-                              : "")
-                          }
-                          onClick={() =>
-                            setForm((current) => ({
-                              ...current,
-                              template_type: template.key,
-                            }))
-                          }
-                        >
-                          <div
+                      <div className={styles.marketingCampaignInfoV2}>
+                        <div className={styles.marketingCampaignTitleRow}>
+                          <div>
+                            <span>{template.kicker}</span>
+                            <h3>{campaign.title}</h3>
+                          </div>
+                          <b
                             className={
-                              styles.campaignTemplateVisual +
+                              styles.marketingStatusPill +
                               " " +
-                              styles[
-                                "template_" +
-                                  template.key.replaceAll("-", "_")
-                              ]
+                              (status === "ACTIVE"
+                                ? styles.marketingStatusActive
+                                : status === "SCHEDULED"
+                                  ? styles.marketingStatusScheduled
+                                  : status === "ENDED"
+                                    ? styles.marketingStatusEnded
+                                    : styles.marketingStatusDraft)
                             }
                           >
-                            <i />
-                            <b />
-                            <em />
+                            {status}
+                          </b>
+                        </div>
+
+                        <div className={styles.marketingCampaignMetaV2}>
+                          <div>
+                            <span>LAYOUT</span>
+                            <strong>{template.name}</strong>
                           </div>
-                          <span>{template.kicker}</span>
-                          <strong>{template.name}</strong>
-                          <small>{template.description}</small>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <label className={styles.adminField}>
-                    <span>MAIN TITLE</span>
-                    <input
-                      required
-                      value={form.title}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          title: event.target.value,
-                        }))
-                      }
-                      placeholder="10.10 MEGA SALE"
-                    />
-                  </label>
-
-                  <label className={styles.adminField}>
-                    <span>EVENT TAG</span>
-                    <input
-                      value={form.badge}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          badge: event.target.value,
-                        }))
-                      }
-                      placeholder="LIMITED TIME"
-                    />
-                  </label>
-
-                  <label className={styles.adminField + " " + styles.full}>
-                    <span>SUBTITLE</span>
-                    <input
-                      value={form.subtitle}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          subtitle: event.target.value,
-                        }))
-                      }
-                      placeholder="Big automotive savings for a limited time."
-                    />
-                  </label>
-
-                  <label className={styles.adminField}>
-                    <span>HIGHLIGHT TEXT</span>
-                    <input
-                      value={form.highlight_text}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          highlight_text: event.target.value,
-                        }))
-                      }
-                      placeholder="UP TO 50% OFF"
-                    />
-                  </label>
-
-                  {(form.template_type === "mega_sale" ||
-                    form.template_type === "voucher_blast") ? (
-                    <label className={styles.adminField}>
-                      <span>VOUCHER HIGHLIGHT</span>
-                      <input
-                        value={form.voucher_text}
-                        onChange={(event) =>
-                          setForm((current) => ({
-                            ...current,
-                            voucher_text: event.target.value,
-                          }))
-                        }
-                        placeholder="EXTRA VOUCHERS AVAILABLE"
-                      />
-                    </label>
-                  ) : null}
-
-                  <label className={styles.adminField}>
-                    <span>CTA LABEL</span>
-                    <input
-                      value={form.cta_label}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          cta_label: event.target.value,
-                        }))
-                      }
-                    />
-                  </label>
-
-                  <label className={styles.adminField}>
-                    <span>LANDING PATH</span>
-                    <input
-                      value={form.landing_path}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          landing_path: event.target.value,
-                        }))
-                      }
-                    />
-                  </label>
-
-                  {(form.template_type === "mega_sale" ||
-                    form.template_type === "category_festival") ? (
-                    <div className={styles.campaignBenefitsEditor}>
-                      <div>
-                        <span>BENEFIT STRIP</span>
-                        <strong>Four event highlights</strong>
+                          <div>
+                            <span>PLACEMENT</span>
+                            <strong>Homepage</strong>
+                          </div>
+                          <div>
+                            <span>START</span>
+                            <strong>
+                              {new Date(campaign.starts_at).toLocaleString("en-MY", {
+                                day: "2-digit",
+                                month: "short",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </strong>
+                          </div>
+                          <div>
+                            <span>END</span>
+                            <strong>
+                              {new Date(campaign.ends_at).toLocaleString("en-MY", {
+                                day: "2-digit",
+                                month: "short",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </strong>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        {form.benefits.map((benefit, index) => (
-                          <label key={index}>
-                            <span>0{index + 1}</span>
-                            <input
-                              value={benefit}
-                              onChange={(event) =>
-                                updateBenefit(index, event.target.value)
-                              }
-                              placeholder="FLASH DISCOUNTS"
-                            />
-                          </label>
+
+                      <div className={styles.marketingCampaignActionsV2}>
+                        <button type="button" onClick={() => editCampaign(campaign)}>
+                          EDIT
+                        </button>
+                        <button
+                          type="button"
+                          disabled={busy === "duplicate-" + campaign.id}
+                          onClick={() => void duplicateCampaign(campaign)}
+                        >
+                          {busy === "duplicate-" + campaign.id ? "..." : "DUPLICATE"}
+                        </button>
+                        <button
+                          type="button"
+                          className={campaign.is_active ? styles.dangerSoft : styles.successSoft}
+                          disabled={busy === "toggle-" + campaign.id}
+                          onClick={() => void toggleCampaign(campaign)}
+                        >
+                          {campaign.is_active ? "DEACTIVATE" : "ACTIVATE"}
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.marketingDeleteButton}
+                          disabled={busy === "delete-" + campaign.id}
+                          onClick={() => void deleteCampaign(campaign)}
+                        >
+                          DELETE
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          {builderOpen ? (
+            <section className={styles.marketingBuilderV2}>
+              <div className={styles.marketingBuilderTopbar}>
+                <div>
+                  <span>{editingId ? "EDIT CAMPAIGN" : "NEW CAMPAIGN"}</span>
+                  <h2>{editingId ? "Update campaign" : "Create campaign"}</h2>
+                  <p>Complete the four steps, preview it, then publish or save as draft.</p>
+                </div>
+                <button type="button" onClick={closeBuilder}>×</button>
+              </div>
+
+              <form onSubmit={saveCampaign}>
+                <div className={styles.marketingBuilderLayout}>
+                  <div className={styles.marketingBuilderSteps}>
+                    <section className={styles.marketingStepCard}>
+                      <div className={styles.marketingStepHead}>
+                        <b>01</b>
+                        <div>
+                          <span>LAYOUT</span>
+                          <h3>Choose campaign type</h3>
+                        </div>
+                      </div>
+
+                      <div className={styles.marketingTemplateGridV2}>
+                        {templates.map((template) => (
+                          <button
+                            type="button"
+                            key={template.key}
+                            className={
+                              styles.marketingTemplateV2 +
+                              (form.template_type === template.key
+                                ? " " + styles.active
+                                : "")
+                            }
+                            onClick={() =>
+                              setForm((current) => ({
+                                ...current,
+                                template_type: template.key,
+                              }))
+                            }
+                          >
+                            <div className={styles.marketingTemplateMini}>
+                              <i />
+                              <b />
+                              <em />
+                            </div>
+                            <span>{template.kicker}</span>
+                            <strong>{template.name}</strong>
+                            <small>{template.description}</small>
+                          </button>
                         ))}
                       </div>
-                    </div>
-                  ) : null}
+                    </section>
 
-                  {form.template_type === "flash_deal_grid" ? (
-                    <div className={styles.campaignProductPicker}>
-                      <div className={styles.campaignProductPickerHead}>
+                    <section className={styles.marketingStepCard}>
+                      <div className={styles.marketingStepHead}>
+                        <b>02</b>
                         <div>
-                          <span>FEATURED PRODUCTS</span>
-                          <strong>
-                            Select up to 4 discounted products
-                          </strong>
+                          <span>CONTENT</span>
+                          <h3>Campaign message</h3>
                         </div>
-                        <small>
-                          {form.featured_product_ids.length}/4 selected
-                        </small>
                       </div>
-                      <input
-                        value={productQuery}
-                        onChange={(event) =>
-                          setProductQuery(event.target.value)
-                        }
-                        placeholder="Search product name"
-                      />
-                      <div className={styles.campaignProductPickerGrid}>
-                        {filteredProducts.map((product) => {
-                          const selected =
-                            form.featured_product_ids.includes(product.id);
-                          return (
-                            <button
-                              type="button"
-                              key={product.id}
-                              className={
-                                styles.campaignProductChoice +
-                                (selected
-                                  ? " " + styles.campaignProductSelected
-                                  : "")
-                              }
-                              onClick={() =>
-                                toggleFeaturedProduct(product.id)
-                              }
-                            >
-                              <div>
-                                {product.primary_image_url ? (
-                                  <img
-                                    src={product.primary_image_url}
-                                    alt=""
-                                  />
-                                ) : (
-                                  <span>M</span>
-                                )}
-                              </div>
-                              <strong>{product.name}</strong>
-                              <small>
-                                {selected ? "SELECTED" : "+ ADD"}
-                              </small>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ) : null}
 
-                  <div className={styles.campaignImageManager}>
-                    <div className={styles.campaignImageManagerHead}>
-                      <div>
-                        <span>CAMPAIGN ARTWORK</span>
-                        <strong>Desktop & mobile images</strong>
-                      </div>
-                      <small>JPG, PNG or WEBP · Max 8MB</small>
-                    </div>
-
-                    <div className={styles.campaignImageGrid}>
-                      <label className={styles.campaignImageUpload}>
-                        <span>DESKTOP</span>
-                        <input
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp"
-                          onChange={(event) => {
-                            const file = event.target.files?.[0];
-                            if (file) void uploadImage(file, "desktop");
-                            event.currentTarget.value = "";
-                          }}
-                        />
-                        {form.desktop_image_url ? (
-                          <img src={form.desktop_image_url} alt="" />
-                        ) : (
-                          <div>
-                            <b>＋</b>
-                            <strong>
-                              {imageBusy === "desktop"
-                                ? "UPLOADING..."
-                                : "UPLOAD DESKTOP"}
-                            </strong>
-                            <small>Wide event artwork</small>
-                          </div>
-                        )}
-                      </label>
-
-                      <label className={styles.campaignImageUpload}>
-                        <span>MOBILE</span>
-                        <input
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp"
-                          onChange={(event) => {
-                            const file = event.target.files?.[0];
-                            if (file) void uploadImage(file, "mobile");
-                            event.currentTarget.value = "";
-                          }}
-                        />
-                        {form.mobile_image_url ? (
-                          <img src={form.mobile_image_url} alt="" />
-                        ) : (
-                          <div>
-                            <b>＋</b>
-                            <strong>
-                              {imageBusy === "mobile"
-                                ? "UPLOADING..."
-                                : "UPLOAD MOBILE"}
-                            </strong>
-                            <small>Optional phone artwork</small>
-                          </div>
-                        )}
-                      </label>
-                    </div>
-
-                    {(form.desktop_image_url || form.mobile_image_url) ? (
-                      <div className={styles.campaignImageClearRow}>
-                        {form.desktop_image_url ? (
-                          <button
-                            type="button"
-                            onClick={() =>
+                      <div className={styles.marketingFormGridV2}>
+                        <label>
+                          <span>MAIN TITLE *</span>
+                          <input
+                            required
+                            value={form.title}
+                            onChange={(event) =>
                               setForm((current) => ({
                                 ...current,
-                                desktop_image_url: "",
+                                title: event.target.value,
                               }))
                             }
-                          >
-                            REMOVE DESKTOP
-                          </button>
-                        ) : null}
-                        {form.mobile_image_url ? (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setForm((current) => ({
-                                ...current,
-                                mobile_image_url: "",
-                              }))
-                            }
-                          >
-                            REMOVE MOBILE
-                          </button>
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <label className={styles.adminField}>
-                    <span>ARTWORK MODE</span>
-                    <select
-                      value={form.display_mode}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          display_mode: event.target.value as
-                            | "overlay"
-                            | "image_only",
-                        }))
-                      }
-                    >
-                      <option value="overlay">
-                        Template + artwork background
-                      </option>
-                      <option value="image_only">
-                        Full artwork only
-                      </option>
-                    </select>
-                  </label>
-
-                  <label className={styles.adminField}>
-                    <span>IMAGE POSITION</span>
-                    <select
-                      value={form.image_position}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          image_position: event.target.value as
-                            | "center"
-                            | "left"
-                            | "right"
-                            | "top"
-                            | "bottom",
-                        }))
-                      }
-                    >
-                      <option value="center">Center</option>
-                      <option value="left">Left</option>
-                      <option value="right">Right</option>
-                      <option value="top">Top</option>
-                      <option value="bottom">Bottom</option>
-                    </select>
-                  </label>
-
-                  <div className={styles.campaignStyleManager}>
-                    <div className={styles.campaignStyleHead}>
-                      <div>
-                        <span>STEP 2 · EVENT LOOK</span>
-                        <strong>Colour direction</strong>
-                      </div>
-                      <small>
-                        The template stays the same; this changes its finish.
-                      </small>
-                    </div>
-
-                    <div className={styles.campaignPresetGrid}>
-                      {(
-                        Object.entries(campaignPresets) as Array<
-                          [
-                            CampaignPresetKey,
-                            (typeof campaignPresets)[CampaignPresetKey],
-                          ]
-                        >
-                      ).map(([key, preset]) => (
-                        <button
-                          type="button"
-                          key={key}
-                          className={
-                            styles.campaignPresetCard +
-                            (form.theme === key
-                              ? " " + styles.activePreset
-                              : "")
-                          }
-                          onClick={() => applyPreset(key)}
-                        >
-                          <i
-                            style={{
-                              background:
-                                "linear-gradient(135deg," +
-                                preset.primary_color +
-                                "," +
-                                preset.secondary_color +
-                                ")",
-                            }}
+                            placeholder="10.10 MEGA SALE"
                           />
-                          <span>{preset.label}</span>
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className={styles.campaignColourGrid}>
-                      {colourFields.map(([label, field]) => (
-                        <label
-                          className={styles.campaignColourField}
-                          key={field}
-                        >
-                          <span>{label}</span>
-                          <div>
-                            <input
-                              type="color"
-                              value={form[field]}
-                              onChange={(event) =>
-                                updateColour(field, event.target.value)
-                              }
-                            />
-                            <input
-                              value={form[field]}
-                              maxLength={7}
-                              onChange={(event) =>
-                                updateColour(field, event.target.value)
-                              }
-                            />
-                          </div>
                         </label>
-                      ))}
-                    </div>
-                  </div>
 
-                  {form.display_mode === "overlay" ? (
-                    <label className={styles.adminField}>
-                      <span>
-                        DARK OVERLAY ·{" "}
-                        {Math.round(Number(form.overlay_opacity || 0) * 100)}%
-                      </span>
-                      <input
-                        type="range"
-                        min="0"
-                        max="0.85"
-                        step="0.05"
-                        value={form.overlay_opacity}
-                        onChange={(event) =>
-                          setForm((current) => ({
-                            ...current,
-                            overlay_opacity: event.target.value,
-                          }))
-                        }
-                      />
-                    </label>
-                  ) : null}
+                        <label>
+                          <span>EVENT TAG</span>
+                          <input
+                            value={form.badge}
+                            onChange={(event) =>
+                              setForm((current) => ({
+                                ...current,
+                                badge: event.target.value,
+                              }))
+                            }
+                            placeholder="LIMITED TIME"
+                          />
+                        </label>
 
-                  <label className={styles.promotionCheck}>
-                    <input
-                      type="checkbox"
-                      checked={form.show_countdown}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          show_countdown: event.target.checked,
-                        }))
-                      }
-                    />
-                    <span>SHOW COUNTDOWN</span>
-                  </label>
+                        <label className={styles.full}>
+                          <span>SUBTITLE</span>
+                          <input
+                            value={form.subtitle}
+                            onChange={(event) =>
+                              setForm((current) => ({
+                                ...current,
+                                subtitle: event.target.value,
+                              }))
+                            }
+                            placeholder="Big automotive savings for a limited time."
+                          />
+                        </label>
 
-                  <label className={styles.adminField}>
-                    <span>START</span>
-                    <input
-                      type="datetime-local"
-                      required
-                      value={form.starts_at}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          starts_at: event.target.value,
-                        }))
-                      }
-                    />
-                  </label>
+                        <label>
+                          <span>HIGHLIGHT</span>
+                          <input
+                            value={form.highlight_text}
+                            onChange={(event) =>
+                              setForm((current) => ({
+                                ...current,
+                                highlight_text: event.target.value,
+                              }))
+                            }
+                            placeholder="UP TO 50% OFF"
+                          />
+                        </label>
 
-                  <label className={styles.adminField}>
-                    <span>END</span>
-                    <input
-                      type="datetime-local"
-                      required
-                      value={form.ends_at}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          ends_at: event.target.value,
-                        }))
-                      }
-                    />
-                  </label>
-                </div>
+                        <label>
+                          <span>VOUCHER HIGHLIGHT</span>
+                          <input
+                            value={form.voucher_text}
+                            onChange={(event) =>
+                              setForm((current) => ({
+                                ...current,
+                                voucher_text: event.target.value,
+                              }))
+                            }
+                            placeholder="EXTRA VOUCHERS AVAILABLE"
+                          />
+                        </label>
 
-                <div className={styles.marketingFormActions}>
-                  <button
-                    type="submit"
-                    className={styles.adminAction}
-                    disabled={busy === "save"}
-                  >
-                    {busy === "save"
-                      ? "SAVING..."
-                      : editingId
-                        ? "SAVE CAMPAIGN"
-                        : "+ CREATE CAMPAIGN"}
-                  </button>
+                        <label>
+                          <span>CTA LABEL</span>
+                          <input
+                            value={form.cta_label}
+                            onChange={(event) =>
+                              setForm((current) => ({
+                                ...current,
+                                cta_label: event.target.value,
+                              }))
+                            }
+                          />
+                        </label>
 
-                  {editingId ? (
-                    <button
-                      type="button"
-                      className={styles.adminSecondaryAction}
-                      onClick={() => {
-                        setEditingId("");
-                        setForm(blankCampaign());
-                      }}
-                    >
-                      CANCEL EDIT
-                    </button>
-                  ) : null}
-                </div>
-              </form>
-            </section>
+                        <label>
+                          <span>CTA LINK</span>
+                          <input
+                            value={form.landing_path}
+                            onChange={(event) =>
+                              setForm((current) => ({
+                                ...current,
+                                landing_path: event.target.value,
+                              }))
+                            }
+                            placeholder="/products"
+                          />
+                        </label>
+                      </div>
 
-            <section className={styles.adminPanel}>
-              <div className={styles.adminPanelHead}>
-                <div>
-                  <span className={styles.adminPanelKicker}>CAMPAIGN LIST</span>
-                  <h2>{campaigns.length} Campaigns</h2>
-                  <p>Each campaign now has its own event layout.</p>
-                </div>
-              </div>
+                      {form.template_type === "mega_sale" ? (
+                        <div className={styles.marketingBenefitsV2}>
+                          <span>BENEFIT STRIP</span>
+                          <div>
+                            {form.benefits.map((benefit, index) => (
+                              <input
+                                key={index}
+                                value={benefit}
+                                onChange={(event) =>
+                                  updateBenefit(index, event.target.value)
+                                }
+                                placeholder={"Benefit " + (index + 1)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
 
-              {loading ? (
-                <p className={styles.adminNotice}>Loading campaigns...</p>
-              ) : campaigns.length === 0 ? (
-                <div className={styles.adminEmptyState}>
-                  <strong>No campaigns yet.</strong>
-                  <span>Create your first big event on the left.</span>
-                </div>
-              ) : (
-                <div className={styles.marketingList}>
-                  {campaigns.map((campaign) => {
-                    const template =
-                      templates.find(
-                        (item) => item.key === campaign.template_type
-                      ) || templates[0];
+                      {form.template_type === "flash_deal_grid" ? (
+                        <div className={styles.marketingProductsPickerV2}>
+                          <div>
+                            <span>FEATURED PRODUCTS</span>
+                            <small>Select up to 4 products.</small>
+                          </div>
+                          <input
+                            value={productQuery}
+                            onChange={(event) => setProductQuery(event.target.value)}
+                            placeholder="Search products"
+                          />
+                          <div className={styles.marketingProductGridV2}>
+                            {filteredProducts.map((product) => (
+                              <button
+                                type="button"
+                                key={product.id}
+                                className={
+                                  form.featured_product_ids.includes(product.id)
+                                    ? styles.active
+                                    : ""
+                                }
+                                onClick={() => toggleFeaturedProduct(product.id)}
+                              >
+                                {product.primary_image_url ? (
+                                  <img src={product.primary_image_url} alt="" />
+                                ) : (
+                                  <i>M</i>
+                                )}
+                                <span>{product.name}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+                    </section>
 
-                    return (
-                      <article key={campaign.id}>
-                        <div className={styles.marketingListVisual}>
-                          {campaign.desktop_image_url ? (
-                            <img src={campaign.desktop_image_url} alt="" />
-                          ) : (
+                    <section className={styles.marketingStepCard}>
+                      <div className={styles.marketingStepHead}>
+                        <b>03</b>
+                        <div>
+                          <span>STYLE & ARTWORK</span>
+                          <h3>Brand the campaign</h3>
+                        </div>
+                      </div>
+
+                      <div className={styles.marketingPresetGridV2}>
+                        {(Object.entries(campaignPresets) as Array<
+                          [CampaignPresetKey, (typeof campaignPresets)[CampaignPresetKey]]
+                        >).map(([key, preset]) => (
+                          <button
+                            type="button"
+                            key={key}
+                            className={
+                              styles.marketingPresetV2 +
+                              (form.theme === key ? " " + styles.active : "")
+                            }
+                            onClick={() => applyPreset(key)}
+                          >
                             <i
                               style={{
                                 background:
                                   "linear-gradient(135deg," +
-                                  (campaign.primary_color || "#D8242F") +
+                                  preset.primary_color +
                                   "," +
-                                  (campaign.secondary_color || "#6F0D14") +
+                                  preset.secondary_color +
                                   ")",
                               }}
                             />
-                          )}
-                        </div>
-                        <div className={styles.marketingListCopy}>
-                          <span>{template.name.toUpperCase()}</span>
-                          <strong>{campaign.title}</strong>
-                          <small>
-                            {new Date(campaign.starts_at).toLocaleString(
-                              "en-MY",
-                              {
-                                day: "2-digit",
-                                month: "short",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              }
-                            )}
-                            {" → "}
-                            {new Date(campaign.ends_at).toLocaleString(
-                              "en-MY",
-                              {
-                                day: "2-digit",
-                                month: "short",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              }
-                            )}
-                          </small>
-                        </div>
-                        <div className={styles.promotionRowActions}>
-                          <button
-                            type="button"
-                            className={styles.promotionEdit}
-                            onClick={() => editCampaign(campaign)}
-                          >
-                            EDIT
+                            <strong>{preset.label}</strong>
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => void toggleCampaign(campaign)}
-                            disabled={busy === "toggle-" + campaign.id}
-                            className={
-                              campaign.is_active
-                                ? styles.promotionOn
-                                : styles.promotionOff
+                        ))}
+                      </div>
+
+                      <div className={styles.marketingColourGridV2}>
+                        {colourFields.map(([label, field]) => (
+                          <label key={field}>
+                            <span>{label}</span>
+                            <div>
+                              <input
+                                type="color"
+                                value={form[field]}
+                                onChange={(event) =>
+                                  updateColour(field, event.target.value)
+                                }
+                              />
+                              <input
+                                value={form[field]}
+                                onChange={(event) =>
+                                  updateColour(field, event.target.value)
+                                }
+                              />
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+
+                      <div className={styles.marketingArtworkGridV2}>
+                        <label>
+                          <span>DESKTOP BANNER</span>
+                          <div className={styles.marketingUploadBoxV2}>
+                            {form.desktop_image_url ? (
+                              <img src={form.desktop_image_url} alt="" />
+                            ) : (
+                              <strong>+ UPLOAD DESKTOP</strong>
+                            )}
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              onChange={(event) => {
+                                const file = event.target.files?.[0];
+                                if (file) void uploadImage(file, "desktop");
+                                event.currentTarget.value = "";
+                              }}
+                            />
+                          </div>
+                          <small>{imageBusy === "desktop" ? "Uploading..." : "Wide homepage artwork"}</small>
+                        </label>
+
+                        <label>
+                          <span>MOBILE BANNER</span>
+                          <div className={styles.marketingUploadBoxV2}>
+                            {form.mobile_image_url ? (
+                              <img src={form.mobile_image_url} alt="" />
+                            ) : (
+                              <strong>+ UPLOAD MOBILE</strong>
+                            )}
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              onChange={(event) => {
+                                const file = event.target.files?.[0];
+                                if (file) void uploadImage(file, "mobile");
+                                event.currentTarget.value = "";
+                              }}
+                            />
+                          </div>
+                          <small>{imageBusy === "mobile" ? "Uploading..." : "Optional phone crop"}</small>
+                        </label>
+                      </div>
+
+                      <div className={styles.marketingFormGridV2}>
+                        <label>
+                          <span>DISPLAY MODE</span>
+                          <select
+                            value={form.display_mode}
+                            onChange={(event) =>
+                              setForm((current) => ({
+                                ...current,
+                                display_mode: event.target.value as "overlay" | "image_only",
+                              }))
                             }
                           >
-                            {campaign.is_active ? "ACTIVE" : "OFF"}
-                          </button>
+                            <option value="overlay">Image + text overlay</option>
+                            <option value="image_only">Image only</option>
+                          </select>
+                        </label>
+
+                        <label>
+                          <span>IMAGE POSITION</span>
+                          <select
+                            value={form.image_position}
+                            onChange={(event) =>
+                              setForm((current) => ({
+                                ...current,
+                                image_position: event.target.value as
+                                  | "center"
+                                  | "left"
+                                  | "right"
+                                  | "top"
+                                  | "bottom",
+                              }))
+                            }
+                          >
+                            <option value="center">Center</option>
+                            <option value="left">Left</option>
+                            <option value="right">Right</option>
+                            <option value="top">Top</option>
+                            <option value="bottom">Bottom</option>
+                          </select>
+                        </label>
+
+                        <label>
+                          <span>OVERLAY {Math.round(Number(form.overlay_opacity || 0) * 100)}%</span>
+                          <input
+                            type="range"
+                            min="0"
+                            max="0.85"
+                            step="0.05"
+                            value={form.overlay_opacity}
+                            onChange={(event) =>
+                              setForm((current) => ({
+                                ...current,
+                                overlay_opacity: event.target.value,
+                              }))
+                            }
+                          />
+                        </label>
+
+                        <label className={styles.marketingToggleV2}>
+                          <span>COUNTDOWN</span>
+                          <input
+                            type="checkbox"
+                            checked={form.show_countdown}
+                            onChange={(event) =>
+                              setForm((current) => ({
+                                ...current,
+                                show_countdown: event.target.checked,
+                              }))
+                            }
+                          />
+                          <strong>{form.show_countdown ? "ON" : "OFF"}</strong>
+                        </label>
+                      </div>
+                    </section>
+
+                    <section className={styles.marketingStepCard}>
+                      <div className={styles.marketingStepHead}>
+                        <b>04</b>
+                        <div>
+                          <span>SCHEDULE & PUBLISH</span>
+                          <h3>Choose when it runs</h3>
+                        </div>
+                      </div>
+
+                      <div className={styles.marketingFormGridV2}>
+                        <label>
+                          <span>START</span>
+                          <input
+                            type="datetime-local"
+                            value={form.starts_at}
+                            onChange={(event) =>
+                              setForm((current) => ({
+                                ...current,
+                                starts_at: event.target.value,
+                              }))
+                            }
+                          />
+                        </label>
+
+                        <label>
+                          <span>END</span>
+                          <input
+                            type="datetime-local"
+                            value={form.ends_at}
+                            onChange={(event) =>
+                              setForm((current) => ({
+                                ...current,
+                                ends_at: event.target.value,
+                              }))
+                            }
+                          />
+                        </label>
+                      </div>
+
+                      <div className={styles.marketingPublishChoiceV2}>
+                        <button
+                          type="submit"
+                          className={publishMode === "draft" ? styles.active : ""}
+                          disabled={busy === "save"}
+                          onClick={() => setPublishMode("draft")}
+                        >
+                          <span>SAVE AS DRAFT</span>
+                          <small>Keep it hidden from customers.</small>
+                        </button>
+                        <button
+                          type="submit"
+                          className={publishMode === "publish" ? styles.active : ""}
+                          disabled={busy === "save"}
+                          onClick={() => setPublishMode("publish")}
+                        >
+                          <span>{busy === "save" ? "SAVING..." : editingId ? "SAVE & PUBLISH" : "PUBLISH CAMPAIGN"}</span>
+                          <small>Runs automatically inside the selected time window.</small>
+                        </button>
+                      </div>
+                    </section>
+                  </div>
+
+                  <aside className={styles.marketingPreviewV2}>
+                    <div className={styles.marketingPreviewHeadV2}>
+                      <span>LIVE PREVIEW</span>
+                      <strong>Homepage</strong>
+                    </div>
+
+                    <div
+                      className={styles.marketingPreviewCanvasV2}
+                      style={{
+                        background: form.desktop_image_url
+                          ? undefined
+                          : "linear-gradient(135deg," +
+                            form.primary_color +
+                            "," +
+                            form.secondary_color +
+                            ")",
+                        backgroundImage: form.desktop_image_url
+                          ? "linear-gradient(rgba(0,0,0," +
+                            form.overlay_opacity +
+                            "),rgba(0,0,0," +
+                            form.overlay_opacity +
+                            ")),url(" +
+                            form.desktop_image_url +
+                            ")"
+                          : undefined,
+                        color: form.text_color,
+                        backgroundPosition: form.image_position,
+                      }}
+                    >
+                      {form.display_mode === "image_only" && form.desktop_image_url ? null : (
+                        <>
+                          <span>{form.badge || "LIMITED TIME"}</span>
+                          <h3>{form.title || "YOUR CAMPAIGN TITLE"}</h3>
+                          <p style={{ color: form.muted_text_color }}>
+                            {form.subtitle || "Campaign subtitle appears here."}
+                          </p>
+                          <strong>{form.highlight_text || "SALE HIGHLIGHT"}</strong>
                           <button
                             type="button"
-                            className={styles.promotionDelete}
-                            onClick={() => void deleteCampaign(campaign)}
-                            disabled={busy === "delete-" + campaign.id}
+                            style={{
+                              background: form.button_bg_color,
+                              color: form.button_text_color,
+                            }}
                           >
-                            {busy === "delete-" + campaign.id
-                              ? "DELETING..."
-                              : "DELETE"}
+                            {form.cta_label || "SHOP NOW"}
                           </button>
-                        </div>
-                      </article>
-                    );
-                  })}
+                        </>
+                      )}
+                    </div>
+
+                    <div className={styles.marketingPreviewDetailsV2}>
+                      <div>
+                        <span>THEME</span>
+                        <strong>{form.theme.replaceAll("_", " ").toUpperCase()}</strong>
+                      </div>
+                      <div>
+                        <span>LAYOUT</span>
+                        <strong>
+                          {templates.find((item) => item.key === form.template_type)?.name}
+                        </strong>
+                      </div>
+                      <div>
+                        <span>COUNTDOWN</span>
+                        <strong>{form.show_countdown ? "VISIBLE" : "HIDDEN"}</strong>
+                      </div>
+                    </div>
+                  </aside>
                 </div>
-              )}
+              </form>
             </section>
-          </div>
+          ) : null}
         </section>
       </div>
     </main>
