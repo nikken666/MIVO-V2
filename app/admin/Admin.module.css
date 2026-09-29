@@ -4983,3 +4983,16 @@
 /* Dashboard metric contrast fix */
 .dashboardStat strong{color:#111417!important;opacity:1!important}
 .dashboardStatPrimary strong{color:#fff!important;opacity:1!important}
+
+/* Shopee-style product selection for voucher scope */
+.productPickerTrigger{width:100%;min-height:46px;padding:0 13px;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #d9dcde;border-radius:10px;background:#fff;text-align:left;cursor:pointer}
+.productPickerTrigger>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#222;font-size:11px}
+.productPickerTrigger>b{color:#d8242f;font-size:8px;letter-spacing:.08em}
+.productPickerOverlay{position:fixed;inset:0;z-index:1000;padding:24px;display:grid;place-items:center;background:rgba(10,12,14,.48);backdrop-filter:blur(4px)}
+.productPickerModal{width:min(760px,100%);max-height:min(760px,90vh);display:flex;flex-direction:column;overflow:hidden;border-radius:18px;background:#fff;box-shadow:0 28px 80px rgba(0,0,0,.24)}
+.productPickerHead{padding:20px 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e7e9ea}
+.productPickerHead span{color:#d8242f;font-size:7px;font-weight:900;letter-spacing:.12em}.productPickerHead h2{margin:4px 0 0;font-size:22px}.productPickerHead button{border:0;background:none;font-size:8px;font-weight:900;cursor:pointer}
+.productPickerSearch{padding:14px 22px;display:flex;align-items:center;gap:12px;background:#f7f8f8;border-bottom:1px solid #e7e9ea}.productPickerSearch input{flex:1;min-width:0;height:42px;padding:0 13px;border:1px solid #d9dcde;border-radius:9px;background:#fff;font-size:11px;outline:0}.productPickerSearch span{font-size:7px;font-weight:900;color:#8b9195;white-space:nowrap}
+.productPickerList{padding:10px 22px;overflow:auto;display:grid}.productPickerList button{min-height:58px;padding:10px 8px;display:grid;grid-template-columns:28px 1fr;align-items:center;gap:11px;border:0;border-bottom:1px solid #eceeef;background:#fff;text-align:left;cursor:pointer}.productPickerList button:hover{background:#fafafa}.productPickerList i{width:22px;height:22px;display:grid;place-items:center;border:1px solid #c9ced1;border-radius:4px;font-style:normal;font-size:12px}.productPickerList button.productPickerSelected i{border-color:#d8242f;background:#d8242f;color:#fff}.productPickerList button>span{font-size:11px;line-height:1.4}
+.productPickerFooter{padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #e7e9ea;background:#fff}.productPickerFooter span{color:#858b8f;font-size:9px}.productPickerFooter button{min-width:110px;height:40px;border:0;border-radius:9px;background:#d8242f;color:#fff;font-size:8px;font-weight:900;letter-spacing:.08em}.productPickerFooter button:disabled{opacity:.4}
+@media(max-width:600px){.productPickerOverlay{padding:0;align-items:end}.productPickerModal{width:100%;max-height:86vh;border-radius:20px 20px 0 0}.productPickerHead{padding:18px 16px}.productPickerSearch{padding:12px 16px}.productPickerList{padding:6px 16px}.productPickerFooter{padding:12px 16px 20px}.productPickerList button{min-height:64px}.productPickerHead h2{font-size:20px}}
