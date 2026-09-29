@@ -4551,3 +4551,215 @@
   .marketingPresetGridV2{grid-template-columns:1fr 1fr}
   .marketingColourGridV2{grid-template-columns:1fr}
 }
+
+
+/* MARKETING BANNER STYLE OPTIONS */
+.marketingBannerStyleBlock{
+  margin-bottom:14px;
+  padding:13px;
+  border:1px solid #e4e7e8;
+  border-radius:11px;
+  background:#fafafa;
+}
+.marketingBannerStyleHead{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:9px;
+}
+.marketingBannerStyleHead span,
+.marketingBannerStyleHead strong,
+.marketingBannerStyleHead small{
+  display:block;
+}
+.marketingBannerStyleHead span{
+  color:#d8242f;
+  font-size:6px;
+  font-weight:800;
+  letter-spacing:.08em;
+}
+.marketingBannerStyleHead strong{
+  margin-top:3px;
+  font-size:9px;
+}
+.marketingBannerStyleHead small{
+  color:#92999d;
+  font-size:6px;
+}
+.marketingBannerStyleGrid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+}
+.marketingBannerStyleCard{
+  min-width:0;
+  padding:8px;
+  border:1px solid #e0e3e4;
+  border-radius:9px;
+  background:#fff;
+  text-align:left;
+  cursor:pointer;
+}
+.marketingBannerStyleCard.active{
+  border-color:#d8242f;
+  box-shadow:0 0 0 1px #d8242f inset;
+}
+.marketingBannerStyleCard>div{
+  height:76px;
+  position:relative;
+  overflow:hidden;
+  padding:9px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  border-radius:7px;
+  color:#fff;
+}
+.marketingBannerStyleCard>div i{
+  position:absolute;
+  inset:0;
+  opacity:.75;
+}
+.marketingBannerStyleCard>div b,
+.marketingBannerStyleCard>div em{
+  position:relative;
+  z-index:2;
+  display:block;
+}
+.marketingBannerStyleCard>div b{
+  font-size:20px;
+  line-height:.85;
+}
+.marketingBannerStyleCard>div em{
+  margin-top:3px;
+  font-size:8px;
+  font-style:normal;
+  font-weight:800;
+}
+.bannerStyle_formal>div{
+  background:linear-gradient(135deg,#d8242f,#731017);
+}
+.bannerStyle_formal>div i{
+  background:radial-gradient(circle at 82% 18%,rgba(255,255,255,.18),transparent 28%);
+}
+.bannerStyle_motorsport>div{
+  background:linear-gradient(125deg,#08090a,#741019 58%,#111315);
+}
+.bannerStyle_motorsport>div i{
+  background:repeating-linear-gradient(115deg,transparent 0 18px,rgba(255,255,255,.08) 18px 20px);
+}
+.bannerStyle_motorsport>div b,
+.bannerStyle_motorsport>div em{
+  font-family:"Arial Black",Impact,Arial,sans-serif!important;
+  font-style:italic;
+  letter-spacing:-.04em;
+}
+.bannerStyle_garage>div{
+  background:linear-gradient(135deg,#15181a,#2d3235 55%,#090a0b);
+}
+.bannerStyle_garage>div i{
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px),
+    linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px);
+  background-size:18px 18px;
+}
+.bannerStyle_garage>div b,
+.bannerStyle_garage>div em{
+  font-family:"Arial Black",Impact,Arial,sans-serif!important;
+  font-style:italic;
+}
+.bannerStyle_street>div{
+  background:
+    radial-gradient(circle at 78% 20%,rgba(216,36,47,.48),transparent 25%),
+    linear-gradient(125deg,#08090c,#17121a 55%,#091018);
+}
+.bannerStyle_street>div i{
+  background:linear-gradient(118deg,transparent 0 53%,rgba(255,35,50,.3) 53% 55%,transparent 55%);
+}
+.bannerStyle_street>div b,
+.bannerStyle_street>div em{
+  font-family:"Arial Black",Impact,Arial,sans-serif!important;
+  font-style:italic;
+  letter-spacing:-.04em;
+}
+.marketingBannerStyleCard>span{
+  display:block;
+  margin-top:7px;
+  color:#d8242f;
+  font-size:5px;
+  font-weight:800;
+  letter-spacing:.07em;
+}
+.marketingBannerStyleCard>strong{
+  display:block;
+  margin-top:2px;
+  font-size:8px;
+}
+.marketingBannerStyleCard>small{
+  display:block;
+  margin-top:3px;
+  color:#969ca0;
+  font-size:6px;
+  line-height:1.35;
+}
+.marketingPreviewEventCode{
+  margin-top:8px;
+  color:inherit;
+  font-size:44px;
+  font-weight:900;
+  line-height:.82;
+  letter-spacing:-.07em;
+}
+.previewStyle_motorsport,
+.previewStyle_garage,
+.previewStyle_street{
+  position:relative;
+  overflow:hidden;
+}
+.previewStyle_motorsport{
+  background:
+    radial-gradient(circle at 82% 25%,rgba(255,40,55,.24),transparent 24%),
+    linear-gradient(125deg,#08090a,#651017 58%,#111315)!important;
+}
+.previewStyle_garage{
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px),
+    linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+    linear-gradient(125deg,#15181a,#2b3033 55%,#090a0b)!important;
+  background-size:28px 28px,28px 28px,auto!important;
+}
+.previewStyle_street{
+  background:
+    radial-gradient(circle at 80% 20%,rgba(216,36,47,.38),transparent 22%),
+    linear-gradient(125deg,#08090c,#151118 55%,#091018)!important;
+}
+.previewStyle_motorsport .marketingPreviewEventCode,
+.previewStyle_garage .marketingPreviewEventCode,
+.previewStyle_street .marketingPreviewEventCode,
+.previewStyle_motorsport h3,
+.previewStyle_garage h3,
+.previewStyle_street h3{
+  font-family:"Arial Black",Impact,Arial,sans-serif!important;
+  font-style:italic;
+  text-transform:uppercase;
+}
+.previewStyle_motorsport .marketingPreviewEventCode,
+.previewStyle_garage .marketingPreviewEventCode,
+.previewStyle_street .marketingPreviewEventCode{
+  font-size:52px;
+}
+@media(max-width:1000px){
+  .marketingBannerStyleGrid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:620px){
+  .marketingBannerStyleHead{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .marketingBannerStyleGrid{
+    grid-template-columns:1fr;
+  }
+}
