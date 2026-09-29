@@ -4929,3 +4929,52 @@
     grid-column:1/-1;
   }
 }
+
+
+/* FIX NARROW VOUCHER CARDS IN MARKETING CENTRE */
+.marketingVoucherList article{
+  grid-template-columns:1fr !important;
+  gap:10px !important;
+  align-items:stretch !important;
+}
+.marketingVoucherTicket{
+  width:100%;
+  min-width:0;
+}
+.marketingVoucherTicket strong{
+  white-space:normal;
+  overflow-wrap:normal;
+  word-break:normal;
+}
+.marketingVoucherMeta{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:6px 10px;
+}
+.marketingVoucherMeta small,
+.marketingVoucherMeta b{
+  margin-top:0;
+}
+.marketingVoucherList .promotionRowActions{
+  grid-column:1 !important;
+  grid-row:auto !important;
+  width:100%;
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;
+  justify-content:stretch;
+}
+.marketingVoucherList .promotionRowActions button,
+.marketingVoucherList .promotionRowActions .promotionEdit{
+  width:100%;
+  min-width:0 !important;
+}
+@media(max-width:440px){
+  .marketingVoucherList .promotionRowActions{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+  .marketingVoucherList .promotionRowActions .promotionDelete{
+    grid-column:auto;
+  }
+}
