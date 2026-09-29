@@ -903,7 +903,10 @@ export default function MarketingCampaignsPage() {
                         }}
                       >
                         <span>{campaign.badge || "CAMPAIGN"}</span>
-                        <strong>{campaign.title}</strong>
+                        <strong>
+                          {campaign.event_code ? campaign.event_code + " " : ""}
+                          {campaign.title}
+                        </strong>
                         <small>{campaign.highlight_text || template.name}</small>
                       </div>
 
@@ -1064,7 +1067,21 @@ export default function MarketingCampaignsPage() {
 
                       <div className={styles.marketingFormGridV2}>
                         <label>
-                          <span>MAIN TITLE *</span>
+                          <span>EVENT NUMBER / DATE</span>
+                          <input
+                            value={form.event_code}
+                            onChange={(event) =>
+                              setForm((current) => ({
+                                ...current,
+                                event_code: event.target.value,
+                              }))
+                            }
+                            placeholder="10.10"
+                          />
+                        </label>
+
+                        <label>
+                          <span>SALE TITLE *</span>
                           <input
                             required
                             value={form.title}
@@ -1074,7 +1091,7 @@ export default function MarketingCampaignsPage() {
                                 title: event.target.value,
                               }))
                             }
-                            placeholder="10.10 MEGA SALE"
+                            placeholder="AUTO SALE"
                           />
                         </label>
 
@@ -1222,6 +1239,50 @@ export default function MarketingCampaignsPage() {
                         <div>
                           <span>STYLE & ARTWORK</span>
                           <h3>Brand the campaign</h3>
+                        </div>
+                      </div>
+
+                      <div className={styles.marketingBannerStyleBlock}>
+                        <div className={styles.marketingBannerStyleHead}>
+                          <div>
+                            <span>BANNER STYLE</span>
+                            <strong>Choose how the campaign feels</strong>
+                          </div>
+                          <small>
+                            Typography and graphic treatment change automatically.
+                          </small>
+                        </div>
+
+                        <div className={styles.marketingBannerStyleGrid}>
+                          {bannerStyles.map((style) => (
+                            <button
+                              type="button"
+                              key={style.key}
+                              className={
+                                styles.marketingBannerStyleCard +
+                                " " +
+                                styles["bannerStyle_" + style.key] +
+                                (form.banner_style === style.key
+                                  ? " " + styles.active
+                                  : "")
+                              }
+                              onClick={() =>
+                                setForm((current) => ({
+                                  ...current,
+                                  banner_style: style.key,
+                                }))
+                              }
+                            >
+                              <div>
+                                <i />
+                                <b>{form.event_code || "10.10"}</b>
+                                <em>{form.title || "AUTO SALE"}</em>
+                              </div>
+                              <span>{style.kicker}</span>
+                              <strong>{style.name}</strong>
+                              <small>{style.description}</small>
+                            </button>
+                          ))}
                         </div>
                       </div>
 
@@ -1464,7 +1525,11 @@ export default function MarketingCampaignsPage() {
                     </div>
 
                     <div
-                      className={styles.marketingPreviewCanvasV2}
+                      className={
+                        styles.marketingPreviewCanvasV2 +
+                        " " +
+                        styles["previewStyle_" + form.banner_style]
+                      }
                       style={{
                         background: form.desktop_image_url
                           ? undefined
@@ -1489,7 +1554,10 @@ export default function MarketingCampaignsPage() {
                       {form.display_mode === "image_only" && form.desktop_image_url ? null : (
                         <>
                           <span>{form.badge || "LIMITED TIME"}</span>
-                          <h3>{form.title || "YOUR CAMPAIGN TITLE"}</h3>
+                          <div className={styles.marketingPreviewEventCode}>
+                            {form.event_code || "10.10"}
+                          </div>
+                          <h3>{form.title || "AUTO SALE"}</h3>
                           <p style={{ color: form.muted_text_color }}>
                             {form.subtitle || "Campaign subtitle appears here."}
                           </p>
@@ -1509,8 +1577,8 @@ export default function MarketingCampaignsPage() {
 
                     <div className={styles.marketingPreviewDetailsV2}>
                       <div>
-                        <span>THEME</span>
-                        <strong>{form.theme.replaceAll("_", " ").toUpperCase()}</strong>
+                        <span>STYLE</span>
+                        <strong>{form.banner_style.toUpperCase()}</strong>
                       </div>
                       <div>
                         <span>LAYOUT</span>
