@@ -9226,3 +9226,17 @@ div{
     background:linear-gradient(180deg,rgba(5,7,8,.9),rgba(5,7,8,.58));
   }
 }
+
+
+/* CAMPAIGN BANNER VISUAL FIX */
+.campaignEvent.bannerStyle-formal{background:linear-gradient(135deg,var(--campaign-primary,#d8242f),var(--campaign-secondary,#6f0d14));}
+.campaignEvent.bannerStyle-motorsport{background:linear-gradient(115deg,#07090b 0 38%,var(--campaign-primary,#d8242f) 38% 72%,#111417 72%);clip-path:polygon(0 0,100% 0,98% 100%,0 100%);}
+.campaignEvent.bannerStyle-garage{background:linear-gradient(135deg,#111416,#292d30 58%,var(--campaign-primary,#d8242f));border-radius:6px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);}
+.campaignEvent.bannerStyle-street{background:radial-gradient(circle at 82% 30%,var(--campaign-primary,#d8242f) 0,transparent 24%),linear-gradient(125deg,#06070a 0 52%,#17111c 100%);box-shadow:0 18px 50px rgba(0,0,0,.28);}
+.campaignEvent.bannerStyle-motorsport .campaignMegaLayout{transform:skewX(-2deg);}
+.campaignEvent.bannerStyle-garage .campaignEventCode{font-style:normal;border-left:6px solid var(--campaign-primary,#d8242f);padding-left:14px;}
+.campaignEvent.bannerStyle-street .campaignEventCode{text-shadow:0 0 20px var(--campaign-primary,#d8242f),0 6px 18px rgba(0,0,0,.55);}
+.campaignEvent.hasImage .campaignBannerMedia{position:absolute;inset:0;overflow:hidden;}
+.campaignEvent.hasImage .campaignBannerMedia img{width:100%;height:100%;object-fit:cover;}
+.campaignEvent.hasImage.bannerStyle-formal .campaignBannerShade{background:linear-gradient(90deg,rgba(0,0,0,.62),rgba(0,0,0,.12));}
+@media(max-width:680px){.campaignEvent.bannerStyle-motorsport{clip-path:none}.campaignEvent.bannerStyle-motorsport .campaignMegaLayout{transform:none}}
