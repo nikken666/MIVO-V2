@@ -266,7 +266,7 @@ export default async function ProductsPage({
           <div className="brandDirectory">
             {representedBrands.map((brand) => (
               <a
-                href={"/products?brand=" + encodeURIComponent(brand.name)}
+                href={"/brands/" + brand.name.toLowerCase()}
                 className="brandDirectoryCard"
                 key={brand.name}
               >
