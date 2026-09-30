@@ -207,7 +207,7 @@ export default function AdminPage() {
           <div className={styles.adminSidebarFoot}>
             <span>STORE MODE</span>
             <strong>MIVO DIRECT</strong>
-            <a href="/">OPEN STOREFRONT ↗</a>
+            <a href="/">OPEN STOREFRONT</a>
           </div>
         </aside>
 
@@ -236,43 +236,43 @@ export default function AdminPage() {
             <a href="/admin/orders?tab=all" className={styles.dashboardStatPrimary}>
               <span>TODAY SALES</span>
               <strong>{loading ? "—" : money(stats.todaySales)}</strong>
-              <small>Paid orders today · VIEW →</small>
+              <small>Paid orders today · VIEW</small>
             </a>
 
             <a href="/admin/orders?tab=all" className={styles.dashboardStat}>
               <span>ORDERS TODAY</span>
               <strong>{loading ? "—" : stats.ordersToday}</strong>
-              <small>New orders · VIEW →</small>
+              <small>New orders · VIEW</small>
             </a>
 
             <a href="/admin/orders?tab=to_pay" className={styles.dashboardStat}>
               <span>PENDING PAYMENT</span>
               <strong>{loading ? "—" : stats.pendingPayment}</strong>
-              <small>Auto-cancel after 24h · VIEW →</small>
+              <small>Auto-cancel after 24h · VIEW</small>
             </a>
 
             <a href="/admin/arrange-shipment" className={styles.dashboardStat}>
               <span>TO ARRANGE</span>
               <strong>{loading ? "—" : stats.toShip}</strong>
-              <small>Paid orders ready for fulfilment · VIEW →</small>
+              <small>Paid orders ready for fulfilment · VIEW</small>
             </a>
 
             <a href="/admin/products?stock=low" className={styles.dashboardStat}>
               <span>LOW STOCK</span>
               <strong>{loading ? "—" : stats.lowStock}</strong>
-              <small>At or below threshold · VIEW →</small>
+              <small>At or below threshold · VIEW</small>
             </a>
 
             <a href="/admin/claims" className={styles.dashboardStat}>
               <span>OPEN CLAIMS</span>
               <strong>{loading ? "—" : stats.openClaims}</strong>
-              <small>Warranty cases needing attention · VIEW →</small>
+              <small>Warranty cases needing attention · VIEW</small>
             </a>
 
             <a href="/admin/products?status=active" className={styles.dashboardStat}>
               <span>ACTIVE PRODUCTS</span>
               <strong>{loading ? "—" : stats.activeProducts}</strong>
-              <small>Live catalogue · VIEW →</small>
+              <small>Live catalogue · VIEW</small>
             </a>
           </div>
 
@@ -285,7 +285,7 @@ export default function AdminPage() {
                   <p>Latest customer activity across MIVO.</p>
                 </div>
                 <a href="/admin/orders" className={styles.adminTextLink}>
-                  VIEW ALL ORDERS →
+                  VIEW ALL ORDERS
                 </a>
               </div>
 
@@ -343,27 +343,27 @@ export default function AdminPage() {
 
               <a href="/admin/orders">
                 <span>ORDERS</span>
-                <strong>Open order centre →</strong>
+                <strong>Open order centre</strong>
               </a>
               <a href="/admin/arrange-shipment">
                 <span>FULFILMENT</span>
-                <strong>Arrange paid orders →</strong>
+                <strong>Arrange paid orders</strong>
               </a>
               <a href="/admin/claims">
                 <span>AFTER-SALES</span>
-                <strong>Review warranty claims →</strong>
+                <strong>Review warranty claims</strong>
               </a>
               <a href="/admin/marketing">
                 <span>MARKETING CENTRE</span>
-                <strong>Campaigns, vouchers & discounts →</strong>
+                <strong>Campaigns, vouchers & discounts</strong>
               </a>
               <a href="/admin/products">
                 <span>CATALOGUE</span>
-                <strong>Open products →</strong>
+                <strong>Open products</strong>
               </a>
               <a href="/admin/products/new">
                 <span>NEW LISTING</span>
-                <strong>Add product →</strong>
+                <strong>Add product</strong>
               </a>
             </aside>
           </div>
