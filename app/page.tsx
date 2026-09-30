@@ -223,9 +223,9 @@ export default async function HomePage({
           <div className="brandBandTop"><span>TRUSTED NAMES. ONE CLEAN CATALOGUE.</span><Link href="/brands">EXPLORE BRANDS </Link></div>
           <div className="brandGrid brandLogoGrid">
             {brands.map((brand) => (
-              <Link href={"/products?view=brands#" + brand.name.toLowerCase()} className="brandLogoCard" key={brand.name} aria-label={brand.name}>
+              <div className="brandLogoCard brandLogoCardStatic" key={brand.name} aria-label={brand.name}>
                 <img src={brand.logo} alt={brand.name} />
-              </Link>
+              </div>
             ))}
           </div>
         </div>
