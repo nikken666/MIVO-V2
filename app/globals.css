@@ -9461,3 +9461,10 @@ div{
     scroll-margin-top:160px;
   }
 }
+
+/* Vehicle finder desktop step focus target */
+@media(min-width:851px){
+  .quizTop{
+    scroll-margin-top:170px;
+  }
+}
