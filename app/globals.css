@@ -9399,3 +9399,8 @@ div{
 .brandInlineDetails a{display:inline-block;margin-top:18px;color:#111820;font-size:10px;font-weight:800;text-decoration:none;border-bottom:1px solid #111820;padding-bottom:3px}
 .brandExpandableCard[open]{grid-column:span 2}
 @media(max-width:560px){.brandExpandableCard[open]{grid-column:span 1}}
+
+/* Open a brand card when linked from the homepage via #nikken, #kyb or #gsp */
+.brandExpandableCard:target .brandInlineDetails{display:block}
+.brandExpandableCard:target{grid-column:span 2}
+@media(max-width:560px){.brandExpandableCard:target{grid-column:span 1}}
