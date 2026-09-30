@@ -43,7 +43,7 @@ export default function CartPage() {
             <h1>Your cart is empty.</h1>
             <p>Find the right parts for your vehicle and add them here.</p>
             <Link href="/products" className="cartPrimaryButton">
-              SHOP PARTS →
+              SHOP PARTS 
             </Link>
           </div>
         </div>
@@ -239,13 +239,13 @@ export default function CartPage() {
                 <small>SECURE CHECKOUT</small>
                 CHECKOUT NOW
               </span>
-              <b>→</b>
+              <b></b>
             </Link>
 
             <div className="checkoutTrust">
-              <span>✓ Secure payment</span>
-              <span>✓ Order tracking</span>
-              <span>✓ Vehicle-fitment support</span>
+              <span>Secure payment</span>
+              <span>Order tracking</span>
+              <span>Vehicle-fitment support</span>
             </div>
           </aside>
         </div>
@@ -257,7 +257,7 @@ export default function CartPage() {
           <strong>{formatPrice(subtotal)}</strong>
         </div>
         <Link href="/checkout">
-          CHECKOUT <b>→</b>
+          CHECKOUT <b></b>
         </Link>
       </div>
     </main>
