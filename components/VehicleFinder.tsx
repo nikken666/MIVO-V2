@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   vehicleDatabase,
   vehicleLabel,
@@ -27,6 +27,32 @@ export default function VehicleFinder() {
   const [savedLoaded, setSavedLoaded] = useState(false);
   const [addingVehicle, setAddingVehicle] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+  const finderRef = useRef<HTMLDivElement | null>(null);
+  const previousStepRef = useRef(step);
+
+  useEffect(() => {
+    if (previousStepRef.current === step) return;
+    previousStepRef.current = step;
+
+    if (typeof window === "undefined") return;
+    if (!window.matchMedia("(min-width: 851px)").matches) return;
+
+    const finder = finderRef.current;
+    if (!finder) return;
+
+    window.requestAnimationFrame(() => {
+      const stickyHeader = document.querySelector(".siteHeader") as HTMLElement | null;
+      const headerHeight = stickyHeader?.getBoundingClientRect().height || 0;
+      const targetTop =
+        window.scrollY + finder.getBoundingClientRect().top - headerHeight - 12;
+
+      window.scrollTo({
+        top: Math.max(0, targetTop),
+        behavior: "smooth",
+      });
+    });
+  }, [step]);
+
 
   useEffect(() => {
     let active = true;
@@ -368,7 +394,7 @@ export default function VehicleFinder() {
   }
 
   return (
-    <div className="fitmentCard quizFitment" id="fitment">
+    <div ref={finderRef} className="fitmentCard quizFitment" id="fitment">
       <div className="quizTop">
         <div>
           <span className="microLabel">
