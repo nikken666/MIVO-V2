@@ -159,9 +159,9 @@ export default async function ProductsPage({
 
   const products = await productsPromise;
   const representedBrands = [
-    { name: "NIKKEN", category: "Automotive replacement parts", logoClass: "nikken" },
-    { name: "KYB", category: "Suspension & shock absorbers", logoClass: "kyb" },
-    { name: "GSP", category: "Drivetrain & drive shafts", logoClass: "gsp" },
+    { name: "NIKKEN", category: "Automotive replacement parts", logo: "/brands/nikken-logo.svg" },
+    { name: "KYB", category: "Suspension & shock absorbers", logo: "/brands/kyb-logo.svg" },
+    { name: "GSP", category: "Drivetrain & drive shafts", logo: "/brands/gsp-logo.svg" },
   ];
 
   const baseFiltered = products.filter(
@@ -270,10 +270,9 @@ export default async function ProductsPage({
                 className="brandDirectoryCard"
                 key={brand.name}
               >
-                <span className={"brandLogo brandLogo-" + brand.logoClass} aria-label={brand.name}>
-                  {brand.name}
+                <span className="brandLogo" aria-label={brand.name}>
+                  <img src={brand.logo} alt={brand.name + " logo"} />
                 </span>
-                <p>{brand.category}</p>
               </a>
             ))}
           </div>
