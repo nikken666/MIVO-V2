@@ -224,9 +224,6 @@ export const vehicleDatabase: VehicleMake[] = [
       "GR Yaris",
       "GR86",
       "GR Corolla",
-      "bZ4X",
-      "Urban Cruiser",
-      "Soluna",
       "Vios",
       "Yaris",
       "Avanza",
@@ -338,12 +335,6 @@ export const vehicleDatabase: VehicleMake[] = [
 
       { id: "toyota-gr86-zn8-2022", model: "GR86", generation: "ZN8", startYear: 2022, variants: ["2.4"], transmissions: ["AUTO", "MANUAL"] },
       { id: "toyota-gr-corolla-gzea14-2023", model: "GR Corolla", generation: "GZEA14", startYear: 2023, variants: ["1.6 Turbo GR"], transmissions: ["MANUAL"] },
-
-      { id: "toyota-bz4x-xeam10-2026", model: "bZ4X", generation: "XEAM10", startYear: 2026, variants: ["BEV"], transmissions: ["AUTO"] },
-      { id: "toyota-urban-cruiser-ev-2026", model: "Urban Cruiser", generation: "Gen 1 BEV", startYear: 2026, variants: ["BEV"], transmissions: ["AUTO"] },
-
-      // SOLUNA
-      { id: "toyota-soluna-al50-2000", model: "Soluna", generation: "AL50", startYear: 2000, endYear: 2003, variants: ["1.5 GLi", "1.5 GLi SE"], transmissions: ["AUTO", "MANUAL"] },
 
       // VIOS
       { id: "toyota-vios-ncp42-2003", model: "Vios", generation: "NCP42 (Gen 1)", startYear: 2003, endYear: 2007, variants: ["1.5 E", "1.5 G", "1.5 S", "1.5 Special Edition"], transmissions: ["AUTO", "MANUAL"] },
