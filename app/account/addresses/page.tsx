@@ -432,7 +432,7 @@ export default function AddressSettingsPage() {
                   <small>MIVO ACCOUNT</small>
                   {busy ? "SAVING..." : "SAVE ADDRESS"}
                 </span>
-                <b>→</b>
+                <b></b>
               </button>
             </form>
           </section>
