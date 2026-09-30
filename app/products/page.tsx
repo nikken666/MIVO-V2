@@ -159,9 +159,9 @@ export default async function ProductsPage({
 
   const products = await productsPromise;
   const representedBrands = [
-    { name: "NIKKEN", category: "Automotive replacement parts", logo: "/brands/nikken-logo.svg", slug: "nikken", intro: "Japanese automotive replacement parts focused on dependable everyday performance, fitment and durability." },
-    { name: "KYB", category: "Suspension & shock absorbers", logo: "/brands/kyb-logo.svg", slug: "kyb", intro: "A globally recognized name in suspension technology and ride-control components." },
-    { name: "GSP", category: "Drivetrain & drive shafts", logo: "/brands/gsp-logo.svg", slug: "gsp", intro: "Automotive replacement parts with a strong focus on drivetrain and chassis components." },
+    { name: "NIKKEN", category: "Automotive replacement parts", logo: "/brands/nikken-logo.svg", slug: "nikken", intro: "NIKKEN focuses on automotive replacement and maintenance parts for everyday vehicles.", about: "Its product range covers selected steering, drivetrain, braking, cooling and maintenance components, with an emphasis on practical fitment, dependable performance and durable replacement solutions." },
+    { name: "KYB", category: "Suspension & shock absorbers", logo: "/brands/kyb-logo.svg", slug: "kyb", intro: "KYB is an automotive component manufacturer best known for suspension and ride-control products.", about: "Its automotive range is centered on shock absorbers, struts and related suspension components designed to support vehicle stability, comfort and handling." },
+    { name: "GSP", category: "Drivetrain & drive shafts", logo: "/brands/gsp-logo.svg", slug: "gsp", intro: "GSP specializes in automotive drivetrain and chassis replacement components.", about: "Its product portfolio includes drive shafts, CV joints, hub assemblies and other related replacement parts serving passenger-vehicle drivetrain and chassis applications." },
   ];
 
   const selectedBrand = representedBrands.find((brand) => brand.slug === view);
@@ -262,7 +262,20 @@ export default async function ProductsPage({
             <div className="brandProfileInlineLogo"><img src={selectedBrand.logo} alt={selectedBrand.name + " logo"} /></div>
             <h1>{selectedBrand.name}</h1>
             <p>{selectedBrand.intro}</p>
-            <p><a href={"/products?q=" + encodeURIComponent(selectedBrand.name)}>Explore {selectedBrand.name} products</a></p>
+          </section>
+          <section className="brandProfileInline">
+            <div>
+              <span>ABOUT {selectedBrand.name}</span>
+              <h2>What does {selectedBrand.name} do?</h2>
+              <p>{selectedBrand.about}</p>
+            </div>
+            <div>
+              <span>PRODUCT FOCUS</span>
+              <h3>{selectedBrand.category}</h3>
+              <a href={"/products?q=" + encodeURIComponent(selectedBrand.name)}>Explore {selectedBrand.name} products</a>
+            </div>
+          </section>
+          <section className="brandsHero brandProfileEnd">
           </section>
         </>
       ) : view === "brands" ? (
