@@ -85,7 +85,7 @@ export default function Header() {
           </Link>
 
           <form className="headerSearch" action="/products">
-            <span className="searchGlyph">⌕</span>
+            <span className="searchGlyph" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg></span>
             <input name="q" placeholder="Search part, OEM number, SKU or brand" />
             <button type="submit">SEARCH</button>
           </form>
@@ -106,7 +106,7 @@ export default function Header() {
             >
               <small>ACCOUNT</small>
               <strong>
-                {loggedIn ? "Hello, " + (customerName || "Customer") : "SIGN IN →"}
+                {loggedIn ? "Hello, " + (customerName || "Customer") : "SIGN IN"}
               </strong>
             </Link>
 
@@ -134,7 +134,7 @@ export default function Header() {
                 + ADD CAR
               </Link>
               <Link href="/orders" className="trackLink">
-                TRACK ORDER ↗
+                TRACK ORDER
               </Link>
             </div>
           </div>
