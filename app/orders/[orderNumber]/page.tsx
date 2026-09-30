@@ -328,7 +328,7 @@ export default function OrderDetailsPage() {
           <div className="ordersEmpty">
             <strong>Unable to open order.</strong>
             <p>{error || "Order not found."}</p>
-            <Link href="/orders">BACK TO MY ORDERS →</Link>
+            <Link href="/orders">BACK TO MY ORDERS</Link>
           </div>
         </div>
       </main>
