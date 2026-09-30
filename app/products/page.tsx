@@ -256,11 +256,10 @@ export default async function ProductsPage({
       {view === "brands" ? (
         <>
           <section className="brandsHero">
-            <span>MIVO BRAND PORTFOLIO</span>
-            <h1>Our Brands</h1>
+            <span>BRANDS AVAILABLE ON MIVO</span>
+            <h1>Brands</h1>
             <p>
-              Automotive brands represented across the MIVO catalogue.
-              Select a brand to browse its available products.
+              Explore automotive brands available on MIVO.
             </p>
           </section>
           <div className="brandDirectory">
