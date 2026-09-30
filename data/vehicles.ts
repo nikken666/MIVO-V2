@@ -218,6 +218,7 @@ export const vehicleDatabase: VehicleMake[] = [
       "Harrier",
       "RAV4",
       "Prius",
+      "86",
       "Crown",
       "GR Supra",
       "GR Yaris",
@@ -400,6 +401,10 @@ export const vehicleDatabase: VehicleMake[] = [
       // RUSH
       { id: "toyota-rush-f700-2008", model: "Rush", generation: "F700", startYear: 2008, endYear: 2017, variants: ["1.5G", "1.5S"], transmissions: ["AUTO", "MANUAL"] },
       { id: "toyota-rush-f800-2018", model: "Rush", generation: "F800", startYear: 2018, endYear: 2024, variants: ["1.5G", "1.5S"], transmissions: ["AUTO"] },
+
+      // TOYOTA 86 / FT86 / GT86
+      { id: "toyota-86-zn6-2012", model: "86", generation: "ZN6 / FT86 / GT86", startYear: 2012, endYear: 2016, variants: ["2.0 Standard", "2.0 Aero", "2.0 TRD"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "toyota-86-zn6-fl-2017", model: "86", generation: "ZN6 Facelift", startYear: 2017, endYear: 2021, variants: ["2.0 Standard", "2.0 GT", "2.0 GT Limited"], transmissions: ["AUTO", "MANUAL"] },
 
       // SIENTA
       { id: "toyota-sienta-p80-2003", model: "Sienta", generation: "P80", startYear: 2003, endYear: 2015, variants: ["1.5 X", "1.5 G"], transmissions: ["AUTO"] },
