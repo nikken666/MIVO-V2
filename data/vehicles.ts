@@ -10,6 +10,7 @@ export type VehicleGeneration = {
 
 export type VehicleMake = {
   make: string;
+  modelOrder?: string[];
   vehicles: VehicleGeneration[];
 };
 
@@ -49,33 +50,161 @@ export const vehicleDatabase: VehicleMake[] = [
   },
   {
     make: "Proton",
+    modelOrder: [
+      "Saga",
+      "Wira",
+      "Satria",
+      "Perdana",
+      "Tiara",
+      "Putra",
+      "Waja",
+      "Juara",
+      "Arena",
+      "Gen-2",
+      "Savvy",
+      "Satria Neo",
+      "Persona",
+      "Exora",
+      "Inspira",
+      "Prevé",
+      "Suprima S",
+      "Iriz",
+      "Ertiga",
+      "X70",
+      "X50",
+      "X90",
+      "S70",
+      "e.MAS 7",
+      "e.MAS 5",
+      "e.MAS 7 PHEV",
+    ],
     vehicles: [
-      { id: "proton-saga-iswara-1992", model: "Saga", generation: "Saga Iswara", startYear: 1992, endYear: 2003, variants: ["1.3 S", "1.3 LMST", "1.5 S"] },
-      { id: "proton-saga-blm-2008", model: "Saga", generation: "BLM (Base Line Model)", startYear: 2008, endYear: 2010, variants: ["1.3 N", "1.3 M-Line", "1.6 SE"] },
-      { id: "proton-saga-flx-2010", model: "Saga", generation: "FL / FLX", startYear: 2010, endYear: 2016, variants: ["1.3 Executive", "1.3 Standard", "1.6 SE"] },
-      { id: "proton-saga-vvt-prefl-2016", model: "Saga", generation: "VVT", startYear: 2016, endYear: 2018, variants: ["1.3 Standard", "1.3 Executive", "1.3 Premium"] },
-      { id: "proton-saga-mc1-2019", model: "Saga", generation: "P2-13A Facelift (MC1)", startYear: 2019, endYear: 2021, variants: ["1.3 Standard MT", "1.3 Standard AT", "1.3 Premium AT"] },
-      { id: "proton-saga-mc2-2022", model: "Saga", generation: "P2-13A MC2", startYear: 2022, endYear: 2025, variants: ["1.3 Standard MT", "1.3 Standard AT", "1.3 Premium S"] },
-      { id: "proton-saga-mc3-2025", model: "Saga", generation: "P2-14A MC3", startYear: 2025, variants: ["1.5 Standard", "1.5 Executive", "1.5 Premium"], transmissions: ["AUTO"] },
+      // SAGA — 1985 to present
+      { id: "proton-saga-orion-1985", model: "Saga", generation: "Orion", startYear: 1985, endYear: 1986, variants: ["1.3 S", "1.5 S"] },
+      { id: "proton-saga-magma-1987", model: "Saga", generation: "Magma", startYear: 1987, endYear: 1989, variants: ["1.3 S", "1.5 S"] },
+      { id: "proton-saga-megavalve-1990", model: "Saga", generation: "Megavalve", startYear: 1990, endYear: 1991, variants: ["1.3 12V", "1.5 12V"] },
+      { id: "proton-saga-iswara-1992", model: "Saga", generation: "Iswara", startYear: 1992, endYear: 2000, variants: ["1.3 S Sedan", "1.5 S Sedan", "1.3 Aeroback", "1.5 Aeroback"] },
+      { id: "proton-saga-iswara-se-2001", model: "Saga", generation: "Iswara Aeroback SE", startYear: 2001, endYear: 2003, variants: ["1.3 SE"], transmissions: ["MANUAL"] },
+      { id: "proton-saga-lmst-2003", model: "Saga", generation: "LMST", startYear: 2003, endYear: 2007, variants: ["1.3 Standard", "1.3 Power Steering", "1.3 50th Merdeka Edition"], transmissions: ["MANUAL"] },
+      { id: "proton-saga-blm-2008", model: "Saga", generation: "BLM", startYear: 2008, endYear: 2010, variants: ["1.3 N-Line", "1.3 B-Line", "1.3 M-Line", "1.3 SE", "1.6 CamPro"] },
+      { id: "proton-saga-fl-2010", model: "Saga", generation: "FL", startYear: 2010, endYear: 2011, variants: ["1.3 Standard", "1.3 Executive", "1.6 Executive"] },
+      { id: "proton-saga-flx-2011", model: "Saga", generation: "FLX", startYear: 2011, endYear: 2015, variants: ["1.3 Standard", "1.3 Executive", "1.6 SE"] },
+      { id: "proton-saga-vvt-2016", model: "Saga", generation: "VVT (P2-13A)", startYear: 2016, endYear: 2018, variants: ["1.3 Standard", "1.3 Executive", "1.3 Premium"] },
+      { id: "proton-saga-mc1-2019", model: "Saga", generation: "MC1 (P2-13A Facelift)", startYear: 2019, endYear: 2021, variants: ["1.3 Standard", "1.3 Premium"] },
+      { id: "proton-saga-mc2-2022", model: "Saga", generation: "MC2 (P2-13A)", startYear: 2022, endYear: 2025, variants: ["1.3 Standard", "1.3 Premium S"] },
+      { id: "proton-saga-ama01-2025", model: "Saga", generation: "AMA01", startYear: 2025, variants: ["1.5 Standard", "1.5 Executive", "1.5 Premium"], transmissions: ["AUTO"] },
 
-      { id: "proton-persona-cm-2007", model: "Persona", generation: "Gen 1 (CM)", startYear: 2007, endYear: 2016, variants: ["1.6 Base", "1.6 Medium", "1.6 High", "1.6 SV"] },
-      { id: "proton-persona-p221a-2016", model: "Persona", generation: "P2-21A", startYear: 2016, endYear: 2018, variants: ["1.6 Standard", "1.6 Executive", "1.6 Premium"] },
-      { id: "proton-persona-mc1-2019", model: "Persona", generation: "P2-21A MC1", startYear: 2019, endYear: 2020, variants: ["1.6 Standard", "1.6 Executive", "1.6 Premium"] },
-      { id: "proton-persona-mc2-2021", model: "Persona", generation: "P2-21A MC2", startYear: 2021, endYear: 2026, variants: ["1.6 Standard", "1.6 Executive", "1.6 Premium"] },
+      // WIRA — Sedan / Aeroback
+      { id: "proton-wira-prefl-1993", model: "Wira", generation: "Pre-Facelift (C90)", startYear: 1993, endYear: 1995, variants: ["1.3 GL Sedan", "1.3 GL Aeroback", "1.5 GL Sedan", "1.5 GL Aeroback", "1.6 XLi Sedan", "1.6 XLi Aeroback"] },
+      { id: "proton-wira-fl-1996", model: "Wira", generation: "Facelift (C90)", startYear: 1996, endYear: 2000, variants: ["1.3 GLi Sedan", "1.3 GLi Aeroback", "1.5 GLi Sedan", "1.5 GLi Aeroback", "1.6 XLi Sedan", "1.6 XLi Aeroback", "1.8 EXi DOHC", "2.0 Diesel"] },
+      { id: "proton-wira-late-2001", model: "Wira", generation: "Late Model", startYear: 2001, endYear: 2009, variants: ["1.3 GLi Sedan", "1.3 GLi Aeroback", "1.5 GLi Sedan", "1.5 GLi Aeroback", "1.6 XLi Sedan", "1.6 XLi Aeroback", "1.5 SE", "1.8 EXi DOHC"] },
 
-      { id: "proton-wira-g1-1993", model: "Wira", generation: "Gen 1", startYear: 1993, endYear: 2009, variants: ["1.3 GL", "1.5 GLi", "1.6 XLi", "1.8 EXi"] },
-      { id: "proton-waja-mmc-2000", model: "Waja", generation: "MMC (4G18)", startYear: 2000, endYear: 2005, variants: ["1.6 4G18"] },
-      { id: "proton-waja-campro-2006", model: "Waja", generation: "CamPro", startYear: 2006, endYear: 2011, variants: ["1.6 CamPro", "1.6 CPS"] },
-      { id: "proton-exora-cps-2009", model: "Exora", generation: "CPS", startYear: 2009, endYear: 2016, variants: ["1.6 CPS"] },
-      { id: "proton-exora-cfe-2012", model: "Exora", generation: "CFE Turbo", startYear: 2012, endYear: 2023, variants: ["1.6 CFE Turbo"], transmissions: ["AUTO"] },
+      // SATRIA
+      { id: "proton-satria-prefl-1994", model: "Satria", generation: "Pre-Facelift", startYear: 1994, endYear: 1997, variants: ["1.3 GLi", "1.5 GLi", "1.6 XLi"] },
+      { id: "proton-satria-fl-1998", model: "Satria", generation: "Facelift", startYear: 1998, endYear: 2005, variants: ["1.3 GLi", "1.5 GLi", "1.6 XLi", "1.8 GTi"] },
+      { id: "proton-satria-r3-2004", model: "Satria", generation: "R3", startYear: 2004, endYear: 2005, variants: ["1.8 R3"], transmissions: ["MANUAL"] },
 
-      { id: "proton-x50-g1-2020", model: "X50", generation: "2020–2024", startYear: 2020, endYear: 2024, variants: ["1.5T Standard", "1.5T Executive", "1.5T Premium", "1.5 TGDi Flagship"], transmissions: ["AUTO"] },
-      { id: "proton-x50-allnew-2025", model: "X50", generation: "All-New 2025", startYear: 2025, variants: ["1.5 i-GT Executive", "1.5 i-GT Premium", "1.5 i-GT Flagship"], transmissions: ["AUTO"] },
-      { id: "proton-x70-cbu-2018", model: "X70", generation: "Gen 1 CBU", startYear: 2018, endYear: 2019, variants: ["1.8 TGDi Standard", "1.8 TGDi Executive", "1.8 TGDi Premium"], transmissions: ["AUTO"] },
-      { id: "proton-x70-ckd-2020", model: "X70", generation: "Gen 1 CKD", startYear: 2020, endYear: 2021, variants: ["1.8 TGDi Standard", "1.8 TGDi Executive", "1.8 TGDi Premium", "1.8 TGDi Premium X"], transmissions: ["AUTO"] },
-      { id: "proton-x70-15tgdi-2022", model: "X70", generation: "2022 Update", startYear: 2022, endYear: 2023, variants: ["1.5 TGDi Standard", "1.5 TGDi Executive", "1.5 TGDi Premium", "1.8 TGDi Premium"], transmissions: ["AUTO"] },
-      { id: "proton-x70-facelift-2024", model: "X70", generation: "2024 Facelift", startYear: 2024, variants: ["1.5 TGDi Standard", "1.5 TGDi Executive", "1.5 TGDi Premium", "1.5 TGDi Premium X"], transmissions: ["AUTO"] },
-      { id: "proton-s70-g1-2023", model: "S70", generation: "Gen 1", startYear: 2023, variants: ["1.5T Exec", "1.5T Premium", "1.5T Flagship", "1.5T Flagship X"], transmissions: ["AUTO"] },
+      // PERDANA
+      { id: "proton-perdana-sei-1995", model: "Perdana", generation: "SEi (E50)", startYear: 1995, endYear: 1998, variants: ["2.0 SEi"] },
+      { id: "proton-perdana-v6-1998", model: "Perdana", generation: "V6", startYear: 1998, endYear: 2002, variants: ["2.0 V6"], transmissions: ["AUTO"] },
+      { id: "proton-perdana-v6-enhanced-2003", model: "Perdana", generation: "V6 Enhanced", startYear: 2003, endYear: 2010, variants: ["2.0 V6 Enhanced"], transmissions: ["AUTO"] },
+      { id: "proton-perdana-cp-gov-2013", model: "Perdana", generation: "Accord-Based Government (CP)", startYear: 2013, endYear: 2015, variants: ["2.0 i-VTEC", "2.4 i-VTEC"], transmissions: ["AUTO"] },
+      { id: "proton-perdana-p490b-2016", model: "Perdana", generation: "P4-90B", startYear: 2016, endYear: 2020, variants: ["2.0L", "2.4L"], transmissions: ["AUTO"] },
+
+      // TIARA
+      { id: "proton-tiara-1996", model: "Tiara", generation: "B31L", startYear: 1996, endYear: 2000, variants: ["1.1 GL", "1.1 GLi"], transmissions: ["MANUAL"] },
+
+      // PUTRA
+      { id: "proton-putra-1996", model: "Putra", generation: "C99D", startYear: 1996, endYear: 2004, variants: ["1.8 EXi"], transmissions: ["AUTO", "MANUAL"] },
+
+      // WAJA
+      { id: "proton-waja-mmc-2000", model: "Waja", generation: "MMC 4G18", startYear: 2000, endYear: 2005, variants: ["1.6 Standard", "1.6 Premium", "1.6X", "1.6 20th Anniversary"] },
+      { id: "proton-waja-renault-2002", model: "Waja", generation: "Renault F4P", startYear: 2002, endYear: 2003, variants: ["1.8X"], transmissions: ["AUTO"] },
+      { id: "proton-waja-chancellor-2005", model: "Waja", generation: "Chancellor LWB", startYear: 2005, endYear: 2006, variants: ["2.0 V6 Chancellor"], transmissions: ["AUTO"] },
+      { id: "proton-waja-campro-2006", model: "Waja", generation: "CamPro", startYear: 2006, endYear: 2007, variants: ["1.6 CamPro Standard", "1.6 CamPro Premium"] },
+      { id: "proton-waja-cps-2008", model: "Waja", generation: "CamPro CPS", startYear: 2008, endYear: 2011, variants: ["1.6 CPS M-Line", "1.6 CPS Premium"] },
+
+      // JUARA
+      { id: "proton-juara-2001", model: "Juara", generation: "U66W", startYear: 2001, endYear: 2004, variants: ["1.1 E"], transmissions: ["AUTO"] },
+
+      // ARENA
+      { id: "proton-arena-2002", model: "Arena", generation: "C97P", startYear: 2002, endYear: 2010, variants: ["1.5 Freestyle", "1.5 Sportdeck", "1.5 Fastback"], transmissions: ["MANUAL"] },
+
+      // GEN-2
+      { id: "proton-gen2-prefl-2004", model: "Gen-2", generation: "Pre-Facelift", startYear: 2004, endYear: 2007, variants: ["1.3 CamPro", "1.6 CamPro M-Line", "1.6 CamPro H-Line"] },
+      { id: "proton-gen2-fl-2008", model: "Gen-2", generation: "Facelift", startYear: 2008, endYear: 2012, variants: ["1.6 IAFM M-Line", "1.6 CPS H-Line"] },
+
+      // SAVVY
+      { id: "proton-savvy-prefl-2005", model: "Savvy", generation: "Pre-Facelift", startYear: 2005, endYear: 2006, variants: ["1.2 L-Line", "1.2 M-Line"] },
+      { id: "proton-savvy-fl-2007", model: "Savvy", generation: "Facelift", startYear: 2007, endYear: 2011, variants: ["1.2 Medium-Line", "1.2 High-Line"] },
+
+      // SATRIA NEO
+      { id: "proton-satria-neo-2006", model: "Satria Neo", generation: "Pre-CPS", startYear: 2006, endYear: 2008, variants: ["1.3 L-Line", "1.6 M-Line", "1.6 H-Line"] },
+      { id: "proton-satria-neo-r3-2008", model: "Satria Neo", generation: "R3", startYear: 2008, endYear: 2009, variants: ["1.6 R3"], transmissions: ["MANUAL"] },
+      { id: "proton-satria-neo-cps-2009", model: "Satria Neo", generation: "CPS", startYear: 2009, endYear: 2015, variants: ["1.6 M-Line", "1.6 H-Line CPS"] },
+      { id: "proton-satria-neo-r3-lotus-2010", model: "Satria Neo", generation: "R3 Lotus Racing", startYear: 2010, endYear: 2010, variants: ["1.6 R3 Lotus Racing"], transmissions: ["MANUAL"] },
+      { id: "proton-satria-neo-r3-rs-2011", model: "Satria Neo", generation: "R3 RS", startYear: 2011, endYear: 2012, variants: ["1.6 CPS R3 RS"], transmissions: ["MANUAL"] },
+
+      // PERSONA
+      { id: "proton-persona-cm-2007", model: "Persona", generation: "CM", startYear: 2007, endYear: 2009, variants: ["1.6 Base-Line", "1.6 Medium-Line", "1.6 High-Line", "1.6 SE"] },
+      { id: "proton-persona-elegance-2010", model: "Persona", generation: "Elegance", startYear: 2010, endYear: 2012, variants: ["1.6 Base-Line", "1.6 Medium-Line", "1.6 High-Line"] },
+      { id: "proton-persona-sv-2013", model: "Persona", generation: "SV / Late CM", startYear: 2013, endYear: 2016, variants: ["1.6 SV", "1.6 Executive"] },
+      { id: "proton-persona-bh-2016", model: "Persona", generation: "BH", startYear: 2016, endYear: 2018, variants: ["1.6 Standard", "1.6 Executive", "1.6 Premium"] },
+      { id: "proton-persona-mc1-2019", model: "Persona", generation: "BH Facelift (MC1)", startYear: 2019, endYear: 2020, variants: ["1.6 Standard", "1.6 Executive", "1.6 Premium"] },
+      { id: "proton-persona-mc2-2021", model: "Persona", generation: "BH MC2", startYear: 2021, endYear: 2026, variants: ["1.6 Standard", "1.6 Executive", "1.6 Premium", "1.6 Black Edition"] },
+
+      // EXORA
+      { id: "proton-exora-cps-2009", model: "Exora", generation: "CPS", startYear: 2009, endYear: 2011, variants: ["1.6 B-Line / Standard", "1.6 M-Line", "1.6 H-Line"] },
+      { id: "proton-exora-bold-2011", model: "Exora", generation: "Bold", startYear: 2011, endYear: 2014, variants: ["1.6 Standard CPS", "1.6 Bold Executive CPS", "1.6 Bold Premium CFE", "1.6 Prime CFE"] },
+      { id: "proton-exora-bold-mc-2015", model: "Exora", generation: "Bold MC", startYear: 2015, endYear: 2018, variants: ["1.6 Executive CFE", "1.6 Premium CFE"], transmissions: ["AUTO"] },
+      { id: "proton-exora-rc-2019", model: "Exora", generation: "RC", startYear: 2019, endYear: 2021, variants: ["1.6 Executive CFE", "1.6 Premium CFE"], transmissions: ["AUTO"] },
+      { id: "proton-exora-rc2-2022", model: "Exora", generation: "RC2", startYear: 2022, endYear: 2023, variants: ["1.6 Executive CFE", "1.6 Premium CFE"], transmissions: ["AUTO"] },
+
+      // INSPIRA
+      { id: "proton-inspira-2010", model: "Inspira", generation: "CY3S / CY4S", startYear: 2010, endYear: 2013, variants: ["1.8 Executive", "2.0 Premium"] },
+      { id: "proton-inspira-late-2014", model: "Inspira", generation: "Late Model", startYear: 2014, endYear: 2015, variants: ["1.8", "2.0 Executive", "2.0 Premium", "2.0 Super Premium"] },
+
+      // PREVÉ
+      { id: "proton-preve-2012", model: "Prevé", generation: "P3-21A", startYear: 2012, endYear: 2018, variants: ["1.6 Executive IAFM+", "1.6 Premium CFE"], transmissions: ["AUTO", "MANUAL"] },
+
+      // SUPRIMA S
+      { id: "proton-suprima-s-2013", model: "Suprima S", generation: "P3-22A", startYear: 2013, endYear: 2019, variants: ["1.6 Standard CFE", "1.6 Executive CFE", "1.6 Premium CFE", "1.6 Super Premium"], transmissions: ["AUTO"] },
+
+      // IRIZ
+      { id: "proton-iriz-2014", model: "Iriz", generation: "BH (Launch)", startYear: 2014, endYear: 2016, variants: ["1.3 Standard", "1.3 Executive", "1.6 Executive", "1.6 Premium"] },
+      { id: "proton-iriz-rc-2017", model: "Iriz", generation: "2017 RC", startYear: 2017, endYear: 2018, variants: ["1.3 Standard", "1.3 Executive", "1.6 Premium"] },
+      { id: "proton-iriz-mc1-2019", model: "Iriz", generation: "MC1 Facelift", startYear: 2019, endYear: 2020, variants: ["1.3 Standard", "1.3 Executive", "1.6 Executive", "1.6 Premium"] },
+      { id: "proton-iriz-mc2-2021", model: "Iriz", generation: "MC2", startYear: 2021, endYear: 2025, variants: ["1.3 Standard", "1.6 Executive", "1.6 Active"], transmissions: ["AUTO"] },
+
+      // ERTIGA
+      { id: "proton-ertiga-2016", model: "Ertiga", generation: "P6-90A", startYear: 2016, endYear: 2017, variants: ["1.4 Executive", "1.4 Executive Plus"] },
+      { id: "proton-ertiga-xtra-2018", model: "Ertiga", generation: "Xtra", startYear: 2018, endYear: 2019, variants: ["1.4 Executive", "1.4 Executive Plus"] },
+
+      // X70
+      { id: "proton-x70-cbu-2018", model: "X70", generation: "CBU", startYear: 2018, endYear: 2019, variants: ["1.8 TGDi Standard 2WD", "1.8 TGDi Executive 2WD", "1.8 TGDi Executive AWD", "1.8 TGDi Premium 2WD"], transmissions: ["AUTO"] },
+      { id: "proton-x70-ckd-2020", model: "X70", generation: "CKD", startYear: 2020, endYear: 2021, variants: ["1.8 TGDi Standard 2WD", "1.8 TGDi Executive 2WD", "1.8 TGDi Premium 2WD", "1.8 TGDi Premium X 2WD"], transmissions: ["AUTO"] },
+      { id: "proton-x70-mc1-2022", model: "X70", generation: "MC1", startYear: 2022, endYear: 2023, variants: ["1.5 TGDi Standard 2WD", "1.5 TGDi Executive 2WD", "1.5 TGDi Executive AWD", "1.5 TGDi Premium 2WD", "1.8 TGDi Premium 2WD"], transmissions: ["AUTO"] },
+      { id: "proton-x70-2025-2024", model: "X70", generation: "2025 Facelift", startYear: 2024, variants: ["1.5 TGDi Standard", "1.5 TGDi Executive", "1.5 TGDi Premium", "1.5 TGDi Premium X"], transmissions: ["AUTO"] },
+      { id: "proton-x70-se-2026", model: "X70", generation: "Sport Edition", startYear: 2026, endYear: 2026, variants: ["1.5 TGDi Sport Edition"], transmissions: ["AUTO"] },
+
+      // X50
+      { id: "proton-x50-2020", model: "X50", generation: "Gen 1", startYear: 2020, endYear: 2024, variants: ["1.5T Standard", "1.5T Executive", "1.5T Premium", "1.5 TGDi Flagship"], transmissions: ["AUTO"] },
+      { id: "proton-x50-se-2025", model: "X50", generation: "Sport Edition", startYear: 2025, endYear: 2025, variants: ["1.5T Sport Edition"], transmissions: ["AUTO"] },
+      { id: "proton-x50-allnew-2025", model: "X50", generation: "All-New", startYear: 2025, variants: ["1.5 i-GT Executive", "1.5 i-GT Premium", "1.5 i-GT Flagship"], transmissions: ["AUTO"] },
+
+      // X90
+      { id: "proton-x90-2023", model: "X90", generation: "Launch Model", startYear: 2023, endYear: 2025, variants: ["1.5 TGDi BSG Standard", "1.5 TGDi BSG Executive", "1.5 TGDi BSG Premium", "1.5 TGDi BSG Flagship"], transmissions: ["AUTO"] },
+      { id: "proton-x90-2026", model: "X90", generation: "2026 Update", startYear: 2026, variants: ["1.5TD Lite", "1.5TD Prime", "1.5TD Prime X"], transmissions: ["AUTO"] },
+
+      // S70
+      { id: "proton-s70-2023", model: "S70", generation: "Launch Model", startYear: 2023, endYear: 2025, variants: ["1.5T Executive", "1.5T Premium", "1.5T Flagship", "1.5T Flagship X"], transmissions: ["AUTO"] },
+      { id: "proton-s70-2026", model: "S70", generation: "2026 Expanded Range", startYear: 2026, variants: ["1.5 i-GT Lite", "1.5 i-GT Prime", "1.5T Executive", "1.5T Premium", "1.5T Flagship", "1.5T Flagship X"], transmissions: ["AUTO"] },
+
+      // PROTON e.MAS
+      { id: "proton-emas7-2024", model: "e.MAS 7", generation: "Launch Model", startYear: 2024, endYear: 2025, variants: ["Prime", "Premium"], transmissions: ["AUTO"] },
+      { id: "proton-emas7-2026", model: "e.MAS 7", generation: "2026 Update", startYear: 2026, variants: ["Prime", "Premium"], transmissions: ["AUTO"] },
+      { id: "proton-emas5-2025", model: "e.MAS 5", generation: "Launch Model", startYear: 2025, variants: ["Prime", "Premium"], transmissions: ["AUTO"] },
+      { id: "proton-emas7-phev-2026", model: "e.MAS 7 PHEV", generation: "Launch Model", startYear: 2026, variants: ["Prime", "Premium", "Premium Plus"], transmissions: ["AUTO"] },
     ],
   },
   {
