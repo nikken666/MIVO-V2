@@ -475,7 +475,7 @@ input::placeholder,textarea::placeholder{font-family:var(--mivo-ui-font)}
 }
 .quizBody{
   padding:28px 26px 25px;
-  min-height:390px;
+  min-height:0;
 }
 .quizKicker{
   display:block;
@@ -502,15 +502,14 @@ input::placeholder,textarea::placeholder{font-family:var(--mivo-ui-font)}
 .quizAnswers{
   display:grid;
   gap:9px;
-  max-height:285px;
-  overflow:auto;
-  padding-right:4px;
+  overflow:visible;
+  padding-right:0;
 }
-.quizAnswers::-webkit-scrollbar{width:4px}
-.quizAnswers::-webkit-scrollbar-thumb{background:#d7dadd;border-radius:999px}
-.quizAnswers--makes,
+.quizAnswers--makes{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
 .quizAnswers--models{
-  grid-template-columns:1fr 1fr;
+  grid-template-columns:repeat(2,minmax(0,1fr));
 }
 .quizAnswer{
   min-height:68px;
@@ -9404,3 +9403,50 @@ div{
 .brandExpandableCard:target .brandInlineDetails{display:block}
 .brandExpandableCard:target{grid-column:span 2}
 @media(max-width:560px){.brandExpandableCard:target{grid-column:span 1}}
+
+/* VEHICLE FINDER — cleaner desktop/mobile selection layout */
+.quizFitment{
+  width:100%;
+  max-width:none;
+}
+.quizAnswer{
+  min-width:0;
+}
+@media(min-width:1100px){
+  .quizAnswers--makes{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .quizAnswer{
+    min-height:62px;
+  }
+}
+@media(max-width:850px){
+  .quizFitment{
+    max-width:none;
+  }
+}
+@media(max-width:620px){
+  .quizTop{
+    padding:22px 20px 16px;
+  }
+  .quizStepMeta{
+    padding:0 20px;
+  }
+  .quizTrail{
+    padding:12px 20px 0;
+  }
+  .quizBody{
+    padding:24px 20px 22px;
+  }
+  .quizAnswers--makes,
+  .quizAnswers--models,
+  .quizAnswers--variants{
+    grid-template-columns:1fr;
+  }
+  .quizAnswer{
+    min-height:58px;
+  }
+  .quizTransmission{
+    grid-template-columns:1fr;
+  }
+}
