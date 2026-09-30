@@ -9359,3 +9359,16 @@ div{
   inset:0;
   background:#f6f7f7;
 }
+
+
+.brandDirectoryCard .brandLogo{
+  flex:1;
+  min-height:100px;
+  justify-content:center;
+}
+.brandDirectoryCard .brandLogo img{
+  display:block;
+  width:min(72%,220px);
+  max-height:74px;
+  object-fit:contain;
+}
