@@ -189,7 +189,7 @@ export default async function HomePage({
               >
                 <div className="categoryVisual">
                   <span className="categoryIndex">0{index + 1}</span>
-                  <strong>{cat.name}</strong><i />
+                  {"image" in cat && cat.image ? <img src={cat.image} alt="" aria-hidden="true" /> : <><strong>{cat.name}</strong><i /></>}
                 </div>
                 <div className="categoryCopy">
                   <h3>{cat.name}</h3>
