@@ -93,7 +93,7 @@ export default async function HomePage({
               </p>
               <div className="memberHomeActions">
                 <Link href="/products" className="btn btnLight">
-                  SHOP PARTS <span>→</span>
+                  SHOP PARTS
                 </Link>
                 <Link href="/orders" className="btn btnGhost">
                   MY ORDERS
@@ -113,21 +113,21 @@ export default async function HomePage({
                       : "No vehicle selected"}
                   </strong>
                 </div>
-                <Link href="/garage">MANAGE →</Link>
+                <Link href="/garage">MANAGE</Link>
               </div>
 
               {savedVehicle ? (
                 <>
                   <p>{savedVehicleLabel}</p>
                   <Link href="/products" className="memberGarageShop">
-                    SHOP COMPATIBLE PARTS <span>→</span>
+                    SHOP COMPATIBLE PARTS
                   </Link>
                 </>
               ) : (
                 <>
                   <p>Add your vehicle once and MIVO will prioritise compatible parts.</p>
                   <Link href="/?addVehicle=1#fitment" className="memberGarageShop">
-                    + ADD VEHICLE <span>→</span>
+                    + ADD VEHICLE
                   </Link>
                 </>
               )}
@@ -147,7 +147,7 @@ export default async function HomePage({
                 built around your vehicle, not endless listings.
               </p>
               <div className="heroButtons">
-                <a href="#fitment" className="btn btnLight">Find parts for my car <span>→</span></a>
+                <a href="#fitment" className="btn btnLight">Find parts for my car</a>
                 <Link href="/products" className="btn btnGhost">Browse all parts</Link>
               </div>
               <div className="heroProof">
@@ -209,7 +209,7 @@ export default async function HomePage({
             <div><span className="sectionEyebrow">SELECTED FOR MIVO</span><h2>Popular parts.</h2></div>
             <div className="productHeaderSide">
               <p>Clean product information, clear pricing and fitment-led discovery.</p>
-              <Link href="/products" className="sectionLink">SHOP ALL PARTS <span>→</span></Link>
+              <Link href="/products" className="sectionLink">SHOP ALL PARTS</Link>
             </div>
           </div>
           <div className="featuredGrid">
@@ -237,7 +237,7 @@ export default async function HomePage({
             <span className="sectionEyebrow">THE MIVO STANDARD</span>
             <h2>Less clutter.<br />More certainty.</h2>
             <p>MIVO is designed around the questions that matter before buying a part: Will it fit? What exactly am I buying? Who made it? When will it arrive?</p>
-            <Link href="/products" className="btn btnDark">Explore the catalogue <span>→</span></Link>
+            <Link href="/products" className="btn btnDark">Explore the catalogue</Link>
           </div>
           <div className="standardCards">
             <article><span>01</span><div className="standardIcon standardIconCheck" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M6 17l6 6L26 8"/></svg></div><h3>Fitment clarity</h3><p>Vehicle compatibility is treated as core product data, not an afterthought.</p></article>
@@ -256,7 +256,7 @@ export default async function HomePage({
           </div>
           <div className="garageCtaCopy">
             <p>Save your vehicle and make every return visit faster. Compatible parts first. Irrelevant listings out of the way.</p>
-            <Link href="/garage" className="btn btnLight">OPEN MY GARAGE <span>→</span></Link>
+            <Link href="/garage" className="btn btnLight">OPEN MY GARAGE</Link>
           </div>
         </div>
       </section>
