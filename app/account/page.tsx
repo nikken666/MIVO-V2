@@ -119,7 +119,7 @@ export default function AccountPage() {
 
         <div className={styles.actions}>
           <Link href="/products" className="redButton">
-            Start Shopping →
+            Start Shopping
           </Link>
         </div>
       </section>
