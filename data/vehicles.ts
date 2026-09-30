@@ -58,7 +58,6 @@ export const vehicleDatabase: VehicleMake[] = [
       "Tiara",
       "Putra",
       "Waja",
-      "Juara",
       "Arena",
       "Gen-2",
       "Savvy",
@@ -123,9 +122,6 @@ export const vehicleDatabase: VehicleMake[] = [
       { id: "proton-waja-chancellor-2005", model: "Waja", generation: "Chancellor LWB", startYear: 2005, endYear: 2006, variants: ["2.0 V6 Chancellor"], transmissions: ["AUTO"] },
       { id: "proton-waja-campro-2006", model: "Waja", generation: "CamPro", startYear: 2006, endYear: 2007, variants: ["1.6 CamPro Standard", "1.6 CamPro Premium"] },
       { id: "proton-waja-cps-2008", model: "Waja", generation: "CamPro CPS", startYear: 2008, endYear: 2011, variants: ["1.6 CPS M-Line", "1.6 CPS Premium"] },
-
-      // JUARA
-      { id: "proton-juara-2001", model: "Juara", generation: "U66W", startYear: 2001, endYear: 2004, variants: ["1.1 E"], transmissions: ["AUTO"] },
 
       // ARENA
       { id: "proton-arena-2002", model: "Arena", generation: "C97P", startYear: 2002, endYear: 2010, variants: ["1.5 Freestyle", "1.5 Sportdeck", "1.5 Fastback"], transmissions: ["MANUAL"] },
@@ -212,17 +208,10 @@ export const vehicleDatabase: VehicleMake[] = [
     modelOrder: [
       "Corolla",
       "Corona",
-      "Crown",
       "Hilux",
       "Hiace",
       "Land Cruiser",
-      "Starlet",
-      "Cressida",
       "Camry",
-      "LiteAce / TownAce",
-      "Celica",
-      "MR2",
-      "RAV4",
       "Unser",
       "Estima / Previa",
       "Land Cruiser Prado",
@@ -237,23 +226,13 @@ export const vehicleDatabase: VehicleMake[] = [
       "Alphard",
       "Vellfire",
       "Rush",
-      "Prius",
-      "86",
       "Sienta",
       "C-HR",
       "Corolla Altis",
-      "GR Supra",
       "Corolla Cross",
-      "GR Yaris",
       "Veloz",
-      "GR86",
-      "GR Corolla",
       "Yaris Cross",
       "Innova Zenix",
-      "bZ4X",
-      "Urban Cruiser",
-      "Dyna",
-      "Coaster",
     ],
     vehicles: [
       // COROLLA — classic Malaysia-market generations
@@ -270,16 +249,6 @@ export const vehicleDatabase: VehicleMake[] = [
       { id: "toyota-corona-t140-1983", model: "Corona", generation: "T140", startYear: 1983, endYear: 1987, variants: ["1.8", "2.0"], transmissions: ["AUTO", "MANUAL"] },
       { id: "toyota-corona-t170-1988", model: "Corona", generation: "T170", startYear: 1988, endYear: 1992, variants: ["1.6", "1.8", "2.0"], transmissions: ["AUTO", "MANUAL"] },
       { id: "toyota-corona-t190-1992", model: "Corona", generation: "T190 / Corona Absolute", startYear: 1992, endYear: 1996, variants: ["1.8", "2.0"], transmissions: ["AUTO", "MANUAL"] },
-
-      // CROWN
-      { id: "toyota-crown-s130-1987", model: "Crown", generation: "S130", startYear: 1987, endYear: 1995, variants: ["2.0 Royal Saloon", "3.0 Royal Saloon"], transmissions: ["AUTO"] },
-      { id: "toyota-crown-s150-1995", model: "Crown", generation: "S150", startYear: 1995, endYear: 1999, variants: ["2.5 Royal Saloon", "3.0 Royal Saloon"], transmissions: ["AUTO"] },
-      { id: "toyota-crown-s170-1999", model: "Crown", generation: "S170", startYear: 1999, endYear: 2003, variants: ["2.5 Royal Saloon", "3.0 Royal Saloon", "2.5 Athlete"], transmissions: ["AUTO"] },
-      { id: "toyota-crown-s180-2003", model: "Crown", generation: "S180", startYear: 2003, endYear: 2008, variants: ["2.5 Royal Saloon", "3.0 Royal Saloon", "2.5 Athlete"], transmissions: ["AUTO"] },
-      { id: "toyota-crown-s200-2008", model: "Crown", generation: "S200", startYear: 2008, endYear: 2012, variants: ["2.5 Royal Saloon", "3.0 Royal Saloon", "2.5 Athlete", "3.5 Athlete"], transmissions: ["AUTO"] },
-      { id: "toyota-crown-s210-2012", model: "Crown", generation: "S210", startYear: 2012, endYear: 2018, variants: ["2.5 Royal Saloon", "2.5 Hybrid Royal Saloon", "2.0 Athlete Turbo"], transmissions: ["AUTO"] },
-      { id: "toyota-crown-s220-2018", model: "Crown", generation: "S220", startYear: 2018, endYear: 2022, variants: ["2.0 RS", "2.5 Hybrid RS", "2.5 Hybrid G"], transmissions: ["AUTO"] },
-      { id: "toyota-crown-s230-2023", model: "Crown", generation: "S230 / Crossover", startYear: 2023, variants: ["2.5 HEV", "2.4 Turbo HEV"], transmissions: ["AUTO"] },
 
       // HILUX
       { id: "toyota-hilux-n50-1984", model: "Hilux", generation: "N50 / N60", startYear: 1984, endYear: 1988, variants: ["2.0 Petrol", "2.4 Diesel"], transmissions: ["MANUAL"] },
@@ -305,16 +274,6 @@ export const vehicleDatabase: VehicleMake[] = [
       { id: "toyota-landcruiser-j200-2008", model: "Land Cruiser", generation: "J200", startYear: 2008, endYear: 2021, variants: ["4.5 V8 Diesel", "4.6 V8 Petrol", "4.7 V8 Petrol", "5.7 V8 Petrol"], transmissions: ["AUTO"] },
       { id: "toyota-landcruiser-j300-2021", model: "Land Cruiser", generation: "J300", startYear: 2021, variants: ["3.3 Twin Turbo Diesel", "3.5 Twin Turbo Petrol", "GR Sport"], transmissions: ["AUTO"] },
 
-      // STARLET
-      { id: "toyota-starlet-ep70-1984", model: "Starlet", generation: "EP70", startYear: 1984, endYear: 1989, variants: ["1.0", "1.3"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "toyota-starlet-ep80-1990", model: "Starlet", generation: "EP80 / EP82", startYear: 1990, endYear: 1995, variants: ["1.3", "1.3 GT Turbo"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "toyota-starlet-ep90-1996", model: "Starlet", generation: "EP90 / EP91", startYear: 1996, endYear: 1999, variants: ["1.3", "1.3 Glanza V"], transmissions: ["AUTO", "MANUAL"] },
-
-      // CRESSIDA
-      { id: "toyota-cressida-x60-1981", model: "Cressida", generation: "X60", startYear: 1981, endYear: 1984, variants: ["2.0", "2.8"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "toyota-cressida-x70-1985", model: "Cressida", generation: "X70", startYear: 1985, endYear: 1988, variants: ["2.0 GL", "2.8 GL"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "toyota-cressida-x80-1989", model: "Cressida", generation: "X80", startYear: 1989, endYear: 1992, variants: ["2.0 GL", "3.0 GL"], transmissions: ["AUTO"] },
-
       // CAMRY
       { id: "toyota-camry-v10-1983", model: "Camry", generation: "V10", startYear: 1983, endYear: 1986, variants: ["1.8", "2.0"], transmissions: ["AUTO", "MANUAL"] },
       { id: "toyota-camry-v20-1987", model: "Camry", generation: "V20", startYear: 1987, endYear: 1991, variants: ["1.8", "2.0"], transmissions: ["AUTO", "MANUAL"] },
@@ -327,29 +286,6 @@ export const vehicleDatabase: VehicleMake[] = [
       { id: "toyota-camry-xv70-2018", model: "Camry", generation: "XV70", startYear: 2018, endYear: 2021, variants: ["2.5V"], transmissions: ["AUTO"] },
       { id: "toyota-camry-xv70-fl-2022", model: "Camry", generation: "XV70 Facelift", startYear: 2022, endYear: 2023, variants: ["2.5V Dynamic Force"], transmissions: ["AUTO"] },
       { id: "toyota-camry-xv80-2024", model: "Camry", generation: "XV80", startYear: 2024, variants: ["2.5V", "2.5 HEV", "2.5 HEV GR Sport"], transmissions: ["AUTO"] },
-
-      // LITEACE / TOWNACE
-      { id: "toyota-liteace-r20-1983", model: "LiteAce / TownAce", generation: "R20 / R30", startYear: 1983, endYear: 1991, variants: ["1.5 Petrol", "1.8 Petrol", "2.0 Diesel"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "toyota-liteace-r40-1992", model: "LiteAce / TownAce", generation: "R40 / R50", startYear: 1992, endYear: 2007, variants: ["1.8 Petrol", "2.0 Petrol", "2.2 Diesel"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "toyota-townace-s400-2008", model: "LiteAce / TownAce", generation: "S400", startYear: 2008, endYear: 2020, variants: ["1.5 Van", "1.5 Truck"], transmissions: ["AUTO", "MANUAL"] },
-
-      // CELICA
-      { id: "toyota-celica-t160-1986", model: "Celica", generation: "T160", startYear: 1986, endYear: 1989, variants: ["1.6", "2.0 GT"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "toyota-celica-t180-1990", model: "Celica", generation: "T180", startYear: 1990, endYear: 1993, variants: ["2.0 GT", "2.0 GT-Four"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "toyota-celica-t200-1994", model: "Celica", generation: "T200", startYear: 1994, endYear: 1999, variants: ["1.8", "2.0 GT", "2.0 GT-Four"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "toyota-celica-t230-2000", model: "Celica", generation: "T230", startYear: 2000, endYear: 2006, variants: ["1.8 VVT-i", "1.8 VVTL-i"], transmissions: ["AUTO", "MANUAL"] },
-
-      // MR2
-      { id: "toyota-mr2-aw11-1984", model: "MR2", generation: "AW11", startYear: 1984, endYear: 1989, variants: ["1.6 NA", "1.6 Supercharged"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "toyota-mr2-sw20-1990", model: "MR2", generation: "SW20", startYear: 1990, endYear: 1999, variants: ["2.0 NA", "2.0 Turbo"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "toyota-mr2-zzw30-2000", model: "MR2", generation: "ZZW30 / MR-S", startYear: 2000, endYear: 2007, variants: ["1.8"], transmissions: ["AUTO", "MANUAL"] },
-
-      // RAV4
-      { id: "toyota-rav4-xa10-1994", model: "RAV4", generation: "XA10", startYear: 1994, endYear: 2000, variants: ["2.0 3-Door", "2.0 5-Door"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "toyota-rav4-xa20-2001", model: "RAV4", generation: "XA20", startYear: 2001, endYear: 2005, variants: ["2.0", "2.4"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "toyota-rav4-xa30-2006", model: "RAV4", generation: "XA30", startYear: 2006, endYear: 2012, variants: ["2.0", "2.4"], transmissions: ["AUTO"] },
-      { id: "toyota-rav4-xa40-2013", model: "RAV4", generation: "XA40", startYear: 2013, endYear: 2018, variants: ["2.0", "2.5"], transmissions: ["AUTO"] },
-      { id: "toyota-rav4-xa50-2019", model: "RAV4", generation: "XA50", startYear: 2019, endYear: 2021, variants: ["2.0", "2.5"], transmissions: ["AUTO"] },
 
       // UNSER
       { id: "toyota-unser-kf60-1998", model: "Unser", generation: "KF60", startYear: 1998, endYear: 2000, variants: ["1.8 GLi", "1.8 LGX"], transmissions: ["AUTO", "MANUAL"] },
@@ -436,17 +372,6 @@ export const vehicleDatabase: VehicleMake[] = [
       { id: "toyota-rush-f700-2008", model: "Rush", generation: "F700", startYear: 2008, endYear: 2017, variants: ["1.5G", "1.5S"], transmissions: ["AUTO", "MANUAL"] },
       { id: "toyota-rush-f800-2018", model: "Rush", generation: "F800", startYear: 2018, endYear: 2024, variants: ["1.5G", "1.5S"], transmissions: ["AUTO"] },
 
-      // PRIUS
-      { id: "toyota-prius-xw10-1997", model: "Prius", generation: "XW10", startYear: 1997, endYear: 2003, variants: ["1.5 Hybrid"], transmissions: ["AUTO"] },
-      { id: "toyota-prius-xw20-2004", model: "Prius", generation: "XW20", startYear: 2004, endYear: 2009, variants: ["1.5 Hybrid"], transmissions: ["AUTO"] },
-      { id: "toyota-prius-xw30-2010", model: "Prius", generation: "XW30", startYear: 2010, endYear: 2015, variants: ["1.8 Hybrid", "1.8 Hybrid Luxury"], transmissions: ["AUTO"] },
-      { id: "toyota-prius-xw50-2016", model: "Prius", generation: "XW50", startYear: 2016, endYear: 2022, variants: ["1.8 Hybrid"], transmissions: ["AUTO"] },
-      { id: "toyota-prius-xw60-2023", model: "Prius", generation: "XW60", startYear: 2023, variants: ["1.8 HEV", "2.0 HEV", "2.0 PHEV"], transmissions: ["AUTO"] },
-
-      // TOYOTA 86
-      { id: "toyota-86-zn6-2012", model: "86", generation: "ZN6", startYear: 2012, endYear: 2016, variants: ["2.0"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "toyota-86-zn6-fl-2017", model: "86", generation: "ZN6 Facelift", startYear: 2017, endYear: 2021, variants: ["2.0"], transmissions: ["AUTO", "MANUAL"] },
-
       // SIENTA
       { id: "toyota-sienta-p80-2003", model: "Sienta", generation: "P80", startYear: 2003, endYear: 2015, variants: ["1.5 X", "1.5 G"], transmissions: ["AUTO"] },
       { id: "toyota-sienta-p170-2016", model: "Sienta", generation: "P170", startYear: 2016, endYear: 2019, variants: ["1.5V", "1.5G"], transmissions: ["AUTO"] },
@@ -464,27 +389,12 @@ export const vehicleDatabase: VehicleMake[] = [
       { id: "toyota-altis-e210-2019", model: "Corolla Altis", generation: "E210", startYear: 2019, endYear: 2022, variants: ["1.8E", "1.8G"], transmissions: ["AUTO"] },
       { id: "toyota-altis-e210-gr-2023", model: "Corolla Altis", generation: "E210 2023 Update", startYear: 2023, variants: ["1.8G", "1.8 GR Sport"], transmissions: ["AUTO"] },
 
-      // GR SUPRA
-      { id: "toyota-supra-a80-1993", model: "GR Supra", generation: "A80 / JZA80", startYear: 1993, endYear: 2002, variants: ["3.0 NA", "3.0 Twin Turbo"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "toyota-gr-supra-a90-2019", model: "GR Supra", generation: "A90 / DB", startYear: 2019, endYear: 2022, variants: ["3.0"], transmissions: ["AUTO"] },
-      { id: "toyota-gr-supra-a90-mt-2023", model: "GR Supra", generation: "A90 2023 Update", startYear: 2023, endYear: 2025, variants: ["3.0"], transmissions: ["AUTO", "MANUAL"] },
-
       // COROLLA CROSS
       { id: "toyota-corolla-cross-xg10-2021", model: "Corolla Cross", generation: "XG10", startYear: 2021, endYear: 2023, variants: ["1.8G", "1.8V", "1.8 Hybrid", "1.8 HEV GR Sport"], transmissions: ["AUTO"] },
       { id: "toyota-corolla-cross-xg10-fl-2024", model: "Corolla Cross", generation: "XG10 Facelift", startYear: 2024, variants: ["1.8V", "1.8 HEV", "1.8 HEV GR Sport"], transmissions: ["AUTO"] },
 
-      // GR YARIS
-      { id: "toyota-gr-yaris-gxpa16-2021", model: "GR Yaris", generation: "GXPA16", startYear: 2021, endYear: 2024, variants: ["1.6 Turbo GR"], transmissions: ["MANUAL"] },
-      { id: "toyota-gr-yaris-gxpa16-fl-2025", model: "GR Yaris", generation: "GXPA16 Facelift", startYear: 2025, variants: ["1.6 Turbo GR"], transmissions: ["AUTO", "MANUAL"] },
-
       // VELOZ
       { id: "toyota-veloz-w100-2022", model: "Veloz", generation: "W100", startYear: 2022, variants: ["1.5"], transmissions: ["AUTO"] },
-
-      // GR86
-      { id: "toyota-gr86-zn8-2022", model: "GR86", generation: "ZN8", startYear: 2022, variants: ["2.4"], transmissions: ["AUTO", "MANUAL"] },
-
-      // GR COROLLA
-      { id: "toyota-gr-corolla-gzea14-2023", model: "GR Corolla", generation: "GZEA14", startYear: 2023, variants: ["1.6 Turbo GR"], transmissions: ["MANUAL"] },
 
       // YARIS CROSS — Malaysia DNGA model
       { id: "toyota-yaris-cross-my-2026", model: "Yaris Cross", generation: "Malaysia Gen 1", startYear: 2026, variants: ["1.5S", "1.5S HEV"], transmissions: ["AUTO"] },
@@ -492,15 +402,6 @@ export const vehicleDatabase: VehicleMake[] = [
       // INNOVA ZENIX
       { id: "toyota-innova-zenix-ag10-2023", model: "Innova Zenix", generation: "AG10", startYear: 2023, variants: ["2.0V", "2.0 HEV"], transmissions: ["AUTO"] },
 
-      // BATTERY EV
-      { id: "toyota-bz4x-xeam10-2026", model: "bZ4X", generation: "XEAM10", startYear: 2026, variants: ["BEV"], transmissions: ["AUTO"] },
-      { id: "toyota-urban-cruiser-ev-2026", model: "Urban Cruiser", generation: "Gen 1 BEV", startYear: 2026, variants: ["BEV"], transmissions: ["AUTO"] },
-
-      // DYNA / COASTER — commercial
-      { id: "toyota-dyna-u100-1995", model: "Dyna", generation: "U100 / U200", startYear: 1995, endYear: 2011, variants: ["3.0 Diesel", "4.1 Diesel"], transmissions: ["MANUAL"] },
-      { id: "toyota-dyna-u600-2011", model: "Dyna", generation: "U600 / U700", startYear: 2011, variants: ["3.0 Diesel", "4.0 Diesel"], transmissions: ["MANUAL"] },
-      { id: "toyota-coaster-b40-1993", model: "Coaster", generation: "B40 / B50", startYear: 1993, endYear: 2016, variants: ["4.2 Diesel", "4.0 Diesel"], transmissions: ["MANUAL"] },
-      { id: "toyota-coaster-b70-2017", model: "Coaster", generation: "B70 / B80", startYear: 2017, variants: ["4.0 Diesel"], transmissions: ["AUTO", "MANUAL"] },
     ],
   },
   {
