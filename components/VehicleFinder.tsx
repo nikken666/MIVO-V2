@@ -238,6 +238,36 @@ export default function VehicleFinder() {
 
   function goBack() {
     if (step === 1) return;
+
+    if (step === 2) {
+      setMake("");
+      setModel("");
+      setVehicleId("");
+      setYear("");
+      setVariant("");
+      setTransmission("");
+    } else if (step === 3) {
+      setModel("");
+      setVehicleId("");
+      setYear("");
+      setVariant("");
+      setTransmission("");
+    } else if (step === 4) {
+      setVehicleId("");
+      setYear("");
+      setVariant("");
+      setTransmission("");
+    } else if (step === 5) {
+      setYear("");
+      setVariant("");
+      setTransmission("");
+    } else if (step === 6) {
+      setVariant("");
+      setTransmission("");
+    } else if (step === 7) {
+      setTransmission("");
+    }
+
     setStep((current) => Math.max(1, current - 1));
   }
 
