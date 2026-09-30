@@ -9345,3 +9345,17 @@ div{
 .brandLogo-gsp{
   font-style:italic;
 }
+
+
+/* FULL-BLEED CATALOGUE BACKGROUND */
+.pageShell{
+  position:relative;
+  background:#f6f7f7;
+}
+.pageShell::before{
+  content:"";
+  position:fixed;
+  z-index:-1;
+  inset:0;
+  background:#f6f7f7;
+}
