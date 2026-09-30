@@ -710,7 +710,7 @@ export default function CheckoutPage() {
             </div>
 
             <div className="checkoutAccountSaveNote">
-              <span>{savedAddress ? "✓ SAVED ADDRESS LOADED" : "ACCOUNT SAVE"}</span>
+              <span>{savedAddress ? "SAVED ADDRESS LOADED" : "ACCOUNT SAVE"}</span>
               <p>
                 {savedAddress
                   ? "Your default MIVO delivery address has been filled in automatically."
@@ -937,7 +937,7 @@ export default function CheckoutPage() {
                   <small>{busy ? "PROCESSING" : "FINAL STEP"}</small>
                   {busy ? "OPENING PAYMENT..." : "PLACE ORDER & PAY"}
                 </span>
-                <b>→</b>
+                <b></b>
               </button>
             </div>
           </form>
@@ -1250,9 +1250,9 @@ export default function CheckoutPage() {
             </div>
 
             <div className="checkoutAssurance">
-              <span>✓ Secure account checkout</span>
-              <span>✓ Order tracking after confirmation</span>
-              <span>✓ MIVO customer support</span>
+              <span>Secure account checkout</span>
+              <span>Order tracking after confirmation</span>
+              <span>MIVO customer support</span>
             </div>
           </aside>
         </div>
