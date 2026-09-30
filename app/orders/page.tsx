@@ -377,7 +377,7 @@ export default function OrdersPage() {
             <div className="ordersEmpty">
               <strong>No orders here yet.</strong>
               <p>Your orders will move between these tabs automatically.</p>
-              <Link href="/products">BROWSE PARTS →</Link>
+              <Link href="/products">BROWSE PARTS</Link>
             </div>
           ) : (
             <div className="shopOrderList">
