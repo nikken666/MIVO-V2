@@ -815,7 +815,7 @@ export default function MarketingCampaignsPage() {
           <div className={styles.adminSidebarFoot}>
             <span>ACTIVE CAMPAIGNS</span>
             <strong>{loading ? "—" : activeCount}</strong>
-            <a href="/">OPEN STOREFRONT →</a>
+            <a href="/">OPEN STOREFRONT</a>
           </div>
         </aside>
 
