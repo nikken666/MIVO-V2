@@ -9450,3 +9450,14 @@ div{
     grid-template-columns:1fr;
   }
 }
+
+/* Keep long vehicle lists from fighting the manual step scroll position */
+.hero,
+.quizFitment{
+  overflow-anchor:none;
+}
+@media(min-width:851px){
+  .quizFitment{
+    scroll-margin-top:160px;
+  }
+}
