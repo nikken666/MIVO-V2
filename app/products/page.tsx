@@ -261,7 +261,24 @@ export default async function ProductsPage({
             <h1>Brands</h1>
             <p>Explore automotive brands available on MIVO.</p>
           </section>
-          <BrandDirectory brands={representedBrands} />
+          <div className="brandDirectory">
+            {representedBrands.map((brand) => (
+              <details id={brand.slug} className="brandDirectoryCard brandExpandableCard" key={brand.name}>
+                <summary>
+                  <span className="brandLogo" aria-label={brand.name}>
+                    <img src={brand.logo} alt={brand.name + " logo"} />
+                  </span>
+                </summary>
+                <div className="brandInlineDetails">
+                  <span>ABOUT {brand.name}</span>
+                  <h2>What does {brand.name} do?</h2>
+                  <p>{brand.about}</p>
+                  <strong>{brand.category}</strong>
+                  <a href={"/products?q=" + encodeURIComponent(brand.name)}>Explore {brand.name} products</a>
+                </div>
+              </details>
+            ))}
+          </div>
         </>
       ) : (
       <div className="pageHeading">
