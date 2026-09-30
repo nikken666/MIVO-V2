@@ -30,27 +30,36 @@ export default function VehicleFinder() {
   const finderRef = useRef<HTMLDivElement | null>(null);
   const previousStepRef = useRef(step);
 
-  useEffect(() => {
-    if (previousStepRef.current === step) return;
-    previousStepRef.current = step;
-
+  function scrollFinderToTop() {
     if (typeof window === "undefined") return;
     if (!window.matchMedia("(min-width: 851px)").matches) return;
 
-    const finder = finderRef.current;
-    if (!finder) return;
+    const run = () => {
+      const finder = finderRef.current;
+      if (!finder) return;
 
-    window.requestAnimationFrame(() => {
       const stickyHeader = document.querySelector(".siteHeader") as HTMLElement | null;
       const headerHeight = stickyHeader?.getBoundingClientRect().height || 0;
       const targetTop =
-        window.scrollY + finder.getBoundingClientRect().top - headerHeight - 12;
+        window.scrollY + finder.getBoundingClientRect().top - headerHeight - 14;
 
       window.scrollTo({
         top: Math.max(0, targetTop),
         behavior: "smooth",
       });
+    };
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(run);
     });
+
+    window.setTimeout(run, 180);
+  }
+
+  useEffect(() => {
+    if (previousStepRef.current === step) return;
+    previousStepRef.current = step;
+    scrollFinderToTop();
   }, [step]);
 
 
@@ -194,6 +203,7 @@ export default function VehicleFinder() {
     setVariant("");
     setTransmission("");
     setStep(2);
+    scrollFinderToTop();
   }
 
   function chooseModel(value: string) {
@@ -203,6 +213,7 @@ export default function VehicleFinder() {
     setVariant("");
     setTransmission("");
     setStep(3);
+    scrollFinderToTop();
   }
 
   function chooseGeneration(value: string) {
@@ -211,6 +222,7 @@ export default function VehicleFinder() {
     setVariant("");
     setTransmission("");
     setStep(4);
+    scrollFinderToTop();
   }
 
   function chooseYear(value: string) {
@@ -218,22 +230,26 @@ export default function VehicleFinder() {
     setVariant("");
     setTransmission("");
     setStep(5);
+    scrollFinderToTop();
   }
 
   function chooseVariant(value: string) {
     setVariant(value);
     setTransmission("");
     setStep(6);
+    scrollFinderToTop();
   }
 
   function chooseTransmission(value: string) {
     setTransmission(value);
     setStep(7);
+    scrollFinderToTop();
   }
 
   function goBack() {
     if (step === 1) return;
     setStep((current) => Math.max(1, current - 1));
+    scrollFinderToTop();
   }
 
   function restart() {
