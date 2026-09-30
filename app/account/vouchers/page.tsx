@@ -61,19 +61,43 @@ export default function MyVouchersPage() {
           return;
         }
 
-        const { data: claimed, error: claimError } = await supabase
-          .from("customer_vouchers")
-          .select("voucher_id, claimed_at")
-          .eq("user_id", user.id)
-          .order("claimed_at", { ascending: false });
+        const [
+          { data: claimed, error: claimError },
+          { data: redemptions, error: redemptionError },
+          { count: paidOrderCount, error: paidOrderError },
+        ] = await Promise.all([
+          supabase
+            .from("customer_vouchers")
+            .select("voucher_id, claimed_at")
+            .eq("user_id", user.id)
+            .order("claimed_at", { ascending: false }),
+          supabase
+            .from("voucher_redemptions")
+            .select("voucher_id, status")
+            .eq("user_id", user.id)
+            .in("status", ["reserved", "redeemed"]),
+          supabase
+            .from("orders")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", user.id)
+            .in("status", ["paid", "processing", "packed", "shipped", "delivered"]),
+        ]);
 
         if (claimError) throw claimError;
+        if (redemptionError) throw redemptionError;
+        if (paidOrderError) throw paidOrderError;
+
+        const blockedIds = new Set(
+          ((redemptions as Array<{ voucher_id: string; status: string }> | null) || [])
+            .map((row) => row.voucher_id)
+        );
 
         const rows =
-          (claimed as Array<{
+          ((claimed as Array<{
             voucher_id: string;
             claimed_at: string;
-          }> | null) || [];
+          }> | null) || []).filter((row) => !blockedIds.has(row.voucher_id));
+
         const ids = rows.map((row) => row.voucher_id);
 
         if (!ids.length) {
@@ -91,10 +115,12 @@ export default function MyVouchersPage() {
         if (voucherError) throw voucherError;
 
         const byId = new Map(
-          ((voucherData as Voucher[] | null) || []).map((voucher) => [
-            voucher.id,
-            voucher,
-          ])
+          ((voucherData as Voucher[] | null) || [])
+            .filter(
+              (voucher) =>
+                !voucher.first_order_only || Number(paidOrderCount || 0) === 0
+            )
+            .map((voucher) => [voucher.id, voucher])
         );
 
         if (!active) return;
