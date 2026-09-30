@@ -643,16 +643,109 @@ export const vehicleDatabase: VehicleMake[] = [
   },
   {
     make: "Mazda",
+    modelOrder: [
+      "323 / Familia",
+      "626",
+      "Tribute",
+      "RX-8",
+      "Mazda 5",
+      "Mazda 2",
+      "Mazda 3",
+      "Mazda 6",
+      "CX-7",
+      "CX-9",
+      "CX-5",
+      "Biante",
+      "CX-3",
+      "MX-5",
+      "BT-50",
+      "CX-30",
+      "CX-8",
+      "CX-60",
+      "CX-80",
+    ],
     vehicles: [
-      { id: "mazda-3-bm-2014", model: "Mazda 3", generation: "BM", startYear: 2014, endYear: 2016, variants: ["2.0 Skyactiv-G"], transmissions: ["AUTO"] },
-      { id: "mazda-3-bm-fl-2017", model: "Mazda 3", generation: "BM Facelift / BN", startYear: 2017, endYear: 2018, variants: ["2.0 Skyactiv-G"], transmissions: ["AUTO"] },
-      { id: "mazda-3-bp-2019", model: "Mazda 3", generation: "BP", startYear: 2019, variants: ["1.5 High Plus", "2.0 High", "2.0 High Plus", "2.0 Ignite Edition"], transmissions: ["AUTO"] },
+      // 323 / FAMILIA
+      { id: "mazda-323-bf-1985", model: "323 / Familia", generation: "BF", startYear: 1985, endYear: 1989, variants: ["1.3", "1.5", "1.6"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "mazda-323-bg-1989", model: "323 / Familia", generation: "BG", startYear: 1989, endYear: 1994, variants: ["1.3", "1.6", "1.8"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "mazda-323-bh-1994", model: "323 / Familia", generation: "BH", startYear: 1994, endYear: 1998, variants: ["1.5", "1.8"], transmissions: ["AUTO", "MANUAL"] },
 
+      // 626
+      { id: "mazda-626-gd-1988", model: "626", generation: "GD", startYear: 1988, endYear: 1991, variants: ["1.8", "2.0"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "mazda-626-ge-1992", model: "626", generation: "GE", startYear: 1992, endYear: 1997, variants: ["1.8", "2.0"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "mazda-626-gf-1998", model: "626", generation: "GF", startYear: 1998, endYear: 2002, variants: ["2.0"], transmissions: ["AUTO"] },
+
+      // TRIBUTE
+      { id: "mazda-tribute-ep-2001", model: "Tribute", generation: "EP", startYear: 2001, endYear: 2007, variants: ["2.0", "2.3", "3.0 V6"], transmissions: ["AUTO"] },
+
+      // RX-8
+      { id: "mazda-rx8-se3p-2003", model: "RX-8", generation: "SE3P", startYear: 2003, endYear: 2008, variants: ["1.3 Rotary Standard", "1.3 Rotary Type S"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "mazda-rx8-se3p-fl-2009", model: "RX-8", generation: "SE3P Facelift", startYear: 2009, endYear: 2012, variants: ["1.3 Rotary Type E", "1.3 Rotary Type S"], transmissions: ["AUTO", "MANUAL"] },
+
+      // MAZDA 5
+      { id: "mazda-5-cr-2007", model: "Mazda 5", generation: "CR", startYear: 2007, endYear: 2010, variants: ["2.0"], transmissions: ["AUTO"] },
+      { id: "mazda-5-cw-2011", model: "Mazda 5", generation: "CW", startYear: 2011, endYear: 2017, variants: ["2.0"], transmissions: ["AUTO"] },
+
+      // MAZDA 2
+      { id: "mazda-2-de-2010", model: "Mazda 2", generation: "DE", startYear: 2010, endYear: 2014, variants: ["1.5 Sedan", "1.5 Hatchback"], transmissions: ["AUTO"] },
+      { id: "mazda-2-dj-2015", model: "Mazda 2", generation: "DJ", startYear: 2015, endYear: 2019, variants: ["1.5 Sedan", "1.5 Hatchback"], transmissions: ["AUTO"] },
+      { id: "mazda-2-dj-fl-2020", model: "Mazda 2", generation: "DJ Facelift", startYear: 2020, endYear: 2024, variants: ["1.5 Sedan", "1.5 Hatchback"], transmissions: ["AUTO"] },
+
+      // MAZDA 3
+      { id: "mazda-3-bk-2006", model: "Mazda 3", generation: "BK", startYear: 2006, endYear: 2008, variants: ["1.6 Sedan", "2.0 Sedan", "2.0 Hatchback"], transmissions: ["AUTO"] },
+      { id: "mazda-3-bl-2009", model: "Mazda 3", generation: "BL", startYear: 2009, endYear: 2013, variants: ["1.6 Sedan", "2.0 Sedan", "2.0 Hatchback"], transmissions: ["AUTO"] },
+      { id: "mazda-3-bm-2014", model: "Mazda 3", generation: "BM", startYear: 2014, endYear: 2016, variants: ["2.0 Sedan", "2.0 Hatchback"], transmissions: ["AUTO"] },
+      { id: "mazda-3-bm-fl-2017", model: "Mazda 3", generation: "BM Facelift / BN", startYear: 2017, endYear: 2018, variants: ["2.0 Sedan", "2.0 Hatchback"], transmissions: ["AUTO"] },
+      { id: "mazda-3-bp-2019", model: "Mazda 3", generation: "BP", startYear: 2019, endYear: 2022, variants: ["1.5 Sedan", "1.5 Liftback", "2.0 High Sedan", "2.0 High Plus Sedan", "2.0 High Plus Liftback"], transmissions: ["AUTO"] },
+      { id: "mazda-3-bp-update-2023", model: "Mazda 3", generation: "BP 2023 Update", startYear: 2023, variants: ["1.5 High Plus Sedan", "1.5 High Plus Liftback", "2.0 High Sedan", "2.0 High Plus Sedan", "2.0 High Plus Liftback", "2.0 Ignite Edition"], transmissions: ["AUTO"] },
+
+      // MAZDA 6
+      { id: "mazda-6-gg-2003", model: "Mazda 6", generation: "GG", startYear: 2003, endYear: 2007, variants: ["2.0 Sedan", "2.3 Sedan"], transmissions: ["AUTO"] },
+      { id: "mazda-6-gh-2008", model: "Mazda 6", generation: "GH", startYear: 2008, endYear: 2012, variants: ["2.0 Sedan", "2.5 Sedan"], transmissions: ["AUTO"] },
+      { id: "mazda-6-gj-2013", model: "Mazda 6", generation: "GJ", startYear: 2013, endYear: 2017, variants: ["2.0 Sedan", "2.5 Sedan", "2.2 Diesel"], transmissions: ["AUTO"] },
+      { id: "mazda-6-gl-2018", model: "Mazda 6", generation: "GL Facelift", startYear: 2018, endYear: 2023, variants: ["2.0 Sedan", "2.5 Sedan", "2.5 Touring", "2.2 Diesel"], transmissions: ["AUTO"] },
+
+      // CX-7
+      { id: "mazda-cx7-er-2007", model: "CX-7", generation: "ER", startYear: 2007, endYear: 2012, variants: ["2.3 Turbo AWD", "2.5 2WD"], transmissions: ["AUTO"] },
+
+      // CX-9
+      { id: "mazda-cx9-tb-2008", model: "CX-9", generation: "TB", startYear: 2008, endYear: 2016, variants: ["3.7 V6 AWD"], transmissions: ["AUTO"] },
+      { id: "mazda-cx9-tc-2017", model: "CX-9", generation: "TC", startYear: 2017, endYear: 2023, variants: ["2.5 Turbo 2WD", "2.5 Turbo AWD"], transmissions: ["AUTO"] },
+
+      // CX-5
       { id: "mazda-cx5-ke-2012", model: "CX-5", generation: "KE / Mk1", startYear: 2012, endYear: 2014, variants: ["2.0 Skyactiv-G", "2.5 Skyactiv-G"], transmissions: ["AUTO"] },
       { id: "mazda-cx5-ke-fl-2015", model: "CX-5", generation: "KE / Mk1 Facelift", startYear: 2015, endYear: 2016, variants: ["2.0 Skyactiv-G", "2.5 Skyactiv-G", "2.2 Diesel"], transmissions: ["AUTO"] },
-      { id: "mazda-cx5-kf-2017", model: "CX-5", generation: "KF", startYear: 2017, endYear: 2023, variants: ["2.0", "2.5", "2.2 Diesel", "2.5 Turbo"], transmissions: ["AUTO"] },
+      { id: "mazda-cx5-kf-2017", model: "CX-5", generation: "KF", startYear: 2017, endYear: 2023, variants: ["2.0 GLS", "2.5 GLS", "2.2D GLS", "2.5T AWD"], transmissions: ["AUTO"] },
       { id: "mazda-cx5-kf-fl-2024", model: "CX-5", generation: "KF Facelift", startYear: 2024, variants: ["2.0 Mid", "2.0 High", "2.5 High", "2.2D High", "2.5T High AWD"], transmissions: ["AUTO"] },
-      { id: "mazda-cx30-dm-2020", model: "CX-30", generation: "DM", startYear: 2020, variants: ["2.0 Core", "2.0 High", "2.0 High Plus"], transmissions: ["AUTO"] },
+
+      // BIANTE
+      { id: "mazda-biante-cc-2013", model: "Biante", generation: "CC", startYear: 2013, endYear: 2018, variants: ["2.0 Skyactiv-G"], transmissions: ["AUTO"] },
+
+      // CX-3
+      { id: "mazda-cx3-dk-2015", model: "CX-3", generation: "DK", startYear: 2015, endYear: 2017, variants: ["2.0 Skyactiv-G"], transmissions: ["AUTO"] },
+      { id: "mazda-cx3-dk-fl-2018", model: "CX-3", generation: "DK Facelift", startYear: 2018, endYear: 2023, variants: ["1.5 Core", "2.0 Mid", "2.0 High"], transmissions: ["AUTO"] },
+
+      // MX-5
+      { id: "mazda-mx5-nc-2006", model: "MX-5", generation: "NC", startYear: 2006, endYear: 2014, variants: ["2.0 Roadster", "2.0 Roadster Coupe"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "mazda-mx5-nd-2015", model: "MX-5", generation: "ND", startYear: 2015, endYear: 2023, variants: ["2.0 Roadster", "2.0 RF"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "mazda-mx5-nd-fl-2024", model: "MX-5", generation: "ND 2024 Update", startYear: 2024, variants: ["2.0 RF"], transmissions: ["AUTO", "MANUAL"] },
+
+      // BT-50
+      { id: "mazda-bt50-j97m-2007", model: "BT-50", generation: "J97M", startYear: 2007, endYear: 2011, variants: ["2.5 4x2", "2.5 4x4", "3.0 4x4"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "mazda-bt50-up-2012", model: "BT-50", generation: "UP / UR", startYear: 2012, endYear: 2020, variants: ["2.2 4x2", "2.2 4x4", "3.2 4x4"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "mazda-bt50-tf-2021", model: "BT-50", generation: "TF", startYear: 2021, variants: ["1.9 High", "3.0 High Plus"], transmissions: ["AUTO"] },
+
+      // CX-30
+      { id: "mazda-cx30-dm-2020", model: "CX-30", generation: "DM", startYear: 2020, endYear: 2022, variants: ["2.0 Core", "2.0 High", "2.0 High Plus"], transmissions: ["AUTO"] },
+      { id: "mazda-cx30-dm-update-2023", model: "CX-30", generation: "DM 2023 Update", startYear: 2023, variants: ["2.0 High", "2.0 High Plus", "2.0 High Plus Premium"], transmissions: ["AUTO"] },
+
+      // CX-8
+      { id: "mazda-cx8-kg-2019", model: "CX-8", generation: "KG", startYear: 2019, endYear: 2021, variants: ["2.5 Mid", "2.5 High", "2.2D High", "2.5T High AWD"], transmissions: ["AUTO"] },
+      { id: "mazda-cx8-kg-fl-2022", model: "CX-8", generation: "KG Facelift", startYear: 2022, variants: ["2.5 Mid", "2.5 High", "2.2D High", "2.5T High AWD"], transmissions: ["AUTO"] },
+
+      // LARGE PLATFORM SUV
+      { id: "mazda-cx60-kh-2024", model: "CX-60", generation: "KH", startYear: 2024, variants: ["3.3 Turbo Mild Hybrid AWD", "2.5 PHEV AWD"], transmissions: ["AUTO"] },
+      { id: "mazda-cx80-kl-2025", model: "CX-80", generation: "KL", startYear: 2025, variants: ["2.5 PHEV AWD", "3.3 Turbo Mild Hybrid AWD"], transmissions: ["AUTO"] },
     ],
   },
   {
