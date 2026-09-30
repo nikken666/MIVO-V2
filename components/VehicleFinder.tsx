@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   vehicleDatabase,
   vehicleLabel,
@@ -28,6 +28,7 @@ export default function VehicleFinder() {
   const [addingVehicle, setAddingVehicle] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
   const finderRef = useRef<HTMLDivElement | null>(null);
+  const quizTopRef = useRef<HTMLDivElement | null>(null);
   const previousStepRef = useRef(step);
 
   function scrollFinderToTop() {
@@ -35,13 +36,13 @@ export default function VehicleFinder() {
     if (!window.matchMedia("(min-width: 851px)").matches) return;
 
     const run = () => {
-      const finder = finderRef.current;
-      if (!finder) return;
+      const target = quizTopRef.current || finderRef.current;
+      if (!target) return;
 
       const stickyHeader = document.querySelector(".siteHeader") as HTMLElement | null;
-      const headerHeight = stickyHeader?.getBoundingClientRect().height || 0;
-      const targetTop =
-        window.scrollY + finder.getBoundingClientRect().top - headerHeight - 14;
+      const headerBottom = Math.max(0, stickyHeader?.getBoundingClientRect().bottom || 0);
+      const desiredTop = headerBottom + 20;
+      const targetTop = window.scrollY + target.getBoundingClientRect().top - desiredTop;
 
       window.scrollTo({
         top: Math.max(0, targetTop),
@@ -49,19 +50,14 @@ export default function VehicleFinder() {
       });
     };
 
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(run);
-    });
-
-    window.setTimeout(run, 180);
+    window.requestAnimationFrame(() => window.requestAnimationFrame(run));
+    window.setTimeout(run, 160);
   }
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (previousStepRef.current === step) return;
     previousStepRef.current = step;
-    scrollFinderToTop();
   }, [step]);
-
 
   useEffect(() => {
     let active = true;
@@ -203,7 +199,6 @@ export default function VehicleFinder() {
     setVariant("");
     setTransmission("");
     setStep(2);
-    scrollFinderToTop();
   }
 
   function chooseModel(value: string) {
@@ -213,7 +208,6 @@ export default function VehicleFinder() {
     setVariant("");
     setTransmission("");
     setStep(3);
-    scrollFinderToTop();
   }
 
   function chooseGeneration(value: string) {
@@ -222,7 +216,6 @@ export default function VehicleFinder() {
     setVariant("");
     setTransmission("");
     setStep(4);
-    scrollFinderToTop();
   }
 
   function chooseYear(value: string) {
@@ -230,26 +223,22 @@ export default function VehicleFinder() {
     setVariant("");
     setTransmission("");
     setStep(5);
-    scrollFinderToTop();
   }
 
   function chooseVariant(value: string) {
     setVariant(value);
     setTransmission("");
     setStep(6);
-    scrollFinderToTop();
   }
 
   function chooseTransmission(value: string) {
     setTransmission(value);
     setStep(7);
-    scrollFinderToTop();
   }
 
   function goBack() {
     if (step === 1) return;
     setStep((current) => Math.max(1, current - 1));
-    scrollFinderToTop();
   }
 
   function restart() {
@@ -411,7 +400,7 @@ export default function VehicleFinder() {
 
   return (
     <div ref={finderRef} className="fitmentCard quizFitment" id="fitment">
-      <div className="quizTop">
+      <div ref={quizTopRef} className="quizTop">
         <div>
           <span className="microLabel">
             {saved ? "ADD ANOTHER VEHICLE" : "MIVO VEHICLE MATCH"}
