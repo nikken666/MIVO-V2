@@ -786,7 +786,7 @@ export default function ProductDetailClient({
                   <div className="productReviewBuyer">
                     <div className="productReviewAvatar">M</div>
                     <div>
-                      <strong>Verified Buyer</strong>
+                      <strong>MIVO Customer</strong>
                       <span>
                         {review.verifiedPurchase
                           ? "✓ VERIFIED PURCHASE"
