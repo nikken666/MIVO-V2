@@ -195,7 +195,10 @@ export default function MarketingVouchersPage() {
     setMessage("");
 
     try {
-      if (form.scope_type !== "all" && !form.scope_id) {
+      if (
+        form.scope_type !== "all" &&
+        !(form.scope_type === "product" ? selectedProductIds.length || form.scope_id : form.scope_id)
+      ) {
         throw new Error("Choose where this voucher applies.");
       }
 
@@ -247,12 +250,45 @@ export default function MarketingVouchersPage() {
             .from("vouchers")
             .update(payload)
             .eq("id", editingId)
-        : await supabase.from("vouchers").insert(payload);
+            .select("id")
+            .single()
+        : await supabase.from("vouchers").insert(payload).select("id").single();
 
       if (result.error) throw result.error;
 
+      const savedVoucherId = result.data?.id;
+      if (savedVoucherId) {
+        const { error: clearProductsError } = await supabase
+          .from("voucher_products")
+          .delete()
+          .eq("voucher_id", savedVoucherId);
+        if (clearProductsError) throw clearProductsError;
+
+        const productIds =
+          form.scope_type === "product"
+            ? selectedProductIds.length
+              ? selectedProductIds
+              : form.scope_id
+                ? [form.scope_id]
+                : []
+            : [];
+
+        if (productIds.length) {
+          const { error: productScopeError } = await supabase
+            .from("voucher_products")
+            .insert(
+              productIds.map((productId) => ({
+                voucher_id: savedVoucherId,
+                product_id: productId,
+              }))
+            );
+          if (productScopeError) throw productScopeError;
+        }
+      }
+
       await load();
       setForm(emptyVoucher());
+      setSelectedProductIds([]);
       setEditingId("");
       setMessage(editingId ? "Voucher updated." : "Voucher created.");
     } catch (caught) {
@@ -266,8 +302,18 @@ export default function MarketingVouchersPage() {
     }
   }
 
-  function editVoucher(voucher: Voucher) {
+  async function editVoucher(voucher: Voucher) {
     setEditingId(voucher.id);
+    const supabase = createClient();
+    const { data: voucherProducts } = await supabase
+      .from("voucher_products")
+      .select("product_id")
+      .eq("voucher_id", voucher.id);
+    setSelectedProductIds(
+      voucher.scope_type === "product"
+        ? (voucherProducts || []).map((item) => item.product_id)
+        : []
+    );
     setForm({
       campaign_id: voucher.campaign_id || "",
       code: voucher.code,
@@ -597,6 +643,8 @@ export default function MarketingVouchersPage() {
                             | "product",
                           scope_id: "",
                         }))
+                        setSelectedProductIds([]);
+                      }
                       }
                     >
                       <option value="all">All products</option>
@@ -783,7 +831,7 @@ export default function MarketingVouchersPage() {
                         <button
                           type="button"
                           className={styles.promotionEdit}
-                          onClick={() => editVoucher(voucher)}
+                          onClick={() => void editVoucher(voucher)}
                         >
                           EDIT
                         </button>
@@ -823,9 +871,9 @@ export default function MarketingVouchersPage() {
                 <div className={styles.productPickerHead}><div><span>SELECT PRODUCTS</span><h2>Choose eligible products</h2></div><button type="button" onClick={() => setProductPickerOpen(false)}>CLOSE</button></div>
                 <div className={styles.productPickerSearch}><input autoFocus placeholder="Search product name" value={productSearch} onChange={(event) => setProductSearch(event.target.value)} /><span>{filteredProducts.length} PRODUCTS</span></div>
                 <div className={styles.productPickerList}>
-                  {filteredProducts.map((product) => { const selected = selectedProductIds.includes(product.id) || (!selectedProductIds.length && form.scope_id === product.id); return <button type="button" key={product.id} className={selected ? styles.productPickerSelected : ""} onClick={() => setSelectedProductIds((current) => current.includes(product.id) ? current.filter((id) => id !== product.id) : [...current, product.id])}><i>{selected ? "✓" : ""}</i><span>{product.name}</span></button>; })}
+                  {filteredProducts.map((product) => { const selected = selectedProductIds.includes(product.id) || (!selectedProductIds.length && form.scope_id === product.id); return <button type="button" key={product.id} className={selected ? styles.productPickerSelected : ""} onClick={() => setSelectedProductIds((current) => current.includes(product.id) ? current.filter((id) => id !== product.id) : [...current, product.id])}><i>{selected ? <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.2 6.3 11.5 13 4.8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> : null}</i><span>{product.name}</span></button>; })}
                 </div>
-                <div className={styles.productPickerFooter}><span>{form.scope_id ? "1 product selected" : "No product selected"}</span><button type="button" disabled={!form.scope_id} onClick={() => setProductPickerOpen(false)}>CONFIRM</button></div>
+                <div className={styles.productPickerFooter}><span>{selectedProductIds.length ? selectedProductIds.length + " products selected" : form.scope_id ? "1 product selected" : "No product selected"}</span><button type="button" disabled={!selectedProductIds.length && !form.scope_id} onClick={() => setProductPickerOpen(false)}>CONFIRM</button></div>
               </div>
             </div>
           ) : null}
