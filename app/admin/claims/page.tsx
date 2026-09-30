@@ -306,7 +306,7 @@ export default function AdminClaimsPage() {
           <div className={styles.adminSidebarFoot}>
             <span>STORE MODE</span>
             <strong>MIVO DIRECT</strong>
-            <a href="/">OPEN STOREFRONT ↗</a>
+            <a href="/">OPEN STOREFRONT</a>
           </div>
         </aside>
 
