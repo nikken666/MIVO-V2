@@ -190,15 +190,36 @@ export default function CheckoutPage() {
       });
 
       try {
-        const { data: claimed } = await supabase
-          .from("customer_vouchers")
-          .select("voucher_id")
-          .eq("user_id", user.id);
+        const [
+          { data: claimed },
+          { data: redemptions },
+          { count: paidOrderCount },
+        ] = await Promise.all([
+          supabase
+            .from("customer_vouchers")
+            .select("voucher_id")
+            .eq("user_id", user.id),
+          supabase
+            .from("voucher_redemptions")
+            .select("voucher_id, status")
+            .eq("user_id", user.id)
+            .in("status", ["reserved", "redeemed"]),
+          supabase
+            .from("orders")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", user.id)
+            .in("status", ["paid", "processing", "packed", "shipped", "delivered"]),
+        ]);
+
+        const blockedIds = new Set(
+          ((redemptions as Array<{ voucher_id: string; status: string }> | null) || [])
+            .map((row) => row.voucher_id)
+        );
 
         const ids =
-          ((claimed as Array<{ voucher_id: string }> | null) || []).map(
-            (row) => row.voucher_id
-          );
+          ((claimed as Array<{ voucher_id: string }> | null) || [])
+            .map((row) => row.voucher_id)
+            .filter((id) => !blockedIds.has(id));
 
         if (ids.length > 0) {
           const { data: voucherData } = await supabase
@@ -210,9 +231,27 @@ export default function CheckoutPage() {
             .eq("is_active", true)
             .order("created_at", { ascending: true });
 
-          setVouchers((voucherData as VoucherOption[] | null) || []);
+          const now = Date.now();
+          const available = ((voucherData as VoucherOption[] | null) || []).filter(
+            (voucher) => {
+              const startsAt = new Date(voucher.starts_at).getTime();
+              const endsAt = new Date(voucher.ends_at).getTime();
+              if (Number.isFinite(startsAt) && startsAt > now) return false;
+              if (Number.isFinite(endsAt) && endsAt < now) return false;
+              if (voucher.first_order_only && Number(paidOrderCount || 0) > 0) {
+                return false;
+              }
+              return true;
+            }
+          );
+
+          setVouchers(available);
+        } else {
+          setVouchers([]);
         }
-      } catch {}
+      } catch {
+        setVouchers([]);
+      }
 
       setLoading(false);
     }
