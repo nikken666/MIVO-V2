@@ -543,18 +543,102 @@ export const vehicleDatabase: VehicleMake[] = [
   },
   {
     make: "Nissan",
+    modelOrder: [
+      "Sunny / Sentra",
+      "Vanette",
+      "Cefiro",
+      "Serena",
+      "X-Trail",
+      "Murano",
+      "Navara",
+      "Latio",
+      "Grand Livina",
+      "Sylphy",
+      "Teana",
+      "Almera",
+      "Urvan",
+      "Elgrand",
+      "370Z",
+      "GT-R",
+      "Leaf",
+      "Kicks e-POWER",
+    ],
     vehicles: [
-      { id: "nissan-almera-n17-2012", model: "Almera", generation: "N17", startYear: 2012, endYear: 2020, variants: ["1.5 E", "1.5 V", "1.5 VL"] },
-      { id: "nissan-almera-n18-2020", model: "Almera", generation: "N18", startYear: 2020, variants: ["1.0 Turbo VL", "1.0 Turbo VLP", "1.0 Turbo VLT"], transmissions: ["AUTO"] },
+      // SUNNY / SENTRA
+      { id: "nissan-sunny-b11-1984", model: "Sunny / Sentra", generation: "B11", startYear: 1984, endYear: 1986, variants: ["1.3 GL", "1.5 GL"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "nissan-sunny-b12-1987", model: "Sunny / Sentra", generation: "B12", startYear: 1987, endYear: 1990, variants: ["1.3 GL", "1.5 GL", "1.6 Super Saloon"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "nissan-sentra-b13-1991", model: "Sunny / Sentra", generation: "B13", startYear: 1991, endYear: 1995, variants: ["1.6 L", "1.6 SG", "1.6 Super Saloon"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "nissan-sentra-b14-1995", model: "Sunny / Sentra", generation: "B14", startYear: 1995, endYear: 1999, variants: ["1.6 L", "1.6 SLX", "1.6 Super Saloon"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "nissan-sentra-n16-2000", model: "Sunny / Sentra", generation: "N16", startYear: 2000, endYear: 2006, variants: ["1.6 SG", "1.6 XG-L", "1.8 XG-L"], transmissions: ["AUTO", "MANUAL"] },
+
+      // VANETTE
+      { id: "nissan-vanette-c22-1986", model: "Vanette", generation: "C22", startYear: 1986, endYear: 2012, variants: ["1.5 Petrol Panel Van", "1.5 Petrol Window Van"], transmissions: ["MANUAL"] },
+
+      // CEFIRO
+      { id: "nissan-cefiro-a31-1989", model: "Cefiro", generation: "A31", startYear: 1989, endYear: 1994, variants: ["2.0", "2.0 Turbo"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "nissan-cefiro-a32-1995", model: "Cefiro", generation: "A32", startYear: 1995, endYear: 1998, variants: ["2.0 V6", "3.0 V6"], transmissions: ["AUTO"] },
+      { id: "nissan-cefiro-a33-1999", model: "Cefiro", generation: "A33", startYear: 1999, endYear: 2003, variants: ["2.0 V6", "3.0 V6"], transmissions: ["AUTO"] },
+
+      // SERENA
+      { id: "nissan-serena-c23-1997", model: "Serena", generation: "C23", startYear: 1997, endYear: 1999, variants: ["2.0"], transmissions: ["AUTO"] },
+      { id: "nissan-serena-c24-2000", model: "Serena", generation: "C24", startYear: 2000, endYear: 2012, variants: ["2.0 Highway Star", "2.0 Comfort"], transmissions: ["AUTO"] },
       { id: "nissan-serena-c26-2013", model: "Serena", generation: "C26 S-Hybrid", startYear: 2013, endYear: 2017, variants: ["2.0 S-Hybrid Highway Star", "2.0 S-Hybrid Premium"], transmissions: ["AUTO"] },
       { id: "nissan-serena-c27-2018", model: "Serena", generation: "C27 S-Hybrid", startYear: 2018, endYear: 2021, variants: ["2.0 S-Hybrid Highway Star", "2.0 S-Hybrid Premium Highway Star"], transmissions: ["AUTO"] },
       { id: "nissan-serena-c27-fl-2022", model: "Serena", generation: "C27 Facelift", startYear: 2022, endYear: 2025, variants: ["2.0 S-Hybrid Highway Star", "2.0 S-Hybrid Premium Highway Star"], transmissions: ["AUTO"] },
       { id: "nissan-serena-c28-2026", model: "Serena", generation: "C28 e-POWER", startYear: 2026, variants: ["X", "X Plus", "Highway Star", "Premium Highway Star", "Shiro Premium Highway Star"], transmissions: ["AUTO"] },
 
-      { id: "nissan-navara-d40-2008", model: "Navara", generation: "D40", startYear: 2008, endYear: 2012, variants: ["2.5 SE", "2.5 LE"] },
-      { id: "nissan-navara-d40-fl-2013", model: "Navara", generation: "D40 Facelift", startYear: 2013, endYear: 2014, variants: ["2.5 SE", "2.5 LE"] },
-      { id: "nissan-navara-d23-2015", model: "Navara", generation: "NP300 D23", startYear: 2015, endYear: 2020, variants: ["2.5 SE", "2.5 V", "2.5 VL"] },
-      { id: "nissan-navara-d23-fl-2021", model: "Navara", generation: "D23 Facelift", startYear: 2021, variants: ["2.5 SE", "2.5 V", "2.5 VL", "2.5 PRO-4X"] },
+      // X-TRAIL
+      { id: "nissan-xtrail-t30-2003", model: "X-Trail", generation: "T30", startYear: 2003, endYear: 2007, variants: ["2.0 2WD", "2.5 4WD"], transmissions: ["AUTO"] },
+      { id: "nissan-xtrail-t31-2008", model: "X-Trail", generation: "T31", startYear: 2008, endYear: 2014, variants: ["2.0 2WD", "2.5 4WD"], transmissions: ["AUTO"] },
+      { id: "nissan-xtrail-t32-2015", model: "X-Trail", generation: "T32", startYear: 2015, endYear: 2018, variants: ["2.0L 2WD", "2.5L 4WD"], transmissions: ["AUTO"] },
+      { id: "nissan-xtrail-t32-fl-2019", model: "X-Trail", generation: "T32 Facelift", startYear: 2019, endYear: 2024, variants: ["2.0L 2WD", "2.0L 2WD MID", "2.5L 4WD", "2.0L Hybrid"], transmissions: ["AUTO"] },
+
+      // MURANO
+      { id: "nissan-murano-z50-2005", model: "Murano", generation: "Z50", startYear: 2005, endYear: 2008, variants: ["2.5", "3.5 V6"], transmissions: ["AUTO"] },
+      { id: "nissan-murano-z51-2009", model: "Murano", generation: "Z51", startYear: 2009, endYear: 2014, variants: ["2.5", "3.5 V6"], transmissions: ["AUTO"] },
+
+      // NAVARA
+      { id: "nissan-navara-d40-2008", model: "Navara", generation: "D40", startYear: 2008, endYear: 2012, variants: ["2.5 SE", "2.5 LE"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "nissan-navara-d40-fl-2013", model: "Navara", generation: "D40 Facelift", startYear: 2013, endYear: 2014, variants: ["2.5 SE", "2.5 LE"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "nissan-navara-d23-2015", model: "Navara", generation: "NP300 D23", startYear: 2015, endYear: 2020, variants: ["2.5 SE", "2.5 V", "2.5 VL"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "nissan-navara-d23-fl-2021", model: "Navara", generation: "D23 Facelift", startYear: 2021, variants: ["2.5 SE MT", "2.5 SE AT", "2.5 V", "2.5 VL", "2.5 PRO-4X"], transmissions: ["AUTO", "MANUAL"] },
+
+      // LATIO
+      { id: "nissan-latio-c11-2007", model: "Latio", generation: "C11", startYear: 2007, endYear: 2012, variants: ["1.6 ST-L Sedan", "1.6 ST-L Sport", "1.8 Ti Sedan", "1.8 Ti Hatchback"], transmissions: ["AUTO", "MANUAL"] },
+
+      // GRAND LIVINA
+      { id: "nissan-grand-livina-l10-2007", model: "Grand Livina", generation: "L10", startYear: 2007, endYear: 2012, variants: ["1.6 ST-L", "1.8 A/T", "1.8 Impul"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "nissan-grand-livina-l10-fl-2013", model: "Grand Livina", generation: "L10 Facelift", startYear: 2013, endYear: 2018, variants: ["1.6 Comfort", "1.6 Autech", "1.8 Comfort", "1.8 Autech"], transmissions: ["AUTO", "MANUAL"] },
+
+      // SYLPHY
+      { id: "nissan-sylphy-g11-2008", model: "Sylphy", generation: "G11", startYear: 2008, endYear: 2013, variants: ["2.0 Comfort", "2.0 Luxury", "2.0 Tuned by Impul"], transmissions: ["AUTO"] },
+      { id: "nissan-sylphy-b17-2014", model: "Sylphy", generation: "B17", startYear: 2014, endYear: 2019, variants: ["1.8 E", "1.8 VL"], transmissions: ["AUTO"] },
+
+      // TEANA
+      { id: "nissan-teana-j32-2010", model: "Teana", generation: "J32", startYear: 2010, endYear: 2013, variants: ["2.0 XE", "2.0 XL", "2.5 XV", "3.5 V6"], transmissions: ["AUTO"] },
+      { id: "nissan-teana-l33-2014", model: "Teana", generation: "L33", startYear: 2014, endYear: 2020, variants: ["2.0 XE", "2.0 XL", "2.5 XV"], transmissions: ["AUTO"] },
+
+      // ALMERA
+      { id: "nissan-almera-n17-2012", model: "Almera", generation: "N17", startYear: 2012, endYear: 2014, variants: ["1.5 E MT", "1.5 E AT", "1.5 V", "1.5 VL"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "nissan-almera-n17-fl-2015", model: "Almera", generation: "N17 Facelift", startYear: 2015, endYear: 2019, variants: ["1.5 E", "1.5 V", "1.5 VL", "1.5 Black Series"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "nissan-almera-n18-2020", model: "Almera", generation: "N18", startYear: 2020, endYear: 2024, variants: ["1.0 Turbo VL", "1.0 Turbo VLP", "1.0 Turbo VLT"], transmissions: ["AUTO"] },
+      { id: "nissan-almera-n18-fl-2025", model: "Almera", generation: "N18 Facelift", startYear: 2025, variants: ["1.0 Turbo VL", "1.0 Turbo VLP", "1.0 Turbo VLT"], transmissions: ["AUTO"] },
+
+      // URVAN
+      { id: "nissan-urvan-e25-2002", model: "Urvan", generation: "E25", startYear: 2002, endYear: 2014, variants: ["2.5 Diesel Panel Van", "3.0 Diesel Window Van"], transmissions: ["MANUAL"] },
+      { id: "nissan-urvan-e26-2015", model: "Urvan", generation: "NV350 / E26", startYear: 2015, variants: ["2.5 Diesel Panel Van", "2.5 Diesel Window Van"], transmissions: ["MANUAL"] },
+
+      // ELGRAND
+      { id: "nissan-elgrand-e51-2002", model: "Elgrand", generation: "E51", startYear: 2002, endYear: 2010, variants: ["2.5 Highway Star", "3.5 Highway Star"], transmissions: ["AUTO"] },
+      { id: "nissan-elgrand-e52-2011", model: "Elgrand", generation: "E52", startYear: 2011, variants: ["2.5 Highway Star", "2.5 Highway Star Premium", "3.5 Highway Star"], transmissions: ["AUTO"] },
+
+      // PERFORMANCE / EV
+      { id: "nissan-370z-z34-2009", model: "370Z", generation: "Z34", startYear: 2009, endYear: 2020, variants: ["3.7 Coupe", "3.7 NISMO"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "nissan-gtr-r35-2009", model: "GT-R", generation: "R35", startYear: 2009, endYear: 2025, variants: ["3.8 Premium", "3.8 Black Edition", "3.8 NISMO"], transmissions: ["AUTO"] },
+      { id: "nissan-leaf-ze1-2019", model: "Leaf", generation: "ZE1", startYear: 2019, variants: ["EV"], transmissions: ["AUTO"] },
+
+      // KICKS e-POWER
+      { id: "nissan-kicks-p15-2024", model: "Kicks e-POWER", generation: "P15", startYear: 2024, variants: ["VL", "VLT"], transmissions: ["AUTO"] },
     ],
   },
   {
