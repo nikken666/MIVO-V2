@@ -263,6 +263,20 @@ export default async function ProductsPage({
           </section>
           <div className="brandDirectory">
             {representedBrands.map((brand) => (
+              {openBrand === brand.slug ? (
+              <div id={brand.slug} className="brandDirectoryCard brandExpandableCard brandServerOpen" key={brand.name}>
+                <div className="brandLogo brandOpenLogo" aria-label={brand.name}>
+                  <img src={brand.logo} alt={brand.name + " logo"} />
+                </div>
+                <div className="brandInlineDetails">
+                  <span>ABOUT {brand.name}</span>
+                  <h2>What does {brand.name} do?</h2>
+                  <p>{brand.about}</p>
+                  <strong>{brand.category}</strong>
+                  <a href={"/products?q=" + encodeURIComponent(brand.name)}>Explore {brand.name} products</a>
+                </div>
+              </div>
+            ) : (
               <details id={brand.slug} className="brandDirectoryCard brandExpandableCard" key={brand.name}>
                 <summary>
                   <span className="brandLogo" aria-label={brand.name}>
@@ -277,6 +291,7 @@ export default async function ProductsPage({
                   <a href={"/products?q=" + encodeURIComponent(brand.name)}>Explore {brand.name} products</a>
                 </div>
               </details>
+            )}
             ))}
           </div>
         </>
