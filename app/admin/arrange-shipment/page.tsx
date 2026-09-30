@@ -480,7 +480,7 @@ export default function ArrangeShipmentPage() {
           <div className={styles.adminSidebarFoot}>
             <span>PAID ORDERS</span>
             <strong>{counts.ready} TO ARRANGE</strong>
-            <a href="/admin/orders?tab=to_ship">OPEN TO SHIP →</a>
+            <a href="/admin/orders?tab=to_ship">OPEN TO SHIP</a>
           </div>
         </aside>
 
