@@ -159,10 +159,12 @@ export default async function ProductsPage({
 
   const products = await productsPromise;
   const representedBrands = [
-    { name: "NIKKEN", category: "Automotive replacement parts", logo: "/brands/nikken-logo.svg" },
-    { name: "KYB", category: "Suspension & shock absorbers", logo: "/brands/kyb-logo.svg" },
-    { name: "GSP", category: "Drivetrain & drive shafts", logo: "/brands/gsp-logo.svg" },
+    { name: "NIKKEN", category: "Automotive replacement parts", logo: "/brands/nikken-logo.svg", slug: "nikken", intro: "Japanese automotive replacement parts focused on dependable everyday performance, fitment and durability." },
+    { name: "KYB", category: "Suspension & shock absorbers", logo: "/brands/kyb-logo.svg", slug: "kyb", intro: "A globally recognized name in suspension technology and ride-control components." },
+    { name: "GSP", category: "Drivetrain & drive shafts", logo: "/brands/gsp-logo.svg", slug: "gsp", intro: "Automotive replacement parts with a strong focus on drivetrain and chassis components." },
   ];
+
+  const selectedBrand = representedBrands.find((brand) => brand.slug === view);
 
   const baseFiltered = products.filter(
     (product) =>
@@ -253,7 +255,17 @@ export default async function ProductsPage({
         </div>
       ) : null}
 
-      {view === "brands" ? (
+      {selectedBrand ? (
+        <>
+          <section className="brandsHero">
+            <span>BRAND PROFILE</span>
+            <div className="brandProfileInlineLogo"><img src={selectedBrand.logo} alt={selectedBrand.name + " logo"} /></div>
+            <h1>{selectedBrand.name}</h1>
+            <p>{selectedBrand.intro}</p>
+            <p><a href={"/products?q=" + encodeURIComponent(selectedBrand.name)}>Explore {selectedBrand.name} products</a></p>
+          </section>
+        </>
+      ) : view === "brands" ? (
         <>
           <section className="brandsHero">
             <span>BRANDS AVAILABLE ON MIVO</span>
@@ -265,7 +277,7 @@ export default async function ProductsPage({
           <div className="brandDirectory">
             {representedBrands.map((brand) => (
               <a
-                href={"/products?q=" + encodeURIComponent(brand.name)}
+                href={"/products?view=" + brand.slug}
                 className="brandDirectoryCard"
                 key={brand.name}
               >
@@ -291,7 +303,7 @@ export default async function ProductsPage({
       </div>
       )}
 
-      {view === "brands" ? null : visible.length ? (
+      {view === "brands" || selectedBrand ? null : visible.length ? (
         <div className="catalogGrid">
           {visible.map(({ product, fitmentStatus }) => (
             <ProductCard
