@@ -89,6 +89,7 @@ export default async function ProductsPage({
   const productsPromise = getActiveProducts();
 
   const q = typeof params.q === "string" ? params.q.toLowerCase() : "";
+  const brand = String(searchParams?.brand || "").trim();
   const category =
     typeof params.category === "string" ? params.category.toLowerCase() : "";
   const group =
@@ -265,7 +266,7 @@ export default async function ProductsPage({
           <div className="brandDirectory">
             {representedBrands.map((brand) => (
               <a
-                href={"/products?q=" + encodeURIComponent(brand.name)}
+                href={"/products?brand=" + encodeURIComponent(brand.name)}
                 className="brandDirectoryCard"
                 key={brand.name}
               >
