@@ -39,24 +39,22 @@ export default function VehicleFinder() {
       const target = quizTopRef.current || finderRef.current;
       if (!target) return;
 
-      const stickyHeader = document.querySelector(".siteHeader") as HTMLElement | null;
-      const headerBottom = Math.max(0, stickyHeader?.getBoundingClientRect().bottom || 0);
-      const desiredTop = headerBottom + 20;
-      const targetTop = window.scrollY + target.getBoundingClientRect().top - desiredTop;
-
-      window.scrollTo({
-        top: Math.max(0, targetTop),
+      target.scrollIntoView({
         behavior: "smooth",
+        block: "start",
+        inline: "nearest",
       });
     };
 
     window.requestAnimationFrame(() => window.requestAnimationFrame(run));
-    window.setTimeout(run, 160);
+    window.setTimeout(run, 90);
+    window.setTimeout(run, 260);
   }
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (previousStepRef.current === step) return;
     previousStepRef.current = step;
+    scrollFinderToTop();
   }, [step]);
 
   useEffect(() => {
