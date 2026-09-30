@@ -8,12 +8,12 @@ import HomePromotions from "@/components/HomePromotions";
 import { products } from "@/data/products";
 
 const categories = [
-  { name: "Maintenance", desc: "Engine oil, ATF, coolant & filters", mark: "M", tone: "warm" },
-  { name: "Braking", desc: "Brake pads, rotors & repair kits", mark: "B", tone: "dark" },
-  { name: "Suspension", desc: "Absorbers, mounts, arms & springs", mark: "S", tone: "silver" },
-  { name: "Steering", desc: "EPS racks, rack ends & tie rods", mark: "R", tone: "graphite" },
-  { name: "Drivetrain", desc: "Drive shafts, CV joints & hubs", mark: "D", tone: "warm" },
-  { name: "Cooling", desc: "Radiators, pumps & thermostats", mark: "C", tone: "silver" },
+  { name: "Maintenance", desc: "Engine oil, ATF, coolant & filters", image: "/categories/maintenance.svg", tone: "warm" },
+  { name: "Braking", desc: "Brake pads, rotors & repair kits", image: "/categories/braking.svg", tone: "dark" },
+  { name: "Suspension", desc: "Absorbers, mounts, arms & springs", image: "/categories/suspension.svg", tone: "silver" },
+  { name: "Steering", desc: "EPS racks, rack ends & tie rods", image: "/categories/steering.svg", tone: "graphite" },
+  { name: "Drivetrain", desc: "Drive shafts, CV joints & hubs", image: "/categories/drivetrain.svg", tone: "warm" },
+  { name: "Cooling", desc: "Radiators, pumps & thermostats", image: "/categories/cooling.svg", tone: "silver" },
 ];
 
 const brands = [
@@ -189,8 +189,7 @@ export default async function HomePage({
               >
                 <div className="categoryVisual">
                   <span className="categoryIndex">0{index + 1}</span>
-                  <strong>{cat.mark}</strong>
-                  <i />
+                  <img src={cat.image} alt="" aria-hidden="true" />
                 </div>
                 <div className="categoryCopy">
                   <h3>{cat.name}</h3>
