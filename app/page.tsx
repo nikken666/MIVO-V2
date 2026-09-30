@@ -8,12 +8,12 @@ import HomePromotions from "@/components/HomePromotions";
 import { products } from "@/data/products";
 
 const categories = [
-  { name: "Maintenance", desc: "Engine oil, ATF, coolant & filters", tone: "warm" },
-  { name: "Braking", desc: "Brake pads, rotors & repair kits", tone: "dark" },
-  { name: "Suspension", desc: "Absorbers, mounts, arms & springs", tone: "silver" },
-  { name: "Steering", desc: "EPS racks, rack ends & tie rods", tone: "graphite" },
-  { name: "Drivetrain", desc: "Drive shafts, CV joints & hubs", tone: "warm" },
-  { name: "Cooling", desc: "Radiators, pumps & thermostats", tone: "silver" },
+  { name: "Maintenance", desc: "Engine oil, ATF, coolant & filters", tone: "warm", image: "/categories/maintenance.webp" },
+  { name: "Braking", desc: "Brake pads, rotors & repair kits", tone: "dark", image: null },
+  { name: "Suspension", desc: "Absorbers, mounts, arms & springs", tone: "silver", image: null },
+  { name: "Steering", desc: "EPS racks, rack ends & tie rods", tone: "graphite", image: null },
+  { name: "Drivetrain", desc: "Drive shafts, CV joints & hubs", tone: "warm", image: null },
+  { name: "Cooling", desc: "Radiators, pumps & thermostats", tone: "silver", image: null },
 ];
 
 const brands = [
@@ -189,7 +189,7 @@ export default async function HomePage({
               >
                 <div className="categoryVisual">
                   <span className="categoryIndex">0{index + 1}</span>
-                  {"image" in cat && cat.image ? <img src={cat.image} alt="" aria-hidden="true" /> : <><strong>{cat.name}</strong><i /></>}
+                  {cat.image ? <img src={cat.image} alt="" aria-hidden="true" /> : <><strong>{cat.name}</strong><i /></>}
                 </div>
                 <div className="categoryCopy">
                   <h3>{cat.name}</h3>
