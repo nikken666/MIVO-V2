@@ -12,6 +12,9 @@ type Voucher = {
   discount_type: "fixed" | "percent" | "free_shipping";
   discount_value: number | string;
   minimum_spend: number | string;
+  first_order_only: boolean;
+  starts_at: string;
+  ends_at: string;
 };
 
 function valueLabel(voucher: Voucher) {
@@ -38,7 +41,7 @@ export default function CartVoucherStrip() {
         supabase
           .from("vouchers")
           .select(
-            "id, code, name, discount_type, discount_value, minimum_spend"
+            "id, code, name, discount_type, discount_value, minimum_spend, first_order_only, starts_at, ends_at"
           )
           .eq("is_active", true)
           .order("created_at", { ascending: true })
@@ -48,22 +51,59 @@ export default function CartVoucherStrip() {
 
       if (!active) return;
 
-      setVouchers((voucherData as Voucher[] | null) || []);
+      let available = (voucherData as Voucher[] | null) || [];
 
       if (auth.data.user) {
-        const { data: claimed } = await supabase
-          .from("customer_vouchers")
-          .select("voucher_id")
-          .eq("user_id", auth.data.user.id);
+        const userId = auth.data.user.id;
+        const [
+          { data: claimed },
+          { data: redemptions },
+          { count: paidOrderCount },
+        ] = await Promise.all([
+          supabase
+            .from("customer_vouchers")
+            .select("voucher_id")
+            .eq("user_id", userId),
+          supabase
+            .from("voucher_redemptions")
+            .select("voucher_id, status")
+            .eq("user_id", userId)
+            .in("status", ["reserved", "redeemed"]),
+          supabase
+            .from("orders")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", userId)
+            .in("status", ["paid", "processing", "packed", "shipped", "delivered"]),
+        ]);
 
         if (!active) return;
 
+        const blockedIds = new Set(
+          ((redemptions as Array<{ voucher_id: string; status: string }> | null) || [])
+            .map((row) => row.voucher_id)
+        );
+        const now = Date.now();
+
+        available = available.filter((voucher) => {
+          if (blockedIds.has(voucher.id)) return false;
+          if (voucher.first_order_only && Number(paidOrderCount || 0) > 0) {
+            return false;
+          }
+          const startsAt = new Date(voucher.starts_at).getTime();
+          const endsAt = new Date(voucher.ends_at).getTime();
+          if (Number.isFinite(startsAt) && startsAt > now) return false;
+          if (Number.isFinite(endsAt) && endsAt < now) return false;
+          return true;
+        });
+
         setClaimedIds(
-          ((claimed as Array<{ voucher_id: string }> | null) || []).map(
-            (row) => row.voucher_id
-          )
+          ((claimed as Array<{ voucher_id: string }> | null) || [])
+            .map((row) => row.voucher_id)
+            .filter((id) => !blockedIds.has(id))
         );
       }
+
+      setVouchers(available);
     }
 
     void load();
