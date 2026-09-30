@@ -159,7 +159,7 @@ export default async function ProductsPage({
 
   const products = await productsPromise;
   const representedBrands = [
-    { name: "NIKKEN", category: "Drive Shaft · Shock Absorber · Steering Rack · Lower Arm", logo: "/brands/nikken-logo.svg", slug: "nikken", intro: "NIKKEN focuses on key automotive replacement components for everyday vehicles.", about: "Its core product range includes drive shafts, shock absorbers, steering racks and lower arms, with an emphasis on practical fitment, dependable performance and durable replacement solutions." },
+    { name: "NIKKEN", category: "Drive Shaft · Shock Absorber · Steering Rack · Lower Arm", logo: "/brands/nikken-logo.svg", slug: "nikken", intro: "NIKKEN focuses on key automotive replacement components for everyday vehicles.", about: "Its core product range on MIVO includes drive shafts, shock absorbers, steering racks and lower arms, with an emphasis on practical fitment, dependable performance and durable replacement solutions." },
     { name: "KYB", category: "Shock Absorber · Coil Spring · Lower Arm", logo: "/brands/kyb-logo.svg", slug: "kyb", intro: "KYB focuses on suspension and ride-control components for passenger vehicles.", about: "Its core product range on MIVO includes shock absorbers, coil springs and lower arms, covering key suspension and chassis replacement needs." },
     { name: "GSP", category: "Drive Shaft · Steering Rack · Wheel Bearing Hub · Lower Arm", logo: "/brands/gsp-logo.svg", slug: "gsp", intro: "GSP focuses on drivetrain, steering and chassis replacement components.", about: "Its core product range on MIVO includes drive shafts, steering racks, wheel bearing hubs and lower arms for passenger-vehicle replacement applications." },
   ];
