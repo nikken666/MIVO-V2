@@ -8,12 +8,12 @@ import HomePromotions from "@/components/HomePromotions";
 import { products } from "@/data/products";
 
 const categories = [
-  { name: "Maintenance", desc: "Engine oil, ATF, coolant & filters", tone: "warm", pos: "0% 0%" },
-  { name: "Braking", desc: "Brake pads, rotors & repair kits", tone: "dark", pos: "50% 0%" },
-  { name: "Suspension", desc: "Absorbers, mounts, arms & springs", tone: "silver", pos: "100% 0%" },
-  { name: "Steering", desc: "EPS racks, rack ends & tie rods", tone: "graphite", pos: "0% 100%" },
-  { name: "Drivetrain", desc: "Drive shafts, CV joints & hubs", tone: "warm", pos: "50% 100%" },
-  { name: "Cooling", desc: "Radiators, pumps & thermostats", tone: "silver", pos: "100% 100%" },
+  { name: "Maintenance", desc: "Engine oil, ATF, coolant & filters", tone: "warm", image: "/categories/maintenance.webp" },
+  { name: "Braking", desc: "Brake pads, rotors & repair kits", tone: "dark", image: "/categories/braking.webp" },
+  { name: "Suspension", desc: "Absorbers, mounts, arms & springs", tone: "silver", image: "/categories/suspension.webp" },
+  { name: "Steering", desc: "EPS racks, rack ends & tie rods", tone: "graphite", image: "/categories/steering.webp" },
+  { name: "Drivetrain", desc: "Drive shafts, CV joints & hubs", tone: "warm", image: "/categories/drivetrain.webp" },
+  { name: "Cooling", desc: "Radiators, pumps & thermostats", tone: "silver", image: "/categories/cooling.webp" },
 ];
 
 const brands = [
@@ -189,7 +189,7 @@ export default async function HomePage({
               >
                 <div className="categoryVisual">
                   <span className="categoryIndex">0{index + 1}</span>
-                  <div className="categoryArtwork" style={{ backgroundPosition: cat.pos }} aria-hidden="true" />
+                  <img className="categoryArtwork" src={cat.image} alt="" aria-hidden="true" />
                 </div>
                 <div className="categoryCopy">
                   <h3>{cat.name}</h3>
