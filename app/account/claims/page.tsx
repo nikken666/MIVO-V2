@@ -207,7 +207,7 @@ export default function MyWarrantyClaimsPage() {
               Active warranty items can be claimed from the order warranty
               page.
             </p>
-            <Link href="/orders">VIEW MY ORDERS →</Link>
+            <Link href="/orders">VIEW MY ORDERS</Link>
           </div>
         ) : (
           <div className="myClaimsLayout">
