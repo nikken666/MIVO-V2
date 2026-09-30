@@ -158,9 +158,11 @@ export default async function ProductsPage({
     : null;
 
   const products = await productsPromise;
-  const brandNames = Array.from(
-    new Set(products.map((product) => product.brand).filter(Boolean))
-  ).sort((a, b) => a.localeCompare(b));
+  const representedBrands = [
+    { name: "NIKKEN", category: "Automotive replacement parts" },
+    { name: "KYB", category: "Suspension & shock absorbers" },
+    { name: "GSP", category: "Drivetrain & drive shafts" },
+  ];
 
   const baseFiltered = products.filter(
     (product) =>
@@ -220,7 +222,7 @@ export default async function ProductsPage({
       <SavedVehicleProductsBootstrap
         hasVehicle={Boolean(selectedVehicleId)}
       />
-      {selectedVehicleLabel ? (
+      {view !== "brands" && selectedVehicleLabel ? (
         <div className="selectedVehicleBanner vehicleMatchBanner">
           <div>
             <span>YOUR MIVO VEHICLE</span>
@@ -234,7 +236,7 @@ export default async function ProductsPage({
         </div>
       ) : null}
 
-      {fitmentCounts ? (
+      {view !== "brands" && fitmentCounts ? (
         <div className="fitmentResultsBar">
           <div>
             <strong>{fitmentCounts.fits}</strong>
@@ -253,22 +255,24 @@ export default async function ProductsPage({
 
       {view === "brands" ? (
         <>
-          <div className="pageHeading">
-            <div>
-              <span>SHOP BY BRAND</span>
-              <h1>Brands</h1>
-              <p>Choose a brand to browse its available MIVO products.</p>
-            </div>
-          </div>
+          <section className="brandsHero">
+            <span>MIVO BRAND PORTFOLIO</span>
+            <h1>Our Brands</h1>
+            <p>
+              Automotive brands represented across the MIVO catalogue.
+              Select a brand to browse its available products.
+            </p>
+          </section>
           <div className="brandDirectory">
-            {brandNames.map((brand) => (
+            {representedBrands.map((brand) => (
               <a
-                href={"/products?q=" + encodeURIComponent(brand)}
+                href={"/products?q=" + encodeURIComponent(brand.name)}
                 className="brandDirectoryCard"
-                key={brand}
+                key={brand.name}
               >
-                <span>BRAND</span>
-                <strong>{brand}</strong>
+                <span>MIVO BRAND</span>
+                <strong>{brand.name}</strong>
+                <p>{brand.category}</p>
                 <small>VIEW PRODUCTS</small>
               </a>
             ))}
