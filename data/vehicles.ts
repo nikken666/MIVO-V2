@@ -431,30 +431,114 @@ export const vehicleDatabase: VehicleMake[] = [
   },
   {
     make: "Honda",
+    modelOrder: [
+      "Civic",
+      "Accord",
+      "City",
+      "CR-V",
+      "Odyssey",
+      "Stream",
+      "Jazz",
+      "Freed",
+      "Insight",
+      "CR-Z",
+      "HR-V",
+      "BR-V",
+      "City Hatchback",
+      "Civic Type R",
+      "WR-V",
+      "e:N1",
+      "Prelude",
+    ],
     vehicles: [
-      { id: "honda-city-gd-2002", model: "City", generation: "GD8 / GD3", startYear: 2002, endYear: 2008, variants: ["1.5 i-DSI", "1.5 VTEC"] },
-      { id: "honda-city-gm23-2008", model: "City", generation: "GM2 / GM3", startYear: 2008, endYear: 2014, variants: ["1.5 S", "1.5 E", "1.5 V"] },
-      { id: "honda-city-gm6-2014", model: "City", generation: "GM6", startYear: 2014, endYear: 2020, variants: ["1.5 S", "1.5 E", "1.5 V", "1.5 Hybrid"], transmissions: ["AUTO"] },
-      { id: "honda-city-gn2-2020", model: "City", generation: "GN2", startYear: 2020, endYear: 2022, variants: ["1.5 S", "1.5 E", "1.5 V", "1.5 RS e:HEV"], transmissions: ["AUTO"] },
-      { id: "honda-city-gn2-fl-2023", model: "City", generation: "GN2 Facelift", startYear: 2023, variants: ["1.5 S", "1.5 E", "1.5 V", "1.5 RS", "1.5 RS e:HEV"], transmissions: ["AUTO"] },
-
-      { id: "honda-civic-fd-2006", model: "Civic", generation: "FD (FD1/FD2)", startYear: 2006, endYear: 2011, variants: ["1.8 i-VTEC", "2.0 i-VTEC", "Type R (FD2R)"] },
-      { id: "honda-civic-fb-2012", model: "Civic", generation: "FB", startYear: 2012, endYear: 2016, variants: ["1.8 S", "2.0 S", "2.0 Navi", "Hybrid"] },
+      // CIVIC
+      { id: "honda-civic-ef-1988", model: "Civic", generation: "EF", startYear: 1988, endYear: 1991, variants: ["1.5 EX", "1.6 EXi"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "honda-civic-eg-1992", model: "Civic", generation: "EG", startYear: 1992, endYear: 1995, variants: ["1.5 EX", "1.6 EXi", "1.6 VTi"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "honda-civic-ek-1996", model: "Civic", generation: "EK", startYear: 1996, endYear: 2000, variants: ["1.6 EXi", "1.6 VTi", "1.6 VTi-S"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "honda-civic-es-2001", model: "Civic", generation: "ES", startYear: 2001, endYear: 2005, variants: ["1.7 VTi", "1.7 VTi-S", "2.0 i-VTEC"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "honda-civic-fd-2006", model: "Civic", generation: "FD", startYear: 2006, endYear: 2011, variants: ["1.8 S", "1.8 S-L", "2.0 S", "2.0 S Navi"], transmissions: ["AUTO"] },
+      { id: "honda-civic-fb-2012", model: "Civic", generation: "FB", startYear: 2012, endYear: 2015, variants: ["1.8 S", "2.0 S", "2.0 Navi", "1.5 Hybrid"], transmissions: ["AUTO"] },
       { id: "honda-civic-fc-2016", model: "Civic", generation: "FC", startYear: 2016, endYear: 2021, variants: ["1.8 S", "1.5 Turbo TC", "1.5 Turbo TC-P"], transmissions: ["AUTO"] },
       { id: "honda-civic-fe-2022", model: "Civic", generation: "FE", startYear: 2022, endYear: 2024, variants: ["1.5 E", "1.5 V", "1.5 RS", "2.0 e:HEV RS"], transmissions: ["AUTO"] },
       { id: "honda-civic-fe-fl-2025", model: "Civic", generation: "FE Facelift", startYear: 2025, variants: ["1.5 E", "1.5 V", "1.5 RS", "2.0 e:HEV RS"], transmissions: ["AUTO"] },
-      { id: "honda-civic-fl5-2023", model: "Civic Type R", generation: "FL5", startYear: 2023, variants: ["2.0 Turbo Type R"], transmissions: ["MANUAL"] },
 
+      // ACCORD
+      { id: "honda-accord-sm4-1990", model: "Accord", generation: "SM4", startYear: 1990, endYear: 1993, variants: ["2.0 EXi", "2.0 EX"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "honda-accord-sv4-1994", model: "Accord", generation: "SV4", startYear: 1994, endYear: 1997, variants: ["2.0 EXi", "2.2 VTi"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "honda-accord-s84-1998", model: "Accord", generation: "S84", startYear: 1998, endYear: 2002, variants: ["2.0 VTi", "2.0 VTi-L", "2.3 VTi-L"], transmissions: ["AUTO"] },
+      { id: "honda-accord-cm-2003", model: "Accord", generation: "CM4 / CM5", startYear: 2003, endYear: 2007, variants: ["2.0 VTi", "2.0 VTi-L", "2.4 VTi-L"], transmissions: ["AUTO"] },
+      { id: "honda-accord-cp-2008", model: "Accord", generation: "CP1 / CP2", startYear: 2008, endYear: 2012, variants: ["2.0 VTi", "2.0 VTi-L", "2.4 VTi-L"], transmissions: ["AUTO"] },
+      { id: "honda-accord-cr-2013", model: "Accord", generation: "CR", startYear: 2013, endYear: 2015, variants: ["2.0 VTi", "2.0 VTi-L", "2.4 VTi-L"], transmissions: ["AUTO"] },
+      { id: "honda-accord-cr-fl-2016", model: "Accord", generation: "CR Facelift", startYear: 2016, endYear: 2019, variants: ["2.0 VTi", "2.0 VTi-L", "2.4 VTi-L"], transmissions: ["AUTO"] },
+      { id: "honda-accord-cv-2020", model: "Accord", generation: "CV", startYear: 2020, endYear: 2023, variants: ["1.5 TC", "1.5 TC-P"], transmissions: ["AUTO"] },
+
+      // CITY
+      { id: "honda-city-sx8-1996", model: "City", generation: "SX8", startYear: 1996, endYear: 2002, variants: ["1.3 EXi", "1.5 EXi", "1.5 VTi"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "honda-city-gd-2003", model: "City", generation: "GD8 / GD3", startYear: 2003, endYear: 2008, variants: ["1.5 i-DSI", "1.5 VTEC"], transmissions: ["AUTO"] },
+      { id: "honda-city-gm2-2009", model: "City", generation: "GM2 / GM3", startYear: 2009, endYear: 2013, variants: ["1.5 S", "1.5 E"], transmissions: ["AUTO"] },
+      { id: "honda-city-gm6-2014", model: "City", generation: "GM6", startYear: 2014, endYear: 2016, variants: ["1.5 S", "1.5 E", "1.5 V"], transmissions: ["AUTO"] },
+      { id: "honda-city-gm6-fl-2017", model: "City", generation: "GM6 Facelift", startYear: 2017, endYear: 2019, variants: ["1.5 S", "1.5 E", "1.5 V", "1.5 Hybrid"], transmissions: ["AUTO"] },
+      { id: "honda-city-gn2-2020", model: "City", generation: "GN2", startYear: 2020, endYear: 2022, variants: ["1.5 S", "1.5 E", "1.5 V", "1.5 RS", "1.5 e:HEV RS"], transmissions: ["AUTO"] },
+      { id: "honda-city-gn2-fl-2023", model: "City", generation: "GN2 Facelift", startYear: 2023, variants: ["1.5 S", "1.5 E", "1.5 V", "1.5 RS", "1.5 e:HEV RS"], transmissions: ["AUTO"] },
+
+      // CR-V
+      { id: "honda-crv-rd1-1997", model: "CR-V", generation: "RD1", startYear: 1997, endYear: 2001, variants: ["2.0 4WD"], transmissions: ["AUTO"] },
+      { id: "honda-crv-rd5-2002", model: "CR-V", generation: "RD5 / RD7", startYear: 2002, endYear: 2006, variants: ["2.0 i-VTEC", "2.4 i-VTEC"], transmissions: ["AUTO"] },
+      { id: "honda-crv-re-2007", model: "CR-V", generation: "RE", startYear: 2007, endYear: 2012, variants: ["2.0 i-VTEC", "2.4 i-VTEC"], transmissions: ["AUTO"] },
+      { id: "honda-crv-rm-2013", model: "CR-V", generation: "RM", startYear: 2013, endYear: 2014, variants: ["2.0 i-VTEC", "2.4 i-VTEC"], transmissions: ["AUTO"] },
+      { id: "honda-crv-rm-fl-2015", model: "CR-V", generation: "RM Facelift", startYear: 2015, endYear: 2016, variants: ["2.0 i-VTEC 2WD", "2.0 i-VTEC 4WD", "2.4 i-VTEC 4WD"], transmissions: ["AUTO"] },
+      { id: "honda-crv-rw-2017", model: "CR-V", generation: "RW", startYear: 2017, endYear: 2019, variants: ["2.0 i-VTEC 2WD", "1.5 Turbo 2WD", "1.5 Turbo 4WD", "1.5 Turbo Premium 2WD"], transmissions: ["AUTO"] },
+      { id: "honda-crv-rw-fl-2020", model: "CR-V", generation: "RW Facelift", startYear: 2020, endYear: 2022, variants: ["2.0 i-VTEC 2WD", "1.5 Turbo 2WD", "1.5 Turbo 4WD", "1.5 Turbo Premium 2WD"], transmissions: ["AUTO"] },
+      { id: "honda-crv-ry-2023", model: "CR-V", generation: "RY", startYear: 2023, variants: ["1.5 Turbo S", "1.5 Turbo E", "1.5 Turbo V AWD", "2.0 e:HEV E", "2.0 e:HEV RS"], transmissions: ["AUTO"] },
+
+      // ODYSSEY
+      { id: "honda-odyssey-ra6-2000", model: "Odyssey", generation: "RA6 / RA7", startYear: 2000, endYear: 2003, variants: ["2.3 Absolute", "3.0 V6"], transmissions: ["AUTO"] },
+      { id: "honda-odyssey-rb1-2004", model: "Odyssey", generation: "RB1 / RB2", startYear: 2004, endYear: 2008, variants: ["2.4 M", "2.4 Absolute"], transmissions: ["AUTO"] },
+      { id: "honda-odyssey-rb3-2009", model: "Odyssey", generation: "RB3 / RB4", startYear: 2009, endYear: 2013, variants: ["2.4", "2.4 Absolute"], transmissions: ["AUTO"] },
+      { id: "honda-odyssey-rc1-2014", model: "Odyssey", generation: "RC1", startYear: 2014, endYear: 2017, variants: ["2.4 EX", "2.4 EXV"], transmissions: ["AUTO"] },
+      { id: "honda-odyssey-rc1-fl-2018", model: "Odyssey", generation: "RC1 Facelift", startYear: 2018, endYear: 2021, variants: ["2.4 EXV"], transmissions: ["AUTO"] },
+
+      // STREAM
+      { id: "honda-stream-rn1-2001", model: "Stream", generation: "RN1 / RN3", startYear: 2001, endYear: 2006, variants: ["1.7", "2.0 i-VTEC"], transmissions: ["AUTO"] },
+      { id: "honda-stream-rn6-2007", model: "Stream", generation: "RN6 / RN8", startYear: 2007, endYear: 2014, variants: ["1.8", "2.0 RSZ"], transmissions: ["AUTO"] },
+
+      // JAZZ
+      { id: "honda-jazz-gd-2003", model: "Jazz", generation: "GD", startYear: 2003, endYear: 2008, variants: ["1.5 i-DSI", "1.5 VTEC"], transmissions: ["AUTO"] },
+      { id: "honda-jazz-ge-2009", model: "Jazz", generation: "GE", startYear: 2009, endYear: 2013, variants: ["1.5 S", "1.5 V"], transmissions: ["AUTO"] },
+      { id: "honda-jazz-gk-2014", model: "Jazz", generation: "GK", startYear: 2014, endYear: 2016, variants: ["1.5 S", "1.5 E", "1.5 V"], transmissions: ["AUTO"] },
+      { id: "honda-jazz-gk-fl-2017", model: "Jazz", generation: "GK Facelift", startYear: 2017, endYear: 2021, variants: ["1.5 S", "1.5 E", "1.5 V", "1.5 Hybrid"], transmissions: ["AUTO"] },
+
+      // FREED
+      { id: "honda-freed-gb3-2010", model: "Freed", generation: "GB3", startYear: 2010, endYear: 2014, variants: ["1.5 E", "1.5 E Plus"], transmissions: ["AUTO"] },
+
+      // INSIGHT / CR-Z
+      { id: "honda-insight-ze2-2011", model: "Insight", generation: "ZE2", startYear: 2011, endYear: 2014, variants: ["1.3 Hybrid"], transmissions: ["AUTO"] },
+      { id: "honda-crz-zf1-2012", model: "CR-Z", generation: "ZF1", startYear: 2012, endYear: 2013, variants: ["1.5 Hybrid"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "honda-crz-zf2-2014", model: "CR-Z", generation: "ZF2", startYear: 2014, endYear: 2016, variants: ["1.5 Hybrid"], transmissions: ["AUTO", "MANUAL"] },
+
+      // HR-V
       { id: "honda-hrv-ru-2015", model: "HR-V", generation: "RU", startYear: 2015, endYear: 2018, variants: ["1.8 S", "1.8 E", "1.8 V"], transmissions: ["AUTO"] },
       { id: "honda-hrv-ru-fl-2019", model: "HR-V", generation: "RU Facelift", startYear: 2019, endYear: 2021, variants: ["1.8 E", "1.8 V", "1.8 RS", "1.5 Hybrid"], transmissions: ["AUTO"] },
-      { id: "honda-hrv-rv-2022", model: "HR-V", generation: "RV", startYear: 2022, endYear: 2024, variants: ["1.5 S", "1.5 Turbo E", "1.5 Turbo V", "1.5 RS e:HEV"], transmissions: ["AUTO"] },
+      { id: "honda-hrv-rv-2022", model: "HR-V", generation: "RV", startYear: 2022, endYear: 2024, variants: ["1.5 S", "1.5 Turbo E", "1.5 Turbo V", "1.5 e:HEV RS"], transmissions: ["AUTO"] },
       { id: "honda-hrv-rv-fl-2025", model: "HR-V", generation: "RV Facelift", startYear: 2025, variants: ["1.5 S", "1.5 E", "1.5 V", "1.5 e:HEV RS"], transmissions: ["AUTO"] },
 
-      { id: "honda-crv-rm-2013", model: "CR-V", generation: "RM", startYear: 2013, endYear: 2014, variants: ["2.0 i-VTEC", "2.4 i-VTEC"], transmissions: ["AUTO"] },
-      { id: "honda-crv-rm-fl-2015", model: "CR-V", generation: "RM Facelift", startYear: 2015, endYear: 2016, variants: ["2.0 i-VTEC", "2.4 i-VTEC"], transmissions: ["AUTO"] },
-      { id: "honda-crv-rw-2017", model: "CR-V", generation: "RW", startYear: 2017, endYear: 2019, variants: ["2.0 i-VTEC", "1.5 Turbo", "1.5 Turbo Premium"], transmissions: ["AUTO"] },
-      { id: "honda-crv-rw-fl-2020", model: "CR-V", generation: "RW Facelift", startYear: 2020, endYear: 2022, variants: ["2.0 i-VTEC", "1.5 Turbo", "1.5 Turbo Premium"], transmissions: ["AUTO"] },
-      { id: "honda-crv-ry-2023", model: "CR-V", generation: "RY", startYear: 2023, variants: ["1.5 Turbo S", "1.5 Turbo E", "1.5 Turbo V", "2.0 e:HEV E", "2.0 e:HEV RS"], transmissions: ["AUTO"] },
+      // BR-V
+      { id: "honda-brv-dg1-2017", model: "BR-V", generation: "DG1", startYear: 2017, endYear: 2019, variants: ["1.5 E", "1.5 V"], transmissions: ["AUTO"] },
+      { id: "honda-brv-dg1-fl-2020", model: "BR-V", generation: "DG1 Facelift", startYear: 2020, endYear: 2023, variants: ["1.5 E", "1.5 V"], transmissions: ["AUTO"] },
+
+      // CITY HATCHBACK
+      { id: "honda-city-hatch-gn-2021", model: "City Hatchback", generation: "GN", startYear: 2021, endYear: 2023, variants: ["1.5 S", "1.5 E", "1.5 V", "1.5 RS", "1.5 e:HEV RS"], transmissions: ["AUTO"] },
+      { id: "honda-city-hatch-gn-fl-2024", model: "City Hatchback", generation: "GN Facelift", startYear: 2024, variants: ["1.5 S", "1.5 E", "1.5 V", "1.5 RS", "1.5 e:HEV RS"], transmissions: ["AUTO"] },
+
+      // CIVIC TYPE R
+      { id: "honda-civic-type-r-fd2-2007", model: "Civic Type R", generation: "FD2", startYear: 2007, endYear: 2010, variants: ["2.0 Type R"], transmissions: ["MANUAL"] },
+      { id: "honda-civic-type-r-fk8-2017", model: "Civic Type R", generation: "FK8", startYear: 2017, endYear: 2021, variants: ["2.0 Turbo Type R"], transmissions: ["MANUAL"] },
+      { id: "honda-civic-fl5-2023", model: "Civic Type R", generation: "FL5", startYear: 2023, variants: ["2.0 Turbo Type R"], transmissions: ["MANUAL"] },
+
+      // WR-V / NEW HONDA MODELS
+      { id: "honda-wrv-dg4-2023", model: "WR-V", generation: "DG4", startYear: 2023, variants: ["1.5 S", "1.5 E", "1.5 V", "1.5 RS"], transmissions: ["AUTO"] },
+      { id: "honda-en1-2025", model: "e:N1", generation: "Gen 1", startYear: 2025, variants: ["e:N1"], transmissions: ["AUTO"] },
+      { id: "honda-prelude-2026", model: "Prelude", generation: "Gen 6", startYear: 2026, variants: ["2.0 e:HEV"], transmissions: ["AUTO"] },
     ],
   },
   {
