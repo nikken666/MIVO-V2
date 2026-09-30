@@ -9316,3 +9316,32 @@ div{
   font-size:13px;
   line-height:1.45;
 }
+
+
+/* UNIFIED BRAND CARDS */
+.brandDirectoryCard,
+.brandDirectoryCard:hover{
+  background:#fff;
+  border-color:#e2e5e7;
+}
+.brandDirectoryCard:hover{
+  transform:translateY(-2px);
+  box-shadow:0 14px 34px rgba(16,24,32,.08);
+}
+.brandLogo{
+  display:flex;
+  align-items:center;
+  min-height:58px;
+  color:#111820;
+  font-size:34px;
+  font-weight:900;
+  line-height:1;
+  letter-spacing:-.045em;
+}
+.brandLogo-kyb{
+  font-style:italic;
+  letter-spacing:-.07em;
+}
+.brandLogo-gsp{
+  font-style:italic;
+}
