@@ -118,9 +118,21 @@ export default function VehicleFinder() {
       }
     }
 
-    return Array.from(firstYearByModel.entries())
+    const chronological = Array.from(firstYearByModel.entries())
       .sort((a, b) => a[1] - b[1] || a[0].localeCompare(b[0]))
       .map(([modelName]) => modelName);
+
+    if (!makeData?.modelOrder?.length) return chronological;
+
+    const ordered = makeData.modelOrder.filter((modelName) =>
+      firstYearByModel.has(modelName)
+    );
+    const included = new Set(ordered);
+
+    return [
+      ...ordered,
+      ...chronological.filter((modelName) => !included.has(modelName)),
+    ];
   }, [makeData]);
 
   const generations = useMemo(
