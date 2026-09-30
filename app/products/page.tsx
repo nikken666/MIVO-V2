@@ -164,7 +164,6 @@ export default async function ProductsPage({
     { name: "GSP", category: "Drivetrain & drive shafts", logo: "/brands/gsp-logo.svg", slug: "gsp", intro: "GSP specializes in automotive drivetrain and chassis replacement components.", about: "Its product portfolio includes drive shafts, CV joints, hub assemblies and other related replacement parts serving passenger-vehicle drivetrain and chassis applications." },
   ];
 
-  const selectedBrand = representedBrands.find((brand) => brand.slug === view);
 
   const baseFiltered = products.filter(
     (product) =>
@@ -255,49 +254,29 @@ export default async function ProductsPage({
         </div>
       ) : null}
 
-      {selectedBrand ? (
-        <>
-          <section className="brandsHero">
-            <span>BRAND PROFILE</span>
-            <div className="brandProfileInlineLogo"><img src={selectedBrand.logo} alt={selectedBrand.name + " logo"} /></div>
-            <h1>{selectedBrand.name}</h1>
-            <p>{selectedBrand.intro}</p>
-          </section>
-          <section className="brandProfileInline">
-            <div>
-              <span>ABOUT {selectedBrand.name}</span>
-              <h2>What does {selectedBrand.name} do?</h2>
-              <p>{selectedBrand.about}</p>
-            </div>
-            <div>
-              <span>PRODUCT FOCUS</span>
-              <h3>{selectedBrand.category}</h3>
-              <a href={"/products?q=" + encodeURIComponent(selectedBrand.name)}>Explore {selectedBrand.name} products</a>
-            </div>
-          </section>
-          <section className="brandsHero brandProfileEnd">
-          </section>
-        </>
-      ) : view === "brands" ? (
+      {view === "brands" ? (
         <>
           <section className="brandsHero">
             <span>BRANDS AVAILABLE ON MIVO</span>
             <h1>Brands</h1>
-            <p>
-              Explore automotive brands available on MIVO.
-            </p>
+            <p>Explore automotive brands available on MIVO.</p>
           </section>
           <div className="brandDirectory">
             {representedBrands.map((brand) => (
-              <a
-                href={"/products?view=" + brand.slug}
-                className="brandDirectoryCard"
-                key={brand.name}
-              >
-                <span className="brandLogo" aria-label={brand.name}>
-                  <img src={brand.logo} alt={brand.name + " logo"} />
-                </span>
-              </a>
+              <details className="brandDirectoryCard brandExpandableCard" key={brand.name}>
+                <summary>
+                  <span className="brandLogo" aria-label={brand.name}>
+                    <img src={brand.logo} alt={brand.name + " logo"} />
+                  </span>
+                </summary>
+                <div className="brandInlineDetails">
+                  <span>ABOUT {brand.name}</span>
+                  <h2>What does {brand.name} do?</h2>
+                  <p>{brand.about}</p>
+                  <strong>{brand.category}</strong>
+                  <a href={"/products?q=" + encodeURIComponent(brand.name)}>Explore {brand.name} products</a>
+                </div>
+              </details>
             ))}
           </div>
         </>
@@ -316,7 +295,7 @@ export default async function ProductsPage({
       </div>
       )}
 
-      {view === "brands" || selectedBrand ? null : visible.length ? (
+      {view === "brands" ? null : visible.length ? (
         <div className="catalogGrid">
           {visible.map(({ product, fitmentStatus }) => (
             <ProductCard
