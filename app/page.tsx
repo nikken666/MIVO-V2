@@ -8,7 +8,7 @@ import HomePromotions from "@/components/HomePromotions";
 import { products } from "@/data/products";
 
 const categories = [
-  { name: "Maintenance", desc: "Engine oil, ATF, coolant & filters", tone: "warm", image: "/categories/maintenance.svg" },
+  { name: "Maintenance", desc: "Engine oil, ATF, coolant & filters", tone: "warm", image: "/categories/maintenance.webp" },
   { name: "Braking", desc: "Brake pads, rotors & repair kits", tone: "dark", image: null },
   { name: "Suspension", desc: "Absorbers, mounts, arms & springs", tone: "silver", image: null },
   { name: "Steering", desc: "EPS racks, rack ends & tie rods", tone: "graphite", image: null },
