@@ -387,7 +387,7 @@ export default function MarketingVouchersPage() {
           <div className={styles.adminSidebarFoot}>
             <span>ACTIVE VOUCHERS</span>
             <strong>{loading ? "—" : activeCount}</strong>
-            <a href="/admin/marketing">MARKETING CENTRE →</a>
+            <a href="/admin/marketing">MARKETING CENTRE</a>
           </div>
         </aside>
 
