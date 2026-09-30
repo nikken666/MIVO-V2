@@ -216,6 +216,15 @@ export const vehicleDatabase: VehicleMake[] = [
       "Estima / Previa",
       "Land Cruiser Prado",
       "Harrier",
+      "RAV4",
+      "Prius",
+      "Crown",
+      "GR Supra",
+      "GR Yaris",
+      "GR86",
+      "GR Corolla",
+      "bZ4X",
+      "Urban Cruiser",
       "Soluna",
       "Vios",
       "Yaris",
@@ -311,6 +320,26 @@ export const vehicleDatabase: VehicleMake[] = [
       { id: "toyota-harrier-xu60-fl-2017", model: "Harrier", generation: "XU60 Facelift", startYear: 2017, endYear: 2020, variants: ["2.0 Elegance", "2.0 Premium", "2.0 Turbo", "2.5 Hybrid"], transmissions: ["AUTO"] },
       { id: "toyota-harrier-xu80-2021", model: "Harrier", generation: "XU80", startYear: 2021, endYear: 2025, variants: ["2.0 Luxury", "2.0 Luxury SE"], transmissions: ["AUTO"] },
       { id: "toyota-harrier-xu80-hev-2026", model: "Harrier", generation: "XU80 Hybrid Electric", startYear: 2026, variants: ["2.5 HEV Luxury"], transmissions: ["AUTO"] },
+
+      // MODERN / RECENT TOYOTA MODELS — keep even if less common in Malaysia
+      { id: "toyota-rav4-xa50-2019", model: "RAV4", generation: "XA50", startYear: 2019, endYear: 2021, variants: ["2.0", "2.5"], transmissions: ["AUTO"] },
+
+      { id: "toyota-prius-xw50-2016", model: "Prius", generation: "XW50", startYear: 2016, endYear: 2022, variants: ["1.8 Hybrid"], transmissions: ["AUTO"] },
+      { id: "toyota-prius-xw60-2023", model: "Prius", generation: "XW60", startYear: 2023, variants: ["1.8 HEV", "2.0 HEV", "2.0 PHEV"], transmissions: ["AUTO"] },
+
+      { id: "toyota-crown-s230-2023", model: "Crown", generation: "S230 / Crossover", startYear: 2023, variants: ["2.5 HEV", "2.4 Turbo HEV"], transmissions: ["AUTO"] },
+
+      { id: "toyota-gr-supra-a90-2019", model: "GR Supra", generation: "A90 / DB", startYear: 2019, endYear: 2022, variants: ["3.0"], transmissions: ["AUTO"] },
+      { id: "toyota-gr-supra-a90-mt-2023", model: "GR Supra", generation: "A90 2023 Update", startYear: 2023, endYear: 2025, variants: ["3.0"], transmissions: ["AUTO", "MANUAL"] },
+
+      { id: "toyota-gr-yaris-gxpa16-2021", model: "GR Yaris", generation: "GXPA16", startYear: 2021, endYear: 2024, variants: ["1.6 Turbo GR"], transmissions: ["MANUAL"] },
+      { id: "toyota-gr-yaris-gxpa16-fl-2025", model: "GR Yaris", generation: "GXPA16 Facelift", startYear: 2025, variants: ["1.6 Turbo GR"], transmissions: ["AUTO", "MANUAL"] },
+
+      { id: "toyota-gr86-zn8-2022", model: "GR86", generation: "ZN8", startYear: 2022, variants: ["2.4"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "toyota-gr-corolla-gzea14-2023", model: "GR Corolla", generation: "GZEA14", startYear: 2023, variants: ["1.6 Turbo GR"], transmissions: ["MANUAL"] },
+
+      { id: "toyota-bz4x-xeam10-2026", model: "bZ4X", generation: "XEAM10", startYear: 2026, variants: ["BEV"], transmissions: ["AUTO"] },
+      { id: "toyota-urban-cruiser-ev-2026", model: "Urban Cruiser", generation: "Gen 1 BEV", startYear: 2026, variants: ["BEV"], transmissions: ["AUTO"] },
 
       // SOLUNA
       { id: "toyota-soluna-al50-2000", model: "Soluna", generation: "AL50", startYear: 2000, endYear: 2003, variants: ["1.5 GLi", "1.5 GLi SE"], transmissions: ["AUTO", "MANUAL"] },
