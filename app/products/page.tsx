@@ -263,7 +263,7 @@ export default async function ProductsPage({
           </section>
           <div className="brandDirectory">
             {representedBrands.map((brand) => (
-              <details className="brandDirectoryCard brandExpandableCard" key={brand.name}>
+              <details id={brand.slug} className="brandDirectoryCard brandExpandableCard" key={brand.name} open={openBrand === brand.slug}>
                 <summary>
                   <span className="brandLogo" aria-label={brand.name}>
                     <img src={brand.logo} alt={brand.name + " logo"} />
