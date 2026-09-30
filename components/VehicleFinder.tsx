@@ -107,13 +107,27 @@ export default function VehicleFinder() {
     [make]
   );
 
-  const models = useMemo(
-    () => Array.from(new Set((makeData?.vehicles || []).map((vehicle) => vehicle.model))),
-    [makeData]
-  );
+  const models = useMemo(() => {
+    const vehicles = makeData?.vehicles || [];
+    const firstYearByModel = new Map<string, number>();
+
+    for (const vehicle of vehicles) {
+      const current = firstYearByModel.get(vehicle.model);
+      if (current === undefined || vehicle.startYear < current) {
+        firstYearByModel.set(vehicle.model, vehicle.startYear);
+      }
+    }
+
+    return Array.from(firstYearByModel.entries())
+      .sort((a, b) => a[1] - b[1] || a[0].localeCompare(b[0]))
+      .map(([modelName]) => modelName);
+  }, [makeData]);
 
   const generations = useMemo(
-    () => (makeData?.vehicles || []).filter((vehicle) => vehicle.model === model),
+    () =>
+      (makeData?.vehicles || [])
+        .filter((vehicle) => vehicle.model === model)
+        .sort((a, b) => a.startYear - b.startYear),
     [makeData, model]
   );
 
