@@ -93,6 +93,7 @@ export default async function ProductsPage({
     typeof params.category === "string" ? params.category.toLowerCase() : "";
   const group =
     typeof params.group === "string" ? params.group.toLowerCase() : "";
+  const view = typeof params.view === "string" ? params.view.toLowerCase() : "";
 
   let selectedVehicleId =
     typeof params.vehicle === "string" ? params.vehicle : "";
@@ -157,6 +158,9 @@ export default async function ProductsPage({
     : null;
 
   const products = await productsPromise;
+  const brandNames = Array.from(
+    new Set(products.map((product) => product.brand).filter(Boolean))
+  ).sort((a, b) => a.localeCompare(b));
 
   const baseFiltered = products.filter(
     (product) =>
@@ -247,6 +251,30 @@ export default async function ProductsPage({
         </div>
       ) : null}
 
+      {view === "brands" ? (
+        <>
+          <div className="pageHeading">
+            <div>
+              <span>SHOP BY BRAND</span>
+              <h1>Brands</h1>
+              <p>Choose a brand to browse its available MIVO products.</p>
+            </div>
+          </div>
+          <div className="brandDirectory">
+            {brandNames.map((brand) => (
+              <a
+                href={"/products?q=" + encodeURIComponent(brand)}
+                className="brandDirectoryCard"
+                key={brand}
+              >
+                <span>BRAND</span>
+                <strong>{brand}</strong>
+                <small>VIEW PRODUCTS</small>
+              </a>
+            ))}
+          </div>
+        </>
+      ) : (
       <div className="pageHeading">
         <div>
           <h1>
@@ -259,8 +287,9 @@ export default async function ProductsPage({
           <p>{visible.length} products shown</p>
         </div>
       </div>
+      )}
 
-      {visible.length ? (
+      {view === "brands" ? null : visible.length ? (
         <div className="catalogGrid">
           {visible.map(({ product, fitmentStatus }) => (
             <ProductCard
