@@ -750,15 +750,103 @@ export const vehicleDatabase: VehicleMake[] = [
   },
   {
     make: "Lexus",
+    modelOrder: [
+      "LS",
+      "ES",
+      "GS",
+      "IS",
+      "RX",
+      "LX",
+      "SC",
+      "CT",
+      "NX",
+      "RC",
+      "LC",
+      "UX",
+      "LM",
+      "RZ",
+      "LBX",
+      "GX",
+    ],
     vehicles: [
-      { id: "lexus-rx-al10-fl-2012", model: "RX", generation: "AL10 Facelift", startYear: 2012, endYear: 2014, variants: ["RX 270", "RX 350", "RX 450h"], transmissions: ["AUTO"] },
-      { id: "lexus-rx-al20-2015", model: "RX", generation: "AL20", startYear: 2015, endYear: 2018, variants: ["RX 200t", "RX 300", "RX 350"], transmissions: ["AUTO"] },
-      { id: "lexus-rx-al20-fl-2019", model: "RX", generation: "AL20 Facelift", startYear: 2019, endYear: 2022, variants: ["RX 300", "RX 350", "RX 450h"], transmissions: ["AUTO"] },
-      { id: "lexus-rx-ala10-2023", model: "RX", generation: "ALA10", startYear: 2023, variants: ["RX 350 Luxury", "RX 500h F Sport"], transmissions: ["AUTO"] },
+      // LS
+      { id: "lexus-ls-xf30-2001", model: "LS", generation: "XF30", startYear: 2001, endYear: 2006, variants: ["LS 430"], transmissions: ["AUTO"] },
+      { id: "lexus-ls-xf40-2007", model: "LS", generation: "XF40", startYear: 2007, endYear: 2012, variants: ["LS 460", "LS 460L", "LS 600hL"], transmissions: ["AUTO"] },
+      { id: "lexus-ls-xf40-fl-2013", model: "LS", generation: "XF40 Facelift", startYear: 2013, endYear: 2017, variants: ["LS 460 Luxury", "LS 460L", "LS 600hL"], transmissions: ["AUTO"] },
+      { id: "lexus-ls-xf50-2018", model: "LS", generation: "XF50", startYear: 2018, endYear: 2020, variants: ["LS 500 Luxury", "LS 500 Executive", "LS 500h Executive"], transmissions: ["AUTO"] },
+      { id: "lexus-ls-xf50-fl-2021", model: "LS", generation: "XF50 Facelift", startYear: 2021, variants: ["LS 500 Luxury", "LS 500 Executive Kiriko"], transmissions: ["AUTO"] },
 
+      // ES
+      { id: "lexus-es-xv40-2007", model: "ES", generation: "XV40", startYear: 2007, endYear: 2012, variants: ["ES 350"], transmissions: ["AUTO"] },
+      { id: "lexus-es-xv60-2013", model: "ES", generation: "XV60", startYear: 2013, endYear: 2015, variants: ["ES 250", "ES 300h"], transmissions: ["AUTO"] },
+      { id: "lexus-es-xv60-fl-2016", model: "ES", generation: "XV60 Facelift", startYear: 2016, endYear: 2018, variants: ["ES 250 Luxury", "ES 300h"], transmissions: ["AUTO"] },
+      { id: "lexus-es-xv70-2019", model: "ES", generation: "XV70", startYear: 2019, endYear: 2021, variants: ["ES 250 Premium", "ES 250 Luxury", "ES 300h Luxury"], transmissions: ["AUTO"] },
+      { id: "lexus-es-xv70-fl-2022", model: "ES", generation: "XV70 Facelift", startYear: 2022, endYear: 2025, variants: ["ES 250 Premium", "ES 250 Luxury", "ES 300h Luxury"], transmissions: ["AUTO"] },
+
+      // GS
+      { id: "lexus-gs-s160-1998", model: "GS", generation: "S160", startYear: 1998, endYear: 2004, variants: ["GS 300", "GS 430"], transmissions: ["AUTO"] },
+      { id: "lexus-gs-s190-2005", model: "GS", generation: "S190", startYear: 2005, endYear: 2011, variants: ["GS 300", "GS 350", "GS 450h"], transmissions: ["AUTO"] },
+      { id: "lexus-gs-l10-2012", model: "GS", generation: "L10", startYear: 2012, endYear: 2015, variants: ["GS 250", "GS 350", "GS 450h"], transmissions: ["AUTO"] },
+      { id: "lexus-gs-l10-fl-2016", model: "GS", generation: "L10 Facelift", startYear: 2016, endYear: 2020, variants: ["GS 200t", "GS 300", "GS 350", "GS F"], transmissions: ["AUTO"] },
+
+      // IS
+      { id: "lexus-is-xe10-1999", model: "IS", generation: "XE10", startYear: 1999, endYear: 2005, variants: ["IS 200", "IS 300"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "lexus-is-xe20-2006", model: "IS", generation: "XE20", startYear: 2006, endYear: 2012, variants: ["IS 250", "IS 300", "IS F"], transmissions: ["AUTO"] },
+      { id: "lexus-is-xe30-2013", model: "IS", generation: "XE30", startYear: 2013, endYear: 2016, variants: ["IS 250 Luxury", "IS 250 F Sport", "IS 300h"], transmissions: ["AUTO"] },
+      { id: "lexus-is-xe30-fl-2017", model: "IS", generation: "XE30 Facelift", startYear: 2017, endYear: 2020, variants: ["IS 200t", "IS 300", "IS 300h"], transmissions: ["AUTO"] },
+
+      // RX
+      { id: "lexus-rx-xu10-1998", model: "RX", generation: "XU10", startYear: 1998, endYear: 2003, variants: ["RX 300"], transmissions: ["AUTO"] },
+      { id: "lexus-rx-xu30-2004", model: "RX", generation: "XU30", startYear: 2004, endYear: 2008, variants: ["RX 330", "RX 350", "RX 400h"], transmissions: ["AUTO"] },
+      { id: "lexus-rx-al10-2009", model: "RX", generation: "AL10", startYear: 2009, endYear: 2011, variants: ["RX 270", "RX 350", "RX 450h"], transmissions: ["AUTO"] },
+      { id: "lexus-rx-al10-fl-2012", model: "RX", generation: "AL10 Facelift", startYear: 2012, endYear: 2014, variants: ["RX 270", "RX 350", "RX 450h"], transmissions: ["AUTO"] },
+      { id: "lexus-rx-al20-2015", model: "RX", generation: "AL20", startYear: 2015, endYear: 2018, variants: ["RX 200t", "RX 300", "RX 350", "RX 450h"], transmissions: ["AUTO"] },
+      { id: "lexus-rx-al20-fl-2019", model: "RX", generation: "AL20 Facelift", startYear: 2019, endYear: 2022, variants: ["RX 300 Luxury", "RX 300 F Sport", "RX 350", "RX 450h"], transmissions: ["AUTO"] },
+      { id: "lexus-rx-ala10-2023", model: "RX", generation: "ALA10", startYear: 2023, variants: ["RX 350 Luxury", "RX 500h F Sport", "RX 500h F Sport Special Edition"], transmissions: ["AUTO"] },
+
+      // LX
+      { id: "lexus-lx-j100-1998", model: "LX", generation: "J100", startYear: 1998, endYear: 2007, variants: ["LX 470"], transmissions: ["AUTO"] },
+      { id: "lexus-lx-j200-2008", model: "LX", generation: "J200", startYear: 2008, endYear: 2015, variants: ["LX 570"], transmissions: ["AUTO"] },
+      { id: "lexus-lx-j200-fl-2016", model: "LX", generation: "J200 Facelift", startYear: 2016, endYear: 2021, variants: ["LX 570"], transmissions: ["AUTO"] },
+      { id: "lexus-lx-j300-2022", model: "LX", generation: "J300", startYear: 2022, endYear: 2025, variants: ["LX 600 Luxury", "LX 600 F Sport"], transmissions: ["AUTO"] },
+      { id: "lexus-lx-j300-2026", model: "LX", generation: "J300 Hybrid Update", startYear: 2026, variants: ["LX 700h Urban", "LX 700h F Sport", "LX 700h VIP"], transmissions: ["AUTO"] },
+
+      // SC
+      { id: "lexus-sc-z40-2001", model: "SC", generation: "Z40", startYear: 2001, endYear: 2010, variants: ["SC 430"], transmissions: ["AUTO"] },
+
+      // CT
+      { id: "lexus-ct-zwa10-2011", model: "CT", generation: "ZWA10", startYear: 2011, endYear: 2013, variants: ["CT 200h Luxury", "CT 200h F Sport"], transmissions: ["AUTO"] },
+      { id: "lexus-ct-zwa10-fl-2014", model: "CT", generation: "ZWA10 Facelift", startYear: 2014, endYear: 2021, variants: ["CT 200h Luxury", "CT 200h F Sport"], transmissions: ["AUTO"] },
+
+      // NX
       { id: "lexus-nx-az10-2015", model: "NX", generation: "AZ10", startYear: 2015, endYear: 2017, variants: ["NX 200t", "NX 300h"], transmissions: ["AUTO"] },
-      { id: "lexus-nx-az10-fl-2018", model: "NX", generation: "AZ10 Facelift", startYear: 2018, endYear: 2021, variants: ["NX 300", "NX 300h"], transmissions: ["AUTO"] },
-      { id: "lexus-nx-az20-2022", model: "NX", generation: "AZ20", startYear: 2022, variants: ["NX 250", "NX 350h Luxury", "NX 350 F Sport"], transmissions: ["AUTO"] },
+      { id: "lexus-nx-az10-fl-2018", model: "NX", generation: "AZ10 Facelift", startYear: 2018, endYear: 2021, variants: ["NX 300 Urban", "NX 300 Premium", "NX 300 F Sport", "NX 300h"], transmissions: ["AUTO"] },
+      { id: "lexus-nx-az20-2022", model: "NX", generation: "AZ20", startYear: 2022, variants: ["NX 250 Luxury", "NX 350h Luxury", "NX 350 F Sport"], transmissions: ["AUTO"] },
+
+      // RC
+      { id: "lexus-rc-xc10-2015", model: "RC", generation: "XC10", startYear: 2015, endYear: 2018, variants: ["RC 200t", "RC 300", "RC 350", "RC F"], transmissions: ["AUTO"] },
+      { id: "lexus-rc-xc10-fl-2019", model: "RC", generation: "XC10 Facelift", startYear: 2019, endYear: 2024, variants: ["RC 300 F Sport", "RC 350", "RC F"], transmissions: ["AUTO"] },
+
+      // LC
+      { id: "lexus-lc-z100-2018", model: "LC", generation: "Z100", startYear: 2018, variants: ["LC 500", "LC 500 Convertible", "LC 500h"], transmissions: ["AUTO"] },
+
+      // UX
+      { id: "lexus-ux-za10-2019", model: "UX", generation: "ZA10", startYear: 2019, endYear: 2022, variants: ["UX 200 Urban", "UX 200 Luxury", "UX 250h"], transmissions: ["AUTO"] },
+      { id: "lexus-ux-za10-fl-2023", model: "UX", generation: "ZA10 Update", startYear: 2023, endYear: 2025, variants: ["UX 250h Luxury", "UX 250h F Sport"], transmissions: ["AUTO"] },
+
+      // LM
+      { id: "lexus-lm-ah30-2020", model: "LM", generation: "AH30", startYear: 2020, endYear: 2023, variants: ["LM 300h 7-Seater", "LM 350 4-Seater"], transmissions: ["AUTO"] },
+      { id: "lexus-lm-aw10-2024", model: "LM", generation: "AW10", startYear: 2024, variants: ["LM 350h 7-Seater", "LM 500h 4-Seater"], transmissions: ["AUTO"] },
+
+      // RZ
+      { id: "lexus-rz-xebm15-2023", model: "RZ", generation: "XEBM15", startYear: 2023, endYear: 2025, variants: ["RZ 450e Luxury"], transmissions: ["AUTO"] },
+
+      // LBX
+      { id: "lexus-lbx-ay10-2024", model: "LBX", generation: "AY10", startYear: 2024, variants: ["LBX Premium", "LBX Luxury"], transmissions: ["AUTO"] },
+
+      // GX
+      { id: "lexus-gx-j150-2010", model: "GX", generation: "J150", startYear: 2010, endYear: 2023, variants: ["GX 460"], transmissions: ["AUTO"] },
+      { id: "lexus-gx-j250-2024", model: "GX", generation: "J250", startYear: 2024, variants: ["GX 550 Overtrail", "GX 550 Luxury+"], transmissions: ["AUTO"] },
     ],
   },
 ];
