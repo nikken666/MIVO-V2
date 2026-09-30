@@ -159,9 +159,9 @@ export default async function ProductsPage({
 
   const products = await productsPromise;
   const representedBrands = [
-    { name: "NIKKEN", category: "Automotive replacement parts" },
-    { name: "KYB", category: "Suspension & shock absorbers" },
-    { name: "GSP", category: "Drivetrain & drive shafts" },
+    { name: "NIKKEN", category: "Automotive replacement parts", logoClass: "nikken" },
+    { name: "KYB", category: "Suspension & shock absorbers", logoClass: "kyb" },
+    { name: "GSP", category: "Drivetrain & drive shafts", logoClass: "gsp" },
   ];
 
   const baseFiltered = products.filter(
@@ -270,10 +270,10 @@ export default async function ProductsPage({
                 className="brandDirectoryCard"
                 key={brand.name}
               >
-                <span>MIVO BRAND</span>
-                <strong>{brand.name}</strong>
+                <span className={"brandLogo brandLogo-" + brand.logoClass} aria-label={brand.name}>
+                  {brand.name}
+                </span>
                 <p>{brand.category}</p>
-                <small>VIEW PRODUCTS</small>
               </a>
             ))}
           </div>
