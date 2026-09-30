@@ -146,7 +146,7 @@ export default function MyVouchersPage() {
           <div className="ordersEmpty">
             <strong>No vouchers claimed yet.</strong>
             <p>Visit the MIVO home page and claim an available promotion.</p>
-            <Link href="/">VIEW PROMOTIONS →</Link>
+            <Link href="/">VIEW PROMOTIONS</Link>
           </div>
         ) : (
           <div className="myVoucherGrid">
@@ -185,7 +185,7 @@ export default function MyVouchersPage() {
                     href={expired ? "/" : "/products"}
                     className={expired ? "disabled" : ""}
                   >
-                    {expired ? "EXPIRED" : "USE NOW →"}
+                    {expired ? "EXPIRED" : "USE NOW"}
                   </Link>
                 </article>
               );
