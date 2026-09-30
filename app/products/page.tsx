@@ -308,7 +308,6 @@ export default async function ProductsPage({
         </div>
       ) : (
         <div className="emptyState">
-          <span>🔎</span>
           <h2>No matching products yet</h2>
           <p>
             We do not have a verified compatible product for this vehicle in the
