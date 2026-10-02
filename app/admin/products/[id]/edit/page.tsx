@@ -684,6 +684,24 @@ export default function EditProductPage() {
 
       for (const variant of variants) {
         const price = Number(variant.price);
+
+        if (
+          product.variation_1_name &&
+          !variant.variation_1_value?.trim()
+        ) {
+          throw new Error(
+            "Every SKU needs a " + product.variation_1_name + " option."
+          );
+        }
+
+        if (
+          product.variation_2_name &&
+          !variant.variation_2_value?.trim()
+        ) {
+          throw new Error(
+            "Every SKU needs a " + product.variation_2_name + " option."
+          );
+        }
         const stock = availableStock(variant);
         const threshold = Number(variant.low_stock_threshold || 0);
 
@@ -880,6 +898,8 @@ export default function EditProductPage() {
 
       if (productError) throw productError;
 
+      const variantIdMap = new Map<string, string>();
+
       for (const [variantIndex, variant] of variants.entries()) {
         const compareAt =
           variant.compare_at_price === null ||
@@ -902,29 +922,59 @@ export default function EditProductPage() {
                 height_cm: Number(variant.height_cm || 0),
               };
 
-        const { error: variantError } = await supabase
-          .from("product_variants")
-          .update({
-            sort_order: variantIndex,
-            title: variant.title?.trim() || "Default",
-            variant_image_url:
-              variant.variation_1_value?.trim()
-                ? variationImageUrls.has(variant.variation_1_value.trim())
-                  ? variationImageUrls.get(variant.variation_1_value.trim()) ?? null
-                  : variant.variant_image_url ?? null
-                : null,
-            sku: variant.sku.trim().toUpperCase(),
-            price: Number(variant.price),
-            compare_at_price: compareAt,
-            stock_on_hand: Number(variant.stock_on_hand || 0),
-            low_stock_threshold: Number(
-              variant.low_stock_threshold || 0
-            ),
-            ...dimensions,
-          })
-          .eq("id", variant.id);
+        const option1 = variant.variation_1_value?.trim() || null;
+        const option2 = variant.variation_2_value?.trim() || null;
+        const title =
+          variant.title?.trim() ||
+          [option1, option2].filter(Boolean).join(" / ") ||
+          "Default";
+        const variantImageUrl = option1
+          ? variationImageUrls.has(option1)
+            ? variationImageUrls.get(option1) ?? null
+            : variant.variant_image_url ?? null
+          : null;
 
-        if (variantError) throw variantError;
+        const payload = {
+          sort_order: variantIndex,
+          title,
+          variation_1_value: option1,
+          variation_2_value: option2,
+          variant_image_url: variantImageUrl,
+          sku: variant.sku.trim().toUpperCase(),
+          price: Number(variant.price),
+          compare_at_price: compareAt,
+          stock_on_hand: Number(variant.stock_on_hand || 0),
+          low_stock_threshold: Number(
+            variant.low_stock_threshold || 0
+          ),
+          ...dimensions,
+        };
+
+        if (variant.id.startsWith("new-")) {
+          const { data: insertedVariant, error: variantError } =
+            await supabase
+              .from("product_variants")
+              .insert({
+                product_id: product.id,
+                seller_id: product.seller_id,
+                ...payload,
+                stock_reserved: 0,
+                is_active: true,
+              })
+              .select("id")
+              .single();
+
+          if (variantError) throw variantError;
+          variantIdMap.set(variant.id, insertedVariant.id);
+        } else {
+          const { error: variantError } = await supabase
+            .from("product_variants")
+            .update(payload)
+            .eq("id", variant.id);
+
+          if (variantError) throw variantError;
+          variantIdMap.set(variant.id, variant.id);
+        }
       }
 
       const replacedVariationPaths = Array.from(oldVariationImageUrls.entries())
@@ -1024,8 +1074,12 @@ export default function EditProductPage() {
             vehicle_id: vehicle.id,
             variant_id:
               fitment.targetVariantId ||
-              fitment.targetVariantKey ||
-              null,
+              (fitment.targetVariantKey
+                ? variantIdMap.get(fitment.targetVariantKey) ||
+                  (fitment.targetVariantKey.startsWith("new-")
+                    ? null
+                    : fitment.targetVariantKey)
+                : null),
             year_from: fitment.yearFrom,
             year_to: fitment.yearTo,
             notes: null,
