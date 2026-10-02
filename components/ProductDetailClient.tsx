@@ -47,12 +47,14 @@ export default function ProductDetailClient({
     () =>
       Array.from(
         new Set(
-          [product.imageUrl, ...(product.imageUrls || [])].filter(
-            (url): url is string => Boolean(url)
-          )
+          [
+            product.imageUrl,
+            ...(product.imageUrls || []),
+            ...((product.variants || []).map((variant) => variant.imageUrl)),
+          ].filter((url): url is string => Boolean(url))
         )
       ),
-    [product.imageUrl, product.imageUrls]
+    [product.imageUrl, product.imageUrls, product.variants]
   );
 
   const [activeImage, setActiveImage] = useState(0);
@@ -104,6 +106,22 @@ export default function ProductDetailClient({
       ),
     [selectableVariants]
   );
+
+  const option1ImageMap = useMemo(() => {
+    const map = new Map<string, string>();
+
+    for (const variant of selectableVariants) {
+      if (
+        variant.variation1Value &&
+        variant.imageUrl &&
+        !map.has(variant.variation1Value)
+      ) {
+        map.set(variant.variation1Value, variant.imageUrl);
+      }
+    }
+
+    return map;
+  }, [selectableVariants]);
 
   const [option1, setOption1] = useState("");
   const [option2, setOption2] = useState("");
@@ -239,6 +257,14 @@ export default function ProductDetailClient({
   function selectOption1(value: string) {
     setOption1(value);
     setQuantity(1);
+
+    const optionImage = option1ImageMap.get(value);
+    if (optionImage) {
+      const galleryIndex = images.indexOf(optionImage);
+      if (galleryIndex >= 0) {
+        setActiveImage(galleryIndex);
+      }
+    }
 
     if (
       option2 &&
@@ -466,7 +492,14 @@ export default function ProductDetailClient({
                           (selected ? " selected" : "")
                         }
                       >
-                        {value}
+                        {option1ImageMap.get(value) ? (
+                          <img
+                            className="productOptionImage"
+                            src={option1ImageMap.get(value)}
+                            alt=""
+                          />
+                        ) : null}
+                        <span>{value}</span>
                         {soldOut ? <small>SOLD OUT</small> : null}
                       </button>
                     );
