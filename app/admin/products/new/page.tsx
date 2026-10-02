@@ -124,6 +124,10 @@ function combinationKey(value1: string, value2: string) {
 export default function AdminNewProductPage() {
   const [store, setStore] = useState<Store | null>(null);
   const [brands, setBrands] = useState<Option[]>([]);
+  const [selectedBrandId, setSelectedBrandId] = useState("");
+  const [brandModalOpen, setBrandModalOpen] = useState(false);
+  const [newBrandName, setNewBrandName] = useState("");
+  const [savingBrand, setSavingBrand] = useState(false);
   const [categories, setCategories] = useState<CategoryNode[]>([]);
   const [vehicleRows, setVehicleRows] = useState<VehicleDbRow[]>([]);
 
@@ -367,6 +371,8 @@ export default function AdminNewProductPage() {
                 )
               : "0",
           });
+
+          setSelectedBrandId(sourceProduct.brand_id || "");
 
           setSharedShipping({
             weight_kg: String(firstVariant?.weight_kg || 0),
@@ -930,6 +936,90 @@ export default function AdminNewProductPage() {
     }
 
     return prepared;
+  }
+
+  async function createBrand() {
+    const name = newBrandName.trim();
+    if (!name) {
+      setError("Enter a brand name.");
+      return;
+    }
+
+    setSavingBrand(true);
+    setError("");
+
+    try {
+      const supabase = createClient();
+
+      const { data: existing, error: existingError } = await supabase
+        .from("brands")
+        .select("id, name")
+        .ilike("name", name)
+        .maybeSingle();
+
+      if (existingError) throw existingError;
+
+      if (existing) {
+        setBrands((current) =>
+          [...current.filter((item) => item.id !== existing.id), existing].sort(
+            (a, b) => a.name.localeCompare(b.name)
+          )
+        );
+        setSelectedBrandId(existing.id);
+        setBrandModalOpen(false);
+        setNewBrandName("");
+        return;
+      }
+
+      const baseSlug =
+        name
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "") || "brand";
+
+      let slug = baseSlug;
+      let counter = 2;
+
+      while (true) {
+        const { data: taken, error: slugError } = await supabase
+          .from("brands")
+          .select("id")
+          .eq("slug", slug)
+          .maybeSingle();
+
+        if (slugError) throw slugError;
+        if (!taken) break;
+
+        slug = baseSlug + "-" + counter;
+        counter += 1;
+      }
+
+      const { data: created, error: insertError } = await supabase
+        .from("brands")
+        .insert({
+          name,
+          slug,
+          is_active: true,
+        })
+        .select("id, name")
+        .single();
+
+      if (insertError) throw insertError;
+
+      setBrands((current) =>
+        [...current, created].sort((a, b) => a.name.localeCompare(b.name))
+      );
+      setSelectedBrandId(created.id);
+      setBrandModalOpen(false);
+      setNewBrandName("");
+    } catch (caught) {
+      setError(
+        caught instanceof Error ? caught.message : "Unable to add brand."
+      );
+    } finally {
+      setSavingBrand(false);
+    }
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -1503,17 +1593,29 @@ export default function AdminNewProductPage() {
 
                       <label className={styles.adminField}>
                         <span>BRAND</span>
-                        <select
-                          name="brand_id"
-                          defaultValue={copyDefaults?.brandId || ""}
-                        >
-                          <option value="">No brand</option>
-                          {brands.map((brand) => (
-                            <option value={brand.id} key={brand.id}>
-                              {brand.name}
-                            </option>
-                          ))}
-                        </select>
+                        <div className={styles.brandPickerRow}>
+                          <select
+                            name="brand_id"
+                            value={selectedBrandId}
+                            onChange={(event) =>
+                              setSelectedBrandId(event.target.value)
+                            }
+                          >
+                            <option value="">No brand</option>
+                            {brands.map((brand) => (
+                              <option value={brand.id} key={brand.id}>
+                                {brand.name}
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            type="button"
+                            className={styles.brandAddButton}
+                            onClick={() => setBrandModalOpen(true)}
+                          >
+                            + ADD BRAND
+                          </button>
+                        </div>
                       </label>
 
                       <label
@@ -2236,6 +2338,60 @@ export default function AdminNewProductPage() {
                       </label>
                     </div>
                   </section>
+
+                  {brandModalOpen ? (
+                    <div
+                      className={styles.brandModalBackdrop}
+                      onMouseDown={(event) => {
+                        if (
+                          event.target === event.currentTarget &&
+                          !savingBrand
+                        ) {
+                          setBrandModalOpen(false);
+                        }
+                      }}
+                    >
+                      <div className={styles.brandModal}>
+                        <span>ADD BRAND</span>
+                        <h3>Create a new brand</h3>
+                        <p>
+                          The new brand will be added to MIVO and selected for
+                          this product.
+                        </p>
+                        <input
+                          autoFocus
+                          value={newBrandName}
+                          maxLength={80}
+                          placeholder="Brand name"
+                          onChange={(event) =>
+                            setNewBrandName(event.target.value)
+                          }
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                              event.preventDefault();
+                              void createBrand();
+                            }
+                          }}
+                        />
+                        <div>
+                          <button
+                            type="button"
+                            onClick={() => setBrandModalOpen(false)}
+                            disabled={savingBrand}
+                          >
+                            CANCEL
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void createBrand()}
+                            disabled={savingBrand || !newBrandName.trim()}
+                          >
+                            {savingBrand ? "ADDING..." : "ADD BRAND"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
 
                   {progress ? (
                     <p className={styles.adminSuccess}>{progress}</p>
