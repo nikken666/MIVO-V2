@@ -9511,3 +9511,112 @@ div{
     object-fit:contain;
   }
 }
+
+
+/* BUYER FITMENT OVERRIDE CONFIRMATION */
+.fitmentOverrideBackdrop{
+  position:fixed;
+  inset:0;
+  z-index:520;
+  display:grid;
+  place-items:center;
+  padding:24px;
+  background:rgba(12,15,18,.56);
+  backdrop-filter:blur(5px);
+}
+.fitmentOverrideModal{
+  width:min(520px,100%);
+  padding:26px;
+  border:1px solid #e1e4e5;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 28px 80px rgba(0,0,0,.22);
+}
+.fitmentOverrideModal>span{
+  display:block;
+  color:#d8242f;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+.fitmentOverrideModal h2{
+  margin:8px 0 0;
+  color:#1d2225;
+  font-size:24px;
+  line-height:1.12;
+  letter-spacing:-.035em;
+}
+.fitmentOverrideModal>p{
+  margin:12px 0 0;
+  color:#686f73;
+  font-size:11px;
+  line-height:1.65;
+}
+.fitmentOverrideModal>p strong{
+  color:#23282b;
+}
+.fitmentOverrideSummary{
+  margin-top:18px;
+  padding:13px 14px;
+  border:1px solid #f0c7ca;
+  border-radius:11px;
+  background:#fff7f7;
+}
+.fitmentOverrideSummary small,
+.fitmentOverrideSummary strong{
+  display:block;
+}
+.fitmentOverrideSummary small{
+  color:#b14a51;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.09em;
+}
+.fitmentOverrideSummary strong{
+  margin-top:5px;
+  color:#252a2d;
+  font-size:10px;
+  line-height:1.45;
+}
+.fitmentOverrideActions{
+  margin-top:20px;
+  display:grid;
+  grid-template-columns:1fr 1.35fr;
+  gap:9px;
+}
+.fitmentOverrideActions button{
+  min-height:44px;
+  padding:0 14px;
+  border-radius:9px;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.04em;
+  cursor:pointer;
+}
+.fitmentOverrideCancel{
+  border:1px solid #dfe2e3;
+  background:#fff;
+  color:#3e4549;
+}
+.fitmentOverrideConfirm{
+  border:1px solid #d8242f;
+  background:#d8242f;
+  color:#fff;
+}
+@media(max-width:560px){
+  .fitmentOverrideBackdrop{
+    align-items:end;
+    padding:0;
+  }
+  .fitmentOverrideModal{
+    width:100%;
+    padding:22px 18px calc(20px + env(safe-area-inset-bottom));
+    border-radius:18px 18px 0 0;
+  }
+  .fitmentOverrideModal h2{
+    font-size:21px;
+  }
+  .fitmentOverrideActions{
+    grid-template-columns:1fr;
+  }
+}
