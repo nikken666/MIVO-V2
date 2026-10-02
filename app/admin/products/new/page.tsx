@@ -147,6 +147,14 @@ export default function AdminNewProductPage() {
     [variation2Text]
   );
 
+  const displayPreviews =
+    files.length > 0
+      ? previews
+      : sourceImages
+          .slice()
+          .sort((a, b) => a.sortOrder - b.sortOrder)
+          .map((image) => image.url);
+
   useEffect(() => {
     const supabase = createClient();
 
@@ -1057,10 +1065,11 @@ export default function AdminNewProductPage() {
               <span className={styles.adminEyebrow}>
                 MIVO STORE CONTROL · CATALOGUE
               </span>
-              <h1>Add Product</h1>
+              <h1>{copyMode ? "Copy Product" : "Add Product"}</h1>
               <p>
-                Shopee-style listing editor with SKU variations and vehicle
-                compatibility.
+                {copyMode
+                  ? "Copied product details are only temporary until you save."
+                  : "Shopee-style listing editor with SKU variations and vehicle compatibility."}
               </p>
             </div>
             <a href="/admin/products" className={styles.adminSecondary}>
@@ -1072,6 +1081,12 @@ export default function AdminNewProductPage() {
             <p className={styles.adminNotice}>Loading product editor...</p>
           ) : (
             <form onSubmit={submit}>
+              {copyMode ? (
+                <p className={styles.adminNotice} style={{ marginBottom: 14 }}>
+                  COPY MODE · Nothing is created or saved until you click SAVE PRODUCT.
+                  Leaving this page will discard this copy.
+                </p>
+              ) : null}
               <div className={styles.productEditorLayout}>
                 <nav className={styles.productEditorNav}>
                   <span>PRODUCT SETUP</span>
@@ -1097,11 +1112,11 @@ export default function AdminNewProductPage() {
                           main listing photo.
                         </p>
                       </div>
-                      <b>{files.length}/8</b>
+                      <b>{displayPreviews.length}/8</b>
                     </div>
 
                     <div className={styles.imageUploadGrid}>
-                      {previews.map((preview, index) => (
+                      {displayPreviews.map((preview, index) => (
                         <div
                           className={styles.imageUploadTile}
                           key={preview}
@@ -1113,7 +1128,7 @@ export default function AdminNewProductPage() {
                         </div>
                       ))}
 
-                      {files.length < 8 ? (
+                      {displayPreviews.length < 8 ? (
                         <label
                           className={
                             styles.imageUploadTile +
@@ -1167,6 +1182,7 @@ export default function AdminNewProductPage() {
                           name="name"
                           required
                           maxLength={160}
+                          defaultValue={copyDefaults?.name || ""}
                           placeholder="Example: NIKKEN JAPAN PERODUA BEZZA FRONT DRIVE SHAFT RH"
                         />
                       </label>
@@ -1175,11 +1191,15 @@ export default function AdminNewProductPage() {
                         categories={categories}
                         name="category_id"
                         required
+                        initialSelectedId={copyDefaults?.categoryId || ""}
                       />
 
                       <label className={styles.adminField}>
                         <span>BRAND</span>
-                        <select name="brand_id" defaultValue="">
+                        <select
+                          name="brand_id"
+                          defaultValue={copyDefaults?.brandId || ""}
+                        >
                           <option value="">No brand</option>
                           {brands.map((brand) => (
                             <option value={brand.id} key={brand.id}>
@@ -1198,6 +1218,7 @@ export default function AdminNewProductPage() {
                         <input
                           name="short_description"
                           maxLength={240}
+                          defaultValue={copyDefaults?.shortDescription || ""}
                           placeholder="Short summary shown near the product title"
                         />
                       </label>
@@ -1210,6 +1231,7 @@ export default function AdminNewProductPage() {
                         <span>PRODUCT DESCRIPTION</span>
                         <textarea
                           name="description"
+                          defaultValue={copyDefaults?.description || ""}
                           placeholder="Specifications, product features, package contents, warranty information..."
                         />
                       </label>
@@ -1259,6 +1281,7 @@ export default function AdminNewProductPage() {
                           <span>SKU *</span>
                           <input
                             name="sku"
+                            defaultValue={copyDefaults?.simpleSku || ""}
                             placeholder="NKK-DS-BEZZA-RH"
                           />
                         </label>
@@ -1270,6 +1293,7 @@ export default function AdminNewProductPage() {
                             type="number"
                             min="0"
                             step="0.01"
+                            defaultValue={copyDefaults?.simplePrice || ""}
                           />
                         </label>
 
@@ -1280,6 +1304,7 @@ export default function AdminNewProductPage() {
                             type="number"
                             min="0"
                             step="0.01"
+                            defaultValue={copyDefaults?.simpleCompareAtPrice || ""}
                           />
                         </label>
 
@@ -1290,7 +1315,7 @@ export default function AdminNewProductPage() {
                             type="number"
                             min="0"
                             step="1"
-                            defaultValue="0"
+                            defaultValue={copyDefaults?.simpleStock || "0"}
                           />
                         </label>
                       </div>
@@ -1532,7 +1557,7 @@ export default function AdminNewProductPage() {
                           type="number"
                           min="0"
                           step="1"
-                          defaultValue="5"
+                          defaultValue={copyDefaults?.lowStockThreshold || "5"}
                         />
                       </label>
 
@@ -1543,7 +1568,7 @@ export default function AdminNewProductPage() {
                           type="number"
                           min="0"
                           step="1"
-                          defaultValue="0"
+                          defaultValue={copyDefaults?.warrantyMonths || "0"}
                         />
                       </label>
                     </div>
@@ -1604,6 +1629,7 @@ export default function AdminNewProductPage() {
                           type="number"
                           min="0"
                           step="0.001"
+                          defaultValue={copyDefaults?.weightKg || ""}
                         />
                       </label>
 
@@ -1614,6 +1640,7 @@ export default function AdminNewProductPage() {
                           type="number"
                           min="0"
                           step="0.01"
+                          defaultValue={copyDefaults?.lengthCm || ""}
                         />
                       </label>
 
@@ -1624,6 +1651,7 @@ export default function AdminNewProductPage() {
                           type="number"
                           min="0"
                           step="0.01"
+                          defaultValue={copyDefaults?.widthCm || ""}
                         />
                       </label>
 
@@ -1634,6 +1662,7 @@ export default function AdminNewProductPage() {
                           type="number"
                           min="0"
                           step="0.01"
+                          defaultValue={copyDefaults?.heightCm || ""}
                         />
                       </label>
                     </div>
@@ -1664,7 +1693,10 @@ export default function AdminNewProductPage() {
 
                       <label className={styles.adminField}>
                         <span>STATUS</span>
-                        <select name="status" defaultValue="active">
+                        <select
+                          name="status"
+                          defaultValue={copyMode ? "draft" : "active"}
+                        >
                           <option value="active">
                             Active · publish now
                           </option>
@@ -1697,7 +1729,11 @@ export default function AdminNewProductPage() {
                       type="submit"
                       disabled={busy}
                     >
-                      {busy ? "SAVING PRODUCT..." : "SAVE PRODUCT"}
+                      {busy
+                        ? "SAVING PRODUCT..."
+                        : copyMode
+                          ? "SAVE COPIED PRODUCT"
+                          : "SAVE PRODUCT"}
                     </button>
                   </div>
                 </div>
