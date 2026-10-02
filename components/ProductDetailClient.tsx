@@ -443,7 +443,10 @@ export default function ProductDetailClient({
               className={
                 "productFitmentCompact" +
                 (selectedVariantFitmentStatus
-                  ? " fitment-" + selectedVariantFitmentStatus
+                  ? " fitment-" +
+                    (selectedVariantFitmentStatus === "universal"
+                      ? "fits"
+                      : selectedVariantFitmentStatus)
                   : "")
               }
             >
@@ -455,7 +458,7 @@ export default function ProductDetailClient({
                     : selectedVariantFitmentStatus === "not-fit"
                       ? "NOT COMPATIBLE"
                       : selectedVariantFitmentStatus === "universal"
-                        ? "UNIVERSAL FIT"
+                        ? "✓ FITS YOUR VEHICLE"
                         : selectedVariantFitmentStatus === "unverified"
                           ? "FITMENT NOT VERIFIED"
                           : "SELECT YOUR VEHICLE"}
