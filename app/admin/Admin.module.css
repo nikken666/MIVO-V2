@@ -5486,3 +5486,33 @@
 .newVariantRowDragging td{
   background:#fff7f5 !important;
 }
+
+
+/* SINGLE VARIATION TABLE — USE THE SPACE INSTEAD OF SHOWING AN EMPTY DASH COLUMN */
+.newVariantTableSingle{
+  min-width:700px;
+}
+.newVariantTableSingle th:nth-child(1),
+.newVariantTableSingle td:nth-child(1){
+  width:28%;
+}
+.newVariantTableSingle th:nth-child(2),
+.newVariantTableSingle td:nth-child(2){
+  width:28%;
+}
+.newVariantTableSingle th:nth-child(3),
+.newVariantTableSingle td:nth-child(3),
+.newVariantTableSingle th:nth-child(4),
+.newVariantTableSingle td:nth-child(4),
+.newVariantTableSingle th:nth-child(5),
+.newVariantTableSingle td:nth-child(5){
+  width:14.66%;
+}
+.newVariantTableSingle .newVariantNameCell{
+  min-width:0;
+}
+.newVariantTableSingle .newVariantNameInput{
+  overflow:visible;
+  text-overflow:clip;
+  white-space:normal;
+}
