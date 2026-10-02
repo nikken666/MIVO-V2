@@ -432,6 +432,8 @@ export default function EditProductPage() {
     id: string,
     field:
       | "title"
+      | "variation_1_value"
+      | "variation_2_value"
       | "sku"
       | "price"
       | "compare_at_price"
@@ -460,6 +462,87 @@ export default function EditProductPage() {
         return { ...variant, [field]: value };
       })
     );
+  }
+
+  function updateVariationOption(
+    id: string,
+    axis: 1 | 2,
+    value: string
+  ) {
+    const currentVariant = variants.find((item) => item.id === id);
+    if (!currentVariant) return;
+
+    const oldValue =
+      axis === 1
+        ? currentVariant.variation_1_value || ""
+        : currentVariant.variation_2_value || "";
+
+    setVariants((current) =>
+      current.map((variant) => {
+        if (variant.id !== id) return variant;
+
+        const next = {
+          ...variant,
+          [axis === 1 ? "variation_1_value" : "variation_2_value"]: value,
+        };
+
+        if (!product?.variation_2_name && axis === 1) {
+          next.title = value;
+        }
+
+        return next;
+      })
+    );
+
+    if (axis === 1 && oldValue && oldValue !== value) {
+      setVariationImageEdits((current) => {
+        if (!current[oldValue] || current[value]) return current;
+        const next = { ...current };
+        next[value] = next[oldValue];
+        delete next[oldValue];
+        return next;
+      });
+    }
+  }
+
+  function addVariationOption() {
+    if (variants.length >= 50) {
+      setError("A product can have up to 50 SKU variations.");
+      return;
+    }
+
+    const shipping = shippingMode === "same"
+      ? sharedShipping
+      : shippingFromVariant(variants[variants.length - 1]);
+
+    const optionNumber = variants.length + 1;
+    const option1 = product?.variation_1_name
+      ? "NEW OPTION " + optionNumber
+      : "NEW VARIATION " + optionNumber;
+
+    setVariants((current) => [
+      ...current,
+      {
+        id: "new-" + crypto.randomUUID(),
+        sort_order: current.length,
+        title: option1,
+        variation_1_value: product?.variation_1_name ? option1 : null,
+        variation_2_value: null,
+        variant_image_url: null,
+        sku: "",
+        price: 0,
+        compare_at_price: null,
+        stock_on_hand: 0,
+        stock_reserved: 0,
+        low_stock_threshold: 5,
+        weight_kg: shipping.weight_kg,
+        length_cm: shipping.length_cm,
+        width_cm: shipping.width_cm,
+        height_cm: shipping.height_cm,
+      },
+    ]);
+
+    setError("");
   }
 
   function chooseImages(event: ChangeEvent<HTMLInputElement>) {
@@ -1233,7 +1316,16 @@ export default function EditProductPage() {
                         Edit each existing SKU, price and available stock.
                       </p>
                     </div>
-                    <b>{variants.length} SKU</b>
+                    <div className={styles.editVariationHeaderActions}>
+                      <b>{variants.length} SKU</b>
+                      <button
+                        type="button"
+                        onClick={addVariationOption}
+                        className={styles.editVariationAddButton}
+                      >
+                        + ADD VARIATION
+                      </button>
+                    </div>
                   </div>
 
                   {product.variation_1_name ? (
@@ -1295,7 +1387,12 @@ export default function EditProductPage() {
                     >
                       <thead>
                         <tr>
-                          <th>VARIATION</th>
+                          <th>
+                            {product.variation_1_name || "VARIATION"}
+                          </th>
+                          {product.variation_2_name ? (
+                            <th>{product.variation_2_name}</th>
+                          ) : null}
                           <th>SKU</th>
                           <th>PRICE</th>
                           <th>ORIGINAL</th>
@@ -1309,16 +1406,43 @@ export default function EditProductPage() {
                           <tr key={variant.id}>
                             <td>
                               <input
-                                value={variant.title || "Default"}
+                                value={
+                                  product.variation_1_name
+                                    ? variant.variation_1_value ||
+                                      variant.title ||
+                                      ""
+                                    : variant.title || ""
+                                }
                                 onChange={(event) =>
-                                  updateVariant(
-                                    variant.id,
-                                    "title",
-                                    event.target.value
-                                  )
+                                  product.variation_1_name
+                                    ? updateVariationOption(
+                                        variant.id,
+                                        1,
+                                        event.target.value
+                                      )
+                                    : updateVariant(
+                                        variant.id,
+                                        "title",
+                                        event.target.value
+                                      )
                                 }
                               />
                             </td>
+                            {product.variation_2_name ? (
+                              <td>
+                                <input
+                                  value={variant.variation_2_value || ""}
+                                  placeholder="Option 2"
+                                  onChange={(event) =>
+                                    updateVariationOption(
+                                      variant.id,
+                                      2,
+                                      event.target.value
+                                    )
+                                  }
+                                />
+                              </td>
+                            ) : null}
                             <td>
                               <input
                                 value={variant.sku}
@@ -1445,7 +1569,9 @@ export default function EditProductPage() {
                       onChange={setFitments}
                       variantOptions={variants.map((variant) => ({
                         key: variant.id,
-                        dbId: variant.id,
+                        dbId: variant.id.startsWith("new-")
+                          ? undefined
+                          : variant.id,
                         label: variantTitle(variant),
                         sku: variant.sku,
                       }))}
