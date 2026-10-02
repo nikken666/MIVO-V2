@@ -35,6 +35,7 @@ type ProductRow = {
         title: string | null;
         variation_1_value: string | null;
         variation_2_value: string | null;
+        variant_image_url: string | null;
         sku: string;
         price: number | string;
         compare_at_price: number | string | null;
@@ -97,6 +98,7 @@ function mapVariants(row: ProductRow): ProductVariant[] {
         title: variant.title?.trim() || "Default",
         variation1Value: variant.variation_1_value,
         variation2Value: variant.variation_2_value,
+        imageUrl: variant.variant_image_url,
         sku: variant.sku,
         price: effectivePrice,
         compareAtPrice: discountActive
@@ -175,7 +177,7 @@ function mapProduct(row: ProductRow): Product | null {
 }
 
 const selectQuery =
-  "id, category_id, brand_id, slug, name, description, short_description, warranty_months, primary_image_url, variation_1_name, variation_2_name, brands(name), categories(name), sellers(shop_name), product_images(image_url, sort_order), product_variants(id, title, variation_1_value, variation_2_value, sku, price, compare_at_price, discount_enabled, discount_percent, discount_starts_at, discount_ends_at, stock_on_hand, stock_reserved, weight_kg, length_cm, width_cm, height_cm, is_active)";
+  "id, category_id, brand_id, slug, name, description, short_description, warranty_months, primary_image_url, variation_1_name, variation_2_name, brands(name), categories(name), sellers(shop_name), product_images(image_url, sort_order), product_variants(id, title, variation_1_value, variation_2_value, variant_image_url, sku, price, compare_at_price, discount_enabled, discount_percent, discount_starts_at, discount_ends_at, stock_on_hand, stock_reserved, weight_kg, length_cm, width_cm, height_cm, is_active)";
 
 type ReviewStat = {
   rating: number;
