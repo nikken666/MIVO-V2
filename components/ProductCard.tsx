@@ -182,24 +182,22 @@ export default function ProductCard({
             </strong>
           </div>
 
-          {requiresSelection ? (
+          {requiresSelection || fitmentStatus === "not-fit" ? (
             <Link href={detailHref} className="miniCartButton">
-              OPTIONS
+              {fitmentStatus === "not-fit" ? "VIEW" : "OPTIONS"}
             </Link>
           ) : (
             <button
               className="miniCartButton"
               type="button"
-              disabled={soldOut || fitmentStatus === "not-fit"}
+              disabled={soldOut}
               onClick={() => setQuickAddOpen((open) => !open)}
             >
-              {fitmentStatus === "not-fit"
-                ? "NO FIT"
-                : soldOut
-                  ? "SOLD OUT"
-                  : quickAddOpen
-                    ? "CANCEL"
-                    : "ADD"}
+              {soldOut
+                ? "SOLD OUT"
+                : quickAddOpen
+                  ? "CANCEL"
+                  : "ADD"}
             </button>
           )}
         </div>
