@@ -5092,3 +5092,52 @@
 @media(max-width:700px){
   .variationImageGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+
+/* SHOPEE-LIKE PRODUCT ACTIONS */
+.productActionStack{
+  flex-wrap:wrap;
+  min-width:250px;
+}
+.productActionButton{
+  min-height:34px;
+  padding:0 10px;
+  border:1px solid #d9dddf;
+  border-radius:8px;
+  background:#fff;
+  color:#454b4f;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.06em;
+  cursor:pointer;
+}
+.productActionButton:hover{
+  border-color:#aeb4b8;
+  background:#f8f9f9;
+}
+.productActionButton:disabled{
+  opacity:.48;
+  cursor:not-allowed;
+}
+.productActionDanger{
+  border-color:#f0c7ca;
+  color:#b9333b;
+  background:#fff7f7;
+}
+.productActionDanger:hover{
+  border-color:#dc9ca1;
+  background:#fff0f1;
+}
+.productActionPositive{
+  border-color:#bedbc5;
+  color:#28743d;
+  background:#f4faf5;
+}
+.productActionPositive:hover{
+  border-color:#8fc19b;
+  background:#ecf7ee;
+}
+.catalogueQuickEditTable th:last-child,
+.catalogueQuickEditTable td:last-child{
+  min-width:270px;
+}
