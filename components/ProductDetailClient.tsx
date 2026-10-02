@@ -79,23 +79,10 @@ export default function ProductDetailClient({
     [activeVariants, variantFitmentStatuses]
   );
 
-  const selectableVariants = useMemo(() => {
-    if (!selectedVehicleLabel) return activeVariants;
-
-    if (confirmedFitmentVariants.length > 0) {
-      return confirmedFitmentVariants;
-    }
-
-    return activeVariants.filter(
-      (variant) =>
-        variantFitmentStatuses[variant.id] !== "not-fit"
-    );
-  }, [
-    activeVariants,
-    confirmedFitmentVariants,
-    selectedVehicleLabel,
-    variantFitmentStatuses,
-  ]);
+  const selectableVariants = useMemo(
+    () => activeVariants,
+    [activeVariants]
+  );
 
   const option1Values = useMemo(
     () =>
@@ -127,6 +114,9 @@ export default function ProductDetailClient({
   const [option2, setOption2] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [vehicleSelectorOpen, setVehicleSelectorOpen] = useState(false);
+  const [fitmentConfirmAction, setFitmentConfirmAction] = useState<
+    "cart" | "buy" | null
+  >(null);
 
   const option2Values = useMemo(
     () =>
@@ -227,13 +217,10 @@ export default function ProductDetailClient({
         fitmentStatus
       : fitmentStatus;
   const fitmentBlocked =
-    selectedVariantFitmentStatus === "not-fit" ||
-    (selectedVehicleLabel &&
-      selectableVariants.length === 0);
+    selectedVariantFitmentStatus === "not-fit";
   const confirmedFitmentCount =
     confirmedFitmentVariants.length;
   const canBuy =
-    !fitmentBlocked &&
     selectionComplete &&
     Boolean(selectedVariant) &&
     Number(selectedVariant?.stock || 0) > 0;
@@ -296,16 +283,43 @@ export default function ProductDetailClient({
     );
   }
 
-  function addCurrentToCart() {
+  function completePurchaseAction(action: "cart" | "buy") {
     if (!selectedVariant || !canBuy) return;
+
     addToCart(product, selectedVariant, quantity);
+
+    if (action === "buy") {
+      window.location.assign("/checkout");
+      return;
+    }
+
     setQuantity(1);
   }
 
-  function buyNow() {
+  function requestPurchaseAction(action: "cart" | "buy") {
     if (!selectedVariant || !canBuy) return;
-    addToCart(product, selectedVariant, quantity);
-    window.location.assign("/checkout");
+
+    if (fitmentBlocked && selectedVehicleLabel) {
+      setFitmentConfirmAction(action);
+      return;
+    }
+
+    completePurchaseAction(action);
+  }
+
+  function confirmFitmentOverride() {
+    const action = fitmentConfirmAction;
+    setFitmentConfirmAction(null);
+    if (!action) return;
+    completePurchaseAction(action);
+  }
+
+  function addCurrentToCart() {
+    requestPurchaseAction("cart");
+  }
+
+  function buyNow() {
+    requestPurchaseAction("buy");
   }
 
   function previousImage() {
@@ -592,13 +606,11 @@ export default function ProductDetailClient({
                 onClick={addCurrentToCart}
               >
                 <span>＋</span>
-                {fitmentBlocked
-                  ? "NOT COMPATIBLE"
-                  : !selectionComplete
-                    ? "SELECT VARIATION"
-                    : !canBuy
-                      ? "OUT OF STOCK"
-                      : "ADD TO CART"}
+                {!selectionComplete
+                  ? "SELECT VARIATION"
+                  : !canBuy
+                    ? "OUT OF STOCK"
+                    : "ADD TO CART"}
               </button>
 
               <button
@@ -906,6 +918,59 @@ export default function ProductDetailClient({
         open={vehicleSelectorOpen}
         onClose={() => setVehicleSelectorOpen(false)}
       />
+
+      {fitmentConfirmAction ? (
+        <div
+          className="fitmentOverrideBackdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setFitmentConfirmAction(null);
+            }
+          }}
+        >
+          <div
+            className="fitmentOverrideModal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="fitment-override-title"
+          >
+            <span>FITMENT WARNING</span>
+            <h2 id="fitment-override-title">
+              This part does not match your selected vehicle.
+            </h2>
+            <p>
+              Your selected vehicle is <strong>{selectedVehicleLabel}</strong>.
+              You can still order this item if it is for another vehicle or
+              you have independently confirmed the fitment.
+            </p>
+            <div className="fitmentOverrideSummary">
+              <small>SELECTED PART</small>
+              <strong>
+                {[selectedVariant?.variation1Value, selectedVariant?.variation2Value]
+                  .filter(Boolean)
+                  .join(" / ") || product.name}
+              </strong>
+            </div>
+            <div className="fitmentOverrideActions">
+              <button
+                type="button"
+                className="fitmentOverrideCancel"
+                onClick={() => setFitmentConfirmAction(null)}
+              >
+                GO BACK
+              </button>
+              <button
+                type="button"
+                className="fitmentOverrideConfirm"
+                onClick={confirmFitmentOverride}
+              >
+                I UNDERSTAND, CONTINUE
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="mobileProductBar">
         <button
