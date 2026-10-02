@@ -976,53 +976,6 @@ export default function EditProductPage() {
         }
       }
 
-      const normalizedSkus = variants.map((variant) =>
-        variant.sku.trim().toUpperCase()
-      );
-      const duplicateSku = normalizedSkus.find(
-        (sku, index) => normalizedSkus.indexOf(sku) !== index
-      );
-
-      if (duplicateSku) {
-        throw new Error(
-          "SKU " + duplicateSku + " is used more than once in this product."
-        );
-      }
-
-      const uniqueSkus = Array.from(new Set(normalizedSkus));
-      const { data: existingSkuRows, error: skuLookupError } = await supabase
-        .from("product_variants")
-        .select("id, sku, product_id")
-        .eq("seller_id", product.seller_id)
-        .in("sku", uniqueSkus);
-
-      if (skuLookupError) throw skuLookupError;
-
-      const currentVariantIds = new Set(
-        variants
-          .filter((variant) => !variant.id.startsWith("new-"))
-          .map((variant) => variant.id)
-      );
-      const conflictingSku = (existingSkuRows || []).find(
-        (row) =>
-          row.product_id !== product.id &&
-          !currentVariantIds.has(row.id)
-      );
-
-      if (conflictingSku) {
-        throw new Error(
-          "SKU " +
-            conflictingSku.sku +
-            " is already used by another product. Please use a different SKU."
-        );
-      }
-
-      const sameProductSkuRows = new Map(
-        (existingSkuRows || [])
-          .filter((row) => row.product_id === product.id)
-          .map((row) => [String(row.sku).trim().toUpperCase(), row])
-      );
-
       setMessage("Uploading product images...");
 
       const finalImages: Array<{
@@ -1253,18 +1206,22 @@ export default function EditProductPage() {
         };
 
         if (variant.id.startsWith("new-")) {
-          const normalizedSku = variant.sku.trim().toUpperCase();
-          const existingSameProduct = sameProductSkuRows.get(normalizedSku);
-
-          if (existingSameProduct) {
-            const { error: variantError } = await supabase
+          const { data: insertedVariant, error: variantError } =
+            await supabase
               .from("product_variants")
-              .update(payload)
-              .eq("id", existingSameProduct.id);
+              .insert({
+                product_id: product.id,
+                seller_id: product.seller_id,
+                ...payload,
+                stock_reserved: 0,
+                is_active: true,
+              })
+              .select("id")
+              .single();
 
-            if (variantError) throw variantError;
-            variantIdMap.set(variant.id, existingSameProduct.id);
-          } else {
+          if (variantError) throw variantError;
+          variantIdMap.set(variant.id, insertedVariant.id);
+        } else {
             const { data: insertedVariant, error: variantError } =
               await supabase
                 .from("product_variants")
@@ -1444,12 +1401,7 @@ export default function EditProductPage() {
       const caughtMessage =
         caught instanceof Error ? caught.message : "";
 
-      setError(
-        caughtMessage.includes("product_variants_seller_id_sku_key") ||
-        caughtMessage.toLowerCase().includes("duplicate key")
-          ? "This SKU is already used by another product or variation. Please use a different SKU."
-          : caughtMessage || "Unable to save product."
-      );
+      setError(caughtMessage || "Unable to save product.");
     } finally {
       setBusy(false);
     }
