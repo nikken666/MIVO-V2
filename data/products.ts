@@ -3,6 +3,7 @@ export type ProductVariant = {
   title: string;
   variation1Value?: string | null;
   variation2Value?: string | null;
+  imageUrl?: string | null;
   sku: string;
   price: number;
   compareAtPrice?: number | null;
