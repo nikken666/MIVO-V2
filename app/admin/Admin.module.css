@@ -5427,3 +5427,62 @@
 .productVariantIdentity{
   gap:7px;
 }
+
+
+/* ADD / COPY PRODUCT — EDITABLE & DRAGGABLE VARIATION OPTIONS */
+.newVariantNameCell{
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+.newVariantDragHandle{
+  width:20px;
+  min-width:20px;
+  height:34px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:6px;
+  color:#9ca2a6;
+  background:transparent;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:-3px;
+  cursor:grab;
+  user-select:none;
+}
+.newVariantDragHandle:hover,
+.newVariantDragHandle:active{
+  color:#ee4d2d;
+  background:#fff1ed;
+}
+.newVariantNameInput{
+  width:100%;
+  min-width:0;
+  height:36px;
+  padding:0 9px;
+  border:1px solid transparent !important;
+  border-radius:7px;
+  background:transparent !important;
+  color:#202427;
+  font-size:9px !important;
+  font-weight:800;
+  outline:0;
+  box-shadow:none !important;
+}
+.newVariantNameInput:hover{
+  border-color:#d9dddf !important;
+  background:#fff !important;
+}
+.newVariantNameInput:focus{
+  border-color:#ee4d2d !important;
+  background:#fff !important;
+  box-shadow:0 0 0 2px rgba(238,77,45,.08) !important;
+}
+.newVariantRowDragging{
+  opacity:.46;
+  background:#fff7f5 !important;
+}
+.newVariantRowDragging td{
+  background:#fff7f5 !important;
+}
