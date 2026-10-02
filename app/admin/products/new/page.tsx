@@ -58,6 +58,13 @@ type VariationImageDraft = {
   sourceUrl?: string;
 };
 
+type ShippingValues = {
+  weight_kg: string;
+  length_cm: string;
+  width_cm: string;
+  height_cm: string;
+};
+
 type VariantDraft = {
   key: string;
   value1: string;
@@ -66,6 +73,10 @@ type VariantDraft = {
   price: string;
   compareAtPrice: string;
   stock: string;
+  weight_kg: string;
+  length_cm: string;
+  width_cm: string;
+  height_cm: string;
 };
 
 function slugify(value: string) {
@@ -132,6 +143,13 @@ export default function AdminNewProductPage() {
   const [copyMode, setCopyMode] = useState(false);
   const [copyDefaults, setCopyDefaults] = useState<CopyDefaults | null>(null);
   const [sourceImages, setSourceImages] = useState<CopySourceImage[]>([]);
+  const [shippingMode, setShippingMode] = useState<"same" | "different">("same");
+  const [sharedShipping, setSharedShipping] = useState<ShippingValues>({
+    weight_kg: "0",
+    length_cm: "0",
+    width_cm: "0",
+    height_cm: "0",
+  });
 
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -347,6 +365,30 @@ export default function AdminNewProductPage() {
               : "0",
           });
 
+          setSharedShipping({
+            weight_kg: String(firstVariant?.weight_kg || 0),
+            length_cm: String(firstVariant?.length_cm || 0),
+            width_cm: String(firstVariant?.width_cm || 0),
+            height_cm: String(firstVariant?.height_cm || 0),
+          });
+
+          const dimensionSignatures = new Set(
+            sourceVariants.map((variant) =>
+              [
+                Number(variant.weight_kg || 0),
+                Number(variant.length_cm || 0),
+                Number(variant.width_cm || 0),
+                Number(variant.height_cm || 0),
+              ].join("|")
+            )
+          );
+
+          setShippingMode(
+            sourceVariants.length > 1 && dimensionSignatures.size > 1
+              ? "different"
+              : "same"
+          );
+
           const hasSourceVariations =
             Boolean(sourceProduct.variation_1_name) ||
             sourceVariants.some((variant) =>
@@ -399,6 +441,10 @@ export default function AdminNewProductPage() {
                     Number(variant.stock_reserved || 0)
                 )
               ),
+              weight_kg: String(variant.weight_kg || 0),
+              length_cm: String(variant.length_cm || 0),
+              width_cm: String(variant.width_cm || 0),
+              height_cm: String(variant.height_cm || 0),
             }));
 
             setVariantRows(sourceRows);
@@ -576,6 +622,10 @@ export default function AdminNewProductPage() {
               price: "",
               compareAtPrice: "",
               stock: "0",
+              weight_kg: sharedShipping.weight_kg,
+              length_cm: sharedShipping.length_cm,
+              width_cm: sharedShipping.width_cm,
+              height_cm: sharedShipping.height_cm,
             }
           );
         })
@@ -658,7 +708,15 @@ export default function AdminNewProductPage() {
 
   function updateVariant(
     key: string,
-    field: "sku" | "price" | "compareAtPrice" | "stock",
+    field:
+      | "sku"
+      | "price"
+      | "compareAtPrice"
+      | "stock"
+      | "weight_kg"
+      | "length_cm"
+      | "width_cm"
+      | "height_cm",
     value: string
   ) {
     setVariantRows((current) =>
@@ -666,6 +724,16 @@ export default function AdminNewProductPage() {
         row.key === key ? { ...row, [field]: value } : row
       )
     );
+  }
+
+  function shippingValue(
+    field: keyof ShippingValues,
+    value: string
+  ) {
+    setSharedShipping((current) => ({
+      ...current,
+      [field]: value,
+    }));
   }
 
   function prepareVariants(form: FormData) {
@@ -956,28 +1024,47 @@ export default function AdminNewProductPage() {
       productId = product.id;
 
       const sharedMeasurements = {
-        weight_kg: Number(form.get("weight_kg") || 0),
-        length_cm: Number(form.get("length_cm") || 0),
-        width_cm: Number(form.get("width_cm") || 0),
-        height_cm: Number(form.get("height_cm") || 0),
+        weight_kg: Number(sharedShipping.weight_kg || 0),
+        length_cm: Number(sharedShipping.length_cm || 0),
+        width_cm: Number(sharedShipping.width_cm || 0),
+        height_cm: Number(sharedShipping.height_cm || 0),
       };
 
       const variantInsertRows = preparedVariants.map(
-        ({ draftKey: _draftKey, ...variant }) => ({
-          product_id: product.id,
-          seller_id: sellerId,
-          ...variant,
-          variant_image_url:
-            hasVariations && useVariationImages && variant.variation_1_value
-              ? variationImageUrls.get(variant.variation_1_value) || null
-              : null,
-          stock_reserved: 0,
-          low_stock_threshold: Number(
-            form.get("low_stock_threshold") || 5
-          ),
-          ...sharedMeasurements,
-          is_active: true,
-        })
+        ({ draftKey, ...variant }) => {
+          const draftVariant = variantRows.find(
+            (row) => row.key === draftKey
+          );
+          const measurements =
+            hasVariations &&
+            shippingMode === "different" &&
+            draftVariant
+              ? {
+                  weight_kg: Number(draftVariant.weight_kg || 0),
+                  length_cm: Number(draftVariant.length_cm || 0),
+                  width_cm: Number(draftVariant.width_cm || 0),
+                  height_cm: Number(draftVariant.height_cm || 0),
+                }
+              : sharedMeasurements;
+
+          return {
+            product_id: product.id,
+            seller_id: sellerId,
+            ...variant,
+            variant_image_url:
+              hasVariations &&
+              useVariationImages &&
+              variant.variation_1_value
+                ? variationImageUrls.get(variant.variation_1_value) || null
+                : null,
+            stock_reserved: 0,
+            low_stock_threshold: Number(
+              form.get("low_stock_threshold") || 5
+            ),
+            ...measurements,
+            is_active: true,
+          };
+        }
       );
 
       const {
