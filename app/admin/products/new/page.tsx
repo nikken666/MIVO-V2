@@ -260,10 +260,11 @@ export default function AdminNewProductPage() {
             supabase
               .from("product_variants")
               .select(
-                "id, variation_1_value, variation_2_value, sku, price, compare_at_price, stock_on_hand, stock_reserved, low_stock_threshold, weight_kg, length_cm, width_cm, height_cm, variant_image_url"
+                "id, sort_order, variation_1_value, variation_2_value, sku, price, compare_at_price, stock_on_hand, stock_reserved, low_stock_threshold, weight_kg, length_cm, width_cm, height_cm, variant_image_url"
               )
               .eq("product_id", copyFrom)
-              .order("created_at"),
+              .order("sort_order", { ascending: true })
+              .order("created_at", { ascending: true }),
             supabase
               .from("product_vehicle_fitments")
               .select("vehicle_id, variant_id, year_from, year_to")
@@ -288,6 +289,7 @@ export default function AdminNewProductPage() {
           const sourceVariants =
             (sourceVariantsResult.data || []) as Array<{
               id: string;
+              sort_order: number;
               variation_1_value: string | null;
               variation_2_value: string | null;
               sku: string;
@@ -1031,7 +1033,7 @@ export default function AdminNewProductPage() {
       };
 
       const variantInsertRows = preparedVariants.map(
-        ({ draftKey, ...variant }) => {
+        ({ draftKey, ...variant }, variantIndex) => {
           const draftVariant = variantRows.find(
             (row) => row.key === draftKey
           );
@@ -1050,6 +1052,7 @@ export default function AdminNewProductPage() {
           return {
             product_id: product.id,
             seller_id: sellerId,
+            sort_order: variantIndex,
             ...variant,
             variant_image_url:
               hasVariations &&
