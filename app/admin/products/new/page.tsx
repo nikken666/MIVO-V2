@@ -1383,14 +1383,17 @@ export default function AdminNewProductPage() {
               );
             }
 
-            const insertedTarget = (insertedVariants || []).find(
-              (item) => item.sku === preparedTarget.sku
+            const preparedIndex = preparedVariants.findIndex(
+              (item) => item.draftKey === fitment.targetVariantKey
             );
+            const insertedTarget =
+              preparedIndex >= 0
+                ? (insertedVariants || [])[preparedIndex]
+                : null;
 
             if (!insertedTarget?.id) {
               throw new Error(
-                "Could not connect fitment to SKU " +
-                  preparedTarget.sku
+                "Could not connect fitment to the selected variation."
               );
             }
 
