@@ -5002,3 +5002,93 @@
 .discountPickerList>button{width:100%;min-height:76px;padding:10px 8px;display:grid;grid-template-columns:24px 52px minmax(0,1fr);align-items:center;gap:12px;border:0;border-bottom:1px solid #eceeef;background:#fff;text-align:left;cursor:pointer}
 .discountPickerList>button:hover{background:#fafafa}.discountPickerList>button>i{width:22px;height:22px;display:grid;place-items:center;border:1px solid #c9ced1;border-radius:4px;font-style:normal;font-size:12px}.discountPickerList>button.discountPickerSelected>i{border-color:#d8242f;background:#d8242f;color:#fff}.discountPickerList img,.discountPickerFallback{width:52px;height:52px;object-fit:contain;border:1px solid #eceeef;border-radius:7px;background:#f7f7f7}.discountPickerFallback{display:grid;place-items:center;font-weight:900}.discountPickerList>button>span:last-child{min-width:0;display:grid;gap:3px}.discountPickerList strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}.discountPickerList small{color:#858b8f;font-size:8px}.pickerSelectAll{min-width:auto!important;background:#fff!important;color:#222!important;border:1px solid #d9dcde!important}
 @media(max-width:600px){.discountPickerList{padding:6px 14px}.discountPickerList>button{grid-template-columns:24px 48px minmax(0,1fr);min-height:72px}.discountPickerList img,.discountPickerFallback{width:48px;height:48px}}
+
+
+/* SHOPEE-STYLE OPTIONAL VARIATION IMAGES */
+.variationImageGrid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  margin-top:12px;
+}
+.variationImageCard{
+  min-width:0;
+  padding:11px;
+  border:1px solid #dfe2e3;
+  border-radius:11px;
+  background:#fafafa;
+}
+.variationImageCard>strong{
+  display:block;
+  margin-bottom:8px;
+  overflow:hidden;
+  color:#262b2e;
+  font-size:9px;
+  line-height:1.35;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.variationImagePreview,
+.variationImageUpload{
+  position:relative;
+  width:100%;
+  aspect-ratio:1/1;
+  overflow:hidden;
+  border:1px solid #d9dddf;
+  border-radius:9px;
+  background:#fff;
+}
+.variationImagePreview img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+}
+.variationImagePreview button{
+  position:absolute;
+  right:6px;
+  bottom:6px;
+  min-height:26px;
+  padding:0 8px;
+  border:0;
+  border-radius:6px;
+  background:rgba(17,20,23,.88);
+  color:#fff;
+  font-size:6px;
+  font-weight:900;
+  cursor:pointer;
+}
+.variationImageUpload{
+  display:grid;
+  place-items:center;
+  border-style:dashed;
+  color:#62696d;
+  cursor:pointer;
+}
+.variationImageUpload input{display:none}
+.variationImageUpload span{
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.06em;
+}
+.editVariationImages{
+  margin-bottom:16px;
+  padding:15px;
+  border:1px solid #e2e5e7;
+  border-radius:12px;
+  background:#f8f9f9;
+}
+.editVariationImagesHead strong,
+.editVariationImagesHead span{display:block}
+.editVariationImagesHead strong{font-size:11px}
+.editVariationImagesHead span{
+  margin-top:4px;
+  color:#858b8f;
+  font-size:8px;
+}
+@media(max-width:1100px){
+  .variationImageGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:700px){
+  .variationImageGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
