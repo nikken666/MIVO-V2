@@ -28,6 +28,38 @@ export type AccountAddress = {
   is_default?: boolean;
 };
 
+export async function loadAccountVehicles(): Promise<AccountVehicle[]> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from("customer_vehicles")
+    .select(
+      "id, vehicle_key, make, model, generation, year, variant, transmission, label, is_default, updated_at"
+    )
+    .eq("user_id", user.id)
+    .order("is_default", { ascending: false })
+    .order("updated_at", { ascending: false });
+
+  if (error) throw error;
+
+  return (data || []).map((row) => ({
+    id: row.id,
+    make: row.make,
+    vehicleId: row.vehicle_key,
+    model: row.model,
+    generation: row.generation || undefined,
+    year: row.year,
+    variant: row.variant,
+    transmission: row.transmission || undefined,
+    label: row.label,
+  }));
+}
+
 export async function loadAccountVehicle(): Promise<AccountVehicle | null> {
   const supabase = createClient();
   const {
