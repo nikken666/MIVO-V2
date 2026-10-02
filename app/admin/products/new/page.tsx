@@ -1769,17 +1769,20 @@ export default function AdminNewProductPage() {
                           >
                             <table
                               className={
-                                styles.adminTable + " " + styles.newVariantTable
+                                styles.adminTable +
+                                " " +
+                                styles.newVariantTable +
+                                (!useVariation2
+                                  ? " " + styles.newVariantTableSingle
+                                  : "")
                               }
                             >
                               <thead>
                                 <tr>
                                   <th>{variation1Name || "VARIATION 1"}</th>
-                                  <th>
-                                    {useVariation2
-                                      ? variation2Name || "VARIATION 2"
-                                      : "—"}
-                                  </th>
+                                  {useVariation2 ? (
+                                    <th>{variation2Name || "VARIATION 2"}</th>
+                                  ) : null}
                                   <th>SKU *</th>
                                   <th>PRICE *</th>
                                   <th>ORIGINAL</th>
@@ -1839,8 +1842,8 @@ export default function AdminNewProductPage() {
                                         />
                                       </div>
                                     </td>
-                                    <td>
-                                      {useVariation2 ? (
+                                    {useVariation2 ? (
+                                      <td>
                                         <input
                                           className={styles.newVariantNameInput}
                                           key={"v2-" + row.key}
@@ -1853,10 +1856,8 @@ export default function AdminNewProductPage() {
                                             )
                                           }
                                         />
-                                      ) : (
-                                        "—"
-                                      )}
-                                    </td>
+                                      </td>
+                                    ) : null}
                                     <td>
                                       <input
                                         value={row.sku}
