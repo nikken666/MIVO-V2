@@ -5387,3 +5387,43 @@
   margin:0;
   -webkit-appearance:none;
 }
+
+
+/* SHOPEE-LIKE VARIATION REORDER */
+.productVariantRow{
+  transition:opacity .14s ease,background .14s ease;
+}
+.productVariantRow[draggable="true"]{
+  cursor:grab;
+}
+.productVariantRow[draggable="true"]:active{
+  cursor:grabbing;
+}
+.productVariantDragging{
+  opacity:.48;
+  background:#fff7f5 !important;
+}
+.productVariantDragHandle{
+  width:18px !important;
+  min-width:18px;
+  height:30px;
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  border:0 !important;
+  border-radius:5px;
+  color:#9ca2a6 !important;
+  background:transparent !important;
+  font-size:12px !important;
+  font-weight:900 !important;
+  letter-spacing:-3px;
+  cursor:grab;
+  user-select:none;
+}
+.productVariantRow:hover .productVariantDragHandle{
+  color:#ee4d2d !important;
+  background:#fff1ed !important;
+}
+.productVariantIdentity{
+  gap:7px;
+}
