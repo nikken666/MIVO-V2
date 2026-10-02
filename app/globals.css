@@ -9620,3 +9620,147 @@ div{
     grid-template-columns:1fr;
   }
 }
+
+
+/* QUICK VEHICLE SWITCH */
+.vehicleQuickChangeButton{
+  flex:0 0 auto;
+  padding:0 0 4px;
+  border:0;
+  border-bottom:1px solid #666;
+  background:transparent;
+  color:#fff;
+  white-space:nowrap;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.08em;
+  cursor:pointer;
+}
+.vehicleQuickChangeButton:hover{
+  border-bottom-color:#fff;
+}
+.productVehicleGarage{
+  margin:18px 24px 0;
+}
+.productVehicleGarageHead span,
+.productVehicleGarageHead strong{
+  display:block;
+}
+.productVehicleGarageHead span{
+  color:#d8242f;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.11em;
+}
+.productVehicleGarageHead strong{
+  margin-top:4px;
+  color:#22272a;
+  font-size:15px;
+}
+.productVehicleGarageList{
+  margin-top:10px;
+  display:grid;
+  gap:7px;
+}
+.productVehicleGarageItem{
+  width:100%;
+  min-height:62px;
+  padding:10px 12px;
+  display:grid;
+  grid-template-columns:30px minmax(0,1fr) auto;
+  align-items:center;
+  gap:11px;
+  border:1px solid #dde1e2;
+  border-radius:10px;
+  background:#fff;
+  text-align:left;
+  cursor:pointer;
+}
+.productVehicleGarageItem:hover{
+  border-color:#bfc5c8;
+  background:#fafafa;
+}
+.productVehicleGarageItem.active{
+  border-color:#c9dfcf;
+  background:#f3faf5;
+}
+.productVehicleGarageItem>span{
+  width:30px;
+  height:30px;
+  display:grid;
+  place-items:center;
+  border-radius:8px;
+  background:#111417;
+  color:#fff;
+  font-size:7px;
+  font-weight:900;
+}
+.productVehicleGarageItem.active>span{
+  background:#2c7a42;
+}
+.productVehicleGarageItem div{
+  min-width:0;
+}
+.productVehicleGarageItem strong,
+.productVehicleGarageItem small{
+  display:block;
+}
+.productVehicleGarageItem strong{
+  overflow:hidden;
+  color:#262b2e;
+  font-size:9px;
+  line-height:1.4;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.productVehicleGarageItem small{
+  margin-top:3px;
+  color:#92989c;
+  font-size:6px;
+  font-weight:900;
+  letter-spacing:.06em;
+}
+.productVehicleGarageItem>b{
+  color:#d8242f;
+  font-size:7px;
+  font-weight:900;
+}
+.productVehicleGarageItem:disabled{
+  opacity:.55;
+  cursor:wait;
+}
+.productVehicleGarageDivider{
+  position:relative;
+  margin:16px 0 0;
+  text-align:center;
+}
+.productVehicleGarageDivider::before{
+  content:"";
+  position:absolute;
+  top:50%;
+  left:0;
+  right:0;
+  height:1px;
+  background:#e5e7e8;
+}
+.productVehicleGarageDivider span{
+  position:relative;
+  padding:0 9px;
+  background:#fff;
+  color:#9a9fa3;
+  font-size:6px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+@media(max-width:680px){
+  .selectedVehicleBanner{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .vehicleQuickChangeButton{
+    align-self:flex-start;
+  }
+  .productVehicleGarage{
+    margin:14px 16px 0;
+  }
+}
