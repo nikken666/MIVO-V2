@@ -134,6 +134,8 @@ export default function AdminNewProductPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [fitments, setFitments] = useState<AdminFitmentDraft[]>([]);
+  const [isUniversalFitment, setIsUniversalFitment] = useState(false);
+  const [restrictedShippingStates, setRestrictedShippingStates] = useState<string[]>([]);
 
   const [hasVariations, setHasVariations] = useState(false);
   const [variation1Name, setVariation1Name] = useState("");
@@ -253,7 +255,7 @@ export default function AdminNewProductPage() {
             supabase
               .from("products")
               .select(
-                "id, category_id, brand_id, name, short_description, description, warranty_months, variation_1_name, variation_2_name"
+                "id, category_id, brand_id, name, short_description, description, warranty_months, variation_1_name, variation_2_name, is_universal_fitment, restricted_shipping_states"
               )
               .eq("id", copyFrom)
               .single(),
@@ -373,6 +375,12 @@ export default function AdminNewProductPage() {
           });
 
           setSelectedBrandId(sourceProduct.brand_id || "");
+          setIsUniversalFitment(Boolean(sourceProduct.is_universal_fitment));
+          setRestrictedShippingStates(
+            Array.isArray(sourceProduct.restricted_shipping_states)
+              ? sourceProduct.restricted_shipping_states
+              : []
+          );
 
           setSharedShipping({
             weight_kg: String(firstVariant?.weight_kg || 0),
@@ -1211,6 +1219,8 @@ export default function AdminNewProductPage() {
             hasVariations && useVariation2
               ? variation2Name.trim()
               : null,
+          is_universal_fitment: isUniversalFitment,
+          restricted_shipping_states: restrictedShippingStates,
           status,
           published_at: status === "active" ? new Date().toISOString() : null,
           created_by: user.id,
@@ -1287,7 +1297,7 @@ export default function AdminNewProductPage() {
 
       if (imageError) throw imageError;
 
-      if (fitments.length > 0) {
+      if (!isUniversalFitment && fitments.length > 0) {
         setProgress("Saving vehicle compatibility...");
 
         const vehicleCache = new Map(
@@ -2069,28 +2079,57 @@ export default function AdminNewProductPage() {
                         <span>04 · VEHICLE FITMENT</span>
                         <h2>Compatible Vehicles</h2>
                         <p>
-                          This is what powers “FITS YOUR VEHICLE” on the
-                          storefront.
+                          Choose specific vehicles, or mark universal items such
+                          as coolant and engine oil as matching all cars.
                         </p>
                       </div>
                     </div>
 
-                    <AdminFitmentBuilder
-                      value={fitments}
-                      onChange={setFitments}
-                      variantOptions={
-                        hasVariations
-                          ? variantRows.map((variant) => ({
-                              key: variant.key,
-                              label:
-                                [variant.value1, variant.value2]
-                                  .filter(Boolean)
-                                  .join(" / ") || "Default",
-                              sku: variant.sku || "SKU not set",
-                            }))
-                          : []
-                      }
-                    />
+                    <div className={styles.fitmentModeGrid}>
+                      <button
+                        type="button"
+                        className={!isUniversalFitment ? styles.active : ""}
+                        onClick={() => setIsUniversalFitment(false)}
+                      >
+                        <strong>SELECT VEHICLES</strong>
+                        <span>Use detailed make, model and variant fitment.</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={isUniversalFitment ? styles.active : ""}
+                        onClick={() => setIsUniversalFitment(true)}
+                      >
+                        <strong>MATCH ALL CARS</strong>
+                        <span>Show this product as compatible with every vehicle.</span>
+                      </button>
+                    </div>
+
+                    {isUniversalFitment ? (
+                      <div className={styles.universalFitmentNotice}>
+                        <strong>MATCH ALL CARS ENABLED</strong>
+                        <span>
+                          Buyers will see this product as compatible regardless
+                          of the vehicle selected in My Garage.
+                        </span>
+                      </div>
+                    ) : (
+                      <AdminFitmentBuilder
+                        value={fitments}
+                        onChange={setFitments}
+                        variantOptions={
+                          hasVariations
+                            ? variantRows.map((variant) => ({
+                                key: variant.key,
+                                label:
+                                  [variant.value1, variant.value2]
+                                    .filter(Boolean)
+                                    .join(" / ") || "Default",
+                                sku: variant.sku || "SKU not set",
+                              }))
+                            : []
+                        }
+                      />
+                    )}
                   </section>
 
                   <section
@@ -2105,6 +2144,34 @@ export default function AdminNewProductPage() {
                           Choose one shared parcel size or set a different size
                           for every variation.
                         </p>
+                      </div>
+                    </div>
+
+                    <div className={styles.destinationRestrictionBox}>
+                      <div>
+                        <strong>DESTINATION RESTRICTIONS</strong>
+                        <span>
+                          Block delivery for products that cannot be shipped by
+                          air or to East Malaysia.
+                        </span>
+                      </div>
+                      <div className={styles.destinationRestrictionOptions}>
+                        {["Sabah", "Sarawak", "W.P. Labuan"].map((state) => (
+                          <label key={state}>
+                            <input
+                              type="checkbox"
+                              checked={restrictedShippingStates.includes(state)}
+                              onChange={(event) =>
+                                setRestrictedShippingStates((current) =>
+                                  event.target.checked
+                                    ? Array.from(new Set([...current, state]))
+                                    : current.filter((item) => item !== state)
+                                )
+                              }
+                            />
+                            <span>DO NOT SHIP TO {state.toUpperCase()}</span>
+                          </label>
+                        ))}
                       </div>
                     </div>
 
