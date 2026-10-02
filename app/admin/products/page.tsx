@@ -76,8 +76,8 @@ function storagePathFromUrl(url: string) {
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("all");
-  const [stockFilter, setStockFilter] = useState("all");
+  const [catalogTab, setCatalogTab] = useState<"live" | "unpublished">("live");
+  const [liveTab, setLiveTab] = useState<"all" | "restock">("all");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const [quickEditId, setQuickEditId] = useState("");
@@ -96,17 +96,15 @@ export default function AdminProductsPage() {
     const requestedStatus = params.get("status");
     const requestedStock = params.get("stock");
 
-    if (
-      requestedStatus &&
-      ["all", "active", "draft", "pending_review", "inactive"].includes(
-        requestedStatus
-      )
-    ) {
-      setStatus(requestedStatus);
+    if (requestedStatus && requestedStatus !== "active") {
+      setCatalogTab("unpublished");
+    } else if (requestedStatus === "active") {
+      setCatalogTab("live");
     }
 
     if (requestedStock === "low") {
-      setStockFilter("low");
+      setCatalogTab("live");
+      setLiveTab("restock");
     }
   }, []);
 
@@ -166,6 +164,30 @@ export default function AdminProductsPage() {
     void load();
   }, []);
 
+  const liveCount = useMemo(
+    () => products.filter((product) => product.status === "active").length,
+    [products]
+  );
+
+  const unpublishedCount = useMemo(
+    () => products.filter((product) => product.status !== "active").length,
+    [products]
+  );
+
+  const restockCount = useMemo(
+    () =>
+      products.filter((product) => {
+        if (product.status !== "active") return false;
+        const variants = product.product_variants || [];
+        return variants.some(
+          (variant) =>
+            availableStock(variant) <=
+            Number(variant.low_stock_threshold || 0)
+        );
+      }).length,
+    [products]
+  );
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
 
@@ -185,17 +207,23 @@ export default function AdminProductsPage() {
           .toLowerCase()
           .includes(q);
 
-      const matchesStatus = status === "all" || product.status === status;
-      const matchesStock =
-        stockFilter !== "low" ||
+      const matchesMainTab =
+        catalogTab === "live"
+          ? product.status === "active"
+          : product.status !== "active";
+
+      const matchesLiveTab =
+        catalogTab !== "live" ||
+        liveTab !== "restock" ||
         variants.some(
-          (item) =>
-            availableStock(item) <= Number(item.low_stock_threshold || 0)
+          (variant) =>
+            availableStock(variant) <=
+            Number(variant.low_stock_threshold || 0)
         );
 
-      return matchesQuery && matchesStatus && matchesStock;
+      return matchesQuery && matchesMainTab && matchesLiveTab;
     });
-  }, [products, query, status, stockFilter]);
+  }, [products, query, catalogTab, liveTab]);
 
   function toggleProduct(productId: string) {
     setExpanded((current) => {
@@ -482,16 +510,53 @@ export default function AdminProductsPage() {
                 </span>
                 <h2>Product Catalogue</h2>
                 <p>
-                  Edit full listings or update price and stock directly from
-                  this page.
+                  Manage live listings, restock items and unpublished products.
                 </p>
               </div>
             </div>
 
-            <div
-              className={styles.adminFormGrid}
-              style={{ marginBottom: 18 }}
-            >
+            <div className={styles.productStatusTabs}>
+              <button
+                type="button"
+                className={catalogTab === "live" ? styles.active : ""}
+                onClick={() => {
+                  setCatalogTab("live");
+                  setLiveTab("all");
+                }}
+              >
+                <span>Live</span>
+                <b>({liveCount})</b>
+              </button>
+              <button
+                type="button"
+                className={catalogTab === "unpublished" ? styles.active : ""}
+                onClick={() => setCatalogTab("unpublished")}
+              >
+                <span>Unpublished</span>
+                <b>({unpublishedCount})</b>
+              </button>
+            </div>
+
+            {catalogTab === "live" ? (
+              <div className={styles.productLiveSubTabs}>
+                <button
+                  type="button"
+                  className={liveTab === "all" ? styles.active : ""}
+                  onClick={() => setLiveTab("all")}
+                >
+                  All
+                </button>
+                <button
+                  type="button"
+                  className={liveTab === "restock" ? styles.active : ""}
+                  onClick={() => setLiveTab("restock")}
+                >
+                  Restock ({restockCount})
+                </button>
+              </div>
+            ) : null}
+
+            <div className={styles.productCatalogueSearch}>
               <label className={styles.adminField}>
                 <span>SEARCH</span>
                 <input
@@ -499,31 +564,6 @@ export default function AdminProductsPage() {
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Product name, SKU, variation or brand"
                 />
-              </label>
-
-              <label className={styles.adminField}>
-                <span>STATUS</span>
-                <select
-                  value={status}
-                  onChange={(event) => setStatus(event.target.value)}
-                >
-                  <option value="all">All status</option>
-                  <option value="active">Active</option>
-                  <option value="draft">Draft</option>
-                  <option value="pending_review">Pending review</option>
-                  <option value="inactive">Delisted</option>
-                </select>
-              </label>
-
-              <label className={styles.adminField}>
-                <span>STOCK</span>
-                <select
-                  value={stockFilter}
-                  onChange={(event) => setStockFilter(event.target.value)}
-                >
-                  <option value="all">All stock</option>
-                  <option value="low">Low stock only</option>
-                </select>
               </label>
             </div>
 
