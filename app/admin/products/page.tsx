@@ -336,14 +336,6 @@ export default function AdminProductsPage() {
   }
 
   async function copyProduct(product: ProductRow) {
-    if (
-      !window.confirm(
-        "Create a draft copy of this product, including variations, images and vehicle fitment?"
-      )
-    ) {
-      return;
-    }
-
     setProductActionId(product.id);
     setError("");
     setMessage("Copying product...");
