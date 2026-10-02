@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import ProductCard from "@/components/ProductCard";
 import SavedVehicleProductsBootstrap from "@/components/SavedVehicleProductsBootstrap";
+import ProductsVehicleBanner from "@/components/ProductsVehicleBanner";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveProducts } from "@/lib/catalog";
 import {
@@ -227,17 +228,7 @@ export default async function ProductsPage({
         hasVehicle={Boolean(selectedVehicleId)}
       />
       {view !== "brands" && selectedVehicleLabel ? (
-        <div className="selectedVehicleBanner vehicleMatchBanner">
-          <div>
-            <span>YOUR MIVO VEHICLE</span>
-            <strong>{selectedVehicleLabel}</strong>
-            <small>
-              Confirmed matches are shown first. Products without verified fitment
-              data remain clearly marked instead of being guessed.
-            </small>
-          </div>
-          <a href="/#fitment">CHANGE VEHICLE</a>
-        </div>
+        <ProductsVehicleBanner label={selectedVehicleLabel} />
       ) : null}
 
       {view !== "brands" && fitmentCounts ? (
