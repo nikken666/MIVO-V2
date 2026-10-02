@@ -976,6 +976,45 @@ export default function EditProductPage() {
         }
       }
 
+      const normalizedSkus = variants.map((variant) =>
+        variant.sku.trim().toUpperCase()
+      );
+      const duplicateSku = normalizedSkus.find(
+        (sku, index) => normalizedSkus.indexOf(sku) !== index
+      );
+
+      if (duplicateSku) {
+        throw new Error(
+          "SKU " + duplicateSku + " is used more than once in this product."
+        );
+      }
+
+      const uniqueSkus = Array.from(new Set(normalizedSkus));
+      const { data: existingSkuRows, error: skuLookupError } = await supabase
+        .from("product_variants")
+        .select("id, sku")
+        .eq("seller_id", product.seller_id)
+        .in("sku", uniqueSkus);
+
+      if (skuLookupError) throw skuLookupError;
+
+      const currentVariantIds = new Set(
+        variants
+          .filter((variant) => !variant.id.startsWith("new-"))
+          .map((variant) => variant.id)
+      );
+      const conflictingSku = (existingSkuRows || []).find(
+        (row) => !currentVariantIds.has(row.id)
+      );
+
+      if (conflictingSku) {
+        throw new Error(
+          "SKU " +
+            conflictingSku.sku +
+            " already exists. Please use a different SKU."
+        );
+      }
+
       setMessage("Uploading product images...");
 
       const finalImages: Array<{
@@ -1376,10 +1415,14 @@ export default function EditProductPage() {
       }
 
       setMessage("");
+      const caughtMessage =
+        caught instanceof Error ? caught.message : "";
+
       setError(
-        caught instanceof Error
-          ? caught.message
-          : "Unable to save product."
+        caughtMessage.includes("product_variants_seller_id_sku_key") ||
+        caughtMessage.toLowerCase().includes("duplicate key")
+          ? "This SKU is already used by another product or variation. Please use a different SKU."
+          : caughtMessage || "Unable to save product."
       );
     } finally {
       setBusy(false);
