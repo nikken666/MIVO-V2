@@ -851,26 +851,77 @@ export default function EditProductPage() {
       if (deleteFitmentError) throw deleteFitmentError;
 
       if (fitments.length > 0) {
-        const rows = fitments.map((fitment) => {
-          const vehicle = vehicleRows.find(
-            (row) =>
-              row.generation_key === fitment.generationKey &&
-              row.variant === fitment.variant &&
-              row.transmission === fitment.transmission
-          );
+        const vehicleCache = new Map(
+          vehicleRows.map((row) => [
+            [
+              row.generation_key || "",
+              row.variant || "ALL",
+              row.transmission || "ALL",
+            ].join("::"),
+            row,
+          ])
+        );
 
-          if (!vehicle) {
-            throw new Error(
-              "Vehicle fitment could not be resolved for " +
-                fitment.make +
-                " " +
-                fitment.model +
-                " " +
-                fitment.variant
-            );
+        async function resolveVehicle(fitment: AdminFitmentDraft) {
+          const cacheKey = [
+            fitment.generationKey,
+            fitment.variant,
+            fitment.transmission,
+          ].join("::");
+
+          const cached = vehicleCache.get(cacheKey);
+          if (cached) return cached;
+
+          const { data: existing, error: lookupError } = await supabase
+            .from("vehicles")
+            .select(
+              "id, generation_key, make, model, generation, variant, transmission, year_from, year_to"
+            )
+            .eq("generation_key", fitment.generationKey)
+            .eq("variant", fitment.variant)
+            .eq("transmission", fitment.transmission)
+            .maybeSingle();
+
+          if (lookupError) throw lookupError;
+
+          if (existing) {
+            const row = existing as VehicleRow;
+            vehicleCache.set(cacheKey, row);
+            return row;
           }
 
-          return {
+          const { data: inserted, error: insertVehicleError } =
+            await supabase
+              .from("vehicles")
+              .insert({
+                generation_key: fitment.generationKey,
+                make: fitment.make,
+                model: fitment.model,
+                generation: fitment.generation,
+                variant: fitment.variant,
+                transmission: fitment.transmission,
+                year_from: fitment.yearFrom,
+                year_to: fitment.yearTo,
+                is_active: true,
+              })
+              .select(
+                "id, generation_key, make, model, generation, variant, transmission, year_from, year_to"
+              )
+              .single();
+
+          if (insertVehicleError) throw insertVehicleError;
+
+          const row = inserted as VehicleRow;
+          vehicleCache.set(cacheKey, row);
+          return row;
+        }
+
+        const rows = [];
+
+        for (const fitment of fitments) {
+          const vehicle = await resolveVehicle(fitment);
+
+          rows.push({
             product_id: product.id,
             vehicle_id: vehicle.id,
             variant_id:
@@ -880,8 +931,8 @@ export default function EditProductPage() {
             year_from: fitment.yearFrom,
             year_to: fitment.yearTo,
             notes: null,
-          };
-        });
+          });
+        }
 
         const { error: insertFitmentError } = await supabase
           .from("product_vehicle_fitments")
