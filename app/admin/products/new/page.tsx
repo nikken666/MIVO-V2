@@ -23,6 +23,11 @@ type VehicleDbRow = {
   transmission: string | null;
 };
 
+type VariationImageDraft = {
+  file: File;
+  preview: string;
+};
+
 type VariantDraft = {
   key: string;
   value1: string;
@@ -85,6 +90,8 @@ export default function AdminNewProductPage() {
   const [variation2Name, setVariation2Name] = useState("");
   const [variation2Text, setVariation2Text] = useState("");
   const [variantRows, setVariantRows] = useState<VariantDraft[]>([]);
+  const [useVariationImages, setUseVariationImages] = useState(false);
+  const [variationImages, setVariationImages] = useState<Record<string, VariationImageDraft>>({});
 
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -234,6 +241,53 @@ export default function AdminNewProductPage() {
 
     setError("");
     setFiles(selected);
+  }
+
+  function chooseVariationImage(
+    option: string,
+    event: ChangeEvent<HTMLInputElement>
+  ) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (
+      !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
+      file.size > 5 * 1024 * 1024
+    ) {
+      setError("Variation images must be JPG, PNG or WEBP and below 5MB.");
+      event.target.value = "";
+      return;
+    }
+
+    setVariationImages((current) => {
+      const previous = current[option];
+      if (previous?.preview.startsWith("blob:")) {
+        URL.revokeObjectURL(previous.preview);
+      }
+
+      return {
+        ...current,
+        [option]: {
+          file,
+          preview: URL.createObjectURL(file),
+        },
+      };
+    });
+
+    setError("");
+    event.target.value = "";
+  }
+
+  function removeVariationImage(option: string) {
+    setVariationImages((current) => {
+      const target = current[option];
+      if (target?.preview.startsWith("blob:")) {
+        URL.revokeObjectURL(target.preview);
+      }
+      const next = { ...current };
+      delete next[option];
+      return next;
+    });
   }
 
   function updateVariant(
@@ -407,6 +461,41 @@ export default function AdminNewProductPage() {
         });
       }
 
+      const variationImageUrls = new Map<string, string>();
+
+      if (hasVariations && useVariationImages) {
+        setProgress("Uploading variation images...");
+
+        for (const option of variation1Options) {
+          const draft = variationImages[option];
+          if (!draft) continue;
+
+          const path =
+            sellerId +
+            "/variation-" +
+            crypto.randomUUID() +
+            "-" +
+            safeFileName(draft.file.name);
+
+          const { error: uploadError } = await supabase.storage
+            .from("product-images")
+            .upload(path, draft.file, {
+              cacheControl: "3600",
+              upsert: false,
+              contentType: draft.file.type,
+            });
+
+          if (uploadError) throw uploadError;
+          uploadedPaths.push(path);
+
+          const { data: publicData } = supabase.storage
+            .from("product-images")
+            .getPublicUrl(path);
+
+          variationImageUrls.set(option, publicData.publicUrl);
+        }
+      }
+
       setProgress("Creating product and SKU combinations...");
 
       const slug =
@@ -455,6 +544,10 @@ export default function AdminNewProductPage() {
           product_id: product.id,
           seller_id: sellerId,
           ...variant,
+          variant_image_url:
+            hasVariations && useVariationImages && variant.variation_1_value
+              ? variationImageUrls.get(variant.variation_1_value) || null
+              : null,
           stock_reserved: 0,
           low_stock_threshold: Number(
             form.get("low_stock_threshold") || 5
@@ -874,6 +967,68 @@ export default function AdminNewProductPage() {
                             </small>
                           </label>
                         </div>
+
+                        <label
+                          className={styles.variationToggle}
+                          style={{ marginTop: 12 }}
+                        >
+                          <div>
+                            <strong>Variation Images</strong>
+                            <span>
+                              Optional. Add one image for each Variation 1 option, like Shopee.
+                            </span>
+                          </div>
+                          <input
+                            type="checkbox"
+                            checked={useVariationImages}
+                            onChange={(e) => {
+                              setUseVariationImages(e.target.checked);
+                              if (!e.target.checked) {
+                                Object.values(variationImages).forEach((image) => {
+                                  if (image.preview.startsWith("blob:")) {
+                                    URL.revokeObjectURL(image.preview);
+                                  }
+                                });
+                                setVariationImages({});
+                              }
+                            }}
+                          />
+                        </label>
+
+                        {useVariationImages && variation1Options.length > 0 ? (
+                          <div className={styles.variationImageGrid}>
+                            {variation1Options.map((option) => {
+                              const image = variationImages[option];
+                              return (
+                                <div className={styles.variationImageCard} key={option}>
+                                  <strong>{option}</strong>
+                                  {image ? (
+                                    <div className={styles.variationImagePreview}>
+                                      <img src={image.preview} alt={option} />
+                                      <button
+                                        type="button"
+                                        onClick={() => removeVariationImage(option)}
+                                      >
+                                        REMOVE
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <label className={styles.variationImageUpload}>
+                                      <input
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/webp"
+                                        onChange={(event) =>
+                                          chooseVariationImage(option, event)
+                                        }
+                                      />
+                                      <span>+ ADD PHOTO</span>
+                                    </label>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : null}
 
                         <label
                           className={styles.variationToggle}
