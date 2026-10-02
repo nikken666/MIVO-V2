@@ -1520,7 +1520,11 @@ export default function AdminNewProductPage() {
                             className={styles.adminTableWrap}
                             style={{ marginTop: 16 }}
                           >
-                            <table className={styles.adminTable}>
+                            <table
+                              className={
+                                styles.adminTable + " " + styles.newVariantTable
+                              }
+                            >
                               <thead>
                                 <tr>
                                   <th>{variation1Name || "VARIATION 1"}</th>
