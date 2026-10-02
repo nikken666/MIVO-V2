@@ -194,8 +194,11 @@ export default async function ProductsPage({
 
   const visible = selectedVehicle
     ? withFitment
-        .filter((item) => item.fitmentStatus !== "not-fit")
-        .sort((a, b) => fitmentRank(a.fitmentStatus) - fitmentRank(b.fitmentStatus))
+        .slice()
+        .sort(
+          (a, b) =>
+            fitmentRank(a.fitmentStatus) - fitmentRank(b.fitmentStatus)
+        )
     : withFitment;
 
   const fitmentCounts = selectedVehicle
