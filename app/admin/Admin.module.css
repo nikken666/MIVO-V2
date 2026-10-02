@@ -5927,3 +5927,38 @@
     grid-template-columns:1fr;
   }
 }
+
+
+/* EDIT PRODUCT — ADD MORE VARIATION OPTIONS */
+.editVariationHeaderActions{
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.editVariationHeaderActions>b{
+  min-width:max-content;
+}
+.editVariationAddButton{
+  min-height:34px;
+  padding:0 12px;
+  border:1px solid #d9dddf;
+  border-radius:8px;
+  background:#fff;
+  color:#22282b;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.05em;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.editVariationAddButton:hover{
+  border-color:#ee4d2d;
+  color:#ee4d2d;
+  background:#fff7f5;
+}
+@media(max-width:680px){
+  .editVariationHeaderActions{
+    width:100%;
+    justify-content:space-between;
+  }
+}
