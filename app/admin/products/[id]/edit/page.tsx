@@ -811,9 +811,9 @@ export default function EditProductPage() {
             title: variant.title?.trim() || "Default",
             variant_image_url:
               variant.variation_1_value?.trim()
-                ? variationImageUrls.get(variant.variation_1_value.trim()) ??
-                  variant.variant_image_url ??
-                  null
+                ? variationImageUrls.has(variant.variation_1_value.trim())
+                  ? variationImageUrls.get(variant.variation_1_value.trim()) ?? null
+                  : variant.variant_image_url ?? null
                 : null,
             sku: variant.sku.trim().toUpperCase(),
             price: Number(variant.price),
