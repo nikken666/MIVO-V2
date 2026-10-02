@@ -725,22 +725,26 @@ export default function AdminNewProductPage() {
 
     const keyChanges = new Map<string, string>();
 
+    for (const row of variantRows) {
+      const matches =
+        axis === 1 ? row.value1 === oldValue : row.value2 === oldValue;
+      if (!matches) continue;
+
+      const value1 = axis === 1 ? nextValue : row.value1;
+      const value2 = axis === 2 ? nextValue : row.value2;
+      keyChanges.set(row.key, combinationKey(value1, value2));
+    }
+
     setVariantRows((current) =>
       current.map((row) => {
-        const matches =
-          axis === 1 ? row.value1 === oldValue : row.value2 === oldValue;
-        if (!matches) return row;
-
-        const value1 = axis === 1 ? nextValue : row.value1;
-        const value2 = axis === 2 ? nextValue : row.value2;
-        const nextKey = combinationKey(value1, value2);
-        keyChanges.set(row.key, nextKey);
+        const nextKey = keyChanges.get(row.key);
+        if (!nextKey) return row;
 
         return {
           ...row,
           key: nextKey,
-          value1,
-          value2,
+          value1: axis === 1 ? nextValue : row.value1,
+          value2: axis === 2 ? nextValue : row.value2,
         };
       })
     );
@@ -1786,20 +1790,11 @@ export default function AdminNewProductPage() {
                                 {variantRows.map((row) => (
                                   <tr
                                     key={row.key}
-                                    draggable
                                     className={
                                       draggedVariantKey === row.key
                                         ? styles.newVariantRowDragging
                                         : ""
                                     }
-                                    onDragStart={(event) => {
-                                      event.dataTransfer.effectAllowed = "move";
-                                      event.dataTransfer.setData(
-                                        "text/plain",
-                                        row.key
-                                      );
-                                      setDraggedVariantKey(row.key);
-                                    }}
                                     onDragOver={(event) => {
                                       event.preventDefault();
                                       event.dataTransfer.dropEffect = "move";
@@ -1808,13 +1803,25 @@ export default function AdminNewProductPage() {
                                       event.preventDefault();
                                       reorderVariantRows(row.key);
                                     }}
-                                    onDragEnd={() => setDraggedVariantKey("")}
                                   >
                                     <td>
                                       <div className={styles.newVariantNameCell}>
                                         <span
                                           className={styles.newVariantDragHandle}
                                           title="Drag to reorder"
+                                          draggable
+                                          onDragStart={(event) => {
+                                            event.dataTransfer.effectAllowed =
+                                              "move";
+                                            event.dataTransfer.setData(
+                                              "text/plain",
+                                              row.key
+                                            );
+                                            setDraggedVariantKey(row.key);
+                                          }}
+                                          onDragEnd={() =>
+                                            setDraggedVariantKey("")
+                                          }
                                         >
                                           ⋮⋮
                                         </span>
