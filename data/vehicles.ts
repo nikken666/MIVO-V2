@@ -128,7 +128,8 @@ export const vehicleDatabase: VehicleMake[] = [
 
       // GEN-2
       { id: "proton-gen2-prefl-2004", model: "Gen-2", generation: "Pre-Facelift", startYear: 2004, endYear: 2007, variants: ["1.3 CamPro", "1.6 CamPro M-Line", "1.6 CamPro H-Line"] },
-      { id: "proton-gen2-fl-2008", model: "Gen-2", generation: "Facelift", startYear: 2008, endYear: 2012, variants: ["1.6 IAFM M-Line", "1.6 CPS H-Line"] },
+      { id: "proton-gen2-fl-iafm-2008", model: "Gen-2", generation: "Facelift IAFM", startYear: 2008, endYear: 2012, variants: ["1.6 IAFM M-Line"] },
+      { id: "proton-gen2-fl-cps-2008", model: "Gen-2", generation: "Facelift CPS", startYear: 2008, endYear: 2012, variants: ["1.6 CPS H-Line"] },
 
       // SAVVY
       { id: "proton-savvy-prefl-2005", model: "Savvy", generation: "Pre-Facelift", startYear: 2005, endYear: 2006, variants: ["1.2 L-Line", "1.2 M-Line"] },
@@ -142,8 +143,8 @@ export const vehicleDatabase: VehicleMake[] = [
       { id: "proton-satria-neo-r3-rs-2011", model: "Satria Neo", generation: "R3 RS", startYear: 2011, endYear: 2012, variants: ["1.6 CPS R3 RS"], transmissions: ["MANUAL"] },
 
       // PERSONA
-      { id: "proton-persona-cm-2007", model: "Persona", generation: "CM", startYear: 2007, endYear: 2009, variants: ["1.6 Base-Line", "1.6 Medium-Line", "1.6 High-Line", "1.6 SE"] },
-      { id: "proton-persona-elegance-2010", model: "Persona", generation: "Elegance", startYear: 2010, endYear: 2012, variants: ["1.6 Base-Line", "1.6 Medium-Line", "1.6 High-Line"] },
+      { id: "proton-persona-cm-2007", model: "Persona", generation: "CM", startYear: 2007, endYear: 2009, variants: ["1.6 CamPro Base-Line", "1.6 CamPro / IAFM Medium-Line", "1.6 CamPro / IAFM High-Line", "1.6 IAFM SE"] },
+      { id: "proton-persona-elegance-2010", model: "Persona", generation: "Elegance (IAFM)", startYear: 2010, endYear: 2012, variants: ["1.6 IAFM Base-Line", "1.6 IAFM Medium-Line", "1.6 IAFM High-Line"] },
       { id: "proton-persona-sv-2013", model: "Persona", generation: "SV / Late CM", startYear: 2013, endYear: 2016, variants: ["1.6 SV", "1.6 Executive"] },
       { id: "proton-persona-bh-2016", model: "Persona", generation: "BH", startYear: 2016, endYear: 2018, variants: ["1.6 Standard", "1.6 Executive", "1.6 Premium"] },
       { id: "proton-persona-mc1-2019", model: "Persona", generation: "BH Facelift (MC1)", startYear: 2019, endYear: 2020, variants: ["1.6 Standard", "1.6 Executive", "1.6 Premium"] },
