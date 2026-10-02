@@ -20,6 +20,8 @@ type ProductRow = {
   primary_image_url: string | null;
   variation_1_name: string | null;
   variation_2_name: string | null;
+  is_universal_fitment: boolean;
+  restricted_shipping_states: string[] | null;
   brands: NamedRelation;
   categories: NamedRelation;
   sellers: { shop_name: string } | Array<{ shop_name: string }> | null;
@@ -178,12 +180,14 @@ function mapProduct(row: ProductRow): Product | null {
     stock: totalStock,
     variation1Name: row.variation_1_name,
     variation2Name: row.variation_2_name,
+    isUniversalFitment: Boolean(row.is_universal_fitment),
+    restrictedShippingStates: row.restricted_shipping_states || [],
     variants,
   };
 }
 
 const selectQuery =
-  "id, category_id, brand_id, slug, name, description, short_description, warranty_months, primary_image_url, variation_1_name, variation_2_name, brands(name), categories(name), sellers(shop_name), product_images(image_url, sort_order), product_variants(id, title, variation_1_value, variation_2_value, variant_image_url, sort_order, sku, price, compare_at_price, discount_enabled, discount_percent, discount_starts_at, discount_ends_at, stock_on_hand, stock_reserved, weight_kg, length_cm, width_cm, height_cm, is_active)";
+  "id, category_id, brand_id, slug, name, description, short_description, warranty_months, primary_image_url, variation_1_name, variation_2_name, is_universal_fitment, restricted_shipping_states, brands(name), categories(name), sellers(shop_name), product_images(image_url, sort_order), product_variants(id, title, variation_1_value, variation_2_value, variant_image_url, sort_order, sku, price, compare_at_price, discount_enabled, discount_percent, discount_starts_at, discount_ends_at, stock_on_hand, stock_reserved, weight_kg, length_cm, width_cm, height_cm, is_active)";
 
 type ReviewStat = {
   rating: number;
