@@ -39,6 +39,7 @@ type EditVariant = {
   title: string | null;
   variation_1_value: string | null;
   variation_2_value: string | null;
+  variant_image_url: string | null;
   sku: string;
   price: number | string;
   compare_at_price: number | string | null;
@@ -76,6 +77,12 @@ type ImageDraft = {
   id?: string;
   url: string;
   file?: File;
+};
+
+type VariationImageEdit = {
+  preview: string | null;
+  file?: File;
+  remove?: boolean;
 };
 
 type ProductImageRow = {
@@ -149,6 +156,7 @@ export default function EditProductPage() {
   const [fitments, setFitments] = useState<AdminFitmentDraft[]>([]);
   const [images, setImages] = useState<ImageDraft[]>([]);
   const [originalImageRows, setOriginalImageRows] = useState<ProductImageRow[]>([]);
+  const [variationImageEdits, setVariationImageEdits] = useState<Record<string, VariationImageEdit>>({});
 
   const [shippingMode, setShippingMode] = useState<"same" | "different">("same");
   const [sharedShipping, setSharedShipping] = useState<ShippingValues>({
@@ -210,7 +218,7 @@ export default function EditProductPage() {
           supabase
             .from("product_variants")
             .select(
-              "id, title, variation_1_value, variation_2_value, sku, price, compare_at_price, stock_on_hand, stock_reserved, low_stock_threshold, weight_kg, length_cm, width_cm, height_cm"
+              "id, title, variation_1_value, variation_2_value, variant_image_url, sku, price, compare_at_price, stock_on_hand, stock_reserved, low_stock_threshold, weight_kg, length_cm, width_cm, height_cm"
             )
             .eq("product_id", productId)
             .order("created_at"),
@@ -341,6 +349,17 @@ export default function EditProductPage() {
 
         setProduct(productRow);
         setVariants(variantRows);
+        setVariationImageEdits(() => {
+          const next: Record<string, VariationImageEdit> = {};
+          for (const variant of variantRows) {
+            const option = variant.variation_1_value?.trim();
+            if (!option || option in next) continue;
+            next[option] = {
+              preview: variant.variant_image_url || null,
+            };
+          }
+          return next;
+        });
         setBrands((brandResult.data as Option[] | null) || []);
         setCategories(
           (categoryResult.data as CategoryNode[] | null) || []
@@ -478,6 +497,57 @@ export default function EditProductPage() {
         URL.revokeObjectURL(target.url);
       }
       return current.filter((_, itemIndex) => itemIndex !== index);
+    });
+  }
+
+  function chooseVariationImage(
+    option: string,
+    event: ChangeEvent<HTMLInputElement>
+  ) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (
+      !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
+      file.size > 5 * 1024 * 1024
+    ) {
+      setError("Variation images must be JPG, PNG or WEBP and below 5MB.");
+      event.target.value = "";
+      return;
+    }
+
+    setVariationImageEdits((current) => {
+      const previous = current[option];
+      if (previous?.file && previous.preview?.startsWith("blob:")) {
+        URL.revokeObjectURL(previous.preview);
+      }
+      return {
+        ...current,
+        [option]: {
+          preview: URL.createObjectURL(file),
+          file,
+          remove: false,
+        },
+      };
+    });
+
+    setError("");
+    event.target.value = "";
+  }
+
+  function removeVariationImage(option: string) {
+    setVariationImageEdits((current) => {
+      const previous = current[option];
+      if (previous?.file && previous.preview?.startsWith("blob:")) {
+        URL.revokeObjectURL(previous.preview);
+      }
+      return {
+        ...current,
+        [option]: {
+          preview: null,
+          remove: true,
+        },
+      };
     });
   }
 
@@ -639,6 +709,52 @@ export default function EditProductPage() {
         }
       }
 
+      const variationImageUrls = new Map<string, string | null>();
+      const oldVariationImageUrls = new Map<string, string>();
+
+      for (const variant of variants) {
+        const option = variant.variation_1_value?.trim();
+        if (option && variant.variant_image_url && !oldVariationImageUrls.has(option)) {
+          oldVariationImageUrls.set(option, variant.variant_image_url);
+        }
+      }
+
+      for (const [option, edit] of Object.entries(variationImageEdits)) {
+        if (edit.remove) {
+          variationImageUrls.set(option, null);
+          continue;
+        }
+
+        if (!edit.file) {
+          variationImageUrls.set(option, edit.preview || null);
+          continue;
+        }
+
+        const path =
+          product.seller_id +
+          "/variation-" +
+          crypto.randomUUID() +
+          "-" +
+          safeFileName(edit.file.name);
+
+        const { error: uploadError } = await supabase.storage
+          .from("product-images")
+          .upload(path, edit.file, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: edit.file.type,
+          });
+
+        if (uploadError) throw uploadError;
+        newlyUploadedPaths.push(path);
+
+        const { data: publicData } = supabase.storage
+          .from("product-images")
+          .getPublicUrl(path);
+
+        variationImageUrls.set(option, publicData.publicUrl);
+      }
+
       setMessage("Saving product information...");
 
       const { error: productError } = await supabase
@@ -693,6 +809,12 @@ export default function EditProductPage() {
           .from("product_variants")
           .update({
             title: variant.title?.trim() || "Default",
+            variant_image_url:
+              variant.variation_1_value?.trim()
+                ? variationImageUrls.get(variant.variation_1_value.trim()) ??
+                  variant.variant_image_url ??
+                  null
+                : null,
             sku: variant.sku.trim().toUpperCase(),
             price: Number(variant.price),
             compare_at_price: compareAt,
@@ -705,6 +827,20 @@ export default function EditProductPage() {
           .eq("id", variant.id);
 
         if (variantError) throw variantError;
+      }
+
+      const replacedVariationPaths = Array.from(oldVariationImageUrls.entries())
+        .filter(([option, oldUrl]) => {
+          const nextUrl = variationImageUrls.get(option);
+          return variationImageUrls.has(option) && nextUrl !== oldUrl;
+        })
+        .map(([, oldUrl]) => storagePathFromUrl(oldUrl))
+        .filter(Boolean);
+
+      if (replacedVariationPaths.length > 0) {
+        await supabase.storage
+          .from("product-images")
+          .remove(replacedVariationPaths);
       }
 
       const { error: deleteFitmentError } = await supabase
@@ -1033,6 +1169,57 @@ export default function EditProductPage() {
                     </div>
                     <b>{variants.length} SKU</b>
                   </div>
+
+                  {product.variation_1_name ? (
+                    <div className={styles.editVariationImages}>
+                      <div className={styles.editVariationImagesHead}>
+                        <div>
+                          <strong>Variation Images</strong>
+                          <span>
+                            Optional. One photo per {product.variation_1_name} option.
+                          </span>
+                        </div>
+                      </div>
+                      <div className={styles.variationImageGrid}>
+                        {Array.from(
+                          new Set(
+                            variants
+                              .map((variant) => variant.variation_1_value?.trim())
+                              .filter((value): value is string => Boolean(value))
+                          )
+                        ).map((option) => {
+                          const edit = variationImageEdits[option];
+                          return (
+                            <div className={styles.variationImageCard} key={option}>
+                              <strong>{option}</strong>
+                              {edit?.preview ? (
+                                <div className={styles.variationImagePreview}>
+                                  <img src={edit.preview} alt={option} />
+                                  <button
+                                    type="button"
+                                    onClick={() => removeVariationImage(option)}
+                                  >
+                                    REMOVE
+                                  </button>
+                                </div>
+                              ) : (
+                                <label className={styles.variationImageUpload}>
+                                  <input
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp"
+                                    onChange={(event) =>
+                                      chooseVariationImage(option, event)
+                                    }
+                                  />
+                                  <span>+ ADD PHOTO</span>
+                                </label>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
 
                   <div className={styles.adminTableWrap}>
                     <table
