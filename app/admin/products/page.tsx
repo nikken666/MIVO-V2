@@ -85,6 +85,7 @@ export default function AdminProductsPage() {
   const [quickStock, setQuickStock] = useState("");
   const [savingVariantId, setSavingVariantId] = useState("");
   const [productActionId, setProductActionId] = useState("");
+  const [deleteConfirmId, setDeleteConfirmId] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -329,6 +330,88 @@ export default function AdminProductsPage() {
         caught instanceof Error
           ? caught.message
           : "Unable to " + verb + " product."
+      );
+    } finally {
+      setProductActionId("");
+    }
+  }
+
+  async function deleteDraftProduct(product: ProductRow) {
+    if (product.status !== "draft") return;
+
+    if (deleteConfirmId !== product.id) {
+      setDeleteConfirmId(product.id);
+      setMessage("");
+      setError("");
+      return;
+    }
+
+    setProductActionId(product.id);
+    setError("");
+    setMessage("");
+
+    try {
+      const supabase = createClient();
+
+      const [imagesResult, variantsResult] = await Promise.all([
+        supabase
+          .from("product_images")
+          .select("image_url")
+          .eq("product_id", product.id),
+        supabase
+          .from("product_variants")
+          .select("variant_image_url")
+          .eq("product_id", product.id),
+      ]);
+
+      if (imagesResult.error || variantsResult.error) {
+        throw imagesResult.error || variantsResult.error;
+      }
+
+      const { error: deleteError } = await supabase
+        .from("products")
+        .delete()
+        .eq("id", product.id)
+        .eq("status", "draft");
+
+      if (deleteError) throw deleteError;
+
+      const storagePaths = Array.from(
+        new Set(
+          [
+            ...(imagesResult.data || []).map((row) =>
+              storagePathFromUrl(row.image_url)
+            ),
+            ...(variantsResult.data || []).map((row) =>
+              row.variant_image_url
+                ? storagePathFromUrl(row.variant_image_url)
+                : ""
+            ),
+          ].filter(Boolean)
+        )
+      );
+
+      if (storagePaths.length > 0) {
+        await supabase.storage
+          .from("product-images")
+          .remove(storagePaths);
+      }
+
+      setProducts((current) =>
+        current.filter((item) => item.id !== product.id)
+      );
+      setExpanded((current) => {
+        const next = new Set(current);
+        next.delete(product.id);
+        return next;
+      });
+      setDeleteConfirmId("");
+      setMessage("Draft product deleted.");
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Unable to delete draft product."
       );
     } finally {
       setProductActionId("");
@@ -582,6 +665,23 @@ export default function AdminProductsPage() {
                                     }
                                   >
                                     LIST
+                                  </button>
+                                ) : product.status === "draft" ? (
+                                  <button
+                                    type="button"
+                                    className={
+                                      styles.productActionButton +
+                                      " " +
+                                      styles.productActionDanger
+                                    }
+                                    disabled={productActionId === product.id}
+                                    onClick={() => deleteDraftProduct(product)}
+                                  >
+                                    {productActionId === product.id
+                                      ? "DELETING..."
+                                      : deleteConfirmId === product.id
+                                        ? "CONFIRM DELETE"
+                                        : "DELETE"}
                                   </button>
                                 ) : null}
 
