@@ -155,6 +155,7 @@ export default function AdminNewProductPage() {
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState("");
   const [error, setError] = useState("");
+  const [draggedVariantKey, setDraggedVariantKey] = useState("");
 
   const variation1Options = useMemo(
     () => splitOptions(variation1Text),
@@ -706,6 +707,107 @@ export default function AdminNewProductPage() {
       delete next[option];
       return next;
     });
+  }
+
+  function renameVariationOption(
+    axis: 1 | 2,
+    oldValue: string,
+    rawValue: string
+  ) {
+    const nextValue = rawValue.trim();
+    if (!nextValue || nextValue === oldValue) return;
+
+    const options = axis === 1 ? variation1Options : variation2Options;
+    if (options.some((option) => option === nextValue && option !== oldValue)) {
+      setError("Variation option names must be unique.");
+      return;
+    }
+
+    const keyChanges = new Map<string, string>();
+
+    setVariantRows((current) =>
+      current.map((row) => {
+        const matches =
+          axis === 1 ? row.value1 === oldValue : row.value2 === oldValue;
+        if (!matches) return row;
+
+        const value1 = axis === 1 ? nextValue : row.value1;
+        const value2 = axis === 2 ? nextValue : row.value2;
+        const nextKey = combinationKey(value1, value2);
+        keyChanges.set(row.key, nextKey);
+
+        return {
+          ...row,
+          key: nextKey,
+          value1,
+          value2,
+        };
+      })
+    );
+
+    if (axis === 1) {
+      setVariation1Text((current) =>
+        splitOptions(current)
+          .map((option) => (option === oldValue ? nextValue : option))
+          .join(", ")
+      );
+
+      setVariationImages((current) => {
+        if (!current[oldValue]) return current;
+        const next = { ...current };
+        next[nextValue] = next[oldValue];
+        delete next[oldValue];
+        return next;
+      });
+    } else {
+      setVariation2Text((current) =>
+        splitOptions(current)
+          .map((option) => (option === oldValue ? nextValue : option))
+          .join(", ")
+      );
+    }
+
+    setFitments((current) =>
+      current.map((fitment) => ({
+        ...fitment,
+        targetVariantKey: fitment.targetVariantKey
+          ? keyChanges.get(fitment.targetVariantKey) ||
+            fitment.targetVariantKey
+          : null,
+      }))
+    );
+
+    setError("");
+  }
+
+  function reorderVariantRows(targetKey: string) {
+    if (!draggedVariantKey || draggedVariantKey === targetKey) {
+      setDraggedVariantKey("");
+      return;
+    }
+
+    setVariantRows((current) => {
+      const fromIndex = current.findIndex(
+        (row) => row.key === draggedVariantKey
+      );
+      const toIndex = current.findIndex((row) => row.key === targetKey);
+
+      if (fromIndex < 0 || toIndex < 0) return current;
+
+      const next = [...current];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+
+      if (!useVariation2) {
+        setVariation1Text(
+          Array.from(new Set(next.map((row) => row.value1))).join(", ")
+        );
+      }
+
+      return next;
+    });
+
+    setDraggedVariantKey("");
   }
 
   function updateVariant(
@@ -1682,9 +1784,72 @@ export default function AdminNewProductPage() {
                               </thead>
                               <tbody>
                                 {variantRows.map((row) => (
-                                  <tr key={row.key}>
-                                    <td>{row.value1}</td>
-                                    <td>{row.value2 || "—"}</td>
+                                  <tr
+                                    key={row.key}
+                                    draggable
+                                    className={
+                                      draggedVariantKey === row.key
+                                        ? styles.newVariantRowDragging
+                                        : ""
+                                    }
+                                    onDragStart={(event) => {
+                                      event.dataTransfer.effectAllowed = "move";
+                                      event.dataTransfer.setData(
+                                        "text/plain",
+                                        row.key
+                                      );
+                                      setDraggedVariantKey(row.key);
+                                    }}
+                                    onDragOver={(event) => {
+                                      event.preventDefault();
+                                      event.dataTransfer.dropEffect = "move";
+                                    }}
+                                    onDrop={(event) => {
+                                      event.preventDefault();
+                                      reorderVariantRows(row.key);
+                                    }}
+                                    onDragEnd={() => setDraggedVariantKey("")}
+                                  >
+                                    <td>
+                                      <div className={styles.newVariantNameCell}>
+                                        <span
+                                          className={styles.newVariantDragHandle}
+                                          title="Drag to reorder"
+                                        >
+                                          ⋮⋮
+                                        </span>
+                                        <input
+                                          className={styles.newVariantNameInput}
+                                          key={"v1-" + row.key}
+                                          defaultValue={row.value1}
+                                          onBlur={(event) =>
+                                            renameVariationOption(
+                                              1,
+                                              row.value1,
+                                              event.target.value
+                                            )
+                                          }
+                                        />
+                                      </div>
+                                    </td>
+                                    <td>
+                                      {useVariation2 ? (
+                                        <input
+                                          className={styles.newVariantNameInput}
+                                          key={"v2-" + row.key}
+                                          defaultValue={row.value2}
+                                          onBlur={(event) =>
+                                            renameVariationOption(
+                                              2,
+                                              row.value2,
+                                              event.target.value
+                                            )
+                                          }
+                                        />
+                                      ) : (
+                                        "—"
+                                      )}
+                                    </td>
                                     <td>
                                       <input
                                         value={row.sku}
