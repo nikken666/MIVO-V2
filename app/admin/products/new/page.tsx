@@ -194,7 +194,7 @@ export default function AdminNewProductPage() {
             .order("sort_order"),
           supabase
             .from("vehicles")
-            .select("id, generation_key, variant, transmission")
+            .select("id, generation_key, make, model, generation, variant, transmission, year_from, year_to")
             .eq("is_active", true),
         ]);
 
@@ -202,10 +202,325 @@ export default function AdminNewProductPage() {
           throw sellerError || brandError || categoryError || vehicleError;
         }
 
+        const vehicles = (vehicleData as VehicleDbRow[] | null) || [];
+
         setStore((sellerData as Store | null) || null);
         setBrands((brandData as Option[] | null) || []);
         setCategories((categoryData as CategoryNode[] | null) || []);
-        setVehicleRows((vehicleData as VehicleDbRow[] | null) || []);
+        setVehicleRows(vehicles);
+
+        const params = new URLSearchParams(window.location.search);
+        const copyFrom = params.get("copyFrom") || "";
+
+        if (copyFrom) {
+          const [
+            sourceProductResult,
+            sourceImagesResult,
+            sourceVariantsResult,
+            sourceFitmentsResult,
+          ] = await Promise.all([
+            supabase
+              .from("products")
+              .select(
+                "id, category_id, brand_id, name, short_description, description, warranty_months, variation_1_name, variation_2_name"
+              )
+              .eq("id", copyFrom)
+              .single(),
+            supabase
+              .from("product_images")
+              .select("image_url, alt_text, sort_order")
+              .eq("product_id", copyFrom)
+              .order("sort_order"),
+            supabase
+              .from("product_variants")
+              .select(
+                "id, variation_1_value, variation_2_value, sku, price, compare_at_price, stock_on_hand, stock_reserved, low_stock_threshold, weight_kg, length_cm, width_cm, height_cm, variant_image_url"
+              )
+              .eq("product_id", copyFrom)
+              .order("created_at"),
+            supabase
+              .from("product_vehicle_fitments")
+              .select("vehicle_id, variant_id, year_from, year_to")
+              .eq("product_id", copyFrom),
+          ]);
+
+          if (
+            sourceProductResult.error ||
+            sourceImagesResult.error ||
+            sourceVariantsResult.error ||
+            sourceFitmentsResult.error
+          ) {
+            throw (
+              sourceProductResult.error ||
+              sourceImagesResult.error ||
+              sourceVariantsResult.error ||
+              sourceFitmentsResult.error
+            );
+          }
+
+          const sourceProduct = sourceProductResult.data;
+          const sourceVariants =
+            (sourceVariantsResult.data || []) as Array<{
+              id: string;
+              variation_1_value: string | null;
+              variation_2_value: string | null;
+              sku: string;
+              price: number | string;
+              compare_at_price: number | string | null;
+              stock_on_hand: number;
+              stock_reserved: number;
+              low_stock_threshold: number;
+              weight_kg: number | string | null;
+              length_cm: number | string | null;
+              width_cm: number | string | null;
+              height_cm: number | string | null;
+              variant_image_url: string | null;
+            }>;
+          const sourceImages =
+            (sourceImagesResult.data || []) as Array<{
+              image_url: string;
+              alt_text: string | null;
+              sort_order: number;
+            }>;
+          const sourceFitments =
+            (sourceFitmentsResult.data || []) as Array<{
+              vehicle_id: string;
+              variant_id: string | null;
+              year_from: number | null;
+              year_to: number | null;
+            }>;
+
+          const firstVariant = sourceVariants[0];
+          const copyToken = Date.now()
+            .toString(36)
+            .slice(-5)
+            .toUpperCase();
+          const copiedSku = (sku: string, index = 0) =>
+            sku +
+            "-COPY-" +
+            copyToken +
+            (sourceVariants.length > 1 ? "-" + String(index + 1) : "");
+
+          setCopyMode(true);
+          setSourceImages(
+            sourceImages.map((image) => ({
+              url: image.image_url,
+              altText: image.alt_text,
+              sortOrder: image.sort_order,
+            }))
+          );
+
+          setCopyDefaults({
+            name: sourceProduct.name || "",
+            categoryId: sourceProduct.category_id || "",
+            brandId: sourceProduct.brand_id || "",
+            shortDescription: sourceProduct.short_description || "",
+            description: sourceProduct.description || "",
+            warrantyMonths: String(sourceProduct.warranty_months || 0),
+            lowStockThreshold: String(firstVariant?.low_stock_threshold || 5),
+            weightKg: String(firstVariant?.weight_kg || 0),
+            lengthCm: String(firstVariant?.length_cm || 0),
+            widthCm: String(firstVariant?.width_cm || 0),
+            heightCm: String(firstVariant?.height_cm || 0),
+            simpleSku: firstVariant ? copiedSku(firstVariant.sku) : "",
+            simplePrice: firstVariant ? String(firstVariant.price) : "",
+            simpleCompareAtPrice:
+              firstVariant?.compare_at_price == null
+                ? ""
+                : String(firstVariant.compare_at_price),
+            simpleStock: firstVariant
+              ? String(
+                  Math.max(
+                    0,
+                    Number(firstVariant.stock_on_hand || 0) -
+                      Number(firstVariant.stock_reserved || 0)
+                  )
+                )
+              : "0",
+          });
+
+          const hasSourceVariations =
+            Boolean(sourceProduct.variation_1_name) ||
+            sourceVariants.some((variant) =>
+              Boolean(variant.variation_1_value)
+            );
+
+          if (hasSourceVariations) {
+            const value1s = Array.from(
+              new Set(
+                sourceVariants
+                  .map((variant) => variant.variation_1_value || "")
+                  .filter(Boolean)
+              )
+            );
+            const value2s = Array.from(
+              new Set(
+                sourceVariants
+                  .map((variant) => variant.variation_2_value || "")
+                  .filter(Boolean)
+              )
+            );
+
+            setHasVariations(true);
+            setVariation1Name(sourceProduct.variation_1_name || "Variation");
+            setVariation1Text(value1s.join(", "));
+            setUseVariation2(
+              Boolean(sourceProduct.variation_2_name) &&
+                value2s.length > 0
+            );
+            setVariation2Name(sourceProduct.variation_2_name || "");
+            setVariation2Text(value2s.join(", "));
+
+            const sourceRows = sourceVariants.map((variant, index) => ({
+              key: combinationKey(
+                variant.variation_1_value || "",
+                variant.variation_2_value || ""
+              ),
+              value1: variant.variation_1_value || "",
+              value2: variant.variation_2_value || "",
+              sku: copiedSku(variant.sku, index),
+              price: String(variant.price),
+              compareAtPrice:
+                variant.compare_at_price == null
+                  ? ""
+                  : String(variant.compare_at_price),
+              stock: String(
+                Math.max(
+                  0,
+                  Number(variant.stock_on_hand || 0) -
+                    Number(variant.stock_reserved || 0)
+                )
+              ),
+            }));
+
+            setVariantRows(sourceRows);
+
+            const copiedVariationImages: Record<
+              string,
+              VariationImageDraft
+            > = {};
+
+            for (const variant of sourceVariants) {
+              const option = variant.variation_1_value || "";
+              if (
+                option &&
+                variant.variant_image_url &&
+                !copiedVariationImages[option]
+              ) {
+                copiedVariationImages[option] = {
+                  preview: variant.variant_image_url,
+                  sourceUrl: variant.variant_image_url,
+                };
+              }
+            }
+
+            if (Object.keys(copiedVariationImages).length > 0) {
+              setUseVariationImages(true);
+              setVariationImages(copiedVariationImages);
+            }
+
+            const oldVariantToDraftKey = new Map(
+              sourceVariants.map((variant) => [
+                variant.id,
+                combinationKey(
+                  variant.variation_1_value || "",
+                  variant.variation_2_value || ""
+                ),
+              ])
+            );
+
+            const copiedFitments = sourceFitments
+              .map<AdminFitmentDraft | null>((fitment) => {
+                const vehicle = vehicles.find(
+                  (item) => item.id === fitment.vehicle_id
+                );
+                if (!vehicle?.generation_key) return null;
+
+                const yearFrom =
+                  fitment.year_from ??
+                  vehicle.year_from ??
+                  new Date().getFullYear();
+                const yearTo =
+                  fitment.year_to ??
+                  vehicle.year_to ??
+                  new Date().getFullYear();
+                const targetKey = fitment.variant_id
+                  ? oldVariantToDraftKey.get(fitment.variant_id) || null
+                  : null;
+
+                return {
+                  key: [
+                    targetKey || "ALL-SKU",
+                    vehicle.generation_key,
+                    yearFrom,
+                    yearTo,
+                    vehicle.variant || "ALL",
+                    vehicle.transmission || "ALL",
+                  ].join("::"),
+                  generationKey: vehicle.generation_key,
+                  make: vehicle.make,
+                  model: vehicle.model,
+                  generation: vehicle.generation || vehicle.model,
+                  yearFrom,
+                  yearTo,
+                  variant: vehicle.variant || "ALL",
+                  transmission: vehicle.transmission || "ALL",
+                  targetVariantKey: targetKey,
+                  targetVariantId: null,
+                  targetVariantLabel: null,
+                };
+              })
+              .filter(
+                (item): item is AdminFitmentDraft => item !== null
+              );
+
+            setFitments(copiedFitments);
+          } else {
+            const copiedFitments = sourceFitments
+              .map<AdminFitmentDraft | null>((fitment) => {
+                const vehicle = vehicles.find(
+                  (item) => item.id === fitment.vehicle_id
+                );
+                if (!vehicle?.generation_key) return null;
+
+                const yearFrom =
+                  fitment.year_from ??
+                  vehicle.year_from ??
+                  new Date().getFullYear();
+                const yearTo =
+                  fitment.year_to ??
+                  vehicle.year_to ??
+                  new Date().getFullYear();
+
+                return {
+                  key: [
+                    "ALL-SKU",
+                    vehicle.generation_key,
+                    yearFrom,
+                    yearTo,
+                    vehicle.variant || "ALL",
+                    vehicle.transmission || "ALL",
+                  ].join("::"),
+                  generationKey: vehicle.generation_key,
+                  make: vehicle.make,
+                  model: vehicle.model,
+                  generation: vehicle.generation || vehicle.model,
+                  yearFrom,
+                  yearTo,
+                  variant: vehicle.variant || "ALL",
+                  transmission: vehicle.transmission || "ALL",
+                  targetVariantKey: null,
+                  targetVariantId: null,
+                  targetVariantLabel: null,
+                };
+              })
+              .filter(
+                (item): item is AdminFitmentDraft => item !== null
+              );
+
+            setFitments(copiedFitments);
+          }
+        }
       } catch (caught) {
         setError(
           caught instanceof Error
