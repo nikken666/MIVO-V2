@@ -49,6 +49,8 @@ export type Product = {
   stock?: number;
   variation1Name?: string | null;
   variation2Name?: string | null;
+  isUniversalFitment?: boolean;
+  restrictedShippingStates?: string[];
   variants?: ProductVariant[];
 };
 
