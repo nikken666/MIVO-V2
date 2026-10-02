@@ -234,12 +234,8 @@ export default async function ProductsPage({
       {view !== "brands" && fitmentCounts ? (
         <div className="fitmentResultsBar">
           <div>
-            <strong>{fitmentCounts.fits}</strong>
+            <strong>{fitmentCounts.fits + fitmentCounts.universal}</strong>
             <span>CONFIRMED FITS</span>
-          </div>
-          <div>
-            <strong>{fitmentCounts.universal}</strong>
-            <span>UNIVERSAL</span>
           </div>
           <div>
             <strong>{fitmentCounts.unverified}</strong>
