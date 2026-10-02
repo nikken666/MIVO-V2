@@ -1682,41 +1682,6 @@ export default function AdminNewProductPage() {
                           />
                         </label>
 
-                        {useVariationImages && variation1Options.length > 0 ? (
-                          <div className={styles.variationImageGrid}>
-                            {variation1Options.map((option) => {
-                              const image = variationImages[option];
-                              return (
-                                <div className={styles.variationImageCard} key={option}>
-                                  <strong>{option}</strong>
-                                  {image ? (
-                                    <div className={styles.variationImagePreview}>
-                                      <img src={image.preview} alt={option} />
-                                      <button
-                                        type="button"
-                                        onClick={() => removeVariationImage(option)}
-                                      >
-                                        REMOVE
-                                      </button>
-                                    </div>
-                                  ) : (
-                                    <label className={styles.variationImageUpload}>
-                                      <input
-                                        type="file"
-                                        accept="image/jpeg,image/png,image/webp"
-                                        onChange={(event) =>
-                                          chooseVariationImage(option, event)
-                                        }
-                                      />
-                                      <span>+ ADD PHOTO</span>
-                                    </label>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : null}
-
                         <label
                           className={styles.variationToggle}
                           style={{ marginTop: 12 }}
@@ -1783,10 +1748,10 @@ export default function AdminNewProductPage() {
                                   {useVariation2 ? (
                                     <th>{variation2Name || "VARIATION 2"}</th>
                                   ) : null}
-                                  <th>SKU *</th>
                                   <th>PRICE *</th>
                                   <th>ORIGINAL</th>
                                   <th>STOCK *</th>
+                                  <th>SKU *</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -1807,7 +1772,7 @@ export default function AdminNewProductPage() {
                                       reorderVariantRows(row.key);
                                     }}
                                   >
-                                    <td>
+                                    <td className={styles.shopeeVariationPrimaryCell}>
                                       <div className={styles.newVariantNameCell}>
                                         <span
                                           className={styles.newVariantDragHandle}
@@ -1841,6 +1806,41 @@ export default function AdminNewProductPage() {
                                           }
                                         />
                                       </div>
+
+                                      {useVariationImages ? (
+                                        <div className={styles.shopeeVariationPhotoWrap}>
+                                          {variationImages[row.value1] ? (
+                                            <div className={styles.shopeeVariationPhotoPreview}>
+                                              <img
+                                                src={variationImages[row.value1].preview}
+                                                alt={row.value1}
+                                              />
+                                              <button
+                                                type="button"
+                                                onClick={() =>
+                                                  removeVariationImage(row.value1)
+                                                }
+                                              >
+                                                REMOVE
+                                              </button>
+                                            </div>
+                                          ) : (
+                                            <label className={styles.shopeeVariationPhotoUpload}>
+                                              <input
+                                                type="file"
+                                                accept="image/jpeg,image/png,image/webp"
+                                                onChange={(event) =>
+                                                  chooseVariationImage(
+                                                    row.value1,
+                                                    event
+                                                  )
+                                                }
+                                              />
+                                              <span>+ PHOTO</span>
+                                            </label>
+                                          )}
+                                        </div>
+                                      ) : null}
                                     </td>
                                     {useVariation2 ? (
                                       <td>
@@ -1859,46 +1859,40 @@ export default function AdminNewProductPage() {
                                       </td>
                                     ) : null}
                                     <td>
-                                      <input
-                                        value={row.sku}
-                                        onChange={(e) =>
-                                          updateVariant(
-                                            row.key,
-                                            "sku",
-                                            e.target.value
-                                          )
-                                        }
-                                      />
+                                      <div className={styles.shopeeMoneyInput}>
+                                        <span>RM</span>
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          step="0.01"
+                                          value={row.price}
+                                          onChange={(e) =>
+                                            updateVariant(
+                                              row.key,
+                                              "price",
+                                              e.target.value
+                                            )
+                                          }
+                                        />
+                                      </div>
                                     </td>
                                     <td>
-                                      <input
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        value={row.price}
-                                        onChange={(e) =>
-                                          updateVariant(
-                                            row.key,
-                                            "price",
-                                            e.target.value
-                                          )
-                                        }
-                                      />
-                                    </td>
-                                    <td>
-                                      <input
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        value={row.compareAtPrice}
-                                        onChange={(e) =>
-                                          updateVariant(
-                                            row.key,
-                                            "compareAtPrice",
-                                            e.target.value
-                                          )
-                                        }
-                                      />
+                                      <div className={styles.shopeeMoneyInput}>
+                                        <span>RM</span>
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          step="0.01"
+                                          value={row.compareAtPrice}
+                                          onChange={(e) =>
+                                            updateVariant(
+                                              row.key,
+                                              "compareAtPrice",
+                                              e.target.value
+                                            )
+                                          }
+                                        />
+                                      </div>
                                     </td>
                                     <td>
                                       <input
@@ -1910,6 +1904,18 @@ export default function AdminNewProductPage() {
                                           updateVariant(
                                             row.key,
                                             "stock",
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                    </td>
+                                    <td>
+                                      <input
+                                        value={row.sku}
+                                        onChange={(e) =>
+                                          updateVariant(
+                                            row.key,
+                                            "sku",
                                             e.target.value
                                           )
                                         }
