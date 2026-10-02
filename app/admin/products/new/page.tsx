@@ -604,6 +604,9 @@ export default function AdminNewProductPage() {
 
     setError("");
     setFiles(selected);
+    if (selected.length > 0) {
+      setSourceImages([]);
+    }
   }
 
   function chooseVariationImage(
@@ -780,7 +783,7 @@ export default function AdminNewProductPage() {
       if (!sellerId) throw new Error("MIVO Direct Store is not configured.");
       if (!name) throw new Error("Product name is required.");
       if (!categoryId) throw new Error("Choose the final product category.");
-      if (files.length === 0) {
+      if (files.length === 0 && sourceImages.length === 0) {
         throw new Error("Upload at least one product image.");
       }
 
@@ -794,34 +797,81 @@ export default function AdminNewProductPage() {
         sort_order: number;
       }> = [];
 
-      for (const [index, file] of files.entries()) {
-        const path =
+      async function duplicateSourceImage(
+        sourceUrl: string,
+        prefix = "copy"
+      ) {
+        const sourcePath = storagePathFromUrl(sourceUrl);
+        if (!sourcePath) return sourceUrl;
+
+        const fileName = sourcePath.split("/").pop() || "image.jpg";
+        const destinationPath =
           sellerId +
           "/" +
+          prefix +
+          "-" +
           crypto.randomUUID() +
           "-" +
-          safeFileName(file.name);
+          fileName;
 
-        const { error: uploadError } = await supabase.storage
+        const { error: copyError } = await supabase.storage
           .from("product-images")
-          .upload(path, file, {
-            cacheControl: "3600",
-            upsert: false,
-            contentType: file.type,
-          });
+          .copy(sourcePath, destinationPath);
 
-        if (uploadError) throw uploadError;
-        uploadedPaths.push(path);
+        if (copyError) throw copyError;
+        uploadedPaths.push(destinationPath);
 
         const { data: publicData } = supabase.storage
           .from("product-images")
-          .getPublicUrl(path);
+          .getPublicUrl(destinationPath);
 
-        imageRows.push({
-          image_url: publicData.publicUrl,
-          alt_text: name,
-          sort_order: index,
-        });
+        return publicData.publicUrl;
+      }
+
+      if (files.length > 0) {
+        for (const [index, file] of files.entries()) {
+          const path =
+            sellerId +
+            "/" +
+            crypto.randomUUID() +
+            "-" +
+            safeFileName(file.name);
+
+          const { error: uploadError } = await supabase.storage
+            .from("product-images")
+            .upload(path, file, {
+              cacheControl: "3600",
+              upsert: false,
+              contentType: file.type,
+            });
+
+          if (uploadError) throw uploadError;
+          uploadedPaths.push(path);
+
+          const { data: publicData } = supabase.storage
+            .from("product-images")
+            .getPublicUrl(path);
+
+          imageRows.push({
+            image_url: publicData.publicUrl,
+            alt_text: name,
+            sort_order: index,
+          });
+        }
+      } else {
+        for (const [index, image] of sourceImages
+          .slice()
+          .sort((a, b) => a.sortOrder - b.sortOrder)
+          .entries()) {
+          imageRows.push({
+            image_url: await duplicateSourceImage(
+              image.url,
+              "copy-product"
+            ),
+            alt_text: image.altText || name,
+            sort_order: index,
+          });
+        }
       }
 
       const variationImageUrls = new Map<string, string>();
@@ -833,29 +883,39 @@ export default function AdminNewProductPage() {
           const draft = variationImages[option];
           if (!draft) continue;
 
-          const path =
-            sellerId +
-            "/variation-" +
-            crypto.randomUUID() +
-            "-" +
-            safeFileName(draft.file.name);
+          if (draft.file) {
+            const path =
+              sellerId +
+              "/variation-" +
+              crypto.randomUUID() +
+              "-" +
+              safeFileName(draft.file.name);
 
-          const { error: uploadError } = await supabase.storage
-            .from("product-images")
-            .upload(path, draft.file, {
-              cacheControl: "3600",
-              upsert: false,
-              contentType: draft.file.type,
-            });
+            const { error: uploadError } = await supabase.storage
+              .from("product-images")
+              .upload(path, draft.file, {
+                cacheControl: "3600",
+                upsert: false,
+                contentType: draft.file.type,
+              });
 
-          if (uploadError) throw uploadError;
-          uploadedPaths.push(path);
+            if (uploadError) throw uploadError;
+            uploadedPaths.push(path);
 
-          const { data: publicData } = supabase.storage
-            .from("product-images")
-            .getPublicUrl(path);
+            const { data: publicData } = supabase.storage
+              .from("product-images")
+              .getPublicUrl(path);
 
-          variationImageUrls.set(option, publicData.publicUrl);
+            variationImageUrls.set(option, publicData.publicUrl);
+          } else if (draft.sourceUrl) {
+            variationImageUrls.set(
+              option,
+              await duplicateSourceImage(
+                draft.sourceUrl,
+                "copy-variation"
+              )
+            );
+          }
         }
       }
 
@@ -948,8 +1008,8 @@ export default function AdminNewProductPage() {
           const vehicle = vehicleRows.find(
             (row) =>
               row.generation_key === fitment.generationKey &&
-              row.variant === fitment.variant &&
-              row.transmission === fitment.transmission
+              (row.variant || "ALL") === fitment.variant &&
+              (row.transmission || "ALL") === fitment.transmission
           );
 
           if (!vehicle) {
