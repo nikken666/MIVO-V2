@@ -19,8 +19,8 @@ const fitmentCopy: Record<FitmentStatus, { pill: string; text: string }> = {
     text: "Confirmed compatible with your selected vehicle",
   },
   universal: {
-    pill: "UNIVERSAL",
-    text: "Not restricted to one specific vehicle fitment",
+    pill: "✓ FITS YOUR VEHICLE",
+    text: "Compatible with your selected vehicle",
   },
   "not-fit": {
     pill: "NOT COMPATIBLE",
@@ -91,18 +91,22 @@ export default function ProductCard({
 
   const detailHref = "/products/" + product.slug + hrefSuffix;
   const fitment = fitmentStatus ? fitmentCopy[fitmentStatus] : null;
+  const visualFitmentStatus =
+    fitmentStatus === "universal" ? "fits" : fitmentStatus;
   const cardClass =
     (compact
       ? "productCard premiumProductCard"
       : "catalogCard premiumProductCard") +
-    (fitmentStatus ? " fitmentState-" + fitmentStatus : "");
+    (visualFitmentStatus ? " fitmentState-" + visualFitmentStatus : "");
   const imageClass = compact
     ? "productPicture premiumProductImage"
     : "catalogImage premiumProductImage";
   const pillClass =
-    "fitmentPill" + (fitmentStatus ? " " + fitmentStatus : "");
+    "fitmentPill" +
+    (visualFitmentStatus ? " " + visualFitmentStatus : "");
   const fitmentTextClass =
-    "productFitmentText" + (fitmentStatus ? " " + fitmentStatus : "");
+    "productFitmentText" +
+    (visualFitmentStatus ? " " + visualFitmentStatus : "");
 
   function decrease() {
     setQuantity((current) => Math.max(1, current - 1));
