@@ -7203,18 +7203,18 @@ input::placeholder,textarea::placeholder{font-family:var(--mivo-ui-font)}
 }
 .flashDealImage{
   position:relative;
-  aspect-ratio:1.2/1;
+  aspect-ratio:1/1;
   overflow:hidden;
   display:grid;
   place-items:center;
-  background:#f5f6f6;
+  background:#fff;
 }
 .flashDealImage img{
   width:100%;
   height:100%;
   display:block;
   object-fit:contain;
-  padding:10px;
+  padding:0;
 }
 .flashDealImage>b{
   position:absolute;
@@ -9497,5 +9497,17 @@ div{
     width:34px;
     height:34px;
     flex-basis:34px;
+  }
+}
+
+
+/* Keep buyer-facing flash deal product photos true to their uploaded 1:1 artwork */
+@media(max-width:680px){
+  .flashDealImage{
+    aspect-ratio:1/1;
+  }
+  .flashDealImage img{
+    padding:0;
+    object-fit:contain;
   }
 }
