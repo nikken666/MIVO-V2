@@ -5141,3 +5141,68 @@
 .catalogueQuickEditTable td:last-child{
   min-width:270px;
 }
+
+
+/* PRODUCT CATALOGUE — KEEP ACTIONS VISIBLE */
+.catalogueQuickEditTable th:last-child,
+.catalogueQuickEditTable td:last-child{
+  position:sticky;
+  right:0;
+  z-index:4;
+  width:176px;
+  min-width:176px;
+  max-width:176px;
+  background:#fff;
+  box-shadow:-12px 0 18px -18px rgba(0,0,0,.55);
+}
+.catalogueQuickEditTable thead th:last-child{
+  z-index:6;
+  background:#fff;
+}
+.productVariantRow td:last-child{
+  background:#fafafa;
+}
+.productVariantRow:hover td:last-child{
+  background:#f5f6f6;
+}
+.productParentRow:hover td:last-child{
+  background:#fcfcfc;
+}
+.productActionStack{
+  width:100%;
+  min-width:0;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:6px;
+}
+.productActionStack .adminActionLink,
+.productActionStack .productActionButton,
+.productActionStack .adminTextAction{
+  width:100%;
+  min-width:0;
+  min-height:32px;
+  padding:0 7px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+  border-radius:7px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.productActionStack .adminTextAction{
+  border:1px solid #e0e3e4;
+  background:#fff;
+}
+@media(max-width:760px){
+  .catalogueQuickEditTable th:last-child,
+  .catalogueQuickEditTable td:last-child{
+    width:150px;
+    min-width:150px;
+    max-width:150px;
+  }
+  .productActionStack{
+    grid-template-columns:1fr;
+  }
+}
