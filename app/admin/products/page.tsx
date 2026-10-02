@@ -66,6 +66,13 @@ function priceSummary(variants: ProductVariantRow[]) {
     : "RM " + min.toFixed(2) + " – RM " + max.toFixed(2);
 }
 
+function storagePathFromUrl(url: string) {
+  const marker = "/storage/v1/object/public/product-images/";
+  const index = url.indexOf(marker);
+  if (index < 0) return "";
+  return decodeURIComponent(url.slice(index + marker.length));
+}
+
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [query, setQuery] = useState("");
@@ -77,6 +84,7 @@ export default function AdminProductsPage() {
   const [quickPrice, setQuickPrice] = useState("");
   const [quickStock, setQuickStock] = useState("");
   const [savingVariantId, setSavingVariantId] = useState("");
+  const [productActionId, setProductActionId] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -271,6 +279,340 @@ export default function AdminProductsPage() {
     }
   }
 
+  async function setListingStatus(
+    product: ProductRow,
+    nextStatus: "active" | "inactive"
+  ) {
+    const verb = nextStatus === "inactive" ? "delist" : "list";
+    if (
+      !window.confirm(
+        nextStatus === "inactive"
+          ? "Delist this product? Buyers will no longer see or purchase it."
+          : "List this product again? It will become visible to buyers."
+      )
+    ) {
+      return;
+    }
+
+    setProductActionId(product.id);
+    setError("");
+    setMessage("");
+
+    try {
+      const supabase = createClient();
+      const { error: updateError } = await supabase
+        .from("products")
+        .update({
+          status: nextStatus,
+          ...(nextStatus === "active"
+            ? { published_at: new Date().toISOString() }
+            : {}),
+        })
+        .eq("id", product.id);
+
+      if (updateError) throw updateError;
+
+      setProducts((current) =>
+        current.map((item) =>
+          item.id === product.id
+            ? { ...item, status: nextStatus }
+            : item
+        )
+      );
+      setMessage(
+        nextStatus === "inactive"
+          ? "Product delisted."
+          : "Product listed again."
+      );
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Unable to " + verb + " product."
+      );
+    } finally {
+      setProductActionId("");
+    }
+  }
+
+  async function copyProduct(product: ProductRow) {
+    if (
+      !window.confirm(
+        "Create a draft copy of this product, including variations, images and vehicle fitment?"
+      )
+    ) {
+      return;
+    }
+
+    setProductActionId(product.id);
+    setError("");
+    setMessage("Copying product...");
+
+    const supabase = createClient();
+    const copiedStoragePaths: string[] = [];
+    let copiedProductId = "";
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) throw new Error("Your admin session expired.");
+
+      const [
+        productResult,
+        imagesResult,
+        variantsResult,
+        fitmentsResult,
+      ] = await Promise.all([
+        supabase
+          .from("products")
+          .select(
+            "id, seller_id, category_id, brand_id, name, slug, short_description, description, primary_image_url, warranty_months, variation_1_name, variation_2_name"
+          )
+          .eq("id", product.id)
+          .single(),
+        supabase
+          .from("product_images")
+          .select("image_url, alt_text, sort_order")
+          .eq("product_id", product.id)
+          .order("sort_order"),
+        supabase
+          .from("product_variants")
+          .select(
+            "id, title, variation_1_value, variation_2_value, variant_image_url, sku, price, compare_at_price, cost_price, stock_on_hand, low_stock_threshold, weight_kg, length_cm, width_cm, height_cm, is_active"
+          )
+          .eq("product_id", product.id)
+          .order("created_at"),
+        supabase
+          .from("product_vehicle_fitments")
+          .select("vehicle_id, variant_id, year_from, year_to, notes")
+          .eq("product_id", product.id),
+      ]);
+
+      if (
+        productResult.error ||
+        imagesResult.error ||
+        variantsResult.error ||
+        fitmentsResult.error
+      ) {
+        throw (
+          productResult.error ||
+          imagesResult.error ||
+          variantsResult.error ||
+          fitmentsResult.error
+        );
+      }
+
+      const source = productResult.data;
+      const sourceImages = imagesResult.data || [];
+      const sourceVariants = variantsResult.data || [];
+      const sourceFitments = fitmentsResult.data || [];
+      const urlCopies = new Map<string, string>();
+
+      async function duplicateImage(url: string | null) {
+        if (!url) return null;
+        if (urlCopies.has(url)) return urlCopies.get(url) || url;
+
+        const sourcePath = storagePathFromUrl(url);
+        if (!sourcePath) {
+          urlCopies.set(url, url);
+          return url;
+        }
+
+        const fileName = sourcePath.split("/").pop() || "image.jpg";
+        const destinationPath =
+          source.seller_id +
+          "/copy-" +
+          crypto.randomUUID() +
+          "-" +
+          fileName;
+
+        const { error: copyError } = await supabase.storage
+          .from("product-images")
+          .copy(sourcePath, destinationPath);
+
+        if (copyError) throw copyError;
+        copiedStoragePaths.push(destinationPath);
+
+        const { data: publicData } = supabase.storage
+          .from("product-images")
+          .getPublicUrl(destinationPath);
+
+        urlCopies.set(url, publicData.publicUrl);
+        return publicData.publicUrl;
+      }
+
+      const copiedImages = [];
+      for (const image of sourceImages) {
+        copiedImages.push({
+          image_url: await duplicateImage(image.image_url),
+          alt_text: image.alt_text,
+          sort_order: image.sort_order,
+        });
+      }
+
+      for (const variant of sourceVariants) {
+        if (variant.variant_image_url) {
+          await duplicateImage(variant.variant_image_url);
+        }
+      }
+
+      const copiedPrimaryImage =
+        (source.primary_image_url
+          ? await duplicateImage(source.primary_image_url)
+          : null) ||
+        copiedImages[0]?.image_url ||
+        null;
+
+      const copySuffix = Date.now().toString(36).toUpperCase();
+      const { data: newProduct, error: insertProductError } = await supabase
+        .from("products")
+        .insert({
+          seller_id: source.seller_id,
+          category_id: source.category_id,
+          brand_id: source.brand_id,
+          name: source.name + " (Copy)",
+          slug: source.slug + "-copy-" + copySuffix.toLowerCase(),
+          short_description: source.short_description,
+          description: source.description,
+          primary_image_url: copiedPrimaryImage,
+          warranty_months: source.warranty_months,
+          variation_1_name: source.variation_1_name,
+          variation_2_name: source.variation_2_name,
+          status: "draft",
+          published_at: null,
+          created_by: user.id,
+        })
+        .select("id")
+        .single();
+
+      if (insertProductError) throw insertProductError;
+      copiedProductId = newProduct.id;
+
+      if (copiedImages.length > 0) {
+        const { error: imageInsertError } = await supabase
+          .from("product_images")
+          .insert(
+            copiedImages.map((image) => ({
+              product_id: newProduct.id,
+              ...image,
+              alt_text: image.alt_text || source.name + " (Copy)",
+            }))
+          );
+
+        if (imageInsertError) throw imageInsertError;
+      }
+
+      const variantRows = sourceVariants.map((variant, index) => ({
+        oldId: variant.id,
+        sku:
+          variant.sku +
+          "-COPY-" +
+          copySuffix.slice(-5) +
+          "-" +
+          String(index + 1),
+        row: {
+          product_id: newProduct.id,
+          seller_id: source.seller_id,
+          title: variant.title,
+          variation_1_value: variant.variation_1_value,
+          variation_2_value: variant.variation_2_value,
+          variant_image_url: variant.variant_image_url
+            ? urlCopies.get(variant.variant_image_url) ||
+              variant.variant_image_url
+            : null,
+          sku:
+            variant.sku +
+            "-COPY-" +
+            copySuffix.slice(-5) +
+            "-" +
+            String(index + 1),
+          barcode: null,
+          price: variant.price,
+          compare_at_price: variant.compare_at_price,
+          cost_price: variant.cost_price,
+          stock_on_hand: variant.stock_on_hand,
+          stock_reserved: 0,
+          low_stock_threshold: variant.low_stock_threshold,
+          weight_kg: variant.weight_kg,
+          length_cm: variant.length_cm,
+          width_cm: variant.width_cm,
+          height_cm: variant.height_cm,
+          is_active: variant.is_active,
+          discount_enabled: false,
+          discount_percent: null,
+          discount_starts_at: null,
+          discount_ends_at: null,
+        },
+      }));
+
+      const variantIdMap = new Map<string, string>();
+
+      if (variantRows.length > 0) {
+        const { data: insertedVariants, error: insertVariantError } =
+          await supabase
+            .from("product_variants")
+            .insert(variantRows.map((item) => item.row))
+            .select("id, sku");
+
+        if (insertVariantError) throw insertVariantError;
+
+        for (const item of variantRows) {
+          const inserted = (insertedVariants || []).find(
+            (row) => row.sku === item.sku
+          );
+          if (inserted?.id) {
+            variantIdMap.set(item.oldId, inserted.id);
+          }
+        }
+      }
+
+      if (sourceFitments.length > 0) {
+        const { error: fitmentInsertError } = await supabase
+          .from("product_vehicle_fitments")
+          .insert(
+            sourceFitments.map((fitment) => ({
+              product_id: newProduct.id,
+              vehicle_id: fitment.vehicle_id,
+              variant_id: fitment.variant_id
+                ? variantIdMap.get(fitment.variant_id) || null
+                : null,
+              year_from: fitment.year_from,
+              year_to: fitment.year_to,
+              notes: fitment.notes,
+            }))
+          );
+
+        if (fitmentInsertError) throw fitmentInsertError;
+      }
+
+      setMessage("Product copied as draft. Opening the copy...");
+      window.location.assign(
+        "/admin/products/" + newProduct.id + "/edit"
+      );
+    } catch (caught) {
+      if (copiedProductId) {
+        await supabase.from("products").delete().eq("id", copiedProductId);
+      }
+
+      if (copiedStoragePaths.length > 0) {
+        await supabase.storage
+          .from("product-images")
+          .remove(copiedStoragePaths);
+      }
+
+      setMessage("");
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Unable to copy product."
+      );
+    } finally {
+      setProductActionId("");
+    }
+  }
+
   return (
     <main className={styles.adminShell}>
       <div className={styles.adminWorkspace}>
@@ -306,8 +648,7 @@ export default function AdminProductsPage() {
               </span>
               <h1>Products</h1>
               <p>
-                Shopee-style catalogue management with quick price and stock
-                editing.
+                Shopee-style catalogue management with quick edit, copy and delist controls.
               </p>
             </div>
 
@@ -359,7 +700,7 @@ export default function AdminProductsPage() {
                   <option value="active">Active</option>
                   <option value="draft">Draft</option>
                   <option value="pending_review">Pending review</option>
-                  <option value="inactive">Inactive</option>
+                  <option value="inactive">Delisted</option>
                 </select>
               </label>
 
@@ -472,13 +813,59 @@ export default function AdminProductsPage() {
                                 >
                                   EDIT
                                 </a>
-                                <a
-                                  href={"/products/" + product.slug}
-                                  className={styles.adminTextAction}
-                                  target="_blank"
+
+                                <button
+                                  type="button"
+                                  className={styles.productActionButton}
+                                  disabled={productActionId === product.id}
+                                  onClick={() => copyProduct(product)}
                                 >
-                                  VIEW
-                                </a>
+                                  {productActionId === product.id
+                                    ? "WORKING..."
+                                    : "COPY"}
+                                </button>
+
+                                {product.status === "active" ? (
+                                  <button
+                                    type="button"
+                                    className={
+                                      styles.productActionButton +
+                                      " " +
+                                      styles.productActionDanger
+                                    }
+                                    disabled={productActionId === product.id}
+                                    onClick={() =>
+                                      setListingStatus(product, "inactive")
+                                    }
+                                  >
+                                    DELIST
+                                  </button>
+                                ) : product.status === "inactive" ? (
+                                  <button
+                                    type="button"
+                                    className={
+                                      styles.productActionButton +
+                                      " " +
+                                      styles.productActionPositive
+                                    }
+                                    disabled={productActionId === product.id}
+                                    onClick={() =>
+                                      setListingStatus(product, "active")
+                                    }
+                                  >
+                                    LIST
+                                  </button>
+                                ) : null}
+
+                                {product.status === "active" ? (
+                                  <a
+                                    href={"/products/" + product.slug}
+                                    className={styles.adminTextAction}
+                                    target="_blank"
+                                  >
+                                    VIEW
+                                  </a>
+                                ) : null}
                               </div>
                             </td>
                           </tr>
