@@ -9468,3 +9468,34 @@ div{
     scroll-margin-top:170px;
   }
 }
+
+
+/* PRODUCT VARIATION IMAGE BUTTONS */
+.productOptionButton{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.productOptionButton>span{
+  min-width:0;
+}
+.productOptionImage{
+  width:38px;
+  height:38px;
+  flex:0 0 38px;
+  display:block;
+  object-fit:cover;
+  border:1px solid #e0e3e4;
+  border-radius:7px;
+  background:#fff;
+}
+.productOptionButton.selected .productOptionImage{
+  border-color:currentColor;
+}
+@media(max-width:540px){
+  .productOptionImage{
+    width:34px;
+    height:34px;
+    flex-basis:34px;
+  }
+}
