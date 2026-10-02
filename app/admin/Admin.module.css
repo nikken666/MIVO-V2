@@ -5812,3 +5812,118 @@
     border-radius:16px 16px 0 0;
   }
 }
+
+
+/* UNIVERSAL FITMENT + DESTINATION RESTRICTIONS */
+.fitmentModeGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:14px;
+}
+.fitmentModeGrid button{
+  min-height:74px;
+  padding:14px 16px;
+  border:1px solid #dfe2e3;
+  border-radius:11px;
+  background:#fff;
+  text-align:left;
+  cursor:pointer;
+}
+.fitmentModeGrid button strong,
+.fitmentModeGrid button span{
+  display:block;
+}
+.fitmentModeGrid button strong{
+  color:#262b2e;
+  font-size:9px;
+  font-weight:900;
+}
+.fitmentModeGrid button span{
+  margin-top:5px;
+  color:#868c90;
+  font-size:7px;
+  line-height:1.5;
+}
+.fitmentModeGrid button.active{
+  border-color:#ee4d2d;
+  background:#fff7f5;
+  box-shadow:0 0 0 2px rgba(238,77,45,.06);
+}
+.universalFitmentNotice{
+  padding:14px 16px;
+  border:1px solid #cfe3d4;
+  border-radius:10px;
+  background:#f4faf5;
+}
+.universalFitmentNotice strong,
+.universalFitmentNotice span{
+  display:block;
+}
+.universalFitmentNotice strong{
+  color:#2b7440;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.05em;
+}
+.universalFitmentNotice span{
+  margin-top:4px;
+  color:#617268;
+  font-size:8px;
+  line-height:1.5;
+}
+.destinationRestrictionBox{
+  margin-bottom:14px;
+  padding:14px 16px;
+  border:1px solid #e1e4e5;
+  border-radius:11px;
+  background:#fafafa;
+}
+.destinationRestrictionBox>div:first-child strong,
+.destinationRestrictionBox>div:first-child span{
+  display:block;
+}
+.destinationRestrictionBox>div:first-child strong{
+  font-size:8px;
+  font-weight:900;
+}
+.destinationRestrictionBox>div:first-child span{
+  margin-top:4px;
+  color:#888f93;
+  font-size:7px;
+}
+.destinationRestrictionOptions{
+  margin-top:10px;
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.destinationRestrictionOptions label{
+  min-height:34px;
+  padding:0 10px;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  border:1px solid #dfe2e3;
+  border-radius:8px;
+  background:#fff;
+  cursor:pointer;
+}
+.destinationRestrictionOptions input{
+  margin:0;
+}
+.destinationRestrictionOptions span{
+  color:#4a5054;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.03em;
+}
+@media(max-width:700px){
+  .fitmentModeGrid{
+    grid-template-columns:1fr;
+  }
+  .destinationRestrictionOptions{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+}
