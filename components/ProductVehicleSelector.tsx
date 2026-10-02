@@ -9,7 +9,7 @@ import {
   transmissionsForVehicle,
 } from "@/data/vehicles";
 import {
-  loadAccountVehicle,
+  loadAccountVehicles,
   saveAccountVehicle,
   type AccountVehicle,
 } from "@/lib/customerData";
@@ -31,6 +31,7 @@ export default function ProductVehicleSelector({ open, onClose }: Props) {
   const [variant, setVariant] = useState("");
   const [transmission, setTransmission] = useState("");
   const [savedVehicle, setSavedVehicle] = useState<AccountVehicle | null>(null);
+  const [savedVehicles, setSavedVehicles] = useState<AccountVehicle[]>([]);
   const [loadingSaved, setLoadingSaved] = useState(false);
   const [applying, setApplying] = useState(false);
 
@@ -48,12 +49,33 @@ export default function ProductVehicleSelector({ open, onClose }: Props) {
         if (raw) local = JSON.parse(raw) as AccountVehicle;
       } catch {}
 
-      if (active && local) setSavedVehicle(local);
+      if (active && local) {
+        setSavedVehicle(local);
+        setSavedVehicles([local]);
+      }
 
       try {
-        const accountVehicle = await loadAccountVehicle();
+        const garageVehicles = await loadAccountVehicles();
         if (!active) return;
 
+        const merged = [...garageVehicles];
+
+        if (
+          local &&
+          !merged.some(
+            (item) =>
+              item.vehicleId === local.vehicleId &&
+              item.year === local.year &&
+              item.variant === local.variant &&
+              (item.transmission || "") === (local.transmission || "")
+          )
+        ) {
+          merged.unshift(local);
+        }
+
+        setSavedVehicles(merged);
+
+        const accountVehicle = garageVehicles[0] || local;
         if (accountVehicle) {
           setSavedVehicle(accountVehicle);
           try {
@@ -192,6 +214,18 @@ export default function ProductVehicleSelector({ open, onClose }: Props) {
         if (synced) {
           vehicle = synced;
           setSavedVehicle(synced);
+          setSavedVehicles((current) => {
+            const rest = current.filter(
+              (item) =>
+                !(
+                  item.vehicleId === synced.vehicleId &&
+                  item.year === synced.year &&
+                  item.variant === synced.variant &&
+                  (item.transmission || "") === (synced.transmission || "")
+                )
+            );
+            return [synced, ...rest];
+          });
           try {
             window.localStorage.setItem(
               "mivo:selectedVehicle",
@@ -281,19 +315,54 @@ export default function ProductVehicleSelector({ open, onClose }: Props) {
           </button>
         </header>
 
-        {savedVehicle && step === 1 ? (
-          <button
-            type="button"
-            className="productVehicleSaved"
-            onClick={() => void applyVehicle(savedVehicle)}
-            disabled={applying}
-          >
-            <div>
-              <span>MY GARAGE · SAVED VEHICLE</span>
-              <strong>{savedVehicle.label}</strong>
+        {step === 1 && savedVehicles.length > 0 ? (
+          <div className="productVehicleGarage">
+            <div className="productVehicleGarageHead">
+              <span>MY GARAGE</span>
+              <strong>Quick switch vehicle</strong>
             </div>
-            <b>{applying ? "APPLYING..." : "USE THIS VEHICLE →"}</b>
-          </button>
+            <div className="productVehicleGarageList">
+              {savedVehicles.map((garageVehicle, index) => (
+                <button
+                  type="button"
+                  className={
+                    "productVehicleGarageItem" +
+                    (savedVehicle &&
+                    garageVehicle.vehicleId === savedVehicle.vehicleId &&
+                    garageVehicle.year === savedVehicle.year &&
+                    garageVehicle.variant === savedVehicle.variant &&
+                    (garageVehicle.transmission || "") ===
+                      (savedVehicle.transmission || "")
+                      ? " active"
+                      : "")
+                  }
+                  key={
+                    garageVehicle.id ||
+                    [
+                      garageVehicle.vehicleId,
+                      garageVehicle.year,
+                      garageVehicle.variant,
+                      garageVehicle.transmission || "",
+                    ].join("::")
+                  }
+                  onClick={() => void applyVehicle(garageVehicle)}
+                  disabled={applying}
+                >
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <div>
+                    <strong>{garageVehicle.label}</strong>
+                    <small>
+                      {index === 0 ? "CURRENT / DEFAULT VEHICLE" : "SAVED VEHICLE"}
+                    </small>
+                  </div>
+                  <b>{applying ? "..." : "USE"}</b>
+                </button>
+              ))}
+            </div>
+            <div className="productVehicleGarageDivider">
+              <span>OR SELECT ANOTHER VEHICLE</span>
+            </div>
+          </div>
         ) : loadingSaved && step === 1 ? (
           <div className="productVehicleSaved loading">
             Checking My Garage...
