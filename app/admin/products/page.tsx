@@ -364,6 +364,46 @@ export default function AdminProductsPage() {
     }
   }
 
+  async function publishDraftProduct(product: ProductRow) {
+    if (product.status !== "draft") return;
+
+    setProductActionId(product.id);
+    setDeleteConfirmId("");
+    setError("");
+    setMessage("");
+
+    try {
+      const supabase = createClient();
+      const { error: updateError } = await supabase
+        .from("products")
+        .update({
+          status: "active",
+          published_at: new Date().toISOString(),
+        })
+        .eq("id", product.id)
+        .eq("status", "draft");
+
+      if (updateError) throw updateError;
+
+      setProducts((current) =>
+        current.map((item) =>
+          item.id === product.id
+            ? { ...item, status: "active" }
+            : item
+        )
+      );
+      setMessage("Product published.");
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Unable to publish draft product."
+      );
+    } finally {
+      setProductActionId("");
+    }
+  }
+
   async function deleteDraftProduct(product: ProductRow) {
     if (product.status !== "draft") return;
 
@@ -707,22 +747,38 @@ export default function AdminProductsPage() {
                                     LIST
                                   </button>
                                 ) : product.status === "draft" ? (
-                                  <button
-                                    type="button"
-                                    className={
-                                      styles.productActionButton +
-                                      " " +
-                                      styles.productActionDanger
-                                    }
-                                    disabled={productActionId === product.id}
-                                    onClick={() => deleteDraftProduct(product)}
-                                  >
-                                    {productActionId === product.id
-                                      ? "DELETING..."
-                                      : deleteConfirmId === product.id
-                                        ? "CONFIRM DELETE"
-                                        : "DELETE"}
-                                  </button>
+                                  <>
+                                    <button
+                                      type="button"
+                                      className={
+                                        styles.productActionButton +
+                                        " " +
+                                        styles.productActionPositive
+                                      }
+                                      disabled={productActionId === product.id}
+                                      onClick={() => publishDraftProduct(product)}
+                                    >
+                                      {productActionId === product.id
+                                        ? "PUBLISHING..."
+                                        : "PUBLISH"}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className={
+                                        styles.productActionButton +
+                                        " " +
+                                        styles.productActionDanger
+                                      }
+                                      disabled={productActionId === product.id}
+                                      onClick={() => deleteDraftProduct(product)}
+                                    >
+                                      {productActionId === product.id
+                                        ? "WORKING..."
+                                        : deleteConfirmId === product.id
+                                          ? "CONFIRM DELETE"
+                                          : "DELETE"}
+                                    </button>
+                                  </>
                                 ) : null}
 
                                 {product.status === "active" ? (
