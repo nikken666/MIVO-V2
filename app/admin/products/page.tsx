@@ -6,6 +6,7 @@ import styles from "../Admin.module.css";
 
 type ProductVariantRow = {
   id: string;
+  sort_order: number;
   title: string | null;
   variation_1_value: string | null;
   variation_2_value: string | null;
@@ -86,6 +87,12 @@ export default function AdminProductsPage() {
   const [savingVariantId, setSavingVariantId] = useState("");
   const [productActionId, setProductActionId] = useState("");
   const [deleteConfirmId, setDeleteConfirmId] = useState("");
+  const [draggedVariant, setDraggedVariant] = useState<{
+    productId: string;
+    variantId: string;
+  } | null>(null);
+  const [savingVariantOrderProductId, setSavingVariantOrderProductId] =
+    useState("");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -135,13 +142,24 @@ export default function AdminProductsPage() {
         const { data, error: productError } = await supabase
           .from("products")
           .select(
-            "id, name, slug, status, primary_image_url, created_at, brands(name), product_variants(id, title, variation_1_value, variation_2_value, sku, price, stock_on_hand, stock_reserved, low_stock_threshold)"
+            "id, name, slug, status, primary_image_url, created_at, brands(name), product_variants(id, sort_order, title, variation_1_value, variation_2_value, sku, price, stock_on_hand, stock_reserved, low_stock_threshold)"
           )
           .order("created_at", { ascending: false });
 
         if (productError) throw productError;
 
-        const rows = (data as ProductRow[] | null) || [];
+        const rows = ((data as ProductRow[] | null) || []).map(
+          (product) => ({
+            ...product,
+            product_variants: (product.product_variants || [])
+              .slice()
+              .sort(
+                (a, b) =>
+                  Number(a.sort_order || 0) -
+                  Number(b.sort_order || 0)
+              ),
+          })
+        );
         setProducts(rows);
         setExpanded(
           new Set(
@@ -232,6 +250,88 @@ export default function AdminProductsPage() {
       else next.add(productId);
       return next;
     });
+  }
+
+  async function dropVariant(
+    productId: string,
+    targetVariantId: string
+  ) {
+    if (
+      !draggedVariant ||
+      draggedVariant.productId !== productId ||
+      draggedVariant.variantId === targetVariantId
+    ) {
+      setDraggedVariant(null);
+      return;
+    }
+
+    const product = products.find((item) => item.id === productId);
+    if (!product) {
+      setDraggedVariant(null);
+      return;
+    }
+
+    const current = (product.product_variants || [])
+      .slice()
+      .sort(
+        (a, b) =>
+          Number(a.sort_order || 0) - Number(b.sort_order || 0)
+      );
+    const from = current.findIndex(
+      (item) => item.id === draggedVariant.variantId
+    );
+    const to = current.findIndex(
+      (item) => item.id === targetVariantId
+    );
+
+    if (from < 0 || to < 0) {
+      setDraggedVariant(null);
+      return;
+    }
+
+    const next = [...current];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+
+    const reordered = next.map((item, index) => ({
+      ...item,
+      sort_order: index,
+    }));
+
+    setProducts((all) =>
+      all.map((item) =>
+        item.id === productId
+          ? { ...item, product_variants: reordered }
+          : item
+      )
+    );
+    setDraggedVariant(null);
+    setSavingVariantOrderProductId(productId);
+    setError("");
+    setMessage("");
+
+    try {
+      const supabase = createClient();
+
+      for (const [index, variant] of reordered.entries()) {
+        const { error: updateError } = await supabase
+          .from("product_variants")
+          .update({ sort_order: index })
+          .eq("id", variant.id);
+
+        if (updateError) throw updateError;
+      }
+
+      setMessage("Variation order updated.");
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Unable to update variation order."
+      );
+    } finally {
+      setSavingVariantOrderProductId("");
+    }
   }
 
   function beginQuickEdit(variant: ProductVariantRow) {
@@ -801,8 +901,47 @@ export default function AdminProductsPage() {
 
                                 return (
                                   <tr
-                                    className={styles.productVariantRow}
+                                    className={
+                                      styles.productVariantRow +
+                                      (draggedVariant?.variantId === variant.id
+                                        ? " " + styles.productVariantDragging
+                                        : "")
+                                    }
                                     key={variant.id}
+                                    draggable={
+                                      !editing &&
+                                      savingVariantOrderProductId !== product.id
+                                    }
+                                    onDragStart={(event) => {
+                                      event.dataTransfer.effectAllowed = "move";
+                                      event.dataTransfer.setData(
+                                        "text/plain",
+                                        variant.id
+                                      );
+                                      setDraggedVariant({
+                                        productId: product.id,
+                                        variantId: variant.id,
+                                      });
+                                    }}
+                                    onDragOver={(event) => {
+                                      if (
+                                        draggedVariant?.productId ===
+                                        product.id
+                                      ) {
+                                        event.preventDefault();
+                                        event.dataTransfer.dropEffect = "move";
+                                      }
+                                    }}
+                                    onDrop={(event) => {
+                                      event.preventDefault();
+                                      void dropVariant(
+                                        product.id,
+                                        variant.id
+                                      );
+                                    }}
+                                    onDragEnd={() =>
+                                      setDraggedVariant(null)
+                                    }
                                   >
                                     <td>
                                       <div
@@ -810,6 +949,14 @@ export default function AdminProductsPage() {
                                           styles.productVariantIdentity
                                         }
                                       >
+                                        <span
+                                          className={
+                                            styles.productVariantDragHandle
+                                          }
+                                          title="Drag to reorder"
+                                        >
+                                          ⋮⋮
+                                        </span>
                                         <span>
                                           {String(index + 1).padStart(
                                             2,
