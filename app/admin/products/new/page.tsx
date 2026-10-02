@@ -19,13 +19,43 @@ type Store = { id: string; shop_name: string; status: string };
 type VehicleDbRow = {
   id: string;
   generation_key: string | null;
+  make: string;
+  model: string;
+  generation: string | null;
   variant: string | null;
   transmission: string | null;
+  year_from: number | null;
+  year_to: number | null;
+};
+
+type CopySourceImage = {
+  url: string;
+  altText: string | null;
+  sortOrder: number;
+};
+
+type CopyDefaults = {
+  name: string;
+  categoryId: string;
+  brandId: string;
+  shortDescription: string;
+  description: string;
+  warrantyMonths: string;
+  lowStockThreshold: string;
+  weightKg: string;
+  lengthCm: string;
+  widthCm: string;
+  heightCm: string;
+  simpleSku: string;
+  simplePrice: string;
+  simpleCompareAtPrice: string;
+  simpleStock: string;
 };
 
 type VariationImageDraft = {
-  file: File;
+  file?: File;
   preview: string;
+  sourceUrl?: string;
 };
 
 type VariantDraft = {
@@ -44,6 +74,13 @@ function slugify(value: string) {
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function storagePathFromUrl(url: string) {
+  const marker = "/storage/v1/object/public/product-images/";
+  const index = url.indexOf(marker);
+  if (index < 0) return "";
+  return decodeURIComponent(url.slice(index + marker.length));
 }
 
 function safeFileName(value: string) {
@@ -92,6 +129,9 @@ export default function AdminNewProductPage() {
   const [variantRows, setVariantRows] = useState<VariantDraft[]>([]);
   const [useVariationImages, setUseVariationImages] = useState(false);
   const [variationImages, setVariationImages] = useState<Record<string, VariationImageDraft>>({});
+  const [copyMode, setCopyMode] = useState(false);
+  const [copyDefaults, setCopyDefaults] = useState<CopyDefaults | null>(null);
+  const [sourceImages, setSourceImages] = useState<CopySourceImage[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
