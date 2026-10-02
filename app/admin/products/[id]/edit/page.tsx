@@ -1183,6 +1183,7 @@ export default function EditProductPage() {
           product.variation_1_name || product.variation_2_name
             ? [option1, option2].filter(Boolean).join(" / ") || "Default"
             : variant.title?.trim() || "Default";
+
         const variantImageUrl = option1
           ? variationImageUrls.has(option1)
             ? variationImageUrls.get(option1) ?? null
@@ -1221,28 +1222,6 @@ export default function EditProductPage() {
 
           if (variantError) throw variantError;
           variantIdMap.set(variant.id, insertedVariant.id);
-        } else {
-            const { data: insertedVariant, error: variantError } =
-              await supabase
-                .from("product_variants")
-                .insert({
-                  product_id: product.id,
-                  seller_id: product.seller_id,
-                  ...payload,
-                  stock_reserved: 0,
-                  is_active: true,
-                })
-                .select("id")
-                .single();
-
-            if (variantError) throw variantError;
-            variantIdMap.set(variant.id, insertedVariant.id);
-            sameProductSkuRows.set(normalizedSku, {
-              id: insertedVariant.id,
-              sku: normalizedSku,
-              product_id: product.id,
-            });
-          }
         } else {
           const { error: variantError } = await supabase
             .from("product_variants")
