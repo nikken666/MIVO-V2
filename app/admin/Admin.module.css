@@ -5206,3 +5206,109 @@
     grid-template-columns:1fr;
   }
 }
+
+
+/* SHOPEE-STYLE PRODUCT STATUS TABS */
+.productStatusTabs{
+  display:flex;
+  align-items:flex-end;
+  gap:8px;
+  min-height:58px;
+  margin:0 -24px;
+  padding:0 24px;
+  border-top:1px solid #eef0f1;
+  border-bottom:1px solid #e4e7e8;
+  background:#fff;
+}
+.productStatusTabs button{
+  position:relative;
+  min-height:58px;
+  padding:0 18px;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  border:0;
+  background:transparent;
+  color:#252a2d;
+  font-size:10px;
+  font-weight:800;
+  cursor:pointer;
+}
+.productStatusTabs button b{
+  color:#6f7579;
+  font-size:9px;
+  font-weight:700;
+}
+.productStatusTabs button::after{
+  content:"";
+  position:absolute;
+  left:10px;
+  right:10px;
+  bottom:-1px;
+  height:3px;
+  border-radius:3px 3px 0 0;
+  background:transparent;
+}
+.productStatusTabs button.active,
+.productStatusTabs button.active b{
+  color:#ee4d2d;
+}
+.productStatusTabs button.active::after{
+  background:#ee4d2d;
+}
+.productLiveSubTabs{
+  display:flex;
+  align-items:center;
+  gap:28px;
+  min-height:50px;
+  margin:0 -24px 16px;
+  padding:0 24px;
+  border-bottom:1px solid #eceeef;
+  background:#fafafa;
+}
+.productLiveSubTabs button{
+  position:relative;
+  min-height:50px;
+  padding:0 4px;
+  border:0;
+  background:transparent;
+  color:#4d5357;
+  font-size:9px;
+  font-weight:800;
+  cursor:pointer;
+}
+.productLiveSubTabs button::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:-1px;
+  height:2px;
+  background:transparent;
+}
+.productLiveSubTabs button.active{
+  color:#ee4d2d;
+}
+.productLiveSubTabs button.active::after{
+  background:#ee4d2d;
+}
+.productCatalogueSearch{
+  width:min(620px,100%);
+  margin:0 0 18px;
+}
+@media(max-width:680px){
+  .productStatusTabs,
+  .productLiveSubTabs{
+    margin-left:-18px;
+    margin-right:-18px;
+    padding-left:14px;
+    padding-right:14px;
+  }
+  .productStatusTabs button{
+    min-height:54px;
+    padding:0 12px;
+  }
+  .productLiveSubTabs{
+    gap:20px;
+  }
+}
