@@ -1765,58 +1765,201 @@ export default function AdminNewProductPage() {
                     <div className={styles.productEditorCardHead}>
                       <div>
                         <span>05 · SHIPPING</span>
-                        <h2>Parcel Information</h2>
+                        <h2>Weight & Parcel Size</h2>
                         <p>
-                          Used later for courier quotations and shipping rules.
+                          Choose one shared parcel size or set a different size
+                          for every variation.
                         </p>
                       </div>
                     </div>
 
-                    <div className={styles.editorTwoCol}>
-                      <label className={styles.adminField}>
-                        <span>WEIGHT (KG)</span>
-                        <input
-                          name="weight_kg"
-                          type="number"
-                          min="0"
-                          step="0.001"
-                          defaultValue={copyDefaults?.weightKg || ""}
-                        />
-                      </label>
+                    {hasVariations && variantRows.length > 1 ? (
+                      <div className={styles.shippingMode}>
+                        <button
+                          type="button"
+                          className={
+                            shippingMode === "same" ? styles.active : ""
+                          }
+                          onClick={() => setShippingMode("same")}
+                        >
+                          <strong>SAME SIZE FOR ALL VARIATIONS</strong>
+                          <span>
+                            One weight and one L × W × H will be applied to every SKU.
+                          </span>
+                        </button>
 
-                      <label className={styles.adminField}>
-                        <span>LENGTH (CM)</span>
-                        <input
-                          name="length_cm"
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          defaultValue={copyDefaults?.lengthCm || ""}
-                        />
-                      </label>
+                        <button
+                          type="button"
+                          className={
+                            shippingMode === "different" ? styles.active : ""
+                          }
+                          onClick={() => setShippingMode("different")}
+                        >
+                          <strong>DIFFERENT SIZE BY VARIATION</strong>
+                          <span>
+                            Each SKU can have its own weight and parcel dimensions.
+                          </span>
+                        </button>
+                      </div>
+                    ) : null}
 
-                      <label className={styles.adminField}>
-                        <span>WIDTH (CM)</span>
-                        <input
-                          name="width_cm"
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          defaultValue={copyDefaults?.widthCm || ""}
-                        />
-                      </label>
+                    {shippingMode === "same" ||
+                    !hasVariations ||
+                    variantRows.length <= 1 ? (
+                      <div className={styles.editorTwoCol}>
+                        <label className={styles.adminField}>
+                          <span>WEIGHT (KG)</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.001"
+                            value={sharedShipping.weight_kg}
+                            onChange={(event) =>
+                              shippingValue(
+                                "weight_kg",
+                                event.target.value
+                              )
+                            }
+                          />
+                        </label>
 
-                      <label className={styles.adminField}>
-                        <span>HEIGHT (CM)</span>
-                        <input
-                          name="height_cm"
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          defaultValue={copyDefaults?.heightCm || ""}
-                        />
-                      </label>
-                    </div>
+                        <label className={styles.adminField}>
+                          <span>LENGTH (CM)</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={sharedShipping.length_cm}
+                            onChange={(event) =>
+                              shippingValue(
+                                "length_cm",
+                                event.target.value
+                              )
+                            }
+                          />
+                        </label>
+
+                        <label className={styles.adminField}>
+                          <span>WIDTH (CM)</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={sharedShipping.width_cm}
+                            onChange={(event) =>
+                              shippingValue(
+                                "width_cm",
+                                event.target.value
+                              )
+                            }
+                          />
+                        </label>
+
+                        <label className={styles.adminField}>
+                          <span>HEIGHT (CM)</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={sharedShipping.height_cm}
+                            onChange={(event) =>
+                              shippingValue(
+                                "height_cm",
+                                event.target.value
+                              )
+                            }
+                          />
+                        </label>
+                      </div>
+                    ) : (
+                      <div className={styles.adminTableWrap}>
+                        <table className={styles.variantDimensionTable}>
+                          <thead>
+                            <tr>
+                              <th>VARIATION</th>
+                              <th>WEIGHT KG</th>
+                              <th>LENGTH CM</th>
+                              <th>WIDTH CM</th>
+                              <th>HEIGHT CM</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {variantRows.map((variant) => (
+                              <tr key={variant.key}>
+                                <td>
+                                  <strong>
+                                    {[variant.value1, variant.value2]
+                                      .filter(Boolean)
+                                      .join(" / ") || "Default"}
+                                  </strong>
+                                  <div>{variant.sku || "SKU not set"}</div>
+                                </td>
+                                <td>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.001"
+                                    value={variant.weight_kg}
+                                    onChange={(event) =>
+                                      updateVariant(
+                                        variant.key,
+                                        "weight_kg",
+                                        event.target.value
+                                      )
+                                    }
+                                  />
+                                </td>
+                                <td>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={variant.length_cm}
+                                    onChange={(event) =>
+                                      updateVariant(
+                                        variant.key,
+                                        "length_cm",
+                                        event.target.value
+                                      )
+                                    }
+                                  />
+                                </td>
+                                <td>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={variant.width_cm}
+                                    onChange={(event) =>
+                                      updateVariant(
+                                        variant.key,
+                                        "width_cm",
+                                        event.target.value
+                                      )
+                                    }
+                                  />
+                                </td>
+                                <td>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={variant.height_cm}
+                                    onChange={(event) =>
+                                      updateVariant(
+                                        variant.key,
+                                        "height_cm",
+                                        event.target.value
+                                      )
+                                    }
+                                  />
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </section>
 
                   <section
