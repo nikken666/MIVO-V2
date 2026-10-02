@@ -36,6 +36,7 @@ type EditProduct = {
 
 type EditVariant = {
   id: string;
+  sort_order: number;
   title: string | null;
   variation_1_value: string | null;
   variation_2_value: string | null;
@@ -218,10 +219,11 @@ export default function EditProductPage() {
           supabase
             .from("product_variants")
             .select(
-              "id, title, variation_1_value, variation_2_value, variant_image_url, sku, price, compare_at_price, stock_on_hand, stock_reserved, low_stock_threshold, weight_kg, length_cm, width_cm, height_cm"
+              "id, sort_order, title, variation_1_value, variation_2_value, variant_image_url, sku, price, compare_at_price, stock_on_hand, stock_reserved, low_stock_threshold, weight_kg, length_cm, width_cm, height_cm"
             )
             .eq("product_id", productId)
-            .order("created_at"),
+            .order("sort_order", { ascending: true })
+            .order("created_at", { ascending: true }),
           supabase
             .from("brands")
             .select("id, name")
@@ -783,7 +785,7 @@ export default function EditProductPage() {
 
       if (productError) throw productError;
 
-      for (const variant of variants) {
+      for (const [variantIndex, variant] of variants.entries()) {
         const compareAt =
           variant.compare_at_price === null ||
           variant.compare_at_price === ""
@@ -808,6 +810,7 @@ export default function EditProductPage() {
         const { error: variantError } = await supabase
           .from("product_variants")
           .update({
+            sort_order: variantIndex,
             title: variant.title?.trim() || "Default",
             variant_image_url:
               variant.variation_1_value?.trim()
