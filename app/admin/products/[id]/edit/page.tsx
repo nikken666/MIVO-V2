@@ -32,6 +32,8 @@ type EditProduct = {
   published_at: string | null;
   variation_1_name: string | null;
   variation_2_name: string | null;
+  is_universal_fitment: boolean;
+  restricted_shipping_states: string[];
 };
 
 type EditVariant = {
@@ -155,6 +157,8 @@ export default function EditProductPage() {
   const [categories, setCategories] = useState<CategoryNode[]>([]);
   const [vehicleRows, setVehicleRows] = useState<VehicleRow[]>([]);
   const [fitments, setFitments] = useState<AdminFitmentDraft[]>([]);
+  const [isUniversalFitment, setIsUniversalFitment] = useState(false);
+  const [restrictedShippingStates, setRestrictedShippingStates] = useState<string[]>([]);
   const [images, setImages] = useState<ImageDraft[]>([]);
   const [originalImageRows, setOriginalImageRows] = useState<ProductImageRow[]>([]);
   const [variationImageEdits, setVariationImageEdits] = useState<Record<string, VariationImageEdit>>({});
@@ -212,7 +216,7 @@ export default function EditProductPage() {
           supabase
             .from("products")
             .select(
-              "id, seller_id, category_id, brand_id, name, slug, short_description, description, primary_image_url, warranty_months, status, published_at, variation_1_name, variation_2_name"
+              "id, seller_id, category_id, brand_id, name, slug, short_description, description, primary_image_url, warranty_months, status, published_at, variation_1_name, variation_2_name, is_universal_fitment, restricted_shipping_states"
             )
             .eq("id", productId)
             .single(),
@@ -350,6 +354,12 @@ export default function EditProductPage() {
         );
 
         setProduct(productRow);
+        setIsUniversalFitment(Boolean(productRow.is_universal_fitment));
+        setRestrictedShippingStates(
+          Array.isArray(productRow.restricted_shipping_states)
+            ? productRow.restricted_shipping_states
+            : []
+        );
         setVariants(variantRows);
         setVariationImageEdits(() => {
           const next: Record<string, VariationImageEdit> = {};
@@ -774,6 +784,8 @@ export default function EditProductPage() {
             String(form.get("variation_1_name") || "").trim() || null,
           variation_2_name:
             String(form.get("variation_2_name") || "").trim() || null,
+          is_universal_fitment: isUniversalFitment,
+          restricted_shipping_states: restrictedShippingStates,
           primary_image_url: finalImages[0].url,
           status,
           published_at:
@@ -853,7 +865,7 @@ export default function EditProductPage() {
 
       if (deleteFitmentError) throw deleteFitmentError;
 
-      if (fitments.length > 0) {
+      if (!isUniversalFitment && fitments.length > 0) {
         const vehicleCache = new Map(
           vehicleRows.map((row) => [
             [
@@ -1394,21 +1406,51 @@ export default function EditProductPage() {
                       <span>04 · VEHICLE FITMENT</span>
                       <h2>Compatible Vehicles</h2>
                       <p>
-                        Add or remove the vehicles that can use this product.
+                        Choose specific vehicles, or use Match All Cars for
+                        universal products such as coolant and engine oil.
                       </p>
                     </div>
                   </div>
 
-                  <AdminFitmentBuilder
-                    value={fitments}
-                    onChange={setFitments}
-                    variantOptions={variants.map((variant) => ({
-                      key: variant.id,
-                      dbId: variant.id,
-                      label: variantTitle(variant),
-                      sku: variant.sku,
-                    }))}
-                  />
+                  <div className={styles.fitmentModeGrid}>
+                    <button
+                      type="button"
+                      className={!isUniversalFitment ? styles.active : ""}
+                      onClick={() => setIsUniversalFitment(false)}
+                    >
+                      <strong>SELECT VEHICLES</strong>
+                      <span>Use detailed make, model and variant fitment.</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={isUniversalFitment ? styles.active : ""}
+                      onClick={() => setIsUniversalFitment(true)}
+                    >
+                      <strong>MATCH ALL CARS</strong>
+                      <span>Show this product as compatible with every vehicle.</span>
+                    </button>
+                  </div>
+
+                  {isUniversalFitment ? (
+                    <div className={styles.universalFitmentNotice}>
+                      <strong>MATCH ALL CARS ENABLED</strong>
+                      <span>
+                        Buyers will see this product as compatible with any
+                        vehicle selected in My Garage.
+                      </span>
+                    </div>
+                  ) : (
+                    <AdminFitmentBuilder
+                      value={fitments}
+                      onChange={setFitments}
+                      variantOptions={variants.map((variant) => ({
+                        key: variant.id,
+                        dbId: variant.id,
+                        label: variantTitle(variant),
+                        sku: variant.sku,
+                      }))}
+                    />
+                  )}
                 </section>
 
                 <section id="shipping" className={styles.productEditorCard}>
@@ -1420,6 +1462,33 @@ export default function EditProductPage() {
                         Choose whether every variation shares one parcel size
                         or each SKU has its own measurements.
                       </p>
+                    </div>
+                  </div>
+
+                  <div className={styles.destinationRestrictionBox}>
+                    <div>
+                      <strong>DESTINATION RESTRICTIONS</strong>
+                      <span>
+                        Choose destinations where this product cannot be shipped.
+                      </span>
+                    </div>
+                    <div className={styles.destinationRestrictionOptions}>
+                      {["Sabah", "Sarawak", "W.P. Labuan"].map((state) => (
+                        <label key={state}>
+                          <input
+                            type="checkbox"
+                            checked={restrictedShippingStates.includes(state)}
+                            onChange={(event) =>
+                              setRestrictedShippingStates((current) =>
+                                event.target.checked
+                                  ? Array.from(new Set([...current, state]))
+                                  : current.filter((item) => item !== state)
+                              )
+                            }
+                          />
+                          <span>DO NOT SHIP TO {state.toUpperCase()}</span>
+                        </label>
+                      ))}
                     </div>
                   </div>
 
