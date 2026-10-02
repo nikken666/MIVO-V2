@@ -90,6 +90,19 @@ export async function getLiveFitmentStatuses(
 
   try {
     const supabase = await createClient();
+
+    const { data: universalRows, error: universalError } = await supabase
+      .from("products")
+      .select("id")
+      .in("id", productIds)
+      .eq("is_universal_fitment", true);
+
+    if (universalError) throw universalError;
+
+    const universalIds = new Set(
+      (universalRows || []).map((row) => row.id as string)
+    );
+
     const { ids, selectedYear } =
       await matchingVehicleIds(selected);
     const matchedVehicleIds = new Set(ids);
@@ -108,6 +121,11 @@ export async function getLiveFitmentStatuses(
     const result: Record<string, FitmentStatus> = {};
 
     for (const productId of productIds) {
+      if (universalIds.has(productId)) {
+        result[productId] = "universal";
+        continue;
+      }
+
       const productRows = rows.filter(
         (row) => row.product_id === productId
       );
@@ -139,6 +157,27 @@ export async function getLiveProductFitmentDetail(
 
   try {
     const supabase = await createClient();
+
+    const { data: productRow, error: productError } = await supabase
+      .from("products")
+      .select("is_universal_fitment")
+      .eq("id", productId)
+      .maybeSingle();
+
+    if (productError) throw productError;
+
+    if (productRow?.is_universal_fitment) {
+      const variantStatuses = Object.fromEntries(
+        variantIds.map((id) => [id, "universal" as FitmentStatus])
+      );
+
+      return {
+        productStatus: "universal",
+        variantStatuses,
+        confirmedVariantIds: variantIds,
+      };
+    }
+
     const { ids, selectedYear } =
       await matchingVehicleIds(selected);
     const matchedVehicleIds = new Set(ids);
