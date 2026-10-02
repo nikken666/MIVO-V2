@@ -153,6 +153,7 @@ export default function EditProductPage() {
 
   const [product, setProduct] = useState<EditProduct | null>(null);
   const [variants, setVariants] = useState<EditVariant[]>([]);
+  const [initialVariantIds, setInitialVariantIds] = useState<string[]>([]);
   const [brands, setBrands] = useState<Option[]>([]);
   const [categories, setCategories] = useState<CategoryNode[]>([]);
   const [vehicleRows, setVehicleRows] = useState<VehicleRow[]>([]);
@@ -361,6 +362,7 @@ export default function EditProductPage() {
             : []
         );
         setVariants(variantRows);
+        setInitialVariantIds(variantRows.map((variant) => variant.id));
         setVariationImageEdits(() => {
           const next: Record<string, VariationImageEdit> = {};
           for (const variant of variantRows) {
@@ -428,6 +430,36 @@ export default function EditProductPage() {
       : "No variation names";
   }, [product]);
 
+  const variation1Options = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          variants
+            .map((variant) =>
+              (
+                variant.variation_1_value ||
+                (!product?.variation_1_name ? variant.title : "") ||
+                ""
+              ).trim()
+            )
+            .filter(Boolean)
+        )
+      ),
+    [variants, product?.variation_1_name]
+  );
+
+  const variation2Options = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          variants
+            .map((variant) => (variant.variation_2_value || "").trim())
+            .filter(Boolean)
+        )
+      ),
+    [variants]
+  );
+
   function updateVariant(
     id: string,
     field:
@@ -464,85 +496,308 @@ export default function EditProductPage() {
     );
   }
 
-  function updateVariationOption(
-    id: string,
+  function setVariationName(axis: 1 | 2, value: string) {
+    if (!product) return;
+
+    if (axis === 1) {
+      const hadName = Boolean(product.variation_1_name?.trim());
+
+      setProduct({
+        ...product,
+        variation_1_name: value,
+      });
+
+      if (!hadName && value.trim()) {
+        setVariants((current) =>
+          current.map((variant, index) => ({
+            ...variant,
+            variation_1_value:
+              variant.variation_1_value?.trim() ||
+              variant.title?.trim() ||
+              "OPTION " + String(index + 1),
+          }))
+        );
+      }
+
+      return;
+    }
+
+    setProduct({
+      ...product,
+      variation_2_name: value,
+    });
+  }
+
+  function variationTemplate(source?: EditVariant): Omit<EditVariant, "id"> {
+    const shipping =
+      shippingMode === "same"
+        ? sharedShipping
+        : shippingFromVariant(source || variants[0]);
+
+    return {
+      sort_order: variants.length,
+      title: "New variation",
+      variation_1_value: null,
+      variation_2_value: null,
+      variant_image_url: null,
+      sku: "",
+      price: source?.price ?? 0,
+      compare_at_price: source?.compare_at_price ?? null,
+      stock_on_hand: 0,
+      stock_reserved: 0,
+      low_stock_threshold: source?.low_stock_threshold ?? 5,
+      weight_kg: shipping.weight_kg,
+      length_cm: shipping.length_cm,
+      width_cm: shipping.width_cm,
+      height_cm: shipping.height_cm,
+    };
+  }
+
+  function renameVariationSetupOption(
     axis: 1 | 2,
+    oldValue: string,
     value: string
   ) {
-    const currentVariant = variants.find((item) => item.id === id);
-    if (!currentVariant) return;
+    const nextValue = value.trim();
+    if (!nextValue || nextValue === oldValue) return;
 
-    const oldValue =
-      axis === 1
-        ? currentVariant.variation_1_value || ""
-        : currentVariant.variation_2_value || "";
+    const existing =
+      axis === 1 ? variation1Options : variation2Options;
+
+    if (existing.some((option) => option === nextValue && option !== oldValue)) {
+      setError("Variation option names must be unique.");
+      return;
+    }
 
     setVariants((current) =>
       current.map((variant) => {
-        if (variant.id !== id) return variant;
+        if (axis === 1) {
+          const currentValue = (
+            variant.variation_1_value ||
+            (!product?.variation_1_name ? variant.title : "") ||
+            ""
+          ).trim();
 
-        const next = {
-          ...variant,
-          [axis === 1 ? "variation_1_value" : "variation_2_value"]: value,
-        };
+          if (currentValue !== oldValue) return variant;
 
-        if (!product?.variation_2_name && axis === 1) {
-          next.title = value;
+          return {
+            ...variant,
+            variation_1_value: product?.variation_1_name
+              ? nextValue
+              : variant.variation_1_value,
+            title: product?.variation_1_name
+              ? variant.title
+              : nextValue,
+          };
         }
 
-        return next;
+        if ((variant.variation_2_value || "").trim() !== oldValue) {
+          return variant;
+        }
+
+        return {
+          ...variant,
+          variation_2_value: nextValue,
+        };
       })
     );
 
-    if (axis === 1 && oldValue && oldValue !== value) {
+    if (axis === 1) {
       setVariationImageEdits((current) => {
-        if (!current[oldValue] || current[value]) return current;
+        if (!current[oldValue] || current[nextValue]) return current;
         const next = { ...current };
-        next[value] = next[oldValue];
+        next[nextValue] = next[oldValue];
         delete next[oldValue];
+        return next;
+      });
+    }
+
+    setError("");
+  }
+
+  function addVariationSetupOption(axis: 1 | 2) {
+    if (!product) return;
+
+    if (axis === 1 && !product.variation_1_name?.trim()) {
+      setError("Enter Variation 1 name first.");
+      return;
+    }
+
+    if (axis === 2 && !product.variation_2_name?.trim()) {
+      setError("Enter Variation 2 name first.");
+      return;
+    }
+
+    const options = axis === 1 ? variation1Options : variation2Options;
+    const nextValue = "OPTION " + String(options.length + 1);
+
+    if (axis === 1) {
+      const secondOptions =
+        product.variation_2_name?.trim() && variation2Options.length
+          ? variation2Options
+          : [null];
+
+      const additions = secondOptions.map((option2, index) => {
+        const template = variationTemplate(variants[0]);
+        return {
+          id: "new-" + crypto.randomUUID(),
+          ...template,
+          sort_order: variants.length + index,
+          title: [nextValue, option2].filter(Boolean).join(" / "),
+          variation_1_value: nextValue,
+          variation_2_value: option2,
+        };
+      });
+
+      if (variants.length + additions.length > 50) {
+        setError("A product can have up to 50 SKU variations.");
+        return;
+      }
+
+      setVariants((current) => [...current, ...additions]);
+      setError("");
+      return;
+    }
+
+    if (variation1Options.length === 0) {
+      setError("Add at least one Variation 1 option first.");
+      return;
+    }
+
+    const additions = variation1Options.map((option1, index) => {
+      const source = variants.find(
+        (variant) =>
+          (variant.variation_1_value || "").trim() === option1
+      );
+      const template = variationTemplate(source);
+
+      return {
+        id: "new-" + crypto.randomUUID(),
+        ...template,
+        sort_order: variants.length + index,
+        title: option1 + " / " + nextValue,
+        variation_1_value: option1,
+        variation_2_value: nextValue,
+      };
+    });
+
+    if (variants.length + additions.length > 50) {
+      setError("A product can have up to 50 SKU variations.");
+      return;
+    }
+
+    setVariants((current) => [...current, ...additions]);
+    setError("");
+  }
+
+  function removeVariationSetupOption(axis: 1 | 2, value: string) {
+    const removedIds = variants
+      .filter((variant) => {
+        if (axis === 1) {
+          const option = (
+            variant.variation_1_value ||
+            (!product?.variation_1_name ? variant.title : "") ||
+            ""
+          ).trim();
+          return option === value;
+        }
+
+        return (variant.variation_2_value || "").trim() === value;
+      })
+      .map((variant) => variant.id);
+
+    setVariants((current) =>
+      current.filter((variant) => !removedIds.includes(variant.id))
+    );
+
+    setFitments((current) =>
+      current.filter(
+        (fitment) =>
+          !fitment.targetVariantKey ||
+          !removedIds.includes(fitment.targetVariantKey)
+      )
+    );
+
+    if (axis === 1) {
+      setVariationImageEdits((current) => {
+        const next = { ...current };
+        delete next[value];
         return next;
       });
     }
   }
 
-  function addVariationOption() {
-    if (variants.length >= 50) {
-      setError("A product can have up to 50 SKU variations.");
+  function enableVariation2() {
+    if (!product) return;
+
+    if (!product.variation_1_name?.trim()) {
+      setError("Set up Variation 1 before adding Variation 2.");
       return;
     }
 
-    const shipping = shippingMode === "same"
-      ? sharedShipping
-      : shippingFromVariant(variants[variants.length - 1]);
+    setProduct({
+      ...product,
+      variation_2_name: "Variation 2",
+    });
 
-    const optionNumber = variants.length + 1;
-    const option1 = product?.variation_1_name
-      ? "NEW OPTION " + optionNumber
-      : "NEW VARIATION " + optionNumber;
-
-    setVariants((current) => [
-      ...current,
-      {
-        id: "new-" + crypto.randomUUID(),
-        sort_order: current.length,
-        title: option1,
-        variation_1_value: product?.variation_1_name ? option1 : null,
-        variation_2_value: null,
-        variant_image_url: null,
-        sku: "",
-        price: 0,
-        compare_at_price: null,
-        stock_on_hand: 0,
-        stock_reserved: 0,
-        low_stock_threshold: 5,
-        weight_kg: shipping.weight_kg,
-        length_cm: shipping.length_cm,
-        width_cm: shipping.width_cm,
-        height_cm: shipping.height_cm,
-      },
-    ]);
+    if (variation1Options.length > 0 && variation2Options.length === 0) {
+      const defaultOption = "OPTION 1";
+      setVariants((current) =>
+        current.map((variant) => ({
+          ...variant,
+          variation_2_value: defaultOption,
+          title:
+            (variant.variation_1_value || variant.title || "Option") +
+            " / " +
+            defaultOption,
+        }))
+      );
+    }
 
     setError("");
+  }
+
+  function disableVariation2() {
+    if (!product) return;
+
+    const kept = new Map<string, EditVariant>();
+
+    for (const variant of variants) {
+      const option1 = (
+        variant.variation_1_value ||
+        variant.title ||
+        "Default"
+      ).trim();
+
+      if (!kept.has(option1)) {
+        kept.set(option1, {
+          ...variant,
+          variation_2_value: null,
+          title: option1,
+        });
+      }
+    }
+
+    const nextVariants = Array.from(kept.values()).map(
+      (variant, index) => ({
+        ...variant,
+        sort_order: index,
+      })
+    );
+    const keptIds = new Set(nextVariants.map((variant) => variant.id));
+
+    setVariants(nextVariants);
+    setFitments((current) =>
+      current.filter(
+        (fitment) =>
+          !fitment.targetVariantKey ||
+          keptIds.has(fitment.targetVariantKey)
+      )
+    );
+    setProduct({
+      ...product,
+      variation_2_name: null,
+    });
   }
 
   function chooseImages(event: ChangeEvent<HTMLInputElement>) {
@@ -882,9 +1137,9 @@ export default function EditProductPage() {
             String(form.get("description") || "").trim() || null,
           warranty_months: Number(form.get("warranty_months") || 0),
           variation_1_name:
-            String(form.get("variation_1_name") || "").trim() || null,
+            product.variation_1_name?.trim() || null,
           variation_2_name:
-            String(form.get("variation_2_name") || "").trim() || null,
+            product.variation_2_name?.trim() || null,
           is_universal_fitment: isUniversalFitment,
           restricted_shipping_states: restrictedShippingStates,
           primary_image_url: finalImages[0].url,
@@ -925,9 +1180,9 @@ export default function EditProductPage() {
         const option1 = variant.variation_1_value?.trim() || null;
         const option2 = variant.variation_2_value?.trim() || null;
         const title =
-          variant.title?.trim() ||
-          [option1, option2].filter(Boolean).join(" / ") ||
-          "Default";
+          product.variation_1_name || product.variation_2_name
+            ? [option1, option2].filter(Boolean).join(" / ") || "Default"
+            : variant.title?.trim() || "Default";
         const variantImageUrl = option1
           ? variationImageUrls.has(option1)
             ? variationImageUrls.get(option1) ?? null
@@ -997,6 +1252,24 @@ export default function EditProductPage() {
         .eq("product_id", product.id);
 
       if (deleteFitmentError) throw deleteFitmentError;
+
+      const currentPersistedVariantIds = new Set(
+        variants
+          .filter((variant) => !variant.id.startsWith("new-"))
+          .map((variant) => variant.id)
+      );
+      const removedVariantIds = initialVariantIds.filter(
+        (id) => !currentPersistedVariantIds.has(id)
+      );
+
+      if (removedVariantIds.length > 0) {
+        const { error: removeVariantsError } = await supabase
+          .from("product_variants")
+          .delete()
+          .in("id", removedVariantIds);
+
+        if (removeVariantsError) throw removeVariantsError;
+      }
 
       if (!isUniversalFitment && fitments.length > 0) {
         const vehicleCache = new Map(
@@ -1341,23 +1614,6 @@ export default function EditProductPage() {
                       />
                     </label>
 
-                    <label className={styles.adminField}>
-                      <span>VARIATION 1 NAME</span>
-                      <input
-                        name="variation_1_name"
-                        defaultValue={product.variation_1_name || ""}
-                        placeholder="Example: Car Model"
-                      />
-                    </label>
-
-                    <label className={styles.adminField}>
-                      <span>VARIATION 2 NAME</span>
-                      <input
-                        name="variation_2_name"
-                        defaultValue={product.variation_2_name || ""}
-                        placeholder="Example: Position"
-                      />
-                    </label>
                   </div>
                 </section>
 
@@ -1365,73 +1621,190 @@ export default function EditProductPage() {
                   <div className={styles.productEditorCardHead}>
                     <div>
                       <span>03 · SALES INFORMATION</span>
-                      <h2>SKU Variations</h2>
+                      <h2>Variations</h2>
                       <p>
-                        Edit each existing SKU, price and available stock.
+                        Set up variation names and options first. SKU, price and
+                        stock are entered in the table below.
                       </p>
                     </div>
-                    <div className={styles.editVariationHeaderActions}>
-                      <b>{variants.length} SKU</b>
-                      <button
-                        type="button"
-                        onClick={addVariationOption}
-                        className={styles.editVariationAddButton}
-                      >
-                        + ADD VARIATION
-                      </button>
-                    </div>
+                    <b>{variants.length} SKU</b>
                   </div>
 
-                  {product.variation_1_name ? (
-                    <div className={styles.editVariationImages}>
-                      <div className={styles.editVariationImagesHead}>
-                        <div>
-                          <strong>Variation Images</strong>
-                          <span>
-                            Optional. One photo per {product.variation_1_name} option.
-                          </span>
-                        </div>
+                  <div className={styles.shopeeVariationSetup}>
+                    <div className={styles.shopeeVariationSetupCard}>
+                      <div className={styles.shopeeVariationSetupTitle}>
+                        <strong>Variation 1</strong>
                       </div>
-                      <div className={styles.variationImageGrid}>
-                        {Array.from(
-                          new Set(
-                            variants
-                              .map((variant) => variant.variation_1_value?.trim())
-                              .filter((value): value is string => Boolean(value))
-                          )
-                        ).map((option) => {
+
+                      <label className={styles.adminField}>
+                        <span>VARIATION NAME</span>
+                        <input
+                          name="variation_1_name"
+                          value={product.variation_1_name || ""}
+                          placeholder="Example: Grade / Viscosity / Position"
+                          onChange={(event) =>
+                            setVariationName(1, event.target.value)
+                          }
+                        />
+                      </label>
+
+                      <div className={styles.shopeeVariationOptionsLabel}>
+                        <span>OPTIONS</span>
+                        <button
+                          type="button"
+                          onClick={() => addVariationSetupOption(1)}
+                        >
+                          + ADD OPTION
+                        </button>
+                      </div>
+
+                      <div className={styles.shopeeVariationOptionList}>
+                        {variation1Options.map((option, index) => {
                           const edit = variationImageEdits[option];
+
                           return (
-                            <div className={styles.variationImageCard} key={option}>
-                              <strong>{option}</strong>
-                              {edit?.preview ? (
-                                <div className={styles.variationImagePreview}>
-                                  <img src={edit.preview} alt={option} />
-                                  <button
-                                    type="button"
-                                    onClick={() => removeVariationImage(option)}
-                                  >
-                                    REMOVE
-                                  </button>
-                                </div>
-                              ) : (
-                                <label className={styles.variationImageUpload}>
-                                  <input
-                                    type="file"
-                                    accept="image/jpeg,image/png,image/webp"
-                                    onChange={(event) =>
-                                      chooseVariationImage(option, event)
-                                    }
-                                  />
-                                  <span>+ ADD PHOTO</span>
-                                </label>
-                              )}
+                            <div
+                              className={styles.shopeeVariationOptionRow}
+                              key={option + index}
+                            >
+                              <span>{String(index + 1).padStart(2, "0")}</span>
+                              <input
+                                defaultValue={option}
+                                key={option}
+                                onBlur={(event) =>
+                                  renameVariationSetupOption(
+                                    1,
+                                    option,
+                                    event.target.value
+                                  )
+                                }
+                              />
+                              <div className={styles.shopeeVariationOptionPhoto}>
+                                {edit?.preview ? (
+                                  <>
+                                    <img src={edit.preview} alt={option} />
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        removeVariationImage(option)
+                                      }
+                                    >
+                                      REMOVE
+                                    </button>
+                                  </>
+                                ) : (
+                                  <label>
+                                    <input
+                                      type="file"
+                                      accept="image/jpeg,image/png,image/webp"
+                                      onChange={(event) =>
+                                        chooseVariationImage(option, event)
+                                      }
+                                    />
+                                    + PHOTO
+                                  </label>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                className={styles.shopeeVariationDelete}
+                                onClick={() =>
+                                  removeVariationSetupOption(1, option)
+                                }
+                              >
+                                ×
+                              </button>
                             </div>
                           );
                         })}
                       </div>
                     </div>
-                  ) : null}
+
+                    {product.variation_2_name !== null ? (
+                      <div className={styles.shopeeVariationSetupCard}>
+                        <div className={styles.shopeeVariationSetupTitle}>
+                          <strong>Variation 2</strong>
+                          <button
+                            type="button"
+                            onClick={disableVariation2}
+                          >
+                            REMOVE
+                          </button>
+                        </div>
+
+                        <label className={styles.adminField}>
+                          <span>VARIATION NAME</span>
+                          <input
+                            name="variation_2_name"
+                            value={product.variation_2_name || ""}
+                            placeholder="Example: Size / Position"
+                            onChange={(event) =>
+                              setVariationName(2, event.target.value)
+                            }
+                          />
+                        </label>
+
+                        <div className={styles.shopeeVariationOptionsLabel}>
+                          <span>OPTIONS</span>
+                          <button
+                            type="button"
+                            onClick={() => addVariationSetupOption(2)}
+                          >
+                            + ADD OPTION
+                          </button>
+                        </div>
+
+                        <div className={styles.shopeeVariationOptionList}>
+                          {variation2Options.map((option, index) => (
+                            <div
+                              className={styles.shopeeVariationOptionRow}
+                              key={option + index}
+                            >
+                              <span>{String(index + 1).padStart(2, "0")}</span>
+                              <input
+                                defaultValue={option}
+                                key={option}
+                                onBlur={(event) =>
+                                  renameVariationSetupOption(
+                                    2,
+                                    option,
+                                    event.target.value
+                                  )
+                                }
+                              />
+                              <button
+                                type="button"
+                                className={styles.shopeeVariationDelete}
+                                onClick={() =>
+                                  removeVariationSetupOption(2, option)
+                                }
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.shopeeAddVariation2}
+                        onClick={enableVariation2}
+                      >
+                        + ADD VARIATION 2
+                      </button>
+                    )}
+                  </div>
+
+                  <div className={styles.shopeeVariationMatrixTitle}>
+                    <div>
+                      <strong>SKU INFORMATION</strong>
+                      <span>
+                        Fill SKU, price and stock after your variation options
+                        are ready.
+                      </span>
+                    </div>
+                  </div>
 
                   <div className={styles.adminTableWrap}>
                     <table
@@ -1441,12 +1814,7 @@ export default function EditProductPage() {
                     >
                       <thead>
                         <tr>
-                          <th>
-                            {product.variation_1_name || "VARIATION"}
-                          </th>
-                          {product.variation_2_name ? (
-                            <th>{product.variation_2_name}</th>
-                          ) : null}
+                          <th>VARIATION</th>
                           <th>SKU</th>
                           <th>PRICE</th>
                           <th>ORIGINAL</th>
@@ -1459,44 +1827,17 @@ export default function EditProductPage() {
                         {variants.map((variant) => (
                           <tr key={variant.id}>
                             <td>
-                              <input
-                                value={
-                                  product.variation_1_name
-                                    ? variant.variation_1_value ||
-                                      variant.title ||
-                                      ""
-                                    : variant.title || ""
-                                }
-                                onChange={(event) =>
-                                  product.variation_1_name
-                                    ? updateVariationOption(
-                                        variant.id,
-                                        1,
-                                        event.target.value
-                                      )
-                                    : updateVariant(
-                                        variant.id,
-                                        "title",
-                                        event.target.value
-                                      )
-                                }
-                              />
+                              <strong className={styles.shopeeVariationCombo}>
+                                {[
+                                  variant.variation_1_value ||
+                                    variant.title ||
+                                    "Default",
+                                  variant.variation_2_value,
+                                ]
+                                  .filter(Boolean)
+                                  .join(" / ")}
+                              </strong>
                             </td>
-                            {product.variation_2_name ? (
-                              <td>
-                                <input
-                                  value={variant.variation_2_value || ""}
-                                  placeholder="Option 2"
-                                  onChange={(event) =>
-                                    updateVariationOption(
-                                      variant.id,
-                                      2,
-                                      event.target.value
-                                    )
-                                  }
-                                />
-                              </td>
-                            ) : null}
                             <td>
                               <input
                                 value={variant.sku}
