@@ -992,7 +992,7 @@ export default function EditProductPage() {
       const uniqueSkus = Array.from(new Set(normalizedSkus));
       const { data: existingSkuRows, error: skuLookupError } = await supabase
         .from("product_variants")
-        .select("id, sku")
+        .select("id, sku, product_id")
         .eq("seller_id", product.seller_id)
         .in("sku", uniqueSkus);
 
@@ -1004,16 +1004,24 @@ export default function EditProductPage() {
           .map((variant) => variant.id)
       );
       const conflictingSku = (existingSkuRows || []).find(
-        (row) => !currentVariantIds.has(row.id)
+        (row) =>
+          row.product_id !== product.id &&
+          !currentVariantIds.has(row.id)
       );
 
       if (conflictingSku) {
         throw new Error(
           "SKU " +
             conflictingSku.sku +
-            " already exists. Please use a different SKU."
+            " is already used by another product. Please use a different SKU."
         );
       }
+
+      const sameProductSkuRows = new Map(
+        (existingSkuRows || [])
+          .filter((row) => row.product_id === product.id)
+          .map((row) => [String(row.sku).trim().toUpperCase(), row])
+      );
 
       setMessage("Uploading product images...");
 
@@ -1245,21 +1253,39 @@ export default function EditProductPage() {
         };
 
         if (variant.id.startsWith("new-")) {
-          const { data: insertedVariant, error: variantError } =
-            await supabase
-              .from("product_variants")
-              .insert({
-                product_id: product.id,
-                seller_id: product.seller_id,
-                ...payload,
-                stock_reserved: 0,
-                is_active: true,
-              })
-              .select("id")
-              .single();
+          const normalizedSku = variant.sku.trim().toUpperCase();
+          const existingSameProduct = sameProductSkuRows.get(normalizedSku);
 
-          if (variantError) throw variantError;
-          variantIdMap.set(variant.id, insertedVariant.id);
+          if (existingSameProduct) {
+            const { error: variantError } = await supabase
+              .from("product_variants")
+              .update(payload)
+              .eq("id", existingSameProduct.id);
+
+            if (variantError) throw variantError;
+            variantIdMap.set(variant.id, existingSameProduct.id);
+          } else {
+            const { data: insertedVariant, error: variantError } =
+              await supabase
+                .from("product_variants")
+                .insert({
+                  product_id: product.id,
+                  seller_id: product.seller_id,
+                  ...payload,
+                  stock_reserved: 0,
+                  is_active: true,
+                })
+                .select("id")
+                .single();
+
+            if (variantError) throw variantError;
+            variantIdMap.set(variant.id, insertedVariant.id);
+            sameProductSkuRows.set(normalizedSku, {
+              id: insertedVariant.id,
+              sku: normalizedSku,
+              product_id: product.id,
+            });
+          }
         } else {
           const { error: variantError } = await supabase
             .from("product_variants")
