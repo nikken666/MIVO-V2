@@ -15,10 +15,15 @@ type ProductVariantRow = {
   stock_on_hand: number;
   stock_reserved: number;
   low_stock_threshold: number;
+  weight_kg: number | string | null;
+  length_cm: number | string | null;
+  width_cm: number | string | null;
+  height_cm: number | string | null;
 };
 
 type ProductRow = {
   id: string;
+  seller_id: string;
   name: string;
   slug: string;
   status: string;
@@ -26,6 +31,19 @@ type ProductRow = {
   created_at: string;
   brands: { name: string } | Array<{ name: string }> | null;
   product_variants: ProductVariantRow[] | null;
+};
+
+type BulkEditRow = {
+  productId: string;
+  sellerId: string;
+  name: string;
+  imageUrl: string | null;
+  imagePreview: string | null;
+  imageFile: File | null;
+  weightKg: string;
+  lengthCm: string;
+  widthCm: string;
+  heightCm: string;
 };
 
 function relationName(
@@ -67,6 +85,16 @@ function priceSummary(variants: ProductVariantRow[]) {
     : "RM " + min.toFixed(2) + " – RM " + max.toFixed(2);
 }
 
+function safeFileName(name: string) {
+  const cleaned = name
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  return cleaned || "product-image";
+}
+
 function storagePathFromUrl(url: string) {
   const marker = "/storage/v1/object/public/product-images/";
   const index = url.indexOf(marker);
@@ -93,6 +121,12 @@ export default function AdminProductsPage() {
   } | null>(null);
   const [savingVariantOrderProductId, setSavingVariantOrderProductId] =
     useState("");
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(
+    new Set()
+  );
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
+  const [bulkEditRows, setBulkEditRows] = useState<BulkEditRow[]>([]);
+  const [bulkSaving, setBulkSaving] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -142,7 +176,7 @@ export default function AdminProductsPage() {
         const { data, error: productError } = await supabase
           .from("products")
           .select(
-            "id, name, slug, status, primary_image_url, created_at, brands(name), product_variants(id, sort_order, title, variation_1_value, variation_2_value, sku, price, stock_on_hand, stock_reserved, low_stock_threshold)"
+            "id, seller_id, name, slug, status, primary_image_url, created_at, brands(name), product_variants(id, sort_order, title, variation_1_value, variation_2_value, sku, price, stock_on_hand, stock_reserved, low_stock_threshold, weight_kg, length_cm, width_cm, height_cm)"
           )
           .order("created_at", { ascending: false });
 
@@ -242,6 +276,257 @@ export default function AdminProductsPage() {
       return matchesQuery && matchesMainTab && matchesLiveTab;
     });
   }, [products, query, catalogTab, liveTab]);
+
+  function toggleProductSelection(productId: string) {
+    setSelectedProductIds((current) => {
+      const next = new Set(current);
+      if (next.has(productId)) next.delete(productId);
+      else next.add(productId);
+      return next;
+    });
+  }
+
+  function toggleVisibleSelection() {
+    const visibleIds = filtered.map((product) => product.id);
+    const allSelected =
+      visibleIds.length > 0 &&
+      visibleIds.every((id) => selectedProductIds.has(id));
+
+    setSelectedProductIds((current) => {
+      const next = new Set(current);
+
+      for (const id of visibleIds) {
+        if (allSelected) next.delete(id);
+        else next.add(id);
+      }
+
+      return next;
+    });
+  }
+
+  function openBulkEditor() {
+    const rows = products
+      .filter((product) => selectedProductIds.has(product.id))
+      .map<BulkEditRow>((product) => {
+        const first = (product.product_variants || [])[0];
+
+        return {
+          productId: product.id,
+          sellerId: product.seller_id,
+          name: product.name,
+          imageUrl: product.primary_image_url,
+          imagePreview: product.primary_image_url,
+          imageFile: null,
+          weightKg: String(Number(first?.weight_kg || 0)),
+          lengthCm: String(Number(first?.length_cm || 0)),
+          widthCm: String(Number(first?.width_cm || 0)),
+          heightCm: String(Number(first?.height_cm || 0)),
+        };
+      });
+
+    setBulkEditRows(rows);
+    setBulkEditOpen(true);
+    setError("");
+    setMessage("");
+  }
+
+  function closeBulkEditor() {
+    for (const row of bulkEditRows) {
+      if (row.imageFile && row.imagePreview?.startsWith("blob:")) {
+        URL.revokeObjectURL(row.imagePreview);
+      }
+    }
+
+    setBulkEditOpen(false);
+    setBulkEditRows([]);
+  }
+
+  function updateBulkField(
+    productId: string,
+    field: "weightKg" | "lengthCm" | "widthCm" | "heightCm",
+    value: string
+  ) {
+    setBulkEditRows((current) =>
+      current.map((row) =>
+        row.productId === productId ? { ...row, [field]: value } : row
+      )
+    );
+  }
+
+  function chooseBulkPhoto(productId: string, file: File | null) {
+    if (!file) return;
+
+    if (
+      !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
+      file.size > 5 * 1024 * 1024
+    ) {
+      setError("Images must be JPG, PNG or WEBP and below 5MB.");
+      return;
+    }
+
+    setBulkEditRows((current) =>
+      current.map((row) => {
+        if (row.productId !== productId) return row;
+
+        if (row.imageFile && row.imagePreview?.startsWith("blob:")) {
+          URL.revokeObjectURL(row.imagePreview);
+        }
+
+        return {
+          ...row,
+          imageFile: file,
+          imagePreview: URL.createObjectURL(file),
+        };
+      })
+    );
+
+    setError("");
+  }
+
+  async function saveBulkEditor() {
+    if (bulkEditRows.length === 0) return;
+
+    for (const row of bulkEditRows) {
+      const values = [
+        Number(row.weightKg),
+        Number(row.lengthCm),
+        Number(row.widthCm),
+        Number(row.heightCm),
+      ];
+
+      if (values.some((value) => !Number.isFinite(value) || value < 0)) {
+        setError("Weight and parcel dimensions must be 0 or higher.");
+        return;
+      }
+    }
+
+    setBulkSaving(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const supabase = createClient();
+      const updatedImages = new Map<string, string>();
+
+      for (const row of bulkEditRows) {
+        const { error: variantUpdateError } = await supabase
+          .from("product_variants")
+          .update({
+            weight_kg: Number(row.weightKg),
+            length_cm: Number(row.lengthCm),
+            width_cm: Number(row.widthCm),
+            height_cm: Number(row.heightCm),
+          })
+          .eq("product_id", row.productId);
+
+        if (variantUpdateError) throw variantUpdateError;
+
+        if (row.imageFile) {
+          const path =
+            row.sellerId +
+            "/bulk-main-" +
+            crypto.randomUUID() +
+            "-" +
+            safeFileName(row.imageFile.name);
+
+          const { error: uploadError } = await supabase.storage
+            .from("product-images")
+            .upload(path, row.imageFile, {
+              cacheControl: "3600",
+              upsert: false,
+              contentType: row.imageFile.type,
+            });
+
+          if (uploadError) throw uploadError;
+
+          const { data: publicData } = supabase.storage
+            .from("product-images")
+            .getPublicUrl(path);
+
+          const imageUrl = publicData.publicUrl;
+
+          const { data: firstImageRow, error: firstImageError } =
+            await supabase
+              .from("product_images")
+              .select("sort_order")
+              .eq("product_id", row.productId)
+              .order("sort_order", { ascending: true })
+              .limit(1)
+              .maybeSingle();
+
+          if (firstImageError) throw firstImageError;
+
+          const nextSortOrder =
+            firstImageRow?.sort_order == null
+              ? 0
+              : Number(firstImageRow.sort_order) - 1;
+
+          const { error: imageRowError } = await supabase
+            .from("product_images")
+            .insert({
+              product_id: row.productId,
+              image_url: imageUrl,
+              alt_text: row.name,
+              sort_order: nextSortOrder,
+            });
+
+          if (imageRowError) throw imageRowError;
+
+          const { error: productImageError } = await supabase
+            .from("products")
+            .update({ primary_image_url: imageUrl })
+            .eq("id", row.productId);
+
+          if (productImageError) throw productImageError;
+
+          updatedImages.set(row.productId, imageUrl);
+        }
+      }
+
+      const rowByProduct = new Map(
+        bulkEditRows.map((row) => [row.productId, row])
+      );
+
+      setProducts((current) =>
+        current.map((product) => {
+          const row = rowByProduct.get(product.id);
+          if (!row) return product;
+
+          return {
+            ...product,
+            primary_image_url:
+              updatedImages.get(product.id) || product.primary_image_url,
+            product_variants: (product.product_variants || []).map(
+              (variant) => ({
+                ...variant,
+                weight_kg: Number(row.weightKg),
+                length_cm: Number(row.lengthCm),
+                width_cm: Number(row.widthCm),
+                height_cm: Number(row.heightCm),
+              })
+            ),
+          };
+        })
+      );
+
+      setMessage(
+        bulkEditRows.length +
+          " product" +
+          (bulkEditRows.length === 1 ? "" : "s") +
+          " updated."
+      );
+      setSelectedProductIds(new Set());
+      closeBulkEditor();
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Unable to save mass product changes."
+      );
+    } finally {
+      setBulkSaving(false);
+    }
+  }
 
   function toggleProduct(productId: string) {
     setExpanded((current) => {
@@ -707,6 +992,35 @@ export default function AdminProductsPage() {
               </label>
             </div>
 
+            <div className={styles.productBulkToolbar}>
+              <button
+                type="button"
+                className={styles.productBulkSecondary}
+                onClick={toggleVisibleSelection}
+              >
+                {filtered.length > 0 &&
+                filtered.every((product) =>
+                  selectedProductIds.has(product.id)
+                )
+                  ? "CLEAR VISIBLE"
+                  : "SELECT VISIBLE"}
+              </button>
+
+              <span>
+                {selectedProductIds.size} PRODUCT
+                {selectedProductIds.size === 1 ? "" : "S"} SELECTED
+              </span>
+
+              <button
+                type="button"
+                className={styles.productBulkPrimary}
+                disabled={selectedProductIds.size === 0}
+                onClick={openBulkEditor}
+              >
+                MASS EDIT SIZE / PHOTO
+              </button>
+            </div>
+
             {message ? (
               <p className={styles.adminSuccess}>{message}</p>
             ) : null}
@@ -747,6 +1061,20 @@ export default function AdminProductsPage() {
                           <tr className={styles.productParentRow}>
                             <td>
                               <div className={styles.adminProductCell}>
+                                <label
+                                  className={styles.productBulkCheckbox}
+                                  onClick={(event) => event.stopPropagation()}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedProductIds.has(product.id)}
+                                    onChange={() =>
+                                      toggleProductSelection(product.id)
+                                    }
+                                  />
+                                  <span />
+                                </label>
+
                                 {product.primary_image_url ? (
                                   <img
                                     className={styles.adminProductThumb}
@@ -1126,6 +1454,178 @@ export default function AdminProductsPage() {
                 </table>
               </div>
             )}
+
+            {bulkEditOpen ? (
+              <div
+                className={styles.productBulkModalBackdrop}
+                onMouseDown={(event) => {
+                  if (
+                    event.target === event.currentTarget &&
+                    !bulkSaving
+                  ) {
+                    closeBulkEditor();
+                  }
+                }}
+              >
+                <div
+                  className={styles.productBulkModal}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="mass-edit-products-title"
+                >
+                  <div className={styles.productBulkModalHead}>
+                    <div>
+                      <span>MASS EDIT</span>
+                      <h3 id="mass-edit-products-title">
+                        Parcel Size & Main Photo
+                      </h3>
+                      <p>
+                        Size changes apply to every variation inside each
+                        selected product. Photo changes replace the main buyer
+                        image while keeping the existing gallery.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={closeBulkEditor}
+                      disabled={bulkSaving}
+                    >
+                      CLOSE
+                    </button>
+                  </div>
+
+                  <div className={styles.productBulkRows}>
+                    {bulkEditRows.map((row) => (
+                      <div
+                        className={styles.productBulkRow}
+                        key={row.productId}
+                      >
+                        <div className={styles.productBulkIdentity}>
+                          <div className={styles.productBulkPhoto}>
+                            {row.imagePreview ? (
+                              <img
+                                src={row.imagePreview}
+                                alt={row.name}
+                              />
+                            ) : (
+                              <span>NO PHOTO</span>
+                            )}
+
+                            <label>
+                              <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                onChange={(event) => {
+                                  chooseBulkPhoto(
+                                    row.productId,
+                                    event.target.files?.[0] || null
+                                  );
+                                  event.target.value = "";
+                                }}
+                              />
+                              CHANGE PHOTO
+                            </label>
+                          </div>
+
+                          <div>
+                            <strong>{row.name}</strong>
+                            <small>
+                              ALL VARIATIONS USE THIS PARCEL SIZE
+                            </small>
+                          </div>
+                        </div>
+
+                        <div className={styles.productBulkDimensions}>
+                          <label>
+                            <span>KG</span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.001"
+                              value={row.weightKg}
+                              onChange={(event) =>
+                                updateBulkField(
+                                  row.productId,
+                                  "weightKg",
+                                  event.target.value
+                                )
+                              }
+                            />
+                          </label>
+                          <label>
+                            <span>LENGTH CM</span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={row.lengthCm}
+                              onChange={(event) =>
+                                updateBulkField(
+                                  row.productId,
+                                  "lengthCm",
+                                  event.target.value
+                                )
+                              }
+                            />
+                          </label>
+                          <label>
+                            <span>WIDTH CM</span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={row.widthCm}
+                              onChange={(event) =>
+                                updateBulkField(
+                                  row.productId,
+                                  "widthCm",
+                                  event.target.value
+                                )
+                              }
+                            />
+                          </label>
+                          <label>
+                            <span>HEIGHT CM</span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={row.heightCm}
+                              onChange={(event) =>
+                                updateBulkField(
+                                  row.productId,
+                                  "heightCm",
+                                  event.target.value
+                                )
+                              }
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className={styles.productBulkModalFoot}>
+                    <button
+                      type="button"
+                      className={styles.productBulkSecondary}
+                      disabled={bulkSaving}
+                      onClick={closeBulkEditor}
+                    >
+                      CANCEL
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.productBulkPrimary}
+                      disabled={bulkSaving}
+                      onClick={() => void saveBulkEditor()}
+                    >
+                      {bulkSaving ? "SAVING..." : "SAVE ALL CHANGES"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </section>
         </section>
       </div>
