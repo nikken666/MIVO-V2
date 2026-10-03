@@ -1679,8 +1679,8 @@ export default function AdminNewProductPage() {
                         <span>03 · SALES INFORMATION</span>
                         <h2>Price, Stock & Variations</h2>
                         <p>
-                          Use a simple SKU or create variation combinations like
-                          Shopee.
+                          Set price, stock and SKU here. Parcel weight and
+                          dimensions are managed in Shipping below.
                         </p>
                       </div>
                       {hasVariations ? (
