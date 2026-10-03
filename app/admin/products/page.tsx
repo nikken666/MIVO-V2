@@ -1333,7 +1333,7 @@ export default function AdminProductsPage() {
                 disabled={selectedProductIds.size === 0}
                 onClick={openBulkEditor}
               >
-                MASS EDIT SIZE / PHOTO
+                MASS EDIT PRODUCTS
               </button>
             </div>
 
@@ -1784,7 +1784,7 @@ export default function AdminProductsPage() {
                 }}
               >
                 <div
-                  className={styles.productBulkModal}
+                  className={styles.productBulkModal + " " + styles.productBulkModalWide}
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby="mass-edit-products-title"
@@ -1793,135 +1793,278 @@ export default function AdminProductsPage() {
                     <div>
                       <span>MASS EDIT</span>
                       <h3 id="mass-edit-products-title">
-                        Parcel Size & Main Photo
+                        Product Information
                       </h3>
                       <p>
-                        Size changes apply to every variation inside each
-                        selected product. Photo changes replace the main buyer
-                        image while keeping the existing gallery.
+                        Shopee-style mass editing for images, product name,
+                        description, SKU, price, stock, parcel size and weight.
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={closeBulkEditor}
-                      disabled={bulkSaving}
-                    >
-                      CLOSE
-                    </button>
+                    <div className={styles.productBulkHeadActions}>
+                      <button
+                        type="button"
+                        onClick={applyFirstParcelToAll}
+                        disabled={bulkSaving || bulkEditRows.length < 2}
+                      >
+                        COPY FIRST SIZE TO ALL
+                      </button>
+                      <button
+                        type="button"
+                        onClick={closeBulkEditor}
+                        disabled={bulkSaving}
+                      >
+                        CLOSE
+                      </button>
+                    </div>
                   </div>
 
-                  <div className={styles.productBulkRows}>
-                    {bulkEditRows.map((row) => (
-                      <div
-                        className={styles.productBulkRow}
-                        key={row.productId}
-                      >
-                        <div className={styles.productBulkIdentity}>
-                          <div className={styles.productBulkPhoto}>
-                            {row.imagePreview ? (
-                              <img
-                                src={row.imagePreview}
-                                alt={row.name}
-                              />
-                            ) : (
-                              <span>NO PHOTO</span>
-                            )}
+                  <div className={styles.productBulkTableWrap}>
+                    <table className={styles.productBulkTable}>
+                      <thead>
+                        <tr>
+                          <th>IMAGE</th>
+                          <th>PRODUCT NAME</th>
+                          <th>DESCRIPTION</th>
+                          <th>VARIATION / SKU</th>
+                          <th>PRICE</th>
+                          <th>STOCK</th>
+                          <th>PARCEL SIZE (CM)</th>
+                          <th>WEIGHT (KG)</th>
+                          <th>ACTION</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {bulkEditRows.map((row) => (
+                          <tr key={row.productId}>
+                            <td>
+                              <button
+                                type="button"
+                                className={styles.productBulkImageButton}
+                                onClick={() =>
+                                  setBulkImageEditorId(row.productId)
+                                }
+                              >
+                                <div>
+                                  {row.images[0]?.url ? (
+                                    <img
+                                      src={row.images[0].url}
+                                      alt={row.name}
+                                    />
+                                  ) : (
+                                    <span>NO IMAGE</span>
+                                  )}
+                                  {row.images.length > 0 ? (
+                                    <b>{row.images.length}/8</b>
+                                  ) : null}
+                                </div>
+                                <small>EDIT IMAGES</small>
+                              </button>
+                            </td>
 
-                            <label>
-                              <input
-                                type="file"
-                                accept="image/jpeg,image/png,image/webp"
-                                onChange={(event) => {
-                                  chooseBulkPhoto(
+                            <td>
+                              <textarea
+                                className={styles.productBulkNameInput}
+                                rows={4}
+                                value={row.name}
+                                onChange={(event) =>
+                                  updateBulkField(
                                     row.productId,
-                                    event.target.files?.[0] || null
-                                  );
-                                  event.target.value = "";
-                                }}
+                                    "name",
+                                    event.target.value
+                                  )
+                                }
                               />
-                              CHANGE PHOTO
-                            </label>
-                          </div>
+                            </td>
 
-                          <div>
-                            <strong>{row.name}</strong>
-                            <small>
-                              ALL VARIATIONS USE THIS PARCEL SIZE
-                            </small>
-                          </div>
-                        </div>
+                            <td>
+                              <button
+                                type="button"
+                                className={styles.productBulkDescriptionButton}
+                                onClick={() =>
+                                  setBulkDescriptionEditorId(row.productId)
+                                }
+                              >
+                                <strong>
+                                  {row.description.trim()
+                                    ? "DESCRIPTION ADDED"
+                                    : "ADD DESCRIPTION"}
+                                </strong>
+                                <span>
+                                  {row.shortDescription.trim()
+                                    ? row.shortDescription
+                                    : row.description.trim()
+                                      ? row.description.slice(0, 90)
+                                      : "Edit short and full description"}
+                                </span>
+                              </button>
+                            </td>
 
-                        <div className={styles.productBulkDimensions}>
-                          <label>
-                            <span>KG</span>
-                            <input
-                              type="number"
-                              min="0"
-                              step="0.001"
-                              value={row.weightKg}
-                              onChange={(event) =>
-                                updateBulkField(
-                                  row.productId,
-                                  "weightKg",
-                                  event.target.value
-                                )
-                              }
-                            />
-                          </label>
-                          <label>
-                            <span>LENGTH CM</span>
-                            <input
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              value={row.lengthCm}
-                              onChange={(event) =>
-                                updateBulkField(
-                                  row.productId,
-                                  "lengthCm",
-                                  event.target.value
-                                )
-                              }
-                            />
-                          </label>
-                          <label>
-                            <span>WIDTH CM</span>
-                            <input
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              value={row.widthCm}
-                              onChange={(event) =>
-                                updateBulkField(
-                                  row.productId,
-                                  "widthCm",
-                                  event.target.value
-                                )
-                              }
-                            />
-                          </label>
-                          <label>
-                            <span>HEIGHT CM</span>
-                            <input
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              value={row.heightCm}
-                              onChange={(event) =>
-                                updateBulkField(
-                                  row.productId,
-                                  "heightCm",
-                                  event.target.value
-                                )
-                              }
-                            />
-                          </label>
-                        </div>
-                      </div>
-                    ))}
+                            <td>
+                              <div className={styles.productBulkVariantStack}>
+                                {row.variants.map((variant) => (
+                                  <label key={variant.id}>
+                                    <span>{variant.label}</span>
+                                    <input
+                                      value={variant.sku}
+                                      onChange={(event) =>
+                                        updateBulkVariant(
+                                          row.productId,
+                                          variant.id,
+                                          "sku",
+                                          event.target.value
+                                        )
+                                      }
+                                    />
+                                  </label>
+                                ))}
+                              </div>
+                            </td>
+
+                            <td>
+                              <div className={styles.productBulkVariantStack}>
+                                {row.variants.map((variant) => (
+                                  <label key={variant.id}>
+                                    <span>{variant.label}</span>
+                                    <div className={styles.productBulkMoneyInput}>
+                                      <b>RM</b>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={variant.price}
+                                        onChange={(event) =>
+                                          updateBulkVariant(
+                                            row.productId,
+                                            variant.id,
+                                            "price",
+                                            event.target.value
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                  </label>
+                                ))}
+                              </div>
+                            </td>
+
+                            <td>
+                              <div className={styles.productBulkVariantStack}>
+                                {row.variants.map((variant) => (
+                                  <label key={variant.id}>
+                                    <span>{variant.label}</span>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="1"
+                                      value={variant.stock}
+                                      onChange={(event) =>
+                                        updateBulkVariant(
+                                          row.productId,
+                                          variant.id,
+                                          "stock",
+                                          event.target.value
+                                        )
+                                      }
+                                    />
+                                  </label>
+                                ))}
+                              </div>
+                            </td>
+
+                            <td>
+                              <div className={styles.productBulkParcelInputs}>
+                                <label>
+                                  <span>L</span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={row.lengthCm}
+                                    onChange={(event) =>
+                                      updateBulkField(
+                                        row.productId,
+                                        "lengthCm",
+                                        event.target.value
+                                      )
+                                    }
+                                  />
+                                </label>
+                                <label>
+                                  <span>W</span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={row.widthCm}
+                                    onChange={(event) =>
+                                      updateBulkField(
+                                        row.productId,
+                                        "widthCm",
+                                        event.target.value
+                                      )
+                                    }
+                                  />
+                                </label>
+                                <label>
+                                  <span>H</span>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={row.heightCm}
+                                    onChange={(event) =>
+                                      updateBulkField(
+                                        row.productId,
+                                        "heightCm",
+                                        event.target.value
+                                      )
+                                    }
+                                  />
+                                </label>
+                              </div>
+                            </td>
+
+                            <td>
+                              <input
+                                className={styles.productBulkWeightInput}
+                                type="number"
+                                min="0"
+                                step="0.001"
+                                value={row.weightKg}
+                                onChange={(event) =>
+                                  updateBulkField(
+                                    row.productId,
+                                    "weightKg",
+                                    event.target.value
+                                  )
+                                }
+                              />
+                            </td>
+
+                            <td>
+                              <a
+                                className={styles.productBulkFullEdit}
+                                href={
+                                  "/admin/products/" +
+                                  row.productId +
+                                  "/edit"
+                                }
+                                target="_blank"
+                              >
+                                FULL EDIT
+                              </a>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
 
                   <div className={styles.productBulkModalFoot}>
+                    <span>
+                      {bulkEditRows.length} PRODUCT
+                      {bulkEditRows.length === 1 ? "" : "S"}
+                    </span>
                     <button
                       type="button"
                       className={styles.productBulkSecondary}
@@ -1940,6 +2083,228 @@ export default function AdminProductsPage() {
                     </button>
                   </div>
                 </div>
+
+                {bulkImageEditorId
+                  ? (() => {
+                      const row = bulkEditRows.find(
+                        (item) => item.productId === bulkImageEditorId
+                      );
+                      if (!row) return null;
+
+                      return (
+                        <div
+                          className={styles.productBulkSubModalBackdrop}
+                          onMouseDown={(event) => {
+                            if (event.target === event.currentTarget) {
+                              setBulkImageEditorId("");
+                            }
+                          }}
+                        >
+                          <div className={styles.productBulkImageManager}>
+                            <div className={styles.productBulkSubModalHead}>
+                              <div>
+                                <span>EDIT IMAGES</span>
+                                <h4>{row.name}</h4>
+                                <p>
+                                  First image is the main image. Add, remove or
+                                  reorder up to 8 product photos.
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setBulkImageEditorId("")}
+                              >
+                                CLOSE
+                              </button>
+                            </div>
+
+                            <div className={styles.productBulkImageGrid}>
+                              {row.images.map((image, index) => (
+                                <div
+                                  className={styles.productBulkGalleryCard}
+                                  key={image.key}
+                                >
+                                  <img
+                                    src={image.url}
+                                    alt={row.name + " " + (index + 1)}
+                                  />
+                                  {index === 0 ? (
+                                    <b>MAIN IMAGE</b>
+                                  ) : null}
+                                  <div>
+                                    <button
+                                      type="button"
+                                      disabled={index === 0}
+                                      onClick={() =>
+                                        makeBulkImageMain(
+                                          row.productId,
+                                          index
+                                        )
+                                      }
+                                    >
+                                      MAIN
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={index === 0}
+                                      onClick={() =>
+                                        moveBulkImage(
+                                          row.productId,
+                                          index,
+                                          -1
+                                        )
+                                      }
+                                    >
+                                      ←
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={
+                                        index === row.images.length - 1
+                                      }
+                                      onClick={() =>
+                                        moveBulkImage(
+                                          row.productId,
+                                          index,
+                                          1
+                                        )
+                                      }
+                                    >
+                                      →
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        removeBulkImage(
+                                          row.productId,
+                                          image.key
+                                        )
+                                      }
+                                    >
+                                      DELETE
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+
+                              {row.images.length < 8 ? (
+                                <label className={styles.productBulkGalleryAdd}>
+                                  <input
+                                    type="file"
+                                    multiple
+                                    accept="image/jpeg,image/png,image/webp"
+                                    onChange={(event) => {
+                                      addBulkImages(
+                                        row.productId,
+                                        event.target.files
+                                      );
+                                      event.target.value = "";
+                                    }}
+                                  />
+                                  <strong>+</strong>
+                                  <span>ADD IMAGES</span>
+                                  <small>
+                                    {row.images.length}/8
+                                  </small>
+                                </label>
+                              ) : null}
+                            </div>
+
+                            <div className={styles.productBulkSubModalFoot}>
+                              <button
+                                type="button"
+                                className={styles.productBulkPrimary}
+                                onClick={() => setBulkImageEditorId("")}
+                              >
+                                DONE
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()
+                  : null}
+
+                {bulkDescriptionEditorId
+                  ? (() => {
+                      const row = bulkEditRows.find(
+                        (item) =>
+                          item.productId === bulkDescriptionEditorId
+                      );
+                      if (!row) return null;
+
+                      return (
+                        <div
+                          className={styles.productBulkSubModalBackdrop}
+                          onMouseDown={(event) => {
+                            if (event.target === event.currentTarget) {
+                              setBulkDescriptionEditorId("");
+                            }
+                          }}
+                        >
+                          <div className={styles.productBulkDescriptionModal}>
+                            <div className={styles.productBulkSubModalHead}>
+                              <div>
+                                <span>EDIT DESCRIPTION</span>
+                                <h4>{row.name}</h4>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setBulkDescriptionEditorId("")
+                                }
+                              >
+                                CLOSE
+                              </button>
+                            </div>
+
+                            <div className={styles.productBulkDescriptionFields}>
+                              <label>
+                                <span>SHORT DESCRIPTION</span>
+                                <input
+                                  maxLength={240}
+                                  value={row.shortDescription}
+                                  onChange={(event) =>
+                                    updateBulkField(
+                                      row.productId,
+                                      "shortDescription",
+                                      event.target.value
+                                    )
+                                  }
+                                />
+                              </label>
+                              <label>
+                                <span>DESCRIPTION</span>
+                                <textarea
+                                  rows={14}
+                                  value={row.description}
+                                  onChange={(event) =>
+                                    updateBulkField(
+                                      row.productId,
+                                      "description",
+                                      event.target.value
+                                    )
+                                  }
+                                />
+                              </label>
+                            </div>
+
+                            <div className={styles.productBulkSubModalFoot}>
+                              <button
+                                type="button"
+                                className={styles.productBulkPrimary}
+                                onClick={() =>
+                                  setBulkDescriptionEditorId("")
+                                }
+                              >
+                                DONE
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()
+                  : null}
               </div>
             ) : null}
           </section>
