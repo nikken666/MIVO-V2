@@ -272,55 +272,51 @@ export default function MarketplaceProvider({
           1,
           Math.floor(Number(quantity) || 1)
         );
+        const lineId = createLineId(product, variant);
+        const found = cart.find((line) => line.lineId === lineId);
+        const maximum =
+          typeof variant?.stock === "number"
+            ? variant.stock
+            : typeof product.stock === "number"
+              ? product.stock
+              : undefined;
 
-        setCart((current) => {
-          const lineId = createLineId(product, variant);
-          const found = current.find((line) => line.lineId === lineId);
-          const maximum =
-            typeof variant?.stock === "number"
-              ? variant.stock
-              : typeof product.stock === "number"
-                ? product.stock
-                : undefined;
+        let nextCart: CartLine[];
 
-          let nextCart: CartLine[];
+        if (found) {
+          const nextQuantity = found.quantity + requestedQuantity;
 
-          if (found) {
-            const nextQuantity = found.quantity + requestedQuantity;
+          nextCart = cart.map((line) =>
+            line.lineId === lineId
+              ? {
+                  ...line,
+                  quantity:
+                    typeof maximum === "number"
+                      ? Math.min(maximum, nextQuantity)
+                      : nextQuantity,
+                }
+              : line
+          );
+        } else {
+          nextCart = [
+            ...cart,
+            {
+              lineId,
+              product,
+              variant,
+              quantity:
+                typeof maximum === "number"
+                  ? Math.min(maximum, requestedQuantity)
+                  : requestedQuantity,
+            },
+          ];
+        }
 
-            nextCart = current.map((line) =>
-              line.lineId === lineId
-                ? {
-                    ...line,
-                    quantity:
-                      typeof maximum === "number"
-                        ? Math.min(maximum, nextQuantity)
-                        : nextQuantity,
-                  }
-                : line
-            );
-          } else {
-            nextCart = [
-              ...current,
-              {
-                lineId,
-                product,
-                variant,
-                quantity:
-                  typeof maximum === "number"
-                    ? Math.min(maximum, requestedQuantity)
-                    : requestedQuantity,
-              },
-            ];
-          }
-
-          // Immediate durable handoff for BUY NOW / hard navigation.
-          // Logged-in users still sync to Supabase below, then this
-          // temporary guest copy is cleared.
-          writeGuestCart(nextCart);
-
-          return nextCart;
-        });
+        // Persist synchronously before route changes. This prevents a fast
+        // BUY NOW click from arriving at checkout before React has committed
+        // the state update.
+        writeGuestCart(nextCart);
+        setCart(nextCart);
 
         showAddedNotice(product.name, requestedQuantity);
       },
