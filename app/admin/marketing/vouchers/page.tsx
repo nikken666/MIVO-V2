@@ -253,6 +253,7 @@ export default function MarketingVouchersPage() {
 
       await load();
       setForm(emptyVoucher());
+      setSelectedProductIds([]);
       setEditingId("");
       setMessage(editingId ? "Voucher updated." : "Voucher created.");
     } catch (caught) {
@@ -291,6 +292,11 @@ export default function MarketingVouchersPage() {
       scope_type: voucher.scope_type,
       scope_id: voucher.scope_id || "",
     });
+    setSelectedProductIds(
+      voucher.scope_type === "product" && voucher.scope_id
+        ? [voucher.scope_id]
+        : []
+    );
     setError("");
     setMessage("");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -596,7 +602,8 @@ export default function MarketingVouchersPage() {
                             | "category"
                             | "product",
                           scope_id: "",
-                        }))
+                        }));
+                        setSelectedProductIds([]);
                       }
                     >
                       <option value="all">All products</option>
@@ -722,6 +729,7 @@ export default function MarketingVouchersPage() {
                       onClick={() => {
                         setEditingId("");
                         setForm(emptyVoucher());
+                        setSelectedProductIds([]);
                       }}
                     >
                       CANCEL EDIT
@@ -823,9 +831,48 @@ export default function MarketingVouchersPage() {
                 <div className={styles.productPickerHead}><div><span>SELECT PRODUCTS</span><h2>Choose eligible products</h2></div><button type="button" onClick={() => setProductPickerOpen(false)}>CLOSE</button></div>
                 <div className={styles.productPickerSearch}><input autoFocus placeholder="Search product name" value={productSearch} onChange={(event) => setProductSearch(event.target.value)} /><span>{filteredProducts.length} PRODUCTS</span></div>
                 <div className={styles.productPickerList}>
-                  {filteredProducts.map((product) => { const selected = selectedProductIds.includes(product.id) || (!selectedProductIds.length && form.scope_id === product.id); return <button type="button" key={product.id} className={selected ? styles.productPickerSelected : ""} onClick={() => setSelectedProductIds((current) => current.includes(product.id) ? current.filter((id) => id !== product.id) : [...current, product.id])}><i>{selected ? "✓" : ""}</i><span>{product.name}</span></button>; })}
+                  {filteredProducts.map((product) => {
+                    const selected = form.scope_id === product.id;
+
+                    return (
+                      <button
+                        type="button"
+                        key={product.id}
+                        className={
+                          selected ? styles.productPickerSelected : ""
+                        }
+                        onClick={() => {
+                          const nextId = selected ? "" : product.id;
+
+                          setSelectedProductIds(
+                            nextId ? [nextId] : []
+                          );
+                          setForm((current) => ({
+                            ...current,
+                            scope_id: nextId,
+                          }));
+                        }}
+                      >
+                        <i>{selected ? "✓" : ""}</i>
+                        <span>{product.name}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-                <div className={styles.productPickerFooter}><span>{form.scope_id ? "1 product selected" : "No product selected"}</span><button type="button" disabled={!form.scope_id} onClick={() => setProductPickerOpen(false)}>CONFIRM</button></div>
+                <div className={styles.productPickerFooter}>
+                  <span>
+                    {form.scope_id
+                      ? "1 product selected"
+                      : "No product selected"}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={!form.scope_id}
+                    onClick={() => setProductPickerOpen(false)}
+                  >
+                    CONFIRM
+                  </button>
+                </div>
               </div>
             </div>
           ) : null}
