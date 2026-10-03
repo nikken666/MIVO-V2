@@ -6979,3 +6979,38 @@
     grid-template-columns:repeat(2,minmax(0,1fr));
   }
 }
+
+
+/* MASS EDIT — PARCEL SIZE / WEIGHT PER SKU */
+.productBulkSkuParcel{
+  display:grid;
+  gap:4px;
+}
+.productBulkSkuParcel>span{
+  overflow:hidden;
+  color:#7a8185;
+  font-size:6px;
+  font-weight:800;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.productBulkRowActions{
+  display:grid;
+  gap:6px;
+}
+.productBulkRowActions>button{
+  min-height:30px;
+  padding:0 7px;
+  border:1px solid #dfe2e3;
+  border-radius:7px;
+  background:#fff;
+  color:#4f565a;
+  font-size:6px;
+  font-weight:900;
+  cursor:pointer;
+}
+.productBulkRowActions>button:hover{
+  border-color:#ee4d2d;
+  color:#ee4d2d;
+  background:#fff8f5;
+}
