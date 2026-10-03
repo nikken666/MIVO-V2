@@ -21,25 +21,52 @@ type ProductVariantRow = {
   height_cm: number | string | null;
 };
 
+type ProductImageRow = {
+  id: string;
+  image_url: string;
+  sort_order: number;
+};
+
 type ProductRow = {
   id: string;
   seller_id: string;
   name: string;
   slug: string;
   status: string;
+  short_description: string | null;
+  description: string | null;
   primary_image_url: string | null;
   created_at: string;
   brands: { name: string } | Array<{ name: string }> | null;
+  product_images: ProductImageRow[] | null;
   product_variants: ProductVariantRow[] | null;
+};
+
+type BulkImageDraft = {
+  key: string;
+  id: string | null;
+  url: string;
+  file: File | null;
+};
+
+type BulkVariantDraft = {
+  id: string;
+  label: string;
+  sku: string;
+  price: string;
+  stock: string;
+  stockReserved: number;
 };
 
 type BulkEditRow = {
   productId: string;
   sellerId: string;
   name: string;
-  imageUrl: string | null;
-  imagePreview: string | null;
-  imageFile: File | null;
+  shortDescription: string;
+  description: string;
+  images: BulkImageDraft[];
+  originalImageIds: string[];
+  variants: BulkVariantDraft[];
   weightKg: string;
   lengthCm: string;
   widthCm: string;
@@ -127,6 +154,8 @@ export default function AdminProductsPage() {
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const [bulkEditRows, setBulkEditRows] = useState<BulkEditRow[]>([]);
   const [bulkSaving, setBulkSaving] = useState(false);
+  const [bulkImageEditorId, setBulkImageEditorId] = useState("");
+  const [bulkDescriptionEditorId, setBulkDescriptionEditorId] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -176,7 +205,7 @@ export default function AdminProductsPage() {
         const { data, error: productError } = await supabase
           .from("products")
           .select(
-            "id, seller_id, name, slug, status, primary_image_url, created_at, brands(name), product_variants(id, sort_order, title, variation_1_value, variation_2_value, sku, price, stock_on_hand, stock_reserved, low_stock_threshold, weight_kg, length_cm, width_cm, height_cm)"
+            "id, seller_id, name, slug, status, short_description, description, primary_image_url, created_at, brands(name), product_images(id, image_url, sort_order), product_variants(id, sort_order, title, variation_1_value, variation_2_value, sku, price, stock_on_hand, stock_reserved, low_stock_threshold, weight_kg, length_cm, width_cm, height_cm)"
           )
           .order("created_at", { ascending: false });
 
@@ -185,6 +214,13 @@ export default function AdminProductsPage() {
         const rows = ((data as ProductRow[] | null) || []).map(
           (product) => ({
             ...product,
+            product_images: (product.product_images || [])
+              .slice()
+              .sort(
+                (a, b) =>
+                  Number(a.sort_order || 0) -
+                  Number(b.sort_order || 0)
+              ),
             product_variants: (product.product_variants || [])
               .slice()
               .sort(
@@ -309,14 +345,41 @@ export default function AdminProductsPage() {
       .filter((product) => selectedProductIds.has(product.id))
       .map<BulkEditRow>((product) => {
         const first = (product.product_variants || [])[0];
+        const gallery = (product.product_images || []).length
+          ? (product.product_images || [])
+          : product.primary_image_url
+            ? [
+                {
+                  id: "primary-fallback",
+                  image_url: product.primary_image_url,
+                  sort_order: 0,
+                },
+              ]
+            : [];
 
         return {
           productId: product.id,
           sellerId: product.seller_id,
           name: product.name,
-          imageUrl: product.primary_image_url,
-          imagePreview: product.primary_image_url,
-          imageFile: null,
+          shortDescription: product.short_description || "",
+          description: product.description || "",
+          images: gallery.map((image) => ({
+            key: image.id || crypto.randomUUID(),
+            id: image.id === "primary-fallback" ? null : image.id,
+            url: image.image_url,
+            file: null,
+          })),
+          originalImageIds: (product.product_images || []).map(
+            (image) => image.id
+          ),
+          variants: (product.product_variants || []).map((variant) => ({
+            id: variant.id,
+            label: variantLabel(variant),
+            sku: variant.sku,
+            price: String(Number(variant.price || 0)),
+            stock: String(availableStock(variant)),
+            stockReserved: Number(variant.stock_reserved || 0),
+          })),
           weightKg: String(Number(first?.weight_kg || 0)),
           lengthCm: String(Number(first?.length_cm || 0)),
           widthCm: String(Number(first?.width_cm || 0)),
@@ -325,25 +388,41 @@ export default function AdminProductsPage() {
       });
 
     setBulkEditRows(rows);
+    setBulkImageEditorId("");
+    setBulkDescriptionEditorId("");
     setBulkEditOpen(true);
     setError("");
     setMessage("");
   }
 
-  function closeBulkEditor() {
-    for (const row of bulkEditRows) {
-      if (row.imageFile && row.imagePreview?.startsWith("blob:")) {
-        URL.revokeObjectURL(row.imagePreview);
+  function revokeBulkObjectUrls(rows: BulkEditRow[]) {
+    for (const row of rows) {
+      for (const image of row.images) {
+        if (image.file && image.url.startsWith("blob:")) {
+          URL.revokeObjectURL(image.url);
+        }
       }
     }
+  }
 
+  function closeBulkEditor() {
+    revokeBulkObjectUrls(bulkEditRows);
     setBulkEditOpen(false);
+    setBulkImageEditorId("");
+    setBulkDescriptionEditorId("");
     setBulkEditRows([]);
   }
 
   function updateBulkField(
     productId: string,
-    field: "weightKg" | "lengthCm" | "widthCm" | "heightCm",
+    field:
+      | "name"
+      | "shortDescription"
+      | "description"
+      | "weightKg"
+      | "lengthCm"
+      | "widthCm"
+      | "heightCm",
     value: string
   ) {
     setBulkEditRows((current) =>
@@ -353,50 +432,179 @@ export default function AdminProductsPage() {
     );
   }
 
-  function chooseBulkPhoto(productId: string, file: File | null) {
-    if (!file) return;
+  function updateBulkVariant(
+    productId: string,
+    variantId: string,
+    field: "sku" | "price" | "stock",
+    value: string
+  ) {
+    setBulkEditRows((current) =>
+      current.map((row) =>
+        row.productId !== productId
+          ? row
+          : {
+              ...row,
+              variants: row.variants.map((variant) =>
+                variant.id === variantId
+                  ? { ...variant, [field]: value }
+                  : variant
+              ),
+            }
+      )
+    );
+  }
 
-    if (
-      !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
-      file.size > 5 * 1024 * 1024
-    ) {
-      setError("Images must be JPG, PNG or WEBP and below 5MB.");
-      return;
+  function addBulkImages(productId: string, files: FileList | null) {
+    if (!files?.length) return;
+
+    const accepted = Array.from(files).filter(
+      (file) =>
+        ["image/jpeg", "image/png", "image/webp"].includes(file.type) &&
+        file.size <= 5 * 1024 * 1024
+    );
+
+    if (accepted.length !== files.length) {
+      setError("Images must be JPG, PNG or WEBP and below 5MB each.");
     }
 
     setBulkEditRows((current) =>
       current.map((row) => {
         if (row.productId !== productId) return row;
 
-        if (row.imageFile && row.imagePreview?.startsWith("blob:")) {
-          URL.revokeObjectURL(row.imagePreview);
+        const remaining = Math.max(0, 8 - row.images.length);
+        const nextImages = accepted.slice(0, remaining).map((file) => ({
+          key: "new-" + crypto.randomUUID(),
+          id: null,
+          url: URL.createObjectURL(file),
+          file,
+        }));
+
+        return {
+          ...row,
+          images: [...row.images, ...nextImages],
+        };
+      })
+    );
+  }
+
+  function removeBulkImage(productId: string, imageKey: string) {
+    setBulkEditRows((current) =>
+      current.map((row) => {
+        if (row.productId !== productId) return row;
+
+        const removed = row.images.find((image) => image.key === imageKey);
+        if (removed?.file && removed.url.startsWith("blob:")) {
+          URL.revokeObjectURL(removed.url);
         }
 
         return {
           ...row,
-          imageFile: file,
-          imagePreview: URL.createObjectURL(file),
+          images: row.images.filter((image) => image.key !== imageKey),
         };
       })
     );
+  }
 
-    setError("");
+  function moveBulkImage(
+    productId: string,
+    imageIndex: number,
+    direction: -1 | 1
+  ) {
+    setBulkEditRows((current) =>
+      current.map((row) => {
+        if (row.productId !== productId) return row;
+
+        const target = imageIndex + direction;
+        if (target < 0 || target >= row.images.length) return row;
+
+        const next = [...row.images];
+        [next[imageIndex], next[target]] = [
+          next[target],
+          next[imageIndex],
+        ];
+
+        return { ...row, images: next };
+      })
+    );
+  }
+
+  function makeBulkImageMain(productId: string, imageIndex: number) {
+    if (imageIndex <= 0) return;
+
+    setBulkEditRows((current) =>
+      current.map((row) => {
+        if (row.productId !== productId) return row;
+
+        const next = [...row.images];
+        const [image] = next.splice(imageIndex, 1);
+        next.unshift(image);
+
+        return { ...row, images: next };
+      })
+    );
+  }
+
+  function applyFirstParcelToAll() {
+    const source = bulkEditRows[0];
+    if (!source) return;
+
+    setBulkEditRows((current) =>
+      current.map((row) => ({
+        ...row,
+        weightKg: source.weightKg,
+        lengthCm: source.lengthCm,
+        widthCm: source.widthCm,
+        heightCm: source.heightCm,
+      }))
+    );
   }
 
   async function saveBulkEditor() {
     if (bulkEditRows.length === 0) return;
 
     for (const row of bulkEditRows) {
-      const values = [
+      if (!row.name.trim()) {
+        setError("Product name cannot be empty.");
+        return;
+      }
+
+      if (row.images.length === 0) {
+        setError(row.name + " needs at least one product image.");
+        return;
+      }
+
+      const dimensions = [
         Number(row.weightKg),
         Number(row.lengthCm),
         Number(row.widthCm),
         Number(row.heightCm),
       ];
 
-      if (values.some((value) => !Number.isFinite(value) || value < 0)) {
+      if (
+        dimensions.some(
+          (value) => !Number.isFinite(value) || value < 0
+        )
+      ) {
         setError("Weight and parcel dimensions must be 0 or higher.");
         return;
+      }
+
+      for (const variant of row.variants) {
+        const price = Number(variant.price);
+        const stock = Number(variant.stock);
+
+        if (!variant.sku.trim()) {
+          setError("Every variation needs a SKU.");
+          return;
+        }
+        if (!Number.isFinite(price) || price < 0) {
+          setError("Invalid price for " + variant.sku);
+          return;
+        }
+        if (!Number.isInteger(stock) || stock < 0) {
+          setError("Invalid stock for " + variant.sku);
+          return;
+        }
       }
     }
 
@@ -406,35 +614,68 @@ export default function AdminProductsPage() {
 
     try {
       const supabase = createClient();
-      const updatedImages = new Map<string, string>();
+      const updatedPrimaryImages = new Map<string, string>();
+      const finalImageRows = new Map<string, ProductImageRow[]>();
 
       for (const row of bulkEditRows) {
-        const { error: variantUpdateError } = await supabase
-          .from("product_variants")
+        const { error: productUpdateError } = await supabase
+          .from("products")
           .update({
-            weight_kg: Number(row.weightKg),
-            length_cm: Number(row.lengthCm),
-            width_cm: Number(row.widthCm),
-            height_cm: Number(row.heightCm),
+            name: row.name.trim(),
+            short_description: row.shortDescription.trim() || null,
+            description: row.description.trim() || null,
           })
-          .eq("product_id", row.productId);
+          .eq("id", row.productId);
 
-        if (variantUpdateError) throw variantUpdateError;
+        if (productUpdateError) throw productUpdateError;
 
-        if (row.imageFile) {
+        for (const variant of row.variants) {
+          const { error: variantUpdateError } = await supabase
+            .from("product_variants")
+            .update({
+              sku: variant.sku.trim().toUpperCase(),
+              price: Number(variant.price),
+              stock_on_hand:
+                Number(variant.stock) + Number(variant.stockReserved || 0),
+              weight_kg: Number(row.weightKg),
+              length_cm: Number(row.lengthCm),
+              width_cm: Number(row.widthCm),
+              height_cm: Number(row.heightCm),
+            })
+            .eq("id", variant.id);
+
+          if (variantUpdateError) throw variantUpdateError;
+        }
+
+        const resolvedImages: Array<{
+          key: string;
+          id: string | null;
+          url: string;
+        }> = [];
+
+        for (const image of row.images) {
+          if (!image.file) {
+            resolvedImages.push({
+              key: image.key,
+              id: image.id,
+              url: image.url,
+            });
+            continue;
+          }
+
           const path =
             row.sellerId +
-            "/bulk-main-" +
+            "/bulk-gallery-" +
             crypto.randomUUID() +
             "-" +
-            safeFileName(row.imageFile.name);
+            safeFileName(image.file.name);
 
           const { error: uploadError } = await supabase.storage
             .from("product-images")
-            .upload(path, row.imageFile, {
+            .upload(path, image.file, {
               cacheControl: "3600",
               upsert: false,
-              contentType: row.imageFile.type,
+              contentType: image.file.type,
             });
 
           if (uploadError) throw uploadError;
@@ -443,44 +684,99 @@ export default function AdminProductsPage() {
             .from("product-images")
             .getPublicUrl(path);
 
-          const imageUrl = publicData.publicUrl;
+          resolvedImages.push({
+            key: image.key,
+            id: null,
+            url: publicData.publicUrl,
+          });
+        }
 
-          const { data: firstImageRow, error: firstImageError } =
+        const keptExistingIds = new Set(
+          resolvedImages
+            .map((image) => image.id)
+            .filter((id): id is string => Boolean(id))
+        );
+        const removedImageIds = row.originalImageIds.filter(
+          (id) => !keptExistingIds.has(id)
+        );
+
+        if (removedImageIds.length > 0) {
+          const { data: removedRows, error: removedLookupError } =
             await supabase
               .from("product_images")
-              .select("sort_order")
-              .eq("product_id", row.productId)
-              .order("sort_order", { ascending: true })
-              .limit(1)
-              .maybeSingle();
+              .select("image_url")
+              .in("id", removedImageIds);
 
-          if (firstImageError) throw firstImageError;
+          if (removedLookupError) throw removedLookupError;
 
-          const nextSortOrder =
-            firstImageRow?.sort_order == null
-              ? 0
-              : Number(firstImageRow.sort_order) - 1;
-
-          const { error: imageRowError } = await supabase
+          const { error: deleteRowsError } = await supabase
             .from("product_images")
-            .insert({
-              product_id: row.productId,
-              image_url: imageUrl,
-              alt_text: row.name,
-              sort_order: nextSortOrder,
-            });
+            .delete()
+            .in("id", removedImageIds);
 
-          if (imageRowError) throw imageRowError;
+          if (deleteRowsError) throw deleteRowsError;
 
-          const { error: productImageError } = await supabase
-            .from("products")
-            .update({ primary_image_url: imageUrl })
-            .eq("id", row.productId);
+          const storagePaths = (removedRows || [])
+            .map((image) => storagePathFromUrl(image.image_url))
+            .filter(Boolean);
 
-          if (productImageError) throw productImageError;
-
-          updatedImages.set(row.productId, imageUrl);
+          if (storagePaths.length > 0) {
+            await supabase.storage
+              .from("product-images")
+              .remove(storagePaths);
+          }
         }
+
+        const savedImageRows: ProductImageRow[] = [];
+
+        for (const [index, image] of resolvedImages.entries()) {
+          if (image.id) {
+            const { error: reorderError } = await supabase
+              .from("product_images")
+              .update({
+                sort_order: index,
+                alt_text: row.name.trim(),
+              })
+              .eq("id", image.id);
+
+            if (reorderError) throw reorderError;
+
+            savedImageRows.push({
+              id: image.id,
+              image_url: image.url,
+              sort_order: index,
+            });
+          } else {
+            const { data: insertedImage, error: insertImageError } =
+              await supabase
+                .from("product_images")
+                .insert({
+                  product_id: row.productId,
+                  image_url: image.url,
+                  alt_text: row.name.trim(),
+                  sort_order: index,
+                })
+                .select("id, image_url, sort_order")
+                .single();
+
+            if (insertImageError) throw insertImageError;
+            savedImageRows.push(insertedImage as ProductImageRow);
+          }
+        }
+
+        const primaryImage = resolvedImages[0]?.url || null;
+
+        const { error: primaryImageError } = await supabase
+          .from("products")
+          .update({ primary_image_url: primaryImage })
+          .eq("id", row.productId);
+
+        if (primaryImageError) throw primaryImageError;
+
+        if (primaryImage) {
+          updatedPrimaryImages.set(row.productId, primaryImage);
+        }
+        finalImageRows.set(row.productId, savedImageRows);
       }
 
       const rowByProduct = new Map(
@@ -492,18 +788,38 @@ export default function AdminProductsPage() {
           const row = rowByProduct.get(product.id);
           if (!row) return product;
 
+          const draftVariants = new Map(
+            row.variants.map((variant) => [variant.id, variant])
+          );
+
           return {
             ...product,
+            name: row.name.trim(),
+            short_description: row.shortDescription.trim() || null,
+            description: row.description.trim() || null,
             primary_image_url:
-              updatedImages.get(product.id) || product.primary_image_url,
+              updatedPrimaryImages.get(product.id) ||
+              product.primary_image_url,
+            product_images:
+              finalImageRows.get(product.id) || product.product_images,
             product_variants: (product.product_variants || []).map(
-              (variant) => ({
-                ...variant,
-                weight_kg: Number(row.weightKg),
-                length_cm: Number(row.lengthCm),
-                width_cm: Number(row.widthCm),
-                height_cm: Number(row.heightCm),
-              })
+              (variant) => {
+                const draft = draftVariants.get(variant.id);
+                if (!draft) return variant;
+
+                return {
+                  ...variant,
+                  sku: draft.sku.trim().toUpperCase(),
+                  price: Number(draft.price),
+                  stock_on_hand:
+                    Number(draft.stock) +
+                    Number(draft.stockReserved || 0),
+                  weight_kg: Number(row.weightKg),
+                  length_cm: Number(row.lengthCm),
+                  width_cm: Number(row.widthCm),
+                  height_cm: Number(row.heightCm),
+                };
+              }
             ),
           };
         })
