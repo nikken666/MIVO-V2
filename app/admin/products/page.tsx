@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
 
@@ -338,6 +339,16 @@ export default function AdminProductsPage() {
 
       return next;
     });
+  }
+
+  function openBulkImageEditor(productId: string) {
+    setBulkDescriptionEditorId("");
+    setBulkImageEditorId(productId);
+  }
+
+  function openBulkDescriptionEditor(productId: string) {
+    setBulkImageEditorId("");
+    setBulkDescriptionEditorId(productId);
   }
 
   function openBulkEditor() {
@@ -1845,9 +1856,11 @@ export default function AdminProductsPage() {
                               <button
                                 type="button"
                                 className={styles.productBulkImageButton}
-                                onClick={() =>
-                                  setBulkImageEditorId(row.productId)
-                                }
+                                onClick={(event) => {
+                                  event.preventDefault();
+                                  event.stopPropagation();
+                                  openBulkImageEditor(row.productId);
+                                }}
                               >
                                 <div>
                                   {row.images[0]?.url ? (
@@ -1885,9 +1898,11 @@ export default function AdminProductsPage() {
                               <button
                                 type="button"
                                 className={styles.productBulkDescriptionButton}
-                                onClick={() =>
-                                  setBulkDescriptionEditorId(row.productId)
-                                }
+                                onClick={(event) => {
+                                  event.preventDefault();
+                                  event.stopPropagation();
+                                  openBulkDescriptionEditor(row.productId);
+                                }}
                               >
                                 <strong>
                                   {row.description.trim()
@@ -2129,7 +2144,7 @@ export default function AdminProductsPage() {
                       );
                       if (!row) return null;
 
-                      return (
+                      return createPortal(
                         <div
                           className={styles.productBulkSubModalBackdrop}
                           onMouseDown={(event) => {
@@ -2258,7 +2273,8 @@ export default function AdminProductsPage() {
                               </button>
                             </div>
                           </div>
-                        </div>
+                        </div>,
+                        document.body
                       );
                     })()
                   : null}
@@ -2271,7 +2287,7 @@ export default function AdminProductsPage() {
                       );
                       if (!row) return null;
 
-                      return (
+                      return createPortal(
                         <div
                           className={styles.productBulkSubModalBackdrop}
                           onMouseDown={(event) => {
@@ -2339,7 +2355,8 @@ export default function AdminProductsPage() {
                               </button>
                             </div>
                           </div>
-                        </div>
+                        </div>,
+                        document.body
                       );
                     })()
                   : null}
