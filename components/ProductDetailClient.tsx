@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import type {
   Product,
@@ -41,7 +42,8 @@ export default function ProductDetailClient({
   variantFitmentStatuses?: Record<string, FitmentStatus>;
   selectedVehicleLabel?: string;
 }) {
-  const { addToCart } = useMarketplace();
+  const router = useRouter();
+  const { addToCart, cartReady } = useMarketplace();
 
   const images = useMemo(
     () =>
@@ -284,12 +286,12 @@ export default function ProductDetailClient({
   }
 
   function completePurchaseAction(action: "cart" | "buy") {
-    if (!selectedVariant || !canBuy) return;
+    if (!selectedVariant || !canBuy || !cartReady) return;
 
     addToCart(product, selectedVariant, quantity);
 
     if (action === "buy") {
-      window.location.assign("/checkout");
+      router.push("/checkout");
       return;
     }
 
@@ -297,7 +299,7 @@ export default function ProductDetailClient({
   }
 
   function requestPurchaseAction(action: "cart" | "buy") {
-    if (!selectedVariant || !canBuy) return;
+    if (!selectedVariant || !canBuy || !cartReady) return;
 
     if (fitmentBlocked && selectedVehicleLabel) {
       setFitmentConfirmAction(action);
@@ -605,7 +607,7 @@ export default function ProductDetailClient({
               <button
                 type="button"
                 className="productAddCartButton"
-                disabled={!canBuy}
+                disabled={!canBuy || !cartReady}
                 onClick={addCurrentToCart}
               >
                 <span>＋</span>
@@ -619,7 +621,7 @@ export default function ProductDetailClient({
               <button
                 type="button"
                 className="productBuyNowButton"
-                disabled={!canBuy}
+                disabled={!canBuy || !cartReady}
                 onClick={buyNow}
               >
                 BUY NOW
@@ -979,7 +981,7 @@ export default function ProductDetailClient({
         <button
           type="button"
           className="mobileProductCart"
-          disabled={!canBuy}
+          disabled={!canBuy || !cartReady}
           onClick={addCurrentToCart}
         >
           <span>＋</span>
@@ -989,7 +991,7 @@ export default function ProductDetailClient({
         <button
           type="button"
           className="mobileProductBuy"
-          disabled={!canBuy}
+          disabled={!canBuy || !cartReady}
           onClick={buyNow}
         >
           BUY NOW
