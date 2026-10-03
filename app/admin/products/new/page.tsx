@@ -1078,15 +1078,25 @@ export default function AdminNewProductPage() {
         const sourcePath = storagePathFromUrl(sourceUrl);
         if (!sourcePath) return sourceUrl;
 
-        const fileName = sourcePath.split("/").pop() || "image.jpg";
+        const sourceFileName =
+          sourcePath.split("/").pop() || "image.jpg";
+        const extensionMatch = sourceFileName
+          .toLowerCase()
+          .match(/\.([a-z0-9]{1,8})$/);
+        const extension = extensionMatch?.[1] || "jpg";
+
+        // Never inherit the source object's full filename here.
+        // A copied product may itself be copied again, and repeatedly
+        // prefixing "copy-product-..." eventually exceeds the storage
+        // provider's 1024-byte object-key limit.
         const destinationPath =
           sellerId +
           "/" +
           prefix +
           "-" +
           crypto.randomUUID() +
-          "-" +
-          fileName;
+          "." +
+          extension;
 
         const { error: copyError } = await supabase.storage
           .from("product-images")
