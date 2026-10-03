@@ -56,6 +56,10 @@ type BulkVariantDraft = {
   price: string;
   stock: string;
   stockReserved: number;
+  weightKg: string;
+  lengthCm: string;
+  widthCm: string;
+  heightCm: string;
 };
 
 type BulkEditRow = {
@@ -67,10 +71,6 @@ type BulkEditRow = {
   images: BulkImageDraft[];
   originalImageIds: string[];
   variants: BulkVariantDraft[];
-  weightKg: string;
-  lengthCm: string;
-  widthCm: string;
-  heightCm: string;
 };
 
 function relationName(
@@ -344,7 +344,6 @@ export default function AdminProductsPage() {
     const rows = products
       .filter((product) => selectedProductIds.has(product.id))
       .map<BulkEditRow>((product) => {
-        const first = (product.product_variants || [])[0];
         const gallery = (product.product_images || []).length
           ? (product.product_images || [])
           : product.primary_image_url
@@ -379,11 +378,11 @@ export default function AdminProductsPage() {
             price: String(Number(variant.price || 0)),
             stock: String(availableStock(variant)),
             stockReserved: Number(variant.stock_reserved || 0),
+            weightKg: String(Number(variant.weight_kg || 0)),
+            lengthCm: String(Number(variant.length_cm || 0)),
+            widthCm: String(Number(variant.width_cm || 0)),
+            heightCm: String(Number(variant.height_cm || 0)),
           })),
-          weightKg: String(Number(first?.weight_kg || 0)),
-          lengthCm: String(Number(first?.length_cm || 0)),
-          widthCm: String(Number(first?.width_cm || 0)),
-          heightCm: String(Number(first?.height_cm || 0)),
         };
       });
 
@@ -415,14 +414,7 @@ export default function AdminProductsPage() {
 
   function updateBulkField(
     productId: string,
-    field:
-      | "name"
-      | "shortDescription"
-      | "description"
-      | "weightKg"
-      | "lengthCm"
-      | "widthCm"
-      | "heightCm",
+    field: "name" | "shortDescription" | "description",
     value: string
   ) {
     setBulkEditRows((current) =>
@@ -435,7 +427,14 @@ export default function AdminProductsPage() {
   function updateBulkVariant(
     productId: string,
     variantId: string,
-    field: "sku" | "price" | "stock",
+    field:
+      | "sku"
+      | "price"
+      | "stock"
+      | "weightKg"
+      | "lengthCm"
+      | "widthCm"
+      | "heightCm",
     value: string
   ) {
     setBulkEditRows((current) =>
@@ -544,18 +543,30 @@ export default function AdminProductsPage() {
     );
   }
 
-  function applyFirstParcelToAll() {
-    const source = bulkEditRows[0];
-    if (!source) return;
-
+  function applyFirstSkuParcelToProduct(productId: string) {
     setBulkEditRows((current) =>
-      current.map((row) => ({
-        ...row,
-        weightKg: source.weightKg,
-        lengthCm: source.lengthCm,
-        widthCm: source.widthCm,
-        heightCm: source.heightCm,
-      }))
+      current.map((row) => {
+        if (row.productId !== productId || row.variants.length < 2) {
+          return row;
+        }
+
+        const source = row.variants[0];
+
+        return {
+          ...row,
+          variants: row.variants.map((variant, index) =>
+            index === 0
+              ? variant
+              : {
+                  ...variant,
+                  weightKg: source.weightKg,
+                  lengthCm: source.lengthCm,
+                  widthCm: source.widthCm,
+                  heightCm: source.heightCm,
+                }
+          ),
+        };
+      })
     );
   }
 
@@ -573,25 +584,15 @@ export default function AdminProductsPage() {
         return;
       }
 
-      const dimensions = [
-        Number(row.weightKg),
-        Number(row.lengthCm),
-        Number(row.widthCm),
-        Number(row.heightCm),
-      ];
-
-      if (
-        dimensions.some(
-          (value) => !Number.isFinite(value) || value < 0
-        )
-      ) {
-        setError("Weight and parcel dimensions must be 0 or higher.");
-        return;
-      }
-
       for (const variant of row.variants) {
         const price = Number(variant.price);
         const stock = Number(variant.stock);
+        const dimensions = [
+          Number(variant.weightKg),
+          Number(variant.lengthCm),
+          Number(variant.widthCm),
+          Number(variant.heightCm),
+        ];
 
         if (!variant.sku.trim()) {
           setError("Every variation needs a SKU.");
@@ -603,6 +604,17 @@ export default function AdminProductsPage() {
         }
         if (!Number.isInteger(stock) || stock < 0) {
           setError("Invalid stock for " + variant.sku);
+          return;
+        }
+        if (
+          dimensions.some(
+            (value) => !Number.isFinite(value) || value < 0
+          )
+        ) {
+          setError(
+            "Invalid weight or parcel size for " +
+              (variant.sku || variant.label)
+          );
           return;
         }
       }
@@ -637,10 +649,10 @@ export default function AdminProductsPage() {
               price: Number(variant.price),
               stock_on_hand:
                 Number(variant.stock) + Number(variant.stockReserved || 0),
-              weight_kg: Number(row.weightKg),
-              length_cm: Number(row.lengthCm),
-              width_cm: Number(row.widthCm),
-              height_cm: Number(row.heightCm),
+              weight_kg: Number(variant.weightKg),
+              length_cm: Number(variant.lengthCm),
+              width_cm: Number(variant.widthCm),
+              height_cm: Number(variant.heightCm),
             })
             .eq("id", variant.id);
 
@@ -814,10 +826,10 @@ export default function AdminProductsPage() {
                   stock_on_hand:
                     Number(draft.stock) +
                     Number(draft.stockReserved || 0),
-                  weight_kg: Number(row.weightKg),
-                  length_cm: Number(row.lengthCm),
-                  width_cm: Number(row.widthCm),
-                  height_cm: Number(row.heightCm),
+                  weight_kg: Number(draft.weightKg),
+                  length_cm: Number(draft.lengthCm),
+                  width_cm: Number(draft.widthCm),
+                  height_cm: Number(draft.heightCm),
                 };
               }
             ),
@@ -1803,13 +1815,6 @@ export default function AdminProductsPage() {
                     <div className={styles.productBulkHeadActions}>
                       <button
                         type="button"
-                        onClick={applyFirstParcelToAll}
-                        disabled={bulkSaving || bulkEditRows.length < 2}
-                      >
-                        COPY FIRST SIZE TO ALL
-                      </button>
-                      <button
-                        type="button"
                         onClick={closeBulkEditor}
                         disabled={bulkSaving}
                       >
@@ -1972,87 +1977,120 @@ export default function AdminProductsPage() {
                             </td>
 
                             <td>
-                              <div className={styles.productBulkParcelInputs}>
-                                <label>
-                                  <span>L</span>
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    value={row.lengthCm}
-                                    onChange={(event) =>
-                                      updateBulkField(
-                                        row.productId,
-                                        "lengthCm",
-                                        event.target.value
-                                      )
-                                    }
-                                  />
-                                </label>
-                                <label>
-                                  <span>W</span>
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    value={row.widthCm}
-                                    onChange={(event) =>
-                                      updateBulkField(
-                                        row.productId,
-                                        "widthCm",
-                                        event.target.value
-                                      )
-                                    }
-                                  />
-                                </label>
-                                <label>
-                                  <span>H</span>
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    value={row.heightCm}
-                                    onChange={(event) =>
-                                      updateBulkField(
-                                        row.productId,
-                                        "heightCm",
-                                        event.target.value
-                                      )
-                                    }
-                                  />
-                                </label>
+                              <div className={styles.productBulkVariantStack}>
+                                {row.variants.map((variant) => (
+                                  <div
+                                    className={styles.productBulkSkuParcel}
+                                    key={variant.id}
+                                  >
+                                    <span>{variant.label}</span>
+                                    <div className={styles.productBulkParcelInputs}>
+                                      <label>
+                                        <span>L</span>
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          step="0.01"
+                                          value={variant.lengthCm}
+                                          onChange={(event) =>
+                                            updateBulkVariant(
+                                              row.productId,
+                                              variant.id,
+                                              "lengthCm",
+                                              event.target.value
+                                            )
+                                          }
+                                        />
+                                      </label>
+                                      <label>
+                                        <span>W</span>
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          step="0.01"
+                                          value={variant.widthCm}
+                                          onChange={(event) =>
+                                            updateBulkVariant(
+                                              row.productId,
+                                              variant.id,
+                                              "widthCm",
+                                              event.target.value
+                                            )
+                                          }
+                                        />
+                                      </label>
+                                      <label>
+                                        <span>H</span>
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          step="0.01"
+                                          value={variant.heightCm}
+                                          onChange={(event) =>
+                                            updateBulkVariant(
+                                              row.productId,
+                                              variant.id,
+                                              "heightCm",
+                                              event.target.value
+                                            )
+                                          }
+                                        />
+                                      </label>
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
                             </td>
 
                             <td>
-                              <input
-                                className={styles.productBulkWeightInput}
-                                type="number"
-                                min="0"
-                                step="0.001"
-                                value={row.weightKg}
-                                onChange={(event) =>
-                                  updateBulkField(
-                                    row.productId,
-                                    "weightKg",
-                                    event.target.value
-                                  )
-                                }
-                              />
+                              <div className={styles.productBulkVariantStack}>
+                                {row.variants.map((variant) => (
+                                  <label key={variant.id}>
+                                    <span>{variant.label}</span>
+                                    <input
+                                      className={styles.productBulkWeightInput}
+                                      type="number"
+                                      min="0"
+                                      step="0.001"
+                                      value={variant.weightKg}
+                                      onChange={(event) =>
+                                        updateBulkVariant(
+                                          row.productId,
+                                          variant.id,
+                                          "weightKg",
+                                          event.target.value
+                                        )
+                                      }
+                                    />
+                                  </label>
+                                ))}
+                              </div>
                             </td>
 
                             <td>
-                              <a
-                                className={styles.productBulkFullEdit}
+                              <div className={styles.productBulkRowActions}>
+                                {row.variants.length > 1 ? (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      applyFirstSkuParcelToProduct(row.productId)
+                                    }
+                                  >
+                                    COPY 1ST SKU SIZE
+                                  </button>
+                                ) : null}
+                                <a
+                                  className={styles.productBulkFullEdit}
                                 href={
                                   "/admin/products/" +
                                   row.productId +
                                   "/edit"
                                 }
                                 target="_blank"
-                              >
-                                FULL EDIT
-                              </a>
+                                >
+                                  FULL EDIT
+                                </a>
+                              </div>
                             </td>
                           </tr>
                         ))}
