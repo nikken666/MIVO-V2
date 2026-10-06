@@ -714,8 +714,9 @@ export const vehicleDatabase: VehicleMake[] = [
       { id: "mazda-cx9-tc-2017", model: "CX-9", generation: "TC", startYear: 2017, endYear: 2023, variants: ["2.5 Turbo 2WD", "2.5 Turbo AWD"], transmissions: ["AUTO"] },
 
       // CX-5
-      { id: "mazda-cx5-ke-2012", model: "CX-5", generation: "KE / Mk1", startYear: 2012, endYear: 2014, variants: ["2.0 Skyactiv-G", "2.5 Skyactiv-G"], transmissions: ["AUTO"] },
-      { id: "mazda-cx5-ke-fl-2015", model: "CX-5", generation: "KE / Mk1 Facelift", startYear: 2015, endYear: 2016, variants: ["2.0 Skyactiv-G", "2.5 Skyactiv-G", "2.2 Diesel"], transmissions: ["AUTO"] },
+      { id: "mazda-cx5-ke-2012", model: "CX-5", generation: "KE / Mk1 CBU", startYear: 2012, endYear: 2012, variants: ["2.0 Skyactiv-G 2WD CBU", "2.0 Skyactiv-G 4WD CBU"], transmissions: ["AUTO"] },
+      { id: "mazda-cx5-ke-ckd-2013", model: "CX-5", generation: "KE / Mk1 CKD", startYear: 2013, endYear: 2014, variants: ["2.0 Skyactiv-G 2WD Mid CKD", "2.0 Skyactiv-G 2WD High CKD", "2.0 Skyactiv-G 4WD High CKD"], transmissions: ["AUTO"] },
+      { id: "mazda-cx5-ke-fl-2015", model: "CX-5", generation: "KE / Mk1 Facelift", startYear: 2015, endYear: 2016, variants: ["2.0 Skyactiv-G 2WD CKD", "2.0 Skyactiv-G 4WD CKD", "2.5 Skyactiv-G 2WD CBU", "2.5 Skyactiv-G 4WD CBU", "2.5 Skyactiv-G 2WD CKD", "2.2 Skyactiv-D 2WD CKD"], transmissions: ["AUTO"] },
       { id: "mazda-cx5-kf-2017", model: "CX-5", generation: "KF", startYear: 2017, endYear: 2023, variants: ["2.0 GLS", "2.5 GLS", "2.2D GLS", "2.5T AWD"], transmissions: ["AUTO"] },
       { id: "mazda-cx5-kf-fl-2024", model: "CX-5", generation: "KF Facelift", startYear: 2024, variants: ["2.0 Mid", "2.0 High", "2.5 High", "2.2D High", "2.5T High AWD"], transmissions: ["AUTO"] },
 
