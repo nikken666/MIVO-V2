@@ -302,7 +302,7 @@ export const vehicleDatabase: VehicleMake[] = [
 
       // ESTIMA / PREVIA
       { id: "toyota-estima-xr10-1990", model: "Estima / Previa", generation: "XR10 / XR20", startYear: 1990, endYear: 1999, variants: ["2.4 Petrol", "2.2 Diesel"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "toyota-estima-xr30-2000", model: "Estima / Previa", generation: "XR30 / XR40", startYear: 2000, endYear: 2005, variants: ["2.4", "3.0 V6", "2.4 Hybrid"], transmissions: ["AUTO"] },
+      { id: "toyota-estima-xr30-2000", model: "Estima / Previa", generation: "XR30 / XR40", startYear: 2000, endYear: 2005, variants: ["2.4 2WD (ACR30)", "2.4 4WD (ACR40)", "3.0 V6 2WD (MCR30)", "3.0 V6 4WD (MCR40)", "2.4 Hybrid 4WD (AHR10)"], transmissions: ["AUTO"] },
       { id: "toyota-estima-xr50-2006", model: "Estima / Previa", generation: "XR50", startYear: 2006, endYear: 2015, variants: ["2.4 Aeras", "3.5 V6 Aeras", "2.4 Hybrid"], transmissions: ["AUTO"] },
       { id: "toyota-estima-xr50-fl-2016", model: "Estima / Previa", generation: "XR50 Facelift", startYear: 2016, endYear: 2019, variants: ["2.4 Aeras", "2.4 Aeras Premium", "2.4 Hybrid"], transmissions: ["AUTO"] },
 
