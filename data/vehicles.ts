@@ -44,6 +44,8 @@ export const vehicleDatabase: VehicleMake[] = [
       { id: "perodua-kenari-prefl-2000", model: "Kenari", generation: "Pre-Facelift", startYear: 2000, endYear: 2002, variants: ["1.0 EX", "1.0 GX", "1.0 EZ"] },
       { id: "perodua-kenari-fl-2003", model: "Kenari", generation: "Facelift", startYear: 2003, endYear: 2009, variants: ["1.0 GX", "1.0 EZ", "1.0 EZS", "1.0 GX Aero", "1.0 EZ Aero", "1.0 RS"] },
       { id: "perodua-kancil-g1g2-1994", model: "Kancil", generation: "Gen 1 / Gen 2", startYear: 1994, endYear: 2009, variants: ["660 EX", "850 EX", "850 EZ"] },
+      { id: "perodua-kembara-hc-hd-1998", model: "Kembara", generation: "Old Model (HC / HD)", startYear: 1998, endYear: 2003, variants: ["1.3 EX", "1.3 GX", "1.3 EZ"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "perodua-kembara-dvvt-2003", model: "Kembara", generation: "DVVT", startYear: 2003, endYear: 2007, variants: ["1.3 EX", "1.3 GX", "1.3 EZ"], transmissions: ["AUTO", "MANUAL"] },
       { id: "perodua-ativa-g1-2021", model: "Ativa", generation: "Gen 1", startYear: 2021, variants: ["1.0 Turbo X", "1.0 Turbo H", "1.0 Turbo AV"], transmissions: ["AUTO"] },
       { id: "perodua-aruz-g1-2019", model: "Aruz", generation: "Gen 1", startYear: 2019, variants: ["1.5 X", "1.5 AV"], transmissions: ["AUTO"] },
     ],
