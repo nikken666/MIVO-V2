@@ -303,10 +303,10 @@ export const vehicleDatabase: VehicleMake[] = [
       { id: "toyota-unser-kf80-fl-2005", model: "Unser", generation: "KF80 Facelift", startYear: 2005, endYear: 2007, variants: ["1.8 GLi", "1.8 LGX"], transmissions: ["AUTO", "MANUAL"] },
 
       // ESTIMA / PREVIA
-      { id: "toyota-estima-xr10-1990", model: "Estima / Previa", generation: "XR10 / XR20", startYear: 1990, endYear: 1999, variants: ["2.4 Petrol", "2.2 Diesel"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "toyota-estima-xr30-2000", model: "Estima / Previa", generation: "XR30 / XR40", startYear: 2000, endYear: 2005, variants: ["2.4 2WD (ACR30)", "2.4 4WD (ACR40)", "3.0 V6 2WD (MCR30)", "3.0 V6 4WD (MCR40)", "2.4 Hybrid 4WD (AHR10)"], transmissions: ["AUTO"] },
-      { id: "toyota-estima-xr50-2006", model: "Estima / Previa", generation: "XR50", startYear: 2006, endYear: 2015, variants: ["2.4 Aeras", "3.5 V6 Aeras", "2.4 Hybrid"], transmissions: ["AUTO"] },
-      { id: "toyota-estima-xr50-fl-2016", model: "Estima / Previa", generation: "XR50 Facelift", startYear: 2016, endYear: 2019, variants: ["2.4 Aeras", "2.4 Aeras Premium", "2.4 Hybrid"], transmissions: ["AUTO"] },
+      { id: "toyota-estima-xr10-1990", model: "Estima / Previa", generation: "XR10 / XR20", startYear: 1990, endYear: 1999, variants: ["2.4 Petrol 2WD (TCR10)","2.4 Petrol 4WD (TCR20)","2.2 Diesel 2WD (CXR10)","2.2 Diesel 4WD (CXR20)"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "toyota-estima-xr30-2000", model: "Estima / Previa", generation: "XR30 / XR40", startYear: 2000, endYear: 2005, variants: ["2.4 2WD (ACR30)","2.4 4WD (ACR40)","3.0 V6 2WD (MCR30)","3.0 V6 4WD (MCR40)","2.4 Hybrid 4WD (AHR10)"], transmissions: ["AUTO"] },
+      { id: "toyota-estima-xr50-2006", model: "Estima / Previa", generation: "XR50", startYear: 2006, endYear: 2015, variants: ["2.4 Aeras 2WD (ACR50)","2.4 Aeras 4WD (ACR55)","3.5 V6 Aeras 2WD (GSR50)","3.5 V6 Aeras 4WD (GSR55)","2.4 Hybrid E-Four 4WD (AHR20)"], transmissions: ["AUTO"] },
+      { id: "toyota-estima-xr50-fl-2016", model: "Estima / Previa", generation: "XR50 Facelift", startYear: 2016, endYear: 2019, variants: ["2.4 Aeras 2WD (ACR50)","2.4 Aeras 4WD (ACR55)","2.4 Aeras Premium 2WD (ACR50)","2.4 Aeras Premium 4WD (ACR55)","2.4 Hybrid E-Four 4WD (AHR20)"], transmissions: ["AUTO"] },
 
       // LAND CRUISER PRADO
       { id: "toyota-prado-j90-1996", model: "Land Cruiser Prado", generation: "J90", startYear: 1996, endYear: 2002, variants: ["2.7 Petrol", "3.0 Turbo Diesel", "3.4 V6"], transmissions: ["AUTO", "MANUAL"] },
@@ -315,12 +315,12 @@ export const vehicleDatabase: VehicleMake[] = [
       { id: "toyota-prado-j250-2024", model: "Land Cruiser Prado", generation: "J250", startYear: 2024, variants: ["2.7 Petrol", "2.8 Turbo Diesel", "2.4 Turbo Hybrid"], transmissions: ["AUTO"] },
 
       // HARRIER
-      { id: "toyota-harrier-xu10-1998", model: "Harrier", generation: "XU10", startYear: 1998, endYear: 2002, variants: ["2.2", "2.4", "3.0 V6"], transmissions: ["AUTO"] },
-      { id: "toyota-harrier-xu30-2003", model: "Harrier", generation: "XU30", startYear: 2003, endYear: 2012, variants: ["2.4", "3.0 V6", "3.5 V6", "3.3 Hybrid"], transmissions: ["AUTO"] },
-      { id: "toyota-harrier-xu60-2013", model: "Harrier", generation: "XU60", startYear: 2013, endYear: 2016, variants: ["2.0 Elegance", "2.0 Premium", "2.5 Hybrid"], transmissions: ["AUTO"] },
-      { id: "toyota-harrier-xu60-fl-2017", model: "Harrier", generation: "XU60 Facelift", startYear: 2017, endYear: 2020, variants: ["2.0 Elegance", "2.0 Premium", "2.0 Turbo", "2.5 Hybrid"], transmissions: ["AUTO"] },
-      { id: "toyota-harrier-xu80-2021", model: "Harrier", generation: "XU80", startYear: 2021, endYear: 2025, variants: ["2.0 Luxury", "2.0 Luxury SE"], transmissions: ["AUTO"] },
-      { id: "toyota-harrier-xu80-hev-2026", model: "Harrier", generation: "XU80 Hybrid Electric", startYear: 2026, variants: ["2.5 HEV Luxury"], transmissions: ["AUTO"] },
+      { id: "toyota-harrier-xu10-1998", model: "Harrier", generation: "XU10", startYear: 1998, endYear: 2002, variants: ["2.2 2WD (SXU10)","2.2 4WD (SXU15)","2.4 2WD (ACU10)","2.4 4WD (ACU15)","3.0 V6 2WD (MCU10)","3.0 V6 4WD (MCU15)"], transmissions: ["AUTO"] },
+      { id: "toyota-harrier-xu30-2003", model: "Harrier", generation: "XU30", startYear: 2003, endYear: 2012, variants: ["2.4 2WD (ACU30)","2.4 4WD (ACU35)","3.0 V6 2WD (MCU30)","3.0 V6 4WD (MCU35)","3.5 V6 2WD (GSU30)","3.5 V6 4WD (GSU35)","3.3 Hybrid 4WD (MHU38)"], transmissions: ["AUTO"] },
+      { id: "toyota-harrier-xu60-2013", model: "Harrier", generation: "XU60", startYear: 2013, endYear: 2016, variants: ["2.0 Elegance 2WD (ZSU60)","2.0 Elegance 4WD (ZSU65)","2.0 Premium 2WD (ZSU60)","2.0 Premium 4WD (ZSU65)","2.5 Hybrid E-Four 4WD (AVU65)"], transmissions: ["AUTO"] },
+      { id: "toyota-harrier-xu60-fl-2017", model: "Harrier", generation: "XU60 Facelift", startYear: 2017, endYear: 2020, variants: ["2.0 Elegance 2WD (ZSU60)","2.0 Elegance 4WD (ZSU65)","2.0 Premium 2WD (ZSU60)","2.0 Premium 4WD (ZSU65)","2.0 Turbo 2WD (ASU60)","2.0 Turbo 4WD (ASU65)","2.5 Hybrid E-Four 4WD (AVU65)"], transmissions: ["AUTO"] },
+      { id: "toyota-harrier-xu80-2021", model: "Harrier", generation: "XU80", startYear: 2021, endYear: 2025, variants: ["2.0 Luxury 2WD (MXUA80)","2.0 Luxury 4WD (MXUA85)","2.0 Luxury SE 2WD (MXUA80)","2.0 Luxury SE 4WD (MXUA85)"], transmissions: ["AUTO"] },
+      { id: "toyota-harrier-xu80-hev-2026", model: "Harrier", generation: "XU80 Hybrid Electric", startYear: 2026, variants: ["2.5 HEV Luxury 2WD (AXUH80)","2.5 HEV Luxury E-Four 4WD (AXUH85)"], transmissions: ["AUTO"] },
 
       // MODERN / RECENT TOYOTA MODELS — keep even if less common in Malaysia
       { id: "toyota-rav4-xa50-2019", model: "RAV4", generation: "XA50", startYear: 2019, endYear: 2021, variants: ["2.0", "2.5"], transmissions: ["AUTO"] },
@@ -379,18 +379,18 @@ export const vehicleDatabase: VehicleMake[] = [
       { id: "toyota-fortuner-an160-fl-2021", model: "Fortuner", generation: "AN160 Facelift", startYear: 2021, variants: ["2.4 AT 4WD", "2.7 SRZ AT 4WD", "2.8 VRZ AT 4WD", "2.8 GR Sport"], transmissions: ["AUTO"] },
 
       // ALPHARD
-      { id: "toyota-alphard-ah10-2002", model: "Alphard", generation: "AH10", startYear: 2002, endYear: 2007, variants: ["2.4 AS", "2.4 AX", "3.0 MZ"], transmissions: ["AUTO"] },
-      { id: "toyota-alphard-ah20-2008", model: "Alphard", generation: "AH20 / ANH20", startYear: 2008, endYear: 2014, variants: ["2.4 X", "2.4 G", "2.4 S", "3.5 G", "3.5 Executive Lounge"], transmissions: ["AUTO"] },
-      { id: "toyota-alphard-ah30-2015", model: "Alphard", generation: "AH30 / AGH30", startYear: 2015, endYear: 2017, variants: ["2.5 X", "2.5 G", "2.5 SC", "3.5 Executive Lounge"], transmissions: ["AUTO"] },
-      { id: "toyota-alphard-ah30-fl-2018", model: "Alphard", generation: "AH30 Facelift", startYear: 2018, endYear: 2022, variants: ["2.5 X", "2.5 G", "2.5 SC", "3.5 Executive Lounge"], transmissions: ["AUTO"] },
-      { id: "toyota-alphard-ah40-2023", model: "Alphard", generation: "AH40", startYear: 2023, variants: ["2.4T Executive Lounge", "2.5 HEV Executive Lounge"], transmissions: ["AUTO"] },
+      { id: "toyota-alphard-ah10-2002", model: "Alphard", generation: "AH10", startYear: 2002, endYear: 2007, variants: ["2.4 AS 2WD (ANH10)","2.4 AS 4WD (ANH15)","2.4 AX 2WD (ANH10)","2.4 AX 4WD (ANH15)","3.0 MZ 2WD (MNH10)","3.0 MZ 4WD (MNH15)"], transmissions: ["AUTO"] },
+      { id: "toyota-alphard-ah20-2008", model: "Alphard", generation: "AH20 / ANH20", startYear: 2008, endYear: 2014, variants: ["2.4 X 2WD (ANH20)","2.4 X 4WD (ANH25)","2.4 G 2WD (ANH20)","2.4 G 4WD (ANH25)","2.4 S 2WD (ANH20)","2.4 S 4WD (ANH25)","3.5 G 2WD (GGH20)","3.5 G 4WD (GGH25)","3.5 Executive Lounge 2WD (GGH20)","3.5 Executive Lounge 4WD (GGH25)"], transmissions: ["AUTO"] },
+      { id: "toyota-alphard-ah30-2015", model: "Alphard", generation: "AH30 / AGH30", startYear: 2015, endYear: 2017, variants: ["2.5 X 2WD (AGH30)","2.5 X 4WD (AGH35)","2.5 G 2WD (AGH30)","2.5 G 4WD (AGH35)","2.5 SC 2WD (AGH30)","2.5 SC 4WD (AGH35)","3.5 Executive Lounge 2WD (GGH30)","3.5 Executive Lounge 4WD (GGH35)"], transmissions: ["AUTO"] },
+      { id: "toyota-alphard-ah30-fl-2018", model: "Alphard", generation: "AH30 Facelift", startYear: 2018, endYear: 2022, variants: ["2.5 X 2WD (AGH30)","2.5 X 4WD (AGH35)","2.5 G 2WD (AGH30)","2.5 G 4WD (AGH35)","2.5 SC 2WD (AGH30)","2.5 SC 4WD (AGH35)","3.5 Executive Lounge 2WD (GGH30)","3.5 Executive Lounge 4WD (GGH35)"], transmissions: ["AUTO"] },
+      { id: "toyota-alphard-ah40-2023", model: "Alphard", generation: "AH40", startYear: 2023, variants: ["2.5 Z 2WD (AGH40)","2.5 Z 4WD (AGH45)","2.5 HEV Executive Lounge 2WD (AAHH40)","2.5 HEV Executive Lounge E-Four 4WD (AAHH45)"], transmissions: ["AUTO"] },
 
       // VELLFIRE
-      { id: "toyota-vellfire-ah20-2008", model: "Vellfire", generation: "AH20 / ANH20", startYear: 2008, endYear: 2014, variants: ["2.4 X", "2.4 Z", "2.4 ZG", "3.5 V", "3.5 ZG"], transmissions: ["AUTO"] },
-      { id: "toyota-vellfire-ah30-2015", model: "Vellfire", generation: "AH30 / AGH30", startYear: 2015, endYear: 2017, variants: ["2.5 X", "2.5 Z", "2.5 ZG", "3.5 ZG"], transmissions: ["AUTO"] },
-      { id: "toyota-vellfire-ah30-fl-2018", model: "Vellfire", generation: "AH30 Facelift", startYear: 2018, endYear: 2022, variants: ["2.5 Z", "2.5 ZG", "3.5 ZG"], transmissions: ["AUTO"] },
-      { id: "toyota-vellfire-ah40-2023", model: "Vellfire", generation: "AH40", startYear: 2023, endYear: 2025, variants: ["2.5"], transmissions: ["AUTO"] },
-      { id: "toyota-vellfire-ah40-hev-2026", model: "Vellfire", generation: "AH40 Hybrid Electric", startYear: 2026, variants: ["2.5 HEV Executive Lounge"], transmissions: ["AUTO"] },
+      { id: "toyota-vellfire-ah20-2008", model: "Vellfire", generation: "AH20 / ANH20", startYear: 2008, endYear: 2014, variants: ["2.4 X 2WD (ANH20)","2.4 X 4WD (ANH25)","2.4 Z 2WD (ANH20)","2.4 Z 4WD (ANH25)","2.4 ZG 2WD (ANH20)","2.4 ZG 4WD (ANH25)","3.5 V 2WD (GGH20)","3.5 V 4WD (GGH25)","3.5 ZG 2WD (GGH20)","3.5 ZG 4WD (GGH25)"], transmissions: ["AUTO"] },
+      { id: "toyota-vellfire-ah30-2015", model: "Vellfire", generation: "AH30 / AGH30", startYear: 2015, endYear: 2017, variants: ["2.5 X 2WD (AGH30)","2.5 X 4WD (AGH35)","2.5 Z 2WD (AGH30)","2.5 Z 4WD (AGH35)","2.5 ZG 2WD (AGH30)","2.5 ZG 4WD (AGH35)","3.5 ZG 2WD (GGH30)","3.5 ZG 4WD (GGH35)"], transmissions: ["AUTO"] },
+      { id: "toyota-vellfire-ah30-fl-2018", model: "Vellfire", generation: "AH30 Facelift", startYear: 2018, endYear: 2022, variants: ["2.5 Z 2WD (AGH30)","2.5 Z 4WD (AGH35)","2.5 ZG 2WD (AGH30)","2.5 ZG 4WD (AGH35)","3.5 ZG 2WD (GGH30)","3.5 ZG 4WD (GGH35)"], transmissions: ["AUTO"] },
+      { id: "toyota-vellfire-ah40-2023", model: "Vellfire", generation: "AH40", startYear: 2023, endYear: 2025, variants: ["2.4 Turbo Z Premier 2WD (TAHA40)","2.4 Turbo Z Premier 4WD (TAHA45)","2.5 HEV Z Premier 2WD (AAHH40)","2.5 HEV Z Premier E-Four 4WD (AAHH45)"], transmissions: ["AUTO"] },
+      { id: "toyota-vellfire-ah40-hev-2026", model: "Vellfire", generation: "AH40 Hybrid Electric", startYear: 2026, variants: ["2.5 HEV Executive Lounge 2WD (AAHH40)","2.5 HEV Executive Lounge E-Four 4WD (AAHH45)"], transmissions: ["AUTO"] },
 
       // RUSH
       { id: "toyota-rush-f700-2008", model: "Rush", generation: "F700", startYear: 2008, endYear: 2017, variants: ["1.5G", "1.5S"], transmissions: ["AUTO", "MANUAL"] },
