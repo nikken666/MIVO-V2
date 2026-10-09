@@ -56,7 +56,9 @@ export default async function HomePage({
         .from("customer_vehicles")
         .select("make, model, generation, year, variant, transmission")
         .eq("user_id", user.id)
-        .eq("is_default", true)
+        .order("is_default", { ascending: false })
+        .order("updated_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       savedVehicle = data || null;

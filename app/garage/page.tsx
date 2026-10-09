@@ -14,6 +14,7 @@ export default function GaragePage() {
   const [vehicle, setVehicle] = useState<AccountVehicle | null>(null);
   const [loading, setLoading] = useState(true);
   const [removing, setRemoving] = useState(false);
+  const [removeError, setRemoveError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -99,17 +100,28 @@ export default function GaragePage() {
 
   async function removeVehicle() {
     setRemoving(true);
+    setRemoveError("");
 
     try {
-      await removeAccountVehicle(vehicle?.id);
-    } catch {}
-
-    try {
-      window.localStorage.removeItem("mivo:selectedVehicle");
-    } catch {}
-
-    setVehicle(null);
-    setRemoving(false);
+      const nextVehicle = await removeAccountVehicle(vehicle?.id);
+      setVehicle(nextVehicle);
+      try {
+        if (nextVehicle) {
+          window.localStorage.setItem(
+            "mivo:selectedVehicle",
+            JSON.stringify(nextVehicle)
+          );
+        } else {
+          window.localStorage.removeItem("mivo:selectedVehicle");
+        }
+      } catch {}
+    } catch (caught) {
+      setRemoveError(
+        caught instanceof Error ? caught.message : "Could not remove vehicle."
+      );
+    } finally {
+      setRemoving(false);
+    }
   }
 
   const query = vehicle
@@ -209,6 +221,7 @@ export default function GaragePage() {
                 {removing ? "REMOVING..." : "REMOVE"}
               </button>
             </div>
+            {removeError && <p role="alert">{removeError}</p>}
           </div>
         ) : (
           <div className="garageEmpty">

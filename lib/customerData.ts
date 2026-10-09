@@ -71,14 +71,27 @@ export async function loadAccountVehicle(): Promise<AccountVehicle | null> {
   const { data, error } = await supabase
     .from("customer_vehicles")
     .select(
-      "id, vehicle_key, make, model, generation, year, variant, transmission, label"
+      "id, vehicle_key, make, model, generation, year, variant, transmission, label, is_default"
     )
     .eq("user_id", user.id)
-    .eq("is_default", true)
+    .order("is_default", { ascending: false })
+    .order("updated_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   if (error) throw error;
   if (!data) return null;
+
+  // Recover accounts that have saved cars but no default (for example,
+  // after an older version removed the active car).
+  if (!data.is_default) {
+    const { error: promoteError } = await supabase
+      .from("customer_vehicles")
+      .update({ is_default: true })
+      .eq("user_id", user.id)
+      .eq("id", data.id);
+    if (promoteError) throw promoteError;
+  }
 
   return {
     id: data.id,
@@ -217,6 +230,10 @@ export async function removeAccountVehicle(id?: string) {
 
   const { error } = await request;
   if (error) throw error;
+
+  // Removing the active car must immediately promote another saved car.
+  // This also keeps the account and the homepage in sync.
+  return await loadAccountVehicle();
 }
 
 export async function loadDefaultAddress(): Promise<AccountAddress | null> {
