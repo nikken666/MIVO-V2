@@ -239,16 +239,46 @@ export default function EditProductPage() {
             .select("id, name, slug, parent_id, sort_order")
             .eq("is_active", true)
             .order("sort_order"),
-          supabase
-            .from("vehicles")
-            .select(
-              "id, generation_key, make, model, generation, variant, transmission, year_from, year_to"
-            )
-            .eq("is_active", true),
-          supabase
-            .from("product_vehicle_fitments")
-            .select("id, vehicle_id, variant_id, year_from, year_to")
-            .eq("product_id", productId),
+          // PostgREST limits a single response to 1,000 rows by default.
+          // Load every page: otherwise saved fitments for vehicles beyond
+          // the first page disappear from the edit form.
+          (async () => {
+            const rows: VehicleRow[] = [];
+            const pageSize = 500;
+            for (let start = 0; ; start += pageSize) {
+              const page = await supabase
+                .from("vehicles")
+                .select(
+                  "id, generation_key, make, model, generation, variant, transmission, year_from, year_to"
+                )
+                .eq("is_active", true)
+                .order("id", { ascending: true })
+                .range(start, start + pageSize - 1);
+              if (page.error) throw page.error;
+              const batch = (page.data as VehicleRow[] | null) || [];
+              rows.push(...batch);
+              if (batch.length < pageSize) break;
+            }
+            return { data: rows, error: null };
+          })(),
+          // A large product may itself have more than 1,000 fitment rows.
+          (async () => {
+            const rows: FitmentRow[] = [];
+            const pageSize = 500;
+            for (let start = 0; ; start += pageSize) {
+              const page = await supabase
+                .from("product_vehicle_fitments")
+                .select("id, vehicle_id, variant_id, year_from, year_to")
+                .eq("product_id", productId)
+                .order("id", { ascending: true })
+                .range(start, start + pageSize - 1);
+              if (page.error) throw page.error;
+              const batch = (page.data as FitmentRow[] | null) || [];
+              rows.push(...batch);
+              if (batch.length < pageSize) break;
+            }
+            return { data: rows, error: null };
+          })(),
           supabase
             .from("product_images")
             .select("id, image_url, sort_order")
@@ -285,6 +315,19 @@ export default function EditProductPage() {
           (fitmentResult.data as FitmentRow[] | null) || [];
         const imageRows =
           (imageResult.data as ProductImageRow[] | null) || [];
+
+        // Never silently discard a saved fitment: the Save action replaces
+        // the product's fitment rows, so a partial load could erase data.
+        const loadedVehicleIds = new Set(vehicles.map((row) => row.id));
+        const missingVehicleIds = fitmentRows
+          .filter((row) => !loadedVehicleIds.has(row.vehicle_id))
+          .map((row) => row.vehicle_id);
+        if (missingVehicleIds.length > 0) {
+          throw new Error(
+            "Some saved compatible vehicles could not be loaded. " +
+              "No changes were made. Please refresh or contact support."
+          );
+        }
 
         const mappedFitments = fitmentRows
           .map<AdminFitmentDraft | null>((row) => {
