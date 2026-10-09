@@ -232,6 +232,7 @@ export const vehicleDatabase: VehicleMake[] = [
       "Yaris",
       "Avanza",
       "Wish",
+      "Voxy",
       "Innova",
       "Fortuner",
       "Alphard",
@@ -367,6 +368,13 @@ export const vehicleDatabase: VehicleMake[] = [
       { id: "toyota-wish-ae10-2003", model: "Wish", generation: "AE10 / ZNE10", startYear: 2003, endYear: 2008, variants: ["1.8 X 2WD (ZNE10G)","1.8 X 4WD (ZNE14G)","2.0 G 2WD (ANE10G)","2.0 Z 2WD (ANE11W)"], transmissions: ["AUTO"] },
       { id: "toyota-wish-ae20-2009", model: "Wish", generation: "AE20 / ZGE20", startYear: 2009, endYear: 2012, variants: ["1.8 X 2WD (ZGE20G)","1.8 X 4WD (ZGE25G)","1.8 S 2WD (ZGE20W)","1.8 S 4WD (ZGE25W)","2.0 G 2WD (ZGE21G)","2.0 Z 2WD (ZGE22W)"], transmissions: ["AUTO"] },
       { id: "toyota-wish-ae20-fl-2013", model: "Wish", generation: "AE20 Facelift", startYear: 2013, endYear: 2017, variants: ["1.8 X 2WD (ZGE20G)","1.8 X 4WD (ZGE25G)","1.8 G 2WD (ZGE20G)","1.8 G 4WD (ZGE25G)","1.8 A 2WD (ZGE20W)","1.8 A 4WD (ZGE25W)","1.8 S 2WD (ZGE20W)","1.8 S 4WD (ZGE25W)","2.0 Z 2WD (ZGE22W)"], transmissions: ["AUTO"] },
+
+      // VOXY — Japanese-market generations, separate 2WD, 4WD and Hybrid chassis
+      { id: "toyota-voxy-azr60-2001", model: "Voxy", generation: "Gen 1 (AZR60 / AZR65)", startYear: 2001, endYear: 2007, variants: ["2.0 X 2WD (AZR60G)","2.0 Z 2WD (AZR60G)","2.0 X 4WD (AZR65G)","2.0 Z 4WD (AZR65G)"], transmissions: ["AUTO"] },
+      { id: "toyota-voxy-zrr70-2007", model: "Voxy", generation: "Gen 2 (ZRR70 / ZRR75)", startYear: 2007, endYear: 2013, variants: ["2.0 X 2WD (ZRR70G)","2.0 X 4WD (ZRR75G)","2.0 Z 2WD (ZRR70W)","2.0 Z 4WD (ZRR75W)","2.0 ZS 2WD (ZRR70W)","2.0 ZS 4WD (ZRR75W)"], transmissions: ["AUTO"] },
+      { id: "toyota-voxy-zrr80-2014", model: "Voxy", generation: "Gen 3 (ZRR80 / ZRR85 / ZWR80)", startYear: 2014, endYear: 2016, variants: ["2.0 X 2WD (ZRR80G)","2.0 X 4WD (ZRR85G)","2.0 V 2WD (ZRR80G)","2.0 V 4WD (ZRR85G)","2.0 ZS 2WD (ZRR80W)","2.0 ZS 4WD (ZRR85W)","1.8 Hybrid X 2WD (ZWR80G)","1.8 Hybrid V 2WD (ZWR80G)"], transmissions: ["AUTO"] },
+      { id: "toyota-voxy-zrr80-fl-2017", model: "Voxy", generation: "Gen 3 Facelift (ZRR80 / ZRR85 / ZWR80)", startYear: 2017, endYear: 2021, variants: ["2.0 X 2WD (ZRR80G)","2.0 X 4WD (ZRR85G)","2.0 V 2WD (ZRR80G)","2.0 V 4WD (ZRR85G)","2.0 ZS 2WD (ZRR80W)","2.0 ZS 4WD (ZRR85W)","1.8 Hybrid X 2WD (ZWR80G)","1.8 Hybrid V 2WD (ZWR80G)","1.8 Hybrid ZS 2WD (ZWR80W)"], transmissions: ["AUTO"] },
+      { id: "toyota-voxy-mzra90-2022", model: "Voxy", generation: "Gen 4 (MZRA90 / MZRA95 / ZWR90 / ZWR95)", startYear: 2022, variants: ["2.0 S-G 2WD (MZRA90W)","2.0 S-G 4WD (MZRA95W)","2.0 S-Z 2WD (MZRA90W)","2.0 S-Z 4WD (MZRA95W)","1.8 Hybrid S-G 2WD (ZWR90W)","1.8 Hybrid S-G E-Four 4WD (ZWR95W)","1.8 Hybrid S-Z 2WD (ZWR90W)","1.8 Hybrid S-Z E-Four 4WD (ZWR95W)"], transmissions: ["AUTO"] },
 
       // INNOVA
       { id: "toyota-innova-an40-2005", model: "Innova", generation: "AN40 / TGN40", startYear: 2005, endYear: 2008, variants: ["2.0E", "2.0G"], transmissions: ["AUTO", "MANUAL"] },
