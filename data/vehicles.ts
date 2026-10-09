@@ -598,7 +598,7 @@ export const vehicleDatabase: VehicleMake[] = [
       { id: "nissan-serena-c28-2026", model: "Serena", generation: "C28 e-POWER", startYear: 2026, variants: ["X", "X Plus", "Highway Star", "Premium Highway Star", "Shiro Premium Highway Star"], transmissions: ["AUTO"] },
 
       // X-TRAIL
-      { id: "nissan-xtrail-t30-2003", model: "X-Trail", generation: "T30", startYear: 2003, endYear: 2007, variants: ["2.0 2WD", "2.5 4WD"], transmissions: ["AUTO"] },
+      { id: "nissan-xtrail-t30-2003", model: "X-Trail", generation: "T30", startYear: 2003, endYear: 2007, variants: ["2.0 2WD", "2.0 4WD (NT30)", "2.5 4WD"], transmissions: ["AUTO"] },
       { id: "nissan-xtrail-t31-2008", model: "X-Trail", generation: "T31", startYear: 2008, endYear: 2014, variants: ["2.0 2WD", "2.5 4WD"], transmissions: ["AUTO"] },
       { id: "nissan-xtrail-t32-2015", model: "X-Trail", generation: "T32", startYear: 2015, endYear: 2018, variants: ["2.0L 2WD", "2.5L 4WD"], transmissions: ["AUTO"] },
       { id: "nissan-xtrail-t32-fl-2019", model: "X-Trail", generation: "T32 Facelift", startYear: 2019, endYear: 2024, variants: ["2.0L 2WD", "2.0L 2WD MID", "2.5L 4WD", "2.0L Hybrid"], transmissions: ["AUTO"] },
