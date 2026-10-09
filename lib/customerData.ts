@@ -219,7 +219,7 @@ export async function removeAccountVehicle(id?: string) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return;
+  if (!user) return null;
 
   let request = supabase
     .from("customer_vehicles")
