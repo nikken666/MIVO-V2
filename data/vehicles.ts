@@ -361,9 +361,9 @@ export const vehicleDatabase: VehicleMake[] = [
       { id: "toyota-avanza-f650-fl2-2019", model: "Avanza", generation: "F650 Facelift 2", startYear: 2019, endYear: 2022, variants: ["1.5E", "1.5S"], transmissions: ["AUTO"] },
 
       // WISH
-      { id: "toyota-wish-ae10-2003", model: "Wish", generation: "AE10 / ZNE10", startYear: 2003, endYear: 2008, variants: ["1.8 X", "1.8 S", "2.0 Z"], transmissions: ["AUTO"] },
-      { id: "toyota-wish-ae20-2009", model: "Wish", generation: "AE20 / ZGE20", startYear: 2009, endYear: 2012, variants: ["1.8 X", "1.8 S", "2.0 Z"], transmissions: ["AUTO"] },
-      { id: "toyota-wish-ae20-fl-2013", model: "Wish", generation: "AE20 Facelift", startYear: 2013, endYear: 2017, variants: ["1.8 X", "1.8 S", "2.0 Z"], transmissions: ["AUTO"] },
+      { id: "toyota-wish-ae10-2003", model: "Wish", generation: "AE10 / ZNE10", startYear: 2003, endYear: 2008, variants: ["1.8 X 2WD (ZNE10G)","1.8 X 4WD (ZNE14G)","2.0 G 2WD (ANE10G)","2.0 Z 2WD (ANE11W)"], transmissions: ["AUTO"] },
+      { id: "toyota-wish-ae20-2009", model: "Wish", generation: "AE20 / ZGE20", startYear: 2009, endYear: 2012, variants: ["1.8 X 2WD (ZGE20G)","1.8 X 4WD (ZGE25G)","1.8 S 2WD (ZGE20W)","1.8 S 4WD (ZGE25W)","2.0 G 2WD (ZGE21G)","2.0 Z 2WD (ZGE22W)"], transmissions: ["AUTO"] },
+      { id: "toyota-wish-ae20-fl-2013", model: "Wish", generation: "AE20 Facelift", startYear: 2013, endYear: 2017, variants: ["1.8 X 2WD (ZGE20G)","1.8 X 4WD (ZGE25G)","1.8 G 2WD (ZGE20G)","1.8 G 4WD (ZGE25G)","1.8 A 2WD (ZGE20W)","1.8 A 4WD (ZGE25W)","1.8 S 2WD (ZGE20W)","1.8 S 4WD (ZGE25W)","2.0 Z 2WD (ZGE22W)"], transmissions: ["AUTO"] },
 
       // INNOVA
       { id: "toyota-innova-an40-2005", model: "Innova", generation: "AN40 / TGN40", startYear: 2005, endYear: 2008, variants: ["2.0E", "2.0G"], transmissions: ["AUTO", "MANUAL"] },
