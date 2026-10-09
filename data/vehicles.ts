@@ -558,7 +558,7 @@ export const vehicleDatabase: VehicleMake[] = [
   {
     make: "Nissan",
     modelOrder: [
-      "Sunny / Sentra",
+      "Sentra",
       "Vanette",
       "Cefiro",
       "Serena",
@@ -578,12 +578,8 @@ export const vehicleDatabase: VehicleMake[] = [
       "Kicks e-POWER",
     ],
     vehicles: [
-      // SUNNY / SENTRA
-      { id: "nissan-sunny-b11-1984", model: "Sunny / Sentra", generation: "B11", startYear: 1984, endYear: 1986, variants: ["1.3 GL", "1.5 GL"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "nissan-sunny-b12-1987", model: "Sunny / Sentra", generation: "B12", startYear: 1987, endYear: 1990, variants: ["1.3 GL", "1.5 GL", "1.6 Super Saloon"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "nissan-sentra-b13-1991", model: "Sunny / Sentra", generation: "B13", startYear: 1991, endYear: 1995, variants: ["1.6 L", "1.6 SG", "1.6 Super Saloon"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "nissan-sentra-b14-1995", model: "Sunny / Sentra", generation: "B14", startYear: 1995, endYear: 1999, variants: ["1.6 L", "1.6 SLX", "1.6 Super Saloon"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "nissan-sentra-n16-2000", model: "Sunny / Sentra", generation: "N16", startYear: 2000, endYear: 2006, variants: ["1.6 SG", "1.6 XG-L", "1.8 XG-L"], transmissions: ["AUTO", "MANUAL"] },
+      // SENTRA — only N16 (no Sunny/B11/B12/B13/B14)
+      { id: "nissan-sentra-n16-2000", model: "Sentra", generation: "N16", startYear: 2000, endYear: 2006, variants: ["1.6 SG", "1.6 XG-L", "1.8 XG-L"], transmissions: ["AUTO", "MANUAL"] },
 
       // VANETTE
       { id: "nissan-vanette-c22-1986", model: "Vanette", generation: "C22", startYear: 1986, endYear: 2012, variants: ["1.5 Petrol Panel Van", "1.5 Petrol Window Van"], transmissions: ["MANUAL"] },
