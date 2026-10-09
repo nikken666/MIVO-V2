@@ -221,6 +221,7 @@ export const vehicleDatabase: VehicleMake[] = [
       "Harrier",
       "RAV4",
       "Prius",
+      "Prius C",
       "86",
       "Crown",
       "GR Supra",
@@ -325,8 +326,10 @@ export const vehicleDatabase: VehicleMake[] = [
       // MODERN / RECENT TOYOTA MODELS — keep even if less common in Malaysia
       { id: "toyota-rav4-xa50-2019", model: "RAV4", generation: "XA50", startYear: 2019, endYear: 2021, variants: ["2.0", "2.5"], transmissions: ["AUTO"] },
 
+      { id: "toyota-prius-zvw30-2009", model: "Prius", generation: "XW30 / ZVW30 (Gen 3)", startYear: 2009, endYear: 2015, variants: ["1.8 Hybrid", "1.8 Hybrid Luxury"], transmissions: ["AUTO"] },
       { id: "toyota-prius-xw50-2016", model: "Prius", generation: "XW50", startYear: 2016, endYear: 2022, variants: ["1.8 Hybrid"], transmissions: ["AUTO"] },
       { id: "toyota-prius-xw60-2023", model: "Prius", generation: "XW60", startYear: 2023, variants: ["1.8 HEV", "2.0 HEV", "2.0 PHEV"], transmissions: ["AUTO"] },
+      { id: "toyota-prius-c-nhp10-2012", model: "Prius C", generation: "NHP10 (Gen 1)", startYear: 2012, endYear: 2016, variants: ["1.5 Hybrid"], transmissions: ["AUTO"] },
 
       { id: "toyota-crown-s230-2023", model: "Crown", generation: "S230 / Crossover", startYear: 2023, variants: ["2.5 HEV", "2.4 Turbo HEV"], transmissions: ["AUTO"] },
 
@@ -402,7 +405,7 @@ export const vehicleDatabase: VehicleMake[] = [
 
       // SIENTA
       { id: "toyota-sienta-p80-2003", model: "Sienta", generation: "P80", startYear: 2003, endYear: 2015, variants: ["1.5 X", "1.5 G"], transmissions: ["AUTO"] },
-      { id: "toyota-sienta-p170-2016", model: "Sienta", generation: "P170", startYear: 2016, endYear: 2019, variants: ["1.5V", "1.5G"], transmissions: ["AUTO"] },
+      { id: "toyota-sienta-p170-2016", model: "Sienta", generation: "NSP170 (Gen 2)", startYear: 2016, endYear: 2019, variants: ["1.5V", "1.5G"], transmissions: ["AUTO"] },
 
       // C-HR
       { id: "toyota-chr-ax10-2018", model: "C-HR", generation: "AX10", startYear: 2018, endYear: 2020, variants: ["1.8"], transmissions: ["AUTO"] },
