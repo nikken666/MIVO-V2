@@ -320,7 +320,8 @@ export default function EditProductPage() {
         // the product's fitment rows, so a partial load could erase data.
         const loadedVehicleIds = new Set(vehicles.map((row) => row.id));
         const missingVehicleIds = fitmentRows
-          .filter((row) => !loadedVehicleIds.has(row.vehicle_id))
+          .filter((row) => !loadedVehicleIds.has(row.vehicle_id) ||
+            !vehicles.find((vehicle) => vehicle.id === row.vehicle_id)?.generation_key)
           .map((row) => row.vehicle_id);
         if (missingVehicleIds.length > 0) {
           throw new Error(
