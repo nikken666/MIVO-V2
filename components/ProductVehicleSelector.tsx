@@ -17,11 +17,12 @@ import {
 type Props = {
   open: boolean;
   onClose: () => void;
+  mode?: "product" | "garage";
 };
 
 const TOTAL_STEPS = 6;
 
-export default function ProductVehicleSelector({ open, onClose }: Props) {
+export default function ProductVehicleSelector({ open, onClose, mode = "product" }: Props) {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [make, setMake] = useState("");
@@ -245,10 +246,17 @@ export default function ProductVehicleSelector({ open, onClose }: Props) {
       params.set("transmission", vehicle.transmission || "");
 
       onClose();
-      router.replace(
-        window.location.pathname + "?" + params.toString(),
-        { scroll: false }
-      );
+      if (mode === "garage") {
+        // The homepage card is rendered on the server; refresh it after
+        // changing the current vehicle instead of adding product-fitment
+        // query parameters to the homepage.
+        router.refresh();
+      } else {
+        router.replace(
+          window.location.pathname + "?" + params.toString(),
+          { scroll: false }
+        );
+      }
     } finally {
       setApplying(false);
     }
@@ -302,7 +310,7 @@ export default function ProductVehicleSelector({ open, onClose }: Props) {
           <div>
             <span>MIVO VEHICLE FITMENT</span>
             <h2>Select your vehicle</h2>
-            <p>Stay on this product page while MIVO checks compatibility.</p>
+            <p>{mode === "garage" ? "Switch between your saved vehicles or add another car." : "Stay on this product page while MIVO checks compatibility."}</p>
           </div>
 
           <button

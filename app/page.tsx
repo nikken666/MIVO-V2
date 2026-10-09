@@ -4,6 +4,7 @@ import { getActiveProducts } from "@/lib/catalog";
 import ProductCard from "@/components/ProductCard";
 import Logo from "@/components/Logo";
 import VehicleFinder from "@/components/VehicleFinder";
+import HomeGarageManage from "@/components/HomeGarageManage";
 import HomePromotions from "@/components/HomePromotions";
 import { products } from "@/data/products";
 
@@ -115,7 +116,7 @@ export default async function HomePage({
                       : "No vehicle selected"}
                   </strong>
                 </div>
-                <Link href="/garage">MANAGE</Link>
+                <HomeGarageManage />
               </div>
 
               {savedVehicle ? (

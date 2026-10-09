@@ -9764,3 +9764,20 @@ div{
     margin:14px 16px 0;
   }
 }
+
+
+/* Keep the homepage My Garage card unchanged until MANAGE is clicked. */
+.memberGarageHead .memberGarageManage {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: #d8242f;
+  font: inherit;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .06em;
+  cursor: pointer;
+}
+.memberGarageHead .memberGarageManage:hover {
+  text-decoration: underline;
+}
