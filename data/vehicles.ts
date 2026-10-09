@@ -467,8 +467,8 @@ export const vehicleDatabase: VehicleMake[] = [
     vehicles: [
       // CIVIC
       { id: "honda-civic-ef-1988", model: "Civic", generation: "EF", startYear: 1988, endYear: 1991, variants: ["1.5 EX", "1.6 EXi"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "honda-civic-eg-1992", model: "Civic", generation: "EG", startYear: 1992, endYear: 1995, variants: ["1.5 EX", "1.6 EXi", "1.6 VTi"], transmissions: ["AUTO", "MANUAL"] },
-      { id: "honda-civic-ek-1996", model: "Civic", generation: "EK", startYear: 1996, endYear: 2000, variants: ["1.6 EXi", "1.6 VTi", "1.6 VTi-S"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "honda-civic-eg-1992", model: "Civic", generation: "EG", startYear: 1992, endYear: 1995, variants: ["1.5 EX NON-VTEC","1.6 EXi NON-VTEC","1.6 VTi VTEC","1.6 SiR DOHC VTEC"], transmissions: ["AUTO", "MANUAL"] },
+      { id: "honda-civic-ek-1996", model: "Civic", generation: "EK", startYear: 1996, endYear: 2000, variants: ["1.6 EXi NON-VTEC","1.6 VTi VTEC","1.6 VTi-S VTEC","1.6 SiR DOHC VTEC"], transmissions: ["AUTO", "MANUAL"] },
       { id: "honda-civic-es-2001", model: "Civic", generation: "ES", startYear: 2001, endYear: 2005, variants: ["1.7 VTi", "1.7 VTi-S", "2.0 i-VTEC"], transmissions: ["AUTO", "MANUAL"] },
       { id: "honda-civic-fd-2006", model: "Civic", generation: "FD", startYear: 2006, endYear: 2011, variants: ["1.8 S", "1.8 S-L", "2.0 S", "2.0 S Navi"], transmissions: ["AUTO"] },
       { id: "honda-civic-fb-2012", model: "Civic", generation: "FB", startYear: 2012, endYear: 2015, variants: ["1.8 S", "2.0 S", "2.0 Navi", "1.5 Hybrid"], transmissions: ["AUTO"] },
