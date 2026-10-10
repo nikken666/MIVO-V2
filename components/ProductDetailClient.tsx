@@ -43,7 +43,7 @@ export default function ProductDetailClient({
   selectedVehicleLabel?: string;
 }) {
   const router = useRouter();
-  const { addToCart, cartReady } = useMarketplace();
+  const { addToCart, startBuyNow, cartReady } = useMarketplace();
 
   const images = useMemo(
     () =>
@@ -288,13 +288,13 @@ export default function ProductDetailClient({
   function completePurchaseAction(action: "cart" | "buy") {
     if (!selectedVariant || !canBuy || !cartReady) return;
 
-    addToCart(product, selectedVariant, quantity);
-
     if (action === "buy") {
+      startBuyNow(product, selectedVariant, quantity);
       router.push("/checkout");
       return;
     }
 
+    addToCart(product, selectedVariant, quantity);
     setQuantity(1);
   }
 

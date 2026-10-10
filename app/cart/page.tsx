@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { formatPrice } from "@/data/products";
 import { useMarketplace } from "@/components/MarketplaceProvider";
 import CartVoucherStrip from "@/components/CartVoucherStrip";
@@ -8,9 +9,16 @@ import CartVoucherStrip from "@/components/CartVoucherStrip";
 export default function CartPage() {
   const {
     cart, cartCount, cartReady, selectedCartLineIds,
+    clearBuyNow,
     toggleCartLineSelection, selectAllCartLines,
     removeFromCart, updateQuantity, clearCart,
   } = useMarketplace();
+
+  useEffect(() => {
+    // Navigating into Cart exits a previous Buy Now session.
+    clearBuyNow();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const selectedIds = new Set(selectedCartLineIds);
   const selectedCart = cart.filter((line) => selectedIds.has(line.lineId));

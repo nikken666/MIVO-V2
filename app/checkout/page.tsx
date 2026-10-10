@@ -118,6 +118,8 @@ export default function CheckoutPage() {
   const {
     cart,
     cartReady,
+    buyNowLine,
+    clearBuyNow,
     selectedCartLineIds,
     addToCart,
     removeCartLines,
@@ -260,8 +262,10 @@ export default function CheckoutPage() {
   }, [router]);
 
   const selectedCart = useMemo(
-    () => cart.filter((line) => selectedCartLineIds.includes(line.lineId)),
-    [cart, selectedCartLineIds]
+    () => buyNowLine
+      ? [buyNowLine]
+      : cart.filter((line) => selectedCartLineIds.includes(line.lineId)),
+    [cart, selectedCartLineIds, buyNowLine]
   );
   const selectedCount = selectedCart.reduce((sum, line) => sum + line.quantity, 0);
 
@@ -323,7 +327,7 @@ export default function CheckoutPage() {
   );
 
   const addonSuggestions: AddonSuggestion[] =
-    voucherShortfall > 0 && voucherShortfall <= 100
+    !buyNowLine && voucherShortfall > 0 && voucherShortfall <= 100
       ? Array.from(
           new Map(
             selectedCart
@@ -654,11 +658,15 @@ export default function CheckoutPage() {
       };
 
       if (paymentResponse.ok && payment.url) {
-        // Preserve all unchecked items after purchasing only selected lines.
-        try {
-          await removeCartLines(selectedCart.map((line) => line.lineId));
-        } catch (cartError) {
-          console.error("Unable to sync purchased cart items:", cartError);
+        if (buyNowLine) {
+          // Buy Now is independent: nothing was added to or removed from the cart.
+          clearBuyNow();
+        } else {
+          try {
+            await removeCartLines(selectedCart.map((line) => line.lineId));
+          } catch (cartError) {
+            console.error("Unable to sync purchased cart items:", cartError);
+          }
         }
         window.location.assign(payment.url);
         return;
@@ -706,7 +714,7 @@ export default function CheckoutPage() {
     );
   }
 
-  if (!cart.length) {
+  if (!cart.length && !buyNowLine) {
     return (
       <main className="checkoutPage">
         <div className="container">

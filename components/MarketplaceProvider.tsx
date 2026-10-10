@@ -29,6 +29,9 @@ type MarketplaceContextValue = {
   cart: CartLine[];
   cartCount: number;
   cartReady: boolean;
+  buyNowLine: CartLine | null;
+  startBuyNow: (product: Product, variant: ProductVariant, quantity?: number) => void;
+  clearBuyNow: () => void;
   selectedCartLineIds: string[];
   toggleCartLineSelection: (lineId: string) => void;
   selectAllCartLines: (selected: boolean) => void;
@@ -49,6 +52,35 @@ const MarketplaceContext =
 const GUEST_CART_KEY = "mivo-cart:guest";
 const LEGACY_CART_KEY = "mivo-cart";
 const SELECTION_KEY_PREFIX = "mivo-cart-selection:";
+const BUY_NOW_KEY = "mivo-checkout:buy-now";
+
+function readBuyNowLine(): CartLine | null {
+  try {
+    const raw = window.sessionStorage.getItem(BUY_NOW_KEY);
+    if (!raw) return null;
+    const line = JSON.parse(raw) as Partial<CartLine>;
+    if (
+      !line || !line.product || !line.variant?.id ||
+      !Number.isFinite(line.quantity) || Number(line.quantity) < 1
+    ) return null;
+    return {
+      lineId: createLineId(line.product, line.variant),
+      product: line.product,
+      variant: line.variant,
+      quantity: Math.max(1, Math.floor(Number(line.quantity))),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeBuyNowLine(line: CartLine | null) {
+  try {
+    if (line) window.sessionStorage.setItem(BUY_NOW_KEY, JSON.stringify(line));
+    else window.sessionStorage.removeItem(BUY_NOW_KEY);
+  } catch {}
+}
+
 
 function selectionStorageKey(userId: string | null) {
   return SELECTION_KEY_PREFIX + (userId || "guest");
@@ -175,6 +207,7 @@ export default function MarketplaceProvider({
   children: React.ReactNode;
 }) {
   const [cart, setCart] = useState<CartLine[]>([]);
+  const [buyNowLine, setBuyNowLine] = useState<CartLine | null>(null);
   const [selectedCartLineIds, setSelectedCartLineIds] = useState<string[]>([]);
   const [notice, setNotice] = useState<CartNotice>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -200,6 +233,7 @@ export default function MarketplaceProvider({
         writeGuestCart(guestCart);
         setUserId(null);
         setCart(guestCart);
+        setBuyNowLine(readBuyNowLine());
         setSelectedCartLineIds(readCartSelection(guestCart, null));
         setHydrated(true);
         return;
@@ -234,6 +268,7 @@ export default function MarketplaceProvider({
 
       setUserId(user.id);
       setCart(merged);
+      setBuyNowLine(readBuyNowLine());
       setSelectedCartLineIds(merged.filter((line) => checked.has(line.lineId)).map((line) => line.lineId));
       setHydrated(true);
     }
@@ -309,6 +344,24 @@ export default function MarketplaceProvider({
       ),
 
       cartReady: hydrated,
+      buyNowLine,
+      startBuyNow: (product, variant, quantity = 1) => {
+        const requested = Math.max(1, Math.floor(Number(quantity) || 1));
+        const maximum = lineMaximum({
+          lineId: createLineId(product, variant), product, variant, quantity: requested,
+        });
+        const line: CartLine = {
+          lineId: createLineId(product, variant),
+          product, variant,
+          quantity: typeof maximum === "number" ? Math.min(maximum, requested) : requested,
+        };
+        writeBuyNowLine(line);
+        setBuyNowLine(line);
+      },
+      clearBuyNow: () => {
+        writeBuyNowLine(null);
+        setBuyNowLine(null);
+      },
       selectedCartLineIds,
       toggleCartLineSelection: (lineId) => {
         setSelectedCartLineIds((current) =>
@@ -379,9 +432,7 @@ export default function MarketplaceProvider({
           ];
         }
 
-        // Persist synchronously before route changes. This prevents a fast
-        // BUY NOW click from arriving at checkout before React has committed
-        // the state update.
+        // Persist the cart before route changes and fast navigation.
         writeGuestCart(nextCart);
         setCart(nextCart);
         setSelectedCartLineIds((current) =>
@@ -422,7 +473,7 @@ export default function MarketplaceProvider({
         setSelectedCartLineIds([]);
       },
     }),
-    [cart, hydrated, selectedCartLineIds, userId]
+    [cart, hydrated, selectedCartLineIds, buyNowLine, userId]
   );
 
   return (
