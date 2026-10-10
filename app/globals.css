@@ -9839,3 +9839,174 @@ div{
   .cartPageSelectable .cartMobileSelectionBar{gap:8px}
   .cartPageSelectable .cartMobileSelectedTotal strong{font-size:15px}
 }
+
+
+/* CART TYPE HARMONY — keep the same Shopee-style Arial UI as MIVO */
+.cartPageSelectable{
+  font-family:var(--mivo-ui-font);
+  font-size:13px;
+  font-weight:400;
+  line-height:1.5;
+  letter-spacing:0;
+}
+.cartPageSelectable .cartPageHeader h1{
+  font-size:40px;
+  font-weight:700;
+  letter-spacing:-.035em;
+  line-height:1.12;
+}
+.cartPageSelectable .cartEyebrow{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.055em;
+}
+.cartPageSelectable .cartPageHeader p{
+  font-size:12px;
+  font-weight:400;
+  letter-spacing:0;
+}
+.cartPageSelectable .cartClearButton{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:0;
+}
+.cartPageSelectable .cartSelectionToolbar>strong,
+.cartPageSelectable .cartStoreBar strong,
+.cartPageSelectable .summaryHeading span{
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:0;
+}
+.cartPageSelectable .cartSelectionToolbar>span,
+.cartPageSelectable .cartStoreBar small,
+.cartPageSelectable .cartContinueRow,
+.cartPageSelectable .cartBulkToolbar>span{
+  font-size:11px;
+  font-weight:400;
+  letter-spacing:0;
+}
+.cartPageSelectable .cartStoreBar>span{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:0;
+}
+.cartPageSelectable .cartSelectLabel,
+.cartPageSelectable .cartSelectionToolbar .cartSelectLabel,
+.cartPageSelectable .cartBulkToolbar .cartSelectLabel{
+  font-size:11px;
+  font-weight:600;
+  line-height:1.35;
+  letter-spacing:0;
+}
+.cartPageSelectable .modernCartBrand{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:0;
+}
+.cartPageSelectable .modernCartInfo h3{
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:0;
+  line-height:1.45;
+}
+.cartPageSelectable .cartVariantMeta span{
+  font-size:11px;
+  font-weight:400;
+}
+.cartPageSelectable .modernCartUnitPrice,
+.cartPageSelectable .modernCartLineTotal strong{
+  font-size:16px;
+  font-weight:700;
+  letter-spacing:0;
+}
+.cartPageSelectable .modernCartControls>span,
+.cartPageSelectable .modernCartLineTotal>span,
+.cartPageSelectable .modernSummaryTotal span{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:0;
+}
+.cartPageSelectable .cartQuantityStepper,
+.cartPageSelectable .cartQuantityStepper button,
+.cartPageSelectable .cartQuantityStepper strong{
+  font-size:12px;
+  font-weight:600;
+}
+.cartPageSelectable .modernRemoveButton,
+.cartPageSelectable .cartBulkToolbar>button,
+.cartPageSelectable .cartContinueRow>a{
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:0;
+}
+.cartPageSelectable .summaryHeading strong,
+.cartPageSelectable .modernSummaryTotal small{
+  font-size:11px;
+  font-weight:400;
+  letter-spacing:0;
+}
+.cartPageSelectable .summaryRows>div,
+.cartPageSelectable .summaryRows strong{
+  font-size:12px;
+  font-weight:400;
+}
+.cartPageSelectable .summaryRows strong{font-weight:600}
+.cartPageSelectable .modernSummaryTotal>strong{
+  font-size:26px;
+  font-weight:700;
+  letter-spacing:-.025em;
+}
+.cartPageSelectable .cartCheckoutButton span{
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:0;
+}
+.cartPageSelectable .cartCheckoutButton small{
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:.015em;
+}
+.cartPageSelectable .cartOnlySelectedNote,
+.cartPageSelectable .checkoutTrust{
+  font-size:11px;
+  font-weight:400;
+  line-height:1.55;
+}
+.cartPageSelectable .cartVoucherHead span,
+.cartPageSelectable .cartVoucherHead>a{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:0;
+}
+.cartPageSelectable .cartVoucherHead strong{
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:0;
+}
+.cartPageSelectable .cartVoucherMiniGrid span,
+.cartPageSelectable .cartVoucherMiniGrid small{
+  font-size:10px;
+  font-weight:400;
+  letter-spacing:0;
+}
+.cartPageSelectable .cartVoucherMiniGrid strong,
+.cartPageSelectable .cartVoucherMiniGrid button{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:0;
+}
+@media(max-width:700px){
+  .cartPageSelectable .cartPageHeader h1{font-size:32px}
+  .cartPageSelectable .cartSelectLabel,
+  .cartPageSelectable .cartSelectionToolbar .cartSelectLabel,
+  .cartPageSelectable .cartBulkToolbar .cartSelectLabel{font-size:11px}
+  .cartPageSelectable .modernCartInfo h3{font-size:13px}
+  .cartPageSelectable .modernCartLineTotal strong{font-size:15px}
+  .cartPageSelectable .cartMobileSelectedTotal>span,
+  .cartPageSelectable .cartMobileSelectedTotal small{
+    font-size:10px;
+    font-weight:400;
+    letter-spacing:0;
+  }
+  .cartPageSelectable .cartMobileCheckoutAction{font-size:12px;font-weight:700}
+}
