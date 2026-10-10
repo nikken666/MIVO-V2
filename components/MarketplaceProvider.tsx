@@ -29,6 +29,10 @@ type MarketplaceContextValue = {
   cart: CartLine[];
   cartCount: number;
   cartReady: boolean;
+  selectedCartLineIds: string[];
+  toggleCartLineSelection: (lineId: string) => void;
+  selectAllCartLines: (selected: boolean) => void;
+  removeCartLines: (lineIds: string[]) => Promise<void>;
   addToCart: (
     product: Product,
     variant?: ProductVariant,
@@ -44,6 +48,32 @@ const MarketplaceContext =
 
 const GUEST_CART_KEY = "mivo-cart:guest";
 const LEGACY_CART_KEY = "mivo-cart";
+const SELECTION_KEY_PREFIX = "mivo-cart-selection:";
+
+function selectionStorageKey(userId: string | null) {
+  return SELECTION_KEY_PREFIX + (userId || "guest");
+}
+
+function readCartSelection(lines: CartLine[], userId: string | null): string[] {
+  try {
+    const raw = window.localStorage.getItem(selectionStorageKey(userId));
+    if (raw !== null) {
+      const saved = JSON.parse(raw);
+      if (Array.isArray(saved)) {
+        const ids = new Set(saved.filter((id): id is string => typeof id === "string"));
+        return lines.filter((line) => ids.has(line.lineId)).map((line) => line.lineId);
+      }
+    }
+  } catch {}
+  return lines.map((line) => line.lineId);
+}
+
+function writeCartSelection(lineIds: string[], userId: string | null) {
+  try {
+    window.localStorage.setItem(selectionStorageKey(userId), JSON.stringify(lineIds));
+  } catch {}
+}
+
 
 function createLineId(product: Product, variant?: ProductVariant) {
   return product.slug + "::" + (variant?.id || variant?.sku || "default");
@@ -99,6 +129,7 @@ function clearGuestCart() {
   try {
     window.localStorage.removeItem(GUEST_CART_KEY);
     window.localStorage.removeItem(LEGACY_CART_KEY);
+    window.localStorage.removeItem(selectionStorageKey(null));
   } catch {}
 }
 
@@ -144,6 +175,7 @@ export default function MarketplaceProvider({
   children: React.ReactNode;
 }) {
   const [cart, setCart] = useState<CartLine[]>([]);
+  const [selectedCartLineIds, setSelectedCartLineIds] = useState<string[]>([]);
   const [notice, setNotice] = useState<CartNotice>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
@@ -168,6 +200,7 @@ export default function MarketplaceProvider({
         writeGuestCart(guestCart);
         setUserId(null);
         setCart(guestCart);
+        setSelectedCartLineIds(readCartSelection(guestCart, null));
         setHydrated(true);
         return;
       }
@@ -185,6 +218,10 @@ export default function MarketplaceProvider({
         guestCart.length > 0
           ? mergeCarts(accountCart, guestCart)
           : accountCart;
+      const checked = new Set([
+        ...readCartSelection(accountCart, user.id),
+        ...readCartSelection(guestCart, null),
+      ]);
 
       if (guestCart.length > 0) {
         try {
@@ -197,6 +234,7 @@ export default function MarketplaceProvider({
 
       setUserId(user.id);
       setCart(merged);
+      setSelectedCartLineIds(merged.filter((line) => checked.has(line.lineId)).map((line) => line.lineId));
       setHydrated(true);
     }
 
@@ -247,6 +285,11 @@ export default function MarketplaceProvider({
     };
   }, [cart, hydrated, userId]);
 
+  useEffect(() => {
+    if (!hydrated) return;
+    writeCartSelection(selectedCartLineIds, userId);
+  }, [selectedCartLineIds, hydrated, userId]);
+
   function showAddedNotice(productName: string, quantity: number) {
     setNotice({ productName, quantity });
 
@@ -266,6 +309,30 @@ export default function MarketplaceProvider({
       ),
 
       cartReady: hydrated,
+      selectedCartLineIds,
+      toggleCartLineSelection: (lineId) => {
+        setSelectedCartLineIds((current) =>
+          current.includes(lineId)
+            ? current.filter((id) => id !== lineId)
+            : [...current, lineId]
+        );
+      },
+      selectAllCartLines: (selected) => {
+        setSelectedCartLineIds(selected ? cart.map((line) => line.lineId) : []);
+      },
+      removeCartLines: async (lineIds) => {
+        const removed = new Set(lineIds);
+        const remaining = cart.filter((line) => !removed.has(line.lineId));
+        if (persistTimer.current) clearTimeout(persistTimer.current);
+        if (userId) {
+          await saveAccountCart(remaining);
+          clearGuestCart();
+        } else {
+          writeGuestCart(remaining);
+        }
+        setCart(remaining);
+        setSelectedCartLineIds((current) => current.filter((id) => !removed.has(id)));
+      },
 
       addToCart: (product, variant, quantity = 1) => {
         const requestedQuantity = Math.max(
@@ -317,14 +384,17 @@ export default function MarketplaceProvider({
         // the state update.
         writeGuestCart(nextCart);
         setCart(nextCart);
+        setSelectedCartLineIds((current) =>
+          current.includes(lineId) ? current : [...current, lineId]
+        );
 
         showAddedNotice(product.name, requestedQuantity);
       },
 
-      removeFromCart: (lineId) =>
-        setCart((current) =>
-          current.filter((line) => line.lineId !== lineId)
-        ),
+      removeFromCart: (lineId) => {
+        setCart((current) => current.filter((line) => line.lineId !== lineId));
+        setSelectedCartLineIds((current) => current.filter((id) => id !== lineId));
+      },
 
       updateQuantity: (lineId, quantity) =>
         setCart((current) =>
@@ -347,9 +417,12 @@ export default function MarketplaceProvider({
           })
         ),
 
-      clearCart: () => setCart([]),
+      clearCart: () => {
+        setCart([]);
+        setSelectedCartLineIds([]);
+      },
     }),
-    [cart, hydrated]
+    [cart, hydrated, selectedCartLineIds, userId]
   );
 
   return (

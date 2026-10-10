@@ -9781,3 +9781,61 @@ div{
 .memberGarageHead .memberGarageManage:hover {
   text-decoration: underline;
 }
+
+/* Selectable cart: only checked lines count toward checkout. */
+.cartPageSelectable .cartSelectionToolbar{display:flex;align-items:center;gap:15px;min-height:48px;padding:0 20px;background:#fff;border-bottom:1px solid #edf0f1}
+.cartSelectionToolbar>strong{font-size:10px;letter-spacing:.08em}
+.cartSelectionToolbar>span{flex:1;color:#999;font-size:10px}
+.cartSelectionToolbar .cartSelectLabel{font-size:10px;font-weight:700}
+.cartCheckInput{appearance:none;-webkit-appearance:none;width:18px;height:18px;min-width:18px;border:1.5px solid #bdc2c6;border-radius:3px;background:white;cursor:pointer;display:inline-grid;place-items:center;margin:0;vertical-align:middle}
+.cartCheckInput:checked{background:#df2635;border-color:#df2635}
+.cartCheckInput:checked::after{content:"";width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:translateY(-1px) rotate(-45deg)}
+.cartCheckInput:focus-visible{outline:3px solid rgba(216,36,47,.28);outline-offset:2px}
+.cartCheckOnly{display:inline-flex;align-items:center;justify-content:center;min-height:26px;cursor:pointer}
+.cartSelectLabel{display:inline-flex;align-items:center;gap:9px;cursor:pointer;white-space:nowrap}
+.cartPageSelectable .cartStoreBar>div{gap:12px}
+.cartPageSelectable .modernCartLine.cartLineSelectable{grid-template-columns:22px 96px minmax(0,1fr) 128px 112px;gap:14px;transition:background .15s ease}
+.cartPageSelectable .modernCartLine.cartLineUnselected{background:#fdfdfd}
+.cartPageSelectable .modernCartLine.cartLineUnselected .modernCartInfo,.cartPageSelectable .modernCartLine.cartLineUnselected .modernCartImage{opacity:.72}
+.cartPageSelectable .modernCartUnitPrice,.cartPageSelectable .modernCartLineTotal>strong{color:#d8242f}
+.cartPageSelectable .cartBulkToolbar{display:flex;align-items:center;gap:18px;min-height:58px;padding:13px 20px;border-bottom:1px solid #eceeef}
+.cartPageSelectable .cartBulkToolbar>span{color:#878f94;font-size:10px;flex:1}
+.cartPageSelectable .cartBulkToolbar>button{padding:9px 0;border:0;background:transparent;cursor:pointer;font-size:10px;font-weight:800;color:#bb2935}
+.cartPageSelectable .cartBulkToolbar>button:disabled{opacity:.35;cursor:not-allowed}
+.cartPageSelectable .cartCheckoutButton{border:0;width:100%;cursor:pointer;font:inherit;text-decoration:none}
+.cartPageSelectable .cartCheckoutButton:disabled{background:#c6c8cb;box-shadow:none;cursor:not-allowed;transform:none}
+.cartPageSelectable .cartOnlySelectedNote{margin:13px 0 0;color:#7d858a;font-size:10px;line-height:1.6}
+.cartPageSelectable .modernOrderSummary .checkoutTrust{margin-top:13px}
+@media(max-width:1150px) and (min-width:951px){
+  .cartPageSelectable .modernCartLayout{grid-template-columns:minmax(0,1fr) 300px;gap:15px}
+  .cartPageSelectable .modernCartLine.cartLineSelectable{grid-template-columns:20px 75px minmax(0,1fr);gap:12px}
+  .cartPageSelectable .modernCartImage{width:75px;height:75px}
+  .cartPageSelectable .modernCartControls{grid-column:3}
+  .cartPageSelectable .modernCartLineTotal{grid-column:3;text-align:left}
+}
+@media(max-width:700px){
+  .cartPageSelectable .cartSelectionToolbar{padding:0 14px}
+  .cartPageSelectable .cartSelectionToolbar>span{display:none}
+  .cartPageSelectable .cartSelectionToolbar>strong{flex:1}
+  .cartPageSelectable .modernCartLine.cartLineSelectable{grid-template-columns:22px 78px minmax(0,1fr);gap:12px;padding:15px 13px}
+  .cartPageSelectable .modernCartLine.cartLineSelectable>.cartCheckOnly{grid-column:1;grid-row:1}
+  .cartPageSelectable .modernCartLine.cartLineSelectable>.modernCartImage{grid-column:2;grid-row:1}
+  .cartPageSelectable .modernCartLine.cartLineSelectable>.modernCartInfo{grid-column:3;grid-row:1}
+  .cartPageSelectable .modernCartLine.cartLineSelectable>.modernCartControls{grid-column:3;grid-row:2;display:flex;justify-content:space-between}
+  .cartPageSelectable .modernCartLine.cartLineSelectable>.modernCartLineTotal{grid-column:3;grid-row:3;display:flex;justify-content:space-between}
+  .cartPageSelectable .cartBulkToolbar{padding:12px 14px;gap:12px;flex-wrap:wrap}
+  .cartPageSelectable .cartBulkToolbar>span{font-size:9px}
+  .cartPageSelectable .cartStoreBar{padding:0 13px}
+  .cartPageSelectable .mobileCheckoutBar.cartMobileSelectionBar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;padding:10px 12px}
+  .cartPageSelectable .cartMobileSelectedTotal{min-width:0}
+  .cartPageSelectable .cartMobileSelectedTotal strong{font-size:17px;color:#d8242f;white-space:nowrap}
+  .cartPageSelectable .cartMobileSelectedTotal small{display:block;color:#888;font-size:9px;margin-top:3px}
+  .cartPageSelectable .cartMobileCheckoutAction{display:flex;align-items:center;justify-content:center;min-height:47px;min-width:125px;padding:0 12px;background:#d8242f;color:#fff;border:0;border-radius:8px;font-size:11px;font-weight:900;text-decoration:none;cursor:pointer}
+  .cartPageSelectable .cartMobileCheckoutAction:disabled{background:#c6c8cb;cursor:not-allowed}
+  .cartPageSelectable .modernOrderSummary{margin-bottom:22px}
+}
+@media(max-width:400px){
+  .cartPageSelectable .cartMobileCheckoutAction{min-width:112px;padding:0 8px;font-size:10px}
+  .cartPageSelectable .cartMobileSelectionBar{gap:8px}
+  .cartPageSelectable .cartMobileSelectedTotal strong{font-size:15px}
+}

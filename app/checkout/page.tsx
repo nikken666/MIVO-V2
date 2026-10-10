@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useMarketplace } from "@/components/MarketplaceProvider";
@@ -117,10 +117,10 @@ export default function CheckoutPage() {
   const router = useRouter();
   const {
     cart,
-    cartCount,
     cartReady,
+    selectedCartLineIds,
     addToCart,
-    clearCart,
+    removeCartLines,
   } = useMarketplace();
 
   const [buyer, setBuyer] = useState<Buyer | null>(null);
@@ -259,7 +259,13 @@ export default function CheckoutPage() {
     void checkSession();
   }, [router]);
 
-  const subtotal = cart.reduce((sum, line) => {
+  const selectedCart = useMemo(
+    () => cart.filter((line) => selectedCartLineIds.includes(line.lineId)),
+    [cart, selectedCartLineIds]
+  );
+  const selectedCount = selectedCart.reduce((sum, line) => sum + line.quantity, 0);
+
+  const subtotal = selectedCart.reduce((sum, line) => {
     const price = line.variant?.price ?? line.product.price;
     return sum + price * line.quantity;
   }, 0);
@@ -271,7 +277,7 @@ export default function CheckoutPage() {
     shippingQuotes[0] ||
     null;
 
-  const checkoutItems = cart
+  const checkoutItems = selectedCart
     .map((line) =>
       line.variant?.id
         ? {
@@ -288,6 +294,8 @@ export default function CheckoutPage() {
         quantity: number;
       } => Boolean(item)
     );
+
+  const checkoutItemsKey = checkoutItems.map((item) => item.variant_id + ":" + item.quantity).join("|");
 
   const discountAmount = Number(voucherPreview?.discount_amount || 0);
   const checkoutTotal = shippingQuote
@@ -318,7 +326,7 @@ export default function CheckoutPage() {
     voucherShortfall > 0 && voucherShortfall <= 100
       ? Array.from(
           new Map(
-            cart
+            selectedCart
               .flatMap((line) =>
                 (line.product.variants || [])
                   .filter(
@@ -363,14 +371,14 @@ export default function CheckoutPage() {
       if (
         !shippingState ||
         !/^\d{5}$/.test(shippingPostcode) ||
-        cart.length === 0
+        selectedCart.length === 0
       ) {
         setShippingQuotes([]);
         setShippingError("");
         return;
       }
 
-      const items = cart.map((line) => {
+      const items = selectedCart.map((line) => {
         if (!line.variant?.id) return null;
         return {
           variant_id: line.variant.id,
@@ -437,13 +445,13 @@ export default function CheckoutPage() {
     return () => {
       active = false;
     };
-  }, [cart, shippingState, shippingPostcode]);
+  }, [selectedCart, shippingState, shippingPostcode]);
 
   useEffect(() => {
     let active = true;
 
     async function preview() {
-      if (!selectedVoucherId || !shippingQuote || checkoutItems.length !== cart.length) {
+      if (!selectedVoucherId || !shippingQuote || checkoutItems.length !== selectedCart.length) {
         setVoucherPreview(null);
         setVoucherError("");
         return;
@@ -502,7 +510,8 @@ export default function CheckoutPage() {
     shippingQuote?.courier_code,
     shippingQuote?.shipping_amount,
     subtotal,
-    cart.length,
+    selectedCart.length,
+    checkoutItemsKey,
     vouchers,
   ]);
 
@@ -553,6 +562,7 @@ export default function CheckoutPage() {
     setError("");
 
     if (
+      !selectedCart.length ||
       !shippingState ||
       !/^\d{5}$/.test(shippingPostcode) ||
       !shippingQuote
@@ -570,7 +580,7 @@ export default function CheckoutPage() {
       const form = new FormData(event.currentTarget);
       const supabase = createClient();
 
-      const items = cart.map((line) => {
+      const items = selectedCart.map((line) => {
         if (!line.variant?.id) {
           throw new Error(
             line.product.name + " does not have a valid SKU variation."
@@ -644,7 +654,12 @@ export default function CheckoutPage() {
       };
 
       if (paymentResponse.ok && payment.url) {
-        clearCart();
+        // Preserve all unchecked items after purchasing only selected lines.
+        try {
+          await removeCartLines(selectedCart.map((line) => line.lineId));
+        } catch (cartError) {
+          console.error("Unable to sync purchased cart items:", cartError);
+        }
         window.location.assign(payment.url);
         return;
       }
@@ -702,6 +717,21 @@ export default function CheckoutPage() {
             <Link href="/products" className="cartPrimaryButton">
               SHOP PARTS
             </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!selectedCart.length) {
+    return (
+      <main className="checkoutPage">
+        <div className="container">
+          <div className="cartEmpty">
+            <span>MIVO CHECKOUT</span>
+            <h1>No items selected.</h1>
+            <p>Select the products you want to buy from your cart.</p>
+            <Link href="/cart" className="cartPrimaryButton">BACK TO CART</Link>
           </div>
         </div>
       </main>
@@ -966,6 +996,7 @@ export default function CheckoutPage() {
                 className="checkoutPlaceOrder"
                 disabled={
                   busy ||
+                  !selectedCart.length ||
                   shippingLoading ||
                   voucherLoading ||
                   !shippingQuote ||
@@ -986,14 +1017,14 @@ export default function CheckoutPage() {
               <div>
                 <span>YOUR ORDER</span>
                 <strong>
-                  {cartCount} ITEM{cartCount === 1 ? "" : "S"}
+                  {selectedCount} ITEM{selectedCount === 1 ? "" : "S"}
                 </strong>
               </div>
               <Link href="/cart">EDIT CART</Link>
             </div>
 
             <div className="checkoutItems">
-              {cart.map((line) => {
+              {selectedCart.map((line) => {
                 const price =
                   line.variant?.price ?? line.product.price;
 
