@@ -1,0 +1,54 @@
+/* MIVO checkout - compact mobile layout; desktop unchanged */
+.mivoMobileAddressCard,.mivoMobileToggleNote,.mivoMobileVoucherToggle{display:none}
+@media(max-width:767px){
+  .checkoutPageHeader{margin:10px 0 12px!important}
+  .checkoutPageHeader h1{font-size:22px!important;line-height:1.2!important}
+  .checkoutPageHeader p{font-size:12px!important}
+  .checkoutShell{padding-bottom:104px!important}
+  .checkoutLayout{display:flex!important;flex-direction:column!important;gap:12px!important}
+  .checkoutFormCard,.checkoutSummaryCard{width:100%!important;min-width:0!important;padding:14px!important;border-radius:12px!important;margin:0!important;box-sizing:border-box}
+  .checkoutSectionHead{margin-bottom:8px!important}
+  .checkoutAccountSaveNote{display:none!important}
+  .mivoMobileAddressCard{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid #e7e9ed;border-radius:10px;background:#fff;margin:8px 0 10px}
+  .mivoMobileAddressInfo{display:flex;flex-direction:column;gap:4px;min-width:0;line-height:1.35}
+  .mivoMobileAddressInfo strong{font-size:13px}
+  .mivoMobileAddressInfo span{font-size:12px;font-weight:600}
+  .mivoMobileAddressInfo small{font-size:11px;color:#697386;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .mivoMobileAddressCard button,.mivoMobileVoucherToggle button{flex-shrink:0;border:0;background:none;color:#d34136;font-size:12px;font-weight:750;padding:8px 0}
+  .mivoAddressEditor.collapsed{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important}
+  .checkoutFields{gap:10px!important}
+  .checkoutField{min-width:0!important}
+  .checkoutField input,.checkoutField select{max-width:100%;box-sizing:border-box}
+  .mivoMobileToggleNote{display:block;border:1px solid #e7e9ed;border-radius:10px;background:#fff;width:100%;padding:11px 12px;text-align:left;font-size:12px;font-weight:650;margin:8px 0}
+  .mivoNoteEditor{display:none!important}
+  .mivoNoteEditor.expanded{display:flex!important}
+  .checkoutShippingQuote{margin:10px 0!important;padding:12px!important;max-width:100%;overflow:hidden;box-sizing:border-box}
+  .checkoutCourierOptions{display:flex!important;flex-direction:column!important;gap:7px!important}
+  .checkoutCourierOption{display:flex!important;width:100%!important;max-width:100%;min-width:0!important;padding:11px 12px!important;box-sizing:border-box;border-radius:9px!important}
+  .checkoutCourierOption strong{font-size:13px!important}
+  .checkoutCourierOption small{font-size:11px!important}
+  .checkoutCancellationPolicy{padding:10px!important;margin:10px 0!important;gap:8px!important}
+  .checkoutCancellationPolicy small{font-size:10px!important;line-height:1.45!important}
+  .checkoutSummaryHead{margin-bottom:8px!important}
+  .checkoutItems{gap:6px!important}
+  .checkoutItem{padding:8px 0!important;gap:9px!important;min-width:0!important}
+  .checkoutItemImage{width:56px!important;height:56px!important;min-width:56px!important}
+  .checkoutItemInfo{min-width:0!important}
+  .checkoutItemInfo strong{font-size:12px!important;line-height:1.35!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .checkoutItemPrice{font-size:12px!important;white-space:nowrap}
+  .checkoutSummaryRows{padding:10px 0!important}
+  .mivoMobileVoucherToggle{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid #edf0f2;padding:9px 0}
+  .mivoMobileVoucherToggle span{font-weight:700;font-size:12px}
+  .mivoMobileVoucherToggle small{font-weight:400;color:#777;margin-left:6px}
+  .mivoVoucherEditor{display:none!important}
+  .mivoVoucherEditor.expanded{display:block!important}
+  .checkoutVoucherOptions{max-width:100%;overflow-x:auto}
+  .checkoutActionRow{position:fixed!important;bottom:0!important;left:0!important;right:0!important;z-index:100!important;background:#fff!important;border-top:1px solid #e5e7eb!important;padding:10px max(12px,env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))!important;margin:0!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;box-shadow:0 -4px 18px rgba(0,0,0,.07)!important}
+  .checkoutActionRow > div{min-width:0!important;flex:1!important}
+  .checkoutActionRow > div > span,.checkoutActionRow > div > small{display:none!important}
+  .checkoutActionRow strong{font-size:18px!important;white-space:nowrap}
+  .checkoutPlaceOrder{min-width:0!important;width:auto!important;flex:0 0 auto!important;max-width:58%!important;padding:12px 14px!important;border-radius:8px!important;font-size:12px!important}
+  .checkoutPlaceOrder small,.checkoutPlaceOrder b{display:none!important}
+  .checkoutSummaryTotal{margin:8px 0!important;padding:10px 0!important}
+  .checkoutAssurance{display:none!important}
+}
