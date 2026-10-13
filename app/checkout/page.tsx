@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import "./mobile.css";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -130,6 +131,9 @@ export default function CheckoutPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [savedAddress, setSavedAddress] = useState<AccountAddress | null>(null);
+  const [addressExpanded, setAddressExpanded] = useState(false);
+  const [noteExpanded, setNoteExpanded] = useState(false);
+  const [voucherExpanded, setVoucherExpanded] = useState(false);
   const [shippingState, setShippingState] = useState("");
   const [shippingPostcode, setShippingPostcode] = useState("");
   const [shippingQuotes, setShippingQuotes] = useState<ShippingQuote[]>([]);
@@ -786,6 +790,16 @@ export default function CheckoutPage() {
               <strong>MALAYSIA</strong>
             </div>
 
+            <div className="mivoMobileAddressCard">
+              <div className="mivoMobileAddressInfo">
+                <strong>Shipping address</strong>
+                {savedAddress && !addressExpanded ? (
+                  <><span>{savedAddress.full_name} · {savedAddress.phone}</span><small>{[savedAddress.address_line_1, savedAddress.address_line_2, savedAddress.postcode, savedAddress.city, savedAddress.state].filter(Boolean).join(", ")}</small></>
+                ) : <small>Enter or review your delivery address</small>}
+              </div>
+              <button type="button" onClick={() => setAddressExpanded(value => !value)}>{addressExpanded ? "Done" : savedAddress ? "Change" : "Edit"}</button>
+            </div>
+            <div className={"mivoAddressEditor" + (savedAddress && !addressExpanded ? " collapsed" : "")}> 
             <div className="checkoutAccountSaveNote">
               <span>{savedAddress ? "SAVED ADDRESS LOADED" : "ACCOUNT SAVE"}</span>
               <p>
@@ -898,7 +912,9 @@ export default function CheckoutPage() {
                 </select>
               </label>
 
-              <label className="checkoutField checkoutFieldFull">
+            </div>
+            <button className="mivoMobileToggleNote" type="button" onClick={() => setNoteExpanded(value => !value)}>{noteExpanded ? "Hide order note" : "Add order note (optional)"}</button>
+              <label className={"checkoutField checkoutFieldFull mivoNoteEditor" + (noteExpanded ? " expanded" : "")}>
                 <span>ORDER NOTE</span>
                 <textarea
                   name="customer_note"
@@ -906,7 +922,6 @@ export default function CheckoutPage() {
                   placeholder="Optional note for this order"
                 />
               </label>
-            </div>
 
             <label className="checkoutCancellationPolicy">
               <input
@@ -1096,7 +1111,11 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <div className="checkoutVoucherBox">
+            <div className="mivoMobileVoucherToggle">
+              <span>Voucher / Promo Code <small>{vouchers.length} available</small></span>
+              <button type="button" onClick={() => setVoucherExpanded(value => !value)}>{voucherExpanded ? "Close" : "Choose"}</button>
+            </div>
+            <div className={"checkoutVoucherBox mivoVoucherEditor" + (voucherExpanded ? " expanded" : "")}>
               <div className="checkoutVoucherHead">
                 <div>
                   <span>MIVO VOUCHER</span>
