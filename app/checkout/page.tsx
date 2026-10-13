@@ -913,6 +913,7 @@ export default function CheckoutPage() {
               </label>
 
             </div>
+            </div>
             <button className="mivoMobileToggleNote" type="button" onClick={() => setNoteExpanded(value => !value)}>{noteExpanded ? "Hide order note" : "Add order note (optional)"}</button>
               <label className={"checkoutField checkoutFieldFull mivoNoteEditor" + (noteExpanded ? " expanded" : "")}>
                 <span>ORDER NOTE</span>
