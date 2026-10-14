@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../../Admin.module.css";
+import ui from "./Unmatched.module.css";
 
 type SKU = { id: string; product_id: string; sku: string; title: string; is_active: boolean };
 type Product = { id: string; name: string; status: string; is_universal_fitment: boolean; primary_image_url: string | null };
@@ -111,13 +112,13 @@ export default function UnmatchedSkuPage() {
             <a href="/admin/products" className={styles.adminAction}>ALL PRODUCTS</a>
           </div>
         </header>
-        <section className={styles.adminPanel} style={{padding:20}}>
-          <div style={{display:"flex",gap:20,flexWrap:"wrap",marginBottom:20}}>
+        <section className={`${styles.adminPanel} ${ui.panel}`}>
+          <div className={ui.stats}>
             <div><small>UNMATCHED SKU</small><h2>{loading ? "—" : rows.length}</h2></div>
             <div><small>AFFECTED PRODUCTS</small><h2>{loading ? "—" : unmatchedProducts}</h2></div>
           </div>
-          <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"end",marginBottom:16}}>
-            <label className={styles.adminField} style={{flex:"1 1 260px"}}><span>SEARCH SKU OR PRODUCT</span>
+          <div className={ui.filters}>
+            <label className={`${styles.adminField} ${ui.searchField}`}><span>SEARCH SKU OR PRODUCT</span>
               <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search SKU, variation, model..." />
             </label>
             <label className={styles.adminField}><span>PRODUCT STATUS</span>
@@ -125,20 +126,20 @@ export default function UnmatchedSkuPage() {
                 <option value="all">All products</option><option value="active">Live only</option><option value="draft">Unpublished only</option>
               </select>
             </label>
-            <button type="button" onClick={()=>void load()}>REFRESH</button>
-            <button type="button" onClick={downloadCsv} disabled={!shown.length}>EXPORT CSV</button>
+            <button className={ui.secondaryButton} type="button" onClick={()=>void load()}>REFRESH</button>
+            <button className={ui.secondaryButton} type="button" onClick={downloadCsv} disabled={!shown.length}>EXPORT CSV</button>
           </div>
           {error && <p role="alert" style={{color:"#c22"}}>{error}</p>}
           {loading ? <p>Checking product variants and vehicle matches...</p> :
-          <div style={{overflowX:"auto"}}>
-            <table style={{width:"100%",borderCollapse:"collapse",textAlign:"left"}}>
-              <thead><tr><th style={{padding:12}}>PRODUCT</th><th style={{padding:12}}>SKU</th><th style={{padding:12}}>VARIATION</th><th style={{padding:12}}>STATUS</th><th style={{padding:12}}>ACTION</th></tr></thead>
-              <tbody>{shown.map(row=><tr key={row.id} style={{borderTop:"1px solid #e5e7eb"}}>
-                <td style={{padding:12,minWidth:240}}>{row.product.name}</td>
-                <td style={{padding:12,fontWeight:700}}>{row.sku}</td>
-                <td style={{padding:12}}>{row.title || "Default"}</td>
-                <td style={{padding:12}}>{row.product.status}</td>
-                <td style={{padding:12}}><a href={"/admin/products/"+row.product_id+"/edit#fitment"} style={{color:"#d84335",fontWeight:700,whiteSpace:"nowrap"}}>MATCH VEHICLE</a></td>
+          <div className={ui.tableWrap}>
+            <table className={ui.table}>
+              <thead><tr><th>PRODUCT</th><th>SKU</th><th>VARIATION</th><th>STATUS</th><th>ACTION</th></tr></thead>
+              <tbody>{shown.map(row=><tr key={row.id}>
+                <td className={ui.productCell}>{row.product.name}</td>
+                <td className={ui.skuCell}>{row.sku}</td>
+                <td>{row.title || "Default"}</td>
+                <td>{row.product.status}</td>
+                <td><a className={ui.matchLink} href={"/admin/products/"+row.product_id+"/edit#fitment"}>MATCH VEHICLE</a></td>
               </tr>)}</tbody>
             </table>
             {!shown.length && <p style={{padding:20}}>{rows.length ? "No SKUs match the filters." : "All SKUs have vehicle matching, or are universal."}</p>}
