@@ -1260,6 +1260,7 @@ export default function AdminProductsPage() {
                 <span>PRODUCTS SHOWN</span>
                 <strong>{loading ? "—" : filtered.length}</strong>
               </div>
+              <a href="/admin/products/unmatched" className={styles.adminAction}>UNMATCHED SKU</a>
               <a href="/admin/products/new" className={styles.adminAction}>
                 + ADD PRODUCT
               </a>
