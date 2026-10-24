@@ -130,7 +130,12 @@ export default function ProductCard({
         <span className="productCategoryLabel">{product.category}</span>
 
         {product.imageUrl ? (
-          <img src={product.imageUrl} alt={product.name} />
+          <img src={product.imageUrl} alt={product.name} onError={(event) => {
+            const image = event.currentTarget;
+            image.onerror = null;
+            image.src = product.brand === "GSP" ? "/brands/gsp-logo.svg" : "/mivo-logo.png";
+            image.title = "Product photo unavailable";
+          }} />
         ) : (
           <div className="productPlaceholder" aria-hidden="true">
             <span>{product.icon}</span>
