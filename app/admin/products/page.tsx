@@ -1420,6 +1420,12 @@ export default function AdminProductsPage() {
                                     className={styles.adminProductThumb}
                                     src={product.primary_image_url}
                                     alt={product.name}
+                                    onError={(event) => {
+                                      const image = event.currentTarget;
+                                      image.onerror = null;
+                                      image.src = product.name.toUpperCase().startsWith("GSP ") ? "/brands/gsp-logo.svg" : "/mivo-logo.png";
+                                      image.title = "Product photo unavailable";
+                                    }}
                                   />
                                 ) : (
                                   <div
