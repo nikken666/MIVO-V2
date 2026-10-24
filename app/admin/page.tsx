@@ -200,6 +200,7 @@ export default function AdminPage() {
             <a href="/admin/claims"><span>04</span>Claims</a>
             <a href="/admin/marketing"><span>05</span>Marketing Centre</a>
             <a href="/admin/products"><span>06</span>Products</a>
+            <a href="/admin/store-health"><span>09</span>Store Health</a>
             <a href="/admin/products/new"><span>07</span>Add Product</a>
             <a href="/admin/shipping"><span>08</span>Shipping</a>
           </nav>
