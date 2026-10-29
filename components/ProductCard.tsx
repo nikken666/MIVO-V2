@@ -167,9 +167,11 @@ export default function ProductCard({
               product.brand
             )}
           </span>
-          <span>
-            ★ {Number(product.rating || 0).toFixed(1)}
-          </span>
+          {Number(product.rating || 0) > 0 ? (
+            <span>★ {Number(product.rating).toFixed(1)}</span>
+          ) : (
+            <span>NEW</span>
+          )}
         </div>
 
         <Link href={detailHref}>
