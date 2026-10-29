@@ -67,7 +67,27 @@ export default async function HomePage({
   } catch {}
 
   const liveProducts = await getActiveProducts();
-  const featured = (liveProducts.length ? liveProducts : products).slice(0, 8);
+  const catalogue = liveProducts.length ? liveProducts : products;
+  const featured: typeof catalogue = [];
+  const categoryCounts = new Map<string, number>();
+  const selectedSlugs = new Set<string>();
+  for (const product of catalogue) {
+    const category = product.category || "Other";
+    const count = categoryCounts.get(category) || 0;
+    if (count >= 2 || selectedSlugs.has(product.slug)) continue;
+    featured.push(product);
+    selectedSlugs.add(product.slug);
+    categoryCounts.set(category, count + 1);
+    if (featured.length === 8) break;
+  }
+  if (featured.length < 8) {
+    for (const product of catalogue) {
+      if (selectedSlugs.has(product.slug)) continue;
+      featured.push(product);
+      selectedSlugs.add(product.slug);
+      if (featured.length === 8) break;
+    }
+  }
 
   const savedVehicleLabel = savedVehicle
     ? [
