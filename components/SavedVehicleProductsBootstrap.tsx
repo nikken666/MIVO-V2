@@ -39,7 +39,10 @@ export default function SavedVehicleProductsBootstrap({
         params.set("transmission", saved.transmission);
       }
 
-      window.location.replace("/products?" + params.toString());
+      // Stay on the current page (catalogue or product detail) with the vehicle applied.
+      window.location.replace(
+        window.location.pathname + "?" + params.toString()
+      );
     } catch {}
   }, [hasVehicle]);
 

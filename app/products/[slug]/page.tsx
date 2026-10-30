@@ -1,12 +1,53 @@
 export const dynamic = "force-dynamic";
 
+import type { Metadata } from "next";
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import ProductDetailClient from "@/components/ProductDetailClient";
+import SavedVehicleProductsBootstrap from "@/components/SavedVehicleProductsBootstrap";
 import {
-  getActiveProductBySlug,
+  getActiveProductBySlug as fetchActiveProductBySlug,
   getProductPublicReviews,
   getRelatedProducts,
 } from "@/lib/catalog";
+
+// Shared between generateMetadata and the page so the product is fetched once per request.
+const getActiveProductBySlug = cache(fetchActiveProductBySlug);
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const product = await getActiveProductBySlug(slug);
+  if (!product) return {};
+
+  const description = (
+    product.description &&
+    !product.description.startsWith("Product details will be updated")
+      ? product.description
+      : product.brand + " " + product.name + " — available at MIVO with Malaysia-wide delivery."
+  ).slice(0, 160);
+  const images = product.imageUrls?.length
+    ? product.imageUrls.slice(0, 1)
+    : product.imageUrl
+      ? [product.imageUrl]
+      : undefined;
+
+  return {
+    title: product.name + " | MIVO",
+    description,
+    alternates: { canonical: "/products/" + product.slug },
+    openGraph: {
+      type: "website",
+      title: product.name,
+      description,
+      url: "/products/" + product.slug,
+      images,
+    },
+  };
+}
 import { getLiveProductFitmentDetail } from "@/lib/liveFitment";
 import {
   getProductFitmentStatus,
@@ -185,6 +226,7 @@ export default async function ProductPage({
           __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
         }}
       />
+      <SavedVehicleProductsBootstrap hasVehicle={Boolean(vehicleId)} />
       <ProductDetailClient
         product={product}
         productReviews={productReviews}
