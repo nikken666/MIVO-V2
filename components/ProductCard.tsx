@@ -133,7 +133,7 @@ export default function ProductCard({
           <img src={product.imageUrl} alt={product.name} onError={(event) => {
             const image = event.currentTarget;
             image.onerror = null;
-            image.src = product.brand === "GSP" ? "/brands/gsp-logo.svg" : "/mivo-logo.png";
+            image.src = product.brand === "GSP" ? "/brands/gsp-logo.svg" : "/mivo-logo-dark.svg";
             image.title = "Product photo unavailable";
           }} />
         ) : (

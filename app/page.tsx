@@ -9,12 +9,12 @@ import HomePromotions from "@/components/HomePromotions";
 import { products } from "@/data/products";
 
 const categories = [
-  { name: "Maintenance", desc: "Engine oil, ATF, coolant & filters", tone: "warm", image: "/categories/maintenance.webp" },
-  { name: "Braking", desc: "Brake pads, rotors & repair kits", tone: "dark", image: "/categories/braking.webp" },
-  { name: "Suspension", desc: "Absorbers, mounts, arms & springs", tone: "silver", image: "/categories/suspension.webp" },
-  { name: "Steering", desc: "EPS racks, rack ends & tie rods", tone: "graphite", image: "/categories/steering.webp" },
-  { name: "Drivetrain", desc: "Drive shafts, CV joints & hubs", tone: "warm", image: "/categories/drivetrain.webp" },
-  { name: "Cooling", desc: "Radiators, pumps & thermostats", tone: "silver", image: "/categories/cooling.webp" },
+  { name: "Maintenance", desc: "Engine oil, ATF, coolant & filters", tone: "warm", image: "/categories/apple/maintenance.svg" },
+  { name: "Braking", desc: "Brake pads, rotors & repair kits", tone: "dark", image: "/categories/apple/braking.svg" },
+  { name: "Suspension", desc: "Absorbers, mounts, arms & springs", tone: "silver", image: "/categories/apple/suspension.svg" },
+  { name: "Steering", desc: "EPS racks, rack ends & tie rods", tone: "graphite", image: "/categories/apple/steering.svg" },
+  { name: "Drivetrain", desc: "Drive shafts, CV joints & hubs", tone: "warm", image: "/categories/apple/drivetrain.svg" },
+  { name: "Cooling", desc: "Radiators, pumps & thermostats", tone: "silver", image: "/categories/apple/cooling.svg" },
 ];
 
 const brands = [
