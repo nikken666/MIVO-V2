@@ -328,7 +328,7 @@ export default function OrderDetailsPage() {
           <div className="ordersEmpty">
             <strong>Unable to open order.</strong>
             <p>{error || "Order not found."}</p>
-            <Link href="/orders">BACK TO MY ORDERS</Link>
+            <Link href="/orders">Back to my orders</Link>
           </div>
         </div>
       </main>
@@ -402,7 +402,7 @@ export default function OrderDetailsPage() {
           </div>
 
           <div>
-            <span>STATUS</span>
+            <span>Status</span>
             <strong>{formatStatus(order.status)}</strong>
           </div>
         </div>
@@ -439,7 +439,7 @@ export default function OrderDetailsPage() {
             <section className="orderDetailMain">
               <div className="orderDetailSectionHead">
                 <div>
-                  <span>ORDER ITEMS</span>
+                  <span>Order items</span>
                   <h2>
                     {items.length} item{items.length === 1 ? "" : "s"}
                   </h2>
@@ -478,7 +478,7 @@ export default function OrderDetailsPage() {
 
               {order.customer_note ? (
                 <div className="orderCustomerNote">
-                  <span>ORDER NOTE</span>
+                  <span>Order note</span>
                   <p>{order.customer_note}</p>
                 </div>
               ) : null}
@@ -488,7 +488,7 @@ export default function OrderDetailsPage() {
               <section className="orderTimelineCard">
                 <div className="orderTimelineHead">
                   <div>
-                    <span>SHIPMENT UPDATES</span>
+                    <span>Shipment updates</span>
                     <h2>Tracking Timeline</h2>
                   </div>
                   {shipment?.courier_name ? (
@@ -541,7 +541,7 @@ export default function OrderDetailsPage() {
 
           <aside className="orderDetailSide">
             <section className="orderSideCard">
-              <span>DELIVERY ADDRESS</span>
+              <span>Delivery address</span>
               <strong>{address.full_name}</strong>
               <p>
                 {address.phone}
@@ -557,7 +557,7 @@ export default function OrderDetailsPage() {
 
             {shipment?.tracking_number ? (
               <section className="orderSideCard">
-                <span>SHIPMENT TRACKING</span>
+                <span>Shipment tracking</span>
                 <div className="orderPaymentStatus">
                   <strong>{shipment.courier_name || "COURIER"}</strong>
                   <small>{formatStatus(shipment.status)}</small>
@@ -577,14 +577,14 @@ export default function OrderDetailsPage() {
                     rel="noreferrer"
                     className="orderPrimaryButton orderSideMainAction"
                   >
-                    TRACK PARCEL
+                    Track parcel
                   </a>
                 ) : null}
               </section>
             ) : null}
 
             <section className="orderSideCard">
-              <span>PAYMENT</span>
+              <span>Payment</span>
               <div className="orderPaymentStatus">
                 <strong>{formatStatus(order.payment_status)}</strong>
                 <small>{formatStatus(order.status)}</small>
@@ -616,7 +616,7 @@ export default function OrderDetailsPage() {
               </div>
 
               <div className="orderSideTotal">
-                <span>TOTAL</span>
+                <span>Total</span>
                 <strong>{formatPrice(Number(order.total_amount))}</strong>
               </div>
             </section>
@@ -630,14 +630,14 @@ export default function OrderDetailsPage() {
                 }
                 className="orderGhostButton orderSideMainAction"
               >
-                VIEW RECEIPT
+                View receipt
               </Link>
             ) : null}
 
             {order.status === "pending_payment" ? (
               <>
                 <section className="orderCancellationNotice">
-                  <span>PAYMENT DEADLINE</span>
+                  <span>Payment deadline</span>
                   <strong>
                     Pay within 24 hours from order creation
                   </strong>
@@ -652,7 +652,7 @@ export default function OrderDetailsPage() {
                   className="orderGhostButton orderSideMainAction orderCancelButton"
                   onClick={() => setShowUnpaidCancel(true)}
                 >
-                  CANCEL ORDER
+                  Cancel order
                 </button>
 
                 <StripePayButton
@@ -672,7 +672,7 @@ export default function OrderDetailsPage() {
                 className="orderGhostButton orderSideMainAction orderCancelButton"
                 onClick={() => setShowPaidCancel(true)}
               >
-                CANCEL ORDER
+                Cancel order
               </button>
             ) : null}
 
@@ -694,7 +694,7 @@ export default function OrderDetailsPage() {
                   className="orderGhostButton orderSideMainAction"
                   disabled
                 >
-                  REVIEWED
+                  Reviewed
                 </button>
               ) : (
                 <Link
@@ -705,7 +705,7 @@ export default function OrderDetailsPage() {
                   }
                   className="orderPrimaryButton orderSideMainAction"
                 >
-                  RATE ORDER
+                  Rate order
                 </Link>
               )
             ) : null}
@@ -720,14 +720,14 @@ export default function OrderDetailsPage() {
                 }
                 className="orderGhostButton orderSideMainAction"
               >
-                VIEW WARRANTY
+                View warranty
               </Link>
             ) : null}
 
             {cancelled &&
             Number(order.cancellation_refund_amount || 0) > 0 ? (
               <section className="orderSideCard refundSummaryCard">
-                <span>REFUND SUMMARY</span>
+                <span>Refund summary</span>
 
                 <div className="orderSideRows">
                   <div>
@@ -757,7 +757,7 @@ export default function OrderDetailsPage() {
                 </div>
 
                 <div className="orderSideTotal">
-                  <span>REFUND AMOUNT</span>
+                  <span>Refund amount</span>
                   <strong>
                     {formatPrice(
                       Number(order.cancellation_refund_amount || 0)
@@ -775,7 +775,7 @@ export default function OrderDetailsPage() {
             ) : null}
 
             <Link href="/products" className="orderGhostButton orderSideMainAction">
-              CONTINUE SHOPPING
+              Continue shopping
             </Link>
           </aside>
         </div>

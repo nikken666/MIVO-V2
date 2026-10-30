@@ -206,7 +206,7 @@ export default function AddressSettingsPage() {
       <div className="container">
         <div className="accountDataHeader">
           <div>
-            <span>MIVO ACCOUNT</span>
+            <span>MIVO account</span>
             <h1>Delivery Addresses</h1>
             <p>
               Save your delivery details once and MIVO will fill them in at
@@ -221,7 +221,7 @@ export default function AddressSettingsPage() {
           <section className="addressBookPanel">
             <div className="addressBookHead">
               <div>
-                <span>SAVED ADDRESSES</span>
+                <span>Saved addresses</span>
                 <strong>{addresses.length}</strong>
               </div>
 
@@ -250,10 +250,10 @@ export default function AddressSettingsPage() {
                     <div className="addressCardTop">
                       <div>
                         <span>{address.label || "Address"}</span>
-                        {address.is_default ? <b>DEFAULT</b> : null}
+                        {address.is_default ? <b>Default</b> : null}
                       </div>
                       <button type="button" onClick={() => startEdit(address)}>
-                        EDIT
+                        Edit
                       </button>
                     </div>
 
@@ -276,7 +276,7 @@ export default function AddressSettingsPage() {
                           onClick={() => makeAddressDefault(address.id!)}
                           disabled={busy}
                         >
-                          SET AS DEFAULT
+                          Set as default
                         </button>
                       ) : null}
 
@@ -287,7 +287,7 @@ export default function AddressSettingsPage() {
                           onClick={() => removeAddress(address.id!)}
                           disabled={busy}
                         >
-                          DELETE
+                          Delete
                         </button>
                       ) : null}
                     </div>
@@ -306,7 +306,7 @@ export default function AddressSettingsPage() {
             <form className="addressEditorForm" onSubmit={submit}>
               <div className="addressFormGrid">
                 <label>
-                  <span>LABEL</span>
+                  <span>Label</span>
                   <input
                     value={form.label || ""}
                     onChange={(event) =>
@@ -353,7 +353,7 @@ export default function AddressSettingsPage() {
                 </label>
 
                 <label className="full">
-                  <span>ADDRESS LINE 2</span>
+                  <span>Address line 2</span>
                   <input
                     value={form.address_line_2 || ""}
                     onChange={(event) =>
@@ -429,7 +429,7 @@ export default function AddressSettingsPage() {
                 disabled={busy}
               >
                 <span>
-                  <small>MIVO ACCOUNT</small>
+                  <small>MIVO account</small>
                   {busy ? "SAVING..." : "SAVE ADDRESS"}
                 </span>
                 <b></b>

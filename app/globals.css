@@ -10296,6 +10296,82 @@ a,button,.btn,input,select,textarea{transition:color .2s var(--ease),background-
 /* forms */
 input,select,textarea{border-radius:12px}
 
+/* ---------- Site-wide pass: every storefront page ---------- */
+
+/* page canvases */
+.cartPage,.checkoutPage,.mivoAuthPage,.accountDataPage,.orderCenterPage,.garagePage,.myClaimsPage,.myVouchersPage,.productDetailPage{background:var(--soft)}
+
+/* content cards: borderless, rounded, soft shadow */
+.checkoutFormCard,.checkoutSummaryCard,.checkoutAddonCard,.orderCenterPanel,.shopOrderCard,.addressBookPanel,.addressEditorPanel,
+.savedVehicleCard,.voucherCard,.productDescriptionCard,.productSpecificationCard,.productWarrantyCard,.brandDirectoryCard,
+.mivoAuthFormPanel,.mivoMobileAddressCard,.campaignProductCard,.contentPanel,.emptyState,.statCard{
+  border:0!important;border-radius:22px!important;background:#fff;box-shadow:var(--shadow)
+}
+.mivoAuthShell{border:0;border-radius:28px;overflow:hidden;box-shadow:var(--shadow-hover)}
+
+/* page headings */
+.cartPageHeader h1,.checkoutPageHeader h1,.accountDataHeader h1,.pageHeading h1,.brandsHero h1,.productTitleBlock h1,.garageHero h1{
+  font-family:var(--mivo-display-font);font-weight:700;letter-spacing:-.03em
+}
+.productTitleBlock h1{font-size:clamp(24px,2.4vw,32px);line-height:1.15;font-weight:600}
+
+/* eyebrow labels */
+.cartEyebrow,.mivoAuthEyebrow,.savedVehicleEyebrow,.productInfoSectionTitle>span,.brandsHero>span{
+  color:var(--accent)!important;font-size:12px!important;font-weight:600!important;letter-spacing:.04em!important
+}
+.productInfoSectionTitle h2{font-size:24px;letter-spacing:-.02em}
+
+/* primary actions: solid blue pill */
+.orderPrimaryButton,.redButton,.addressSaveButton,.mivoAuthSubmit,.quizConfirmButton,.fitmentSubmit,.savedVehiclePrimary,
+.stripePayAction,.voucherAction,.searchButton{
+  border:0!important;border-radius:980px!important;background:var(--accent)!important;color:#fff!important;
+  font-size:15px!important;font-weight:500!important;letter-spacing:0!important;text-transform:none!important
+}
+.orderPrimaryButton:hover,.redButton:hover,.addressSaveButton:hover,.mivoAuthSubmit:hover,.quizConfirmButton:hover,
+.fitmentSubmit:hover,.savedVehiclePrimary:hover,.stripePayAction:hover,.voucherAction:hover,.searchButton:hover{background:var(--accent-hover)!important}
+
+/* secondary actions: outlined pill */
+.orderGhostButton,.vehicleQuickChangeButton,.toolButton{
+  border:1px solid var(--line)!important;border-radius:980px!important;background:#fff!important;color:var(--ink)!important;
+  font-weight:500!important;letter-spacing:0!important
+}
+.orderGhostButton:hover,.vehicleQuickChangeButton:hover,.toolButton:hover{border-color:var(--accent)!important;color:var(--accent)!important}
+
+/* destructive actions: quiet red text, Apple style */
+.orderDangerButton,.orderCancelButton,.modernRemoveButton,.cartClearButton{
+  border-radius:980px!important;color:#e30000!important;letter-spacing:0!important;font-weight:500!important
+}
+
+/* segmented controls */
+.mivoAuthTabs{background:rgba(0,0,0,.05);border-radius:12px;padding:3px;gap:3px;border:0}
+.mivoAuthTabs button{border:0!important;border-radius:9px;min-height:36px;font-weight:500;letter-spacing:0}
+.mivoAuthTabs button.active{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.orderStatusTabs{border-radius:16px;overflow:hidden;border:0;box-shadow:var(--shadow);background:#fff}
+.orderStatusTabs button{letter-spacing:0;font-weight:500}
+.orderStatusTabs button.active{color:var(--accent);border-bottom-color:var(--accent)}
+.orderStatusTabs button.active b{background:rgba(var(--accent-rgb),.12)}
+
+/* dark feature banners → Apple black */
+.selectedVehicleBanner,.vehicleMatchBanner{background:#1d1d1f!important;border:0!important;border-radius:22px!important}
+.garageHero{background:radial-gradient(ellipse at 80% 20%,rgba(var(--accent-rgb),.25),transparent 45%),#000}
+.mivoAuthVisual{background:radial-gradient(ellipse at 80% 25%,rgba(var(--accent-rgb),.3),transparent 45%),radial-gradient(ellipse at 10% 95%,rgba(255,196,0,.14),transparent 40%),#000}
+
+/* deal and discount badges use the yellow accent */
+.productDiscountBadge,.productDetailDiscountBadge,.flashDealImage>b{
+  background:var(--accent-2)!important;color:var(--accent-2-ink)!important;border-radius:980px!important;font-weight:700!important;letter-spacing:0!important
+}
+.flashDealsHead span{color:#b38600}
+
+/* inputs: Apple focus ring */
+main input:not([type=checkbox]):not([type=radio]):focus,main select:focus,main textarea:focus{
+  outline:none;border-color:var(--accent)!important;box-shadow:0 0 0 4px rgba(var(--accent-rgb),.15)
+}
+input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
+
+/* vehicle quiz options */
+.fitmentCard button{letter-spacing:0}
+.fitmentCard [class*="Option"],.fitmentCard [class*="option"]{border-radius:14px}
+
 /* footer: Apple light footer */
 .siteFooter{background:var(--soft);color:var(--grey);border-top:1px solid var(--line)}
 .footerTop{padding:48px 0}

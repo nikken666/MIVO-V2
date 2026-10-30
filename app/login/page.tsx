@@ -74,11 +74,11 @@ export default function LoginPage() {
         <section className="mivoAuthVisual">
           <div className="mivoAuthVisualTop">
             <Logo variant="light" className="mivoAuthLogo" />
-            <span>ACCOUNT ACCESS</span>
+            <span>Account access</span>
           </div>
 
           <div className="mivoAuthVisualCopy">
-            <span className="mivoAuthEyebrow">MIVO CUSTOMER ACCOUNT</span>
+            <span className="mivoAuthEyebrow">MIVO customer account</span>
             <h1>
               Your garage.
               <br />
@@ -100,7 +100,7 @@ export default function LoginPage() {
 
         <section className="mivoAuthFormPanel">
           <div className="mivoAuthFormHead">
-            <span>MIVO ACCOUNT</span>
+            <span>MIVO account</span>
             <h2>{mode === "login" ? "Welcome back." : "Create your account."}</h2>
             <p>
               {mode === "login"
@@ -119,7 +119,7 @@ export default function LoginPage() {
                 setMessage("");
               }}
             >
-              SIGN IN
+              Sign in
             </button>
             <button
               type="button"
@@ -130,14 +130,14 @@ export default function LoginPage() {
                 setMessage("");
               }}
             >
-              REGISTER
+              Register
             </button>
           </div>
 
           <form className="mivoAuthForm" onSubmit={submit}>
             {mode === "register" ? (
               <label>
-                <span>FULL NAME</span>
+                <span>Full name</span>
                 <input
                   required
                   value={fullName}
@@ -149,7 +149,7 @@ export default function LoginPage() {
             ) : null}
 
             <label>
-              <span>EMAIL ADDRESS</span>
+              <span>Email address</span>
               <input
                 required
                 type="email"
@@ -161,7 +161,7 @@ export default function LoginPage() {
             </label>
 
             <label>
-              <span>PASSWORD</span>
+              <span>Password</span>
               <input
                 required
                 minLength={8}
