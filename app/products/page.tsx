@@ -241,6 +241,12 @@ export default async function ProductsPage({
             <strong>{fitmentCounts.unverified}</strong>
             <span>AWAITING FITMENT DATA</span>
           </div>
+          {fitmentCounts["not-fit"] > 0 ? (
+            <div>
+              <strong>{fitmentCounts["not-fit"]}</strong>
+              <span>NOT FOR YOUR VEHICLE</span>
+            </div>
+          ) : null}
         </div>
       ) : null}
 

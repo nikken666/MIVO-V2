@@ -107,17 +107,28 @@ export async function getLiveFitmentStatuses(
       await matchingVehicleIds(selected);
     const matchedVehicleIds = new Set(ids);
 
-    const { data: fitmentRows, error: fitmentError } =
-      await supabase
-        .from("product_vehicle_fitments")
-        .select(
-          "product_id, variant_id, vehicle_id, year_from, year_to"
-        )
-        .in("product_id", productIds);
+    // Supabase caps each response at 1000 rows, so page through the
+    // fitments — otherwise large catalogues silently lose matches.
+    const pageSize = 1000;
+    const rows: FitmentRow[] = [];
 
-    if (fitmentError) throw fitmentError;
+    for (let from = 0; ; from += pageSize) {
+      const { data: fitmentRows, error: fitmentError } =
+        await supabase
+          .from("product_vehicle_fitments")
+          .select(
+            "product_id, variant_id, vehicle_id, year_from, year_to"
+          )
+          .in("product_id", productIds)
+          .order("id")
+          .range(from, from + pageSize - 1);
 
-    const rows = (fitmentRows || []) as FitmentRow[];
+      if (fitmentError) throw fitmentError;
+
+      rows.push(...((fitmentRows || []) as FitmentRow[]));
+      if (!fitmentRows || fitmentRows.length < pageSize) break;
+    }
+
     const result: Record<string, FitmentStatus> = {};
 
     for (const productId of productIds) {
