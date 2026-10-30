@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveProducts } from "@/lib/catalog";
 import ProductCard from "@/components/ProductCard";
@@ -9,13 +10,47 @@ import HomePromotions from "@/components/HomePromotions";
 import { products } from "@/data/products";
 
 const categories = [
-  { name: "Maintenance", desc: "Engine oil, ATF, coolant & filters", tone: "warm", image: "/categories/apple/maintenance.svg" },
-  { name: "Braking", desc: "Brake pads, rotors & repair kits", tone: "dark", image: "/categories/apple/braking.svg" },
-  { name: "Suspension", desc: "Absorbers, mounts, arms & springs", tone: "silver", image: "/categories/apple/suspension.svg" },
-  { name: "Steering", desc: "EPS racks, rack ends & tie rods", tone: "graphite", image: "/categories/apple/steering.svg" },
-  { name: "Drivetrain", desc: "Drive shafts, CV joints & hubs", tone: "warm", image: "/categories/apple/drivetrain.svg" },
-  { name: "Cooling", desc: "Radiators, pumps & thermostats", tone: "silver", image: "/categories/apple/cooling.svg" },
+  { name: "Maintenance", desc: "Oil, ATF, coolant & filters" },
+  { name: "Braking", desc: "Pads, rotors & repair kits" },
+  { name: "Suspension", desc: "Absorbers, mounts & springs" },
+  { name: "Steering", desc: "Racks, rack ends & tie rods" },
+  { name: "Drivetrain", desc: "Shafts, CV joints & hubs" },
+  { name: "Cooling", desc: "Radiators, pumps & thermostats" },
 ];
+
+// Line icons (24px grid, stroked with currentColor) for the category tiles.
+const categoryIcons: Record<string, ReactNode> = {
+  Maintenance: <path d="M12 3c3.4 4.3 5.5 7 5.5 9.6a5.5 5.5 0 0 1-11 0C6.5 10 8.6 7.3 12 3zM9.5 13.5a2.5 2.5 0 0 0 2.5 2.5" />,
+  Braking: (
+    <>
+      <circle cx="11" cy="13" r="8" />
+      <circle cx="11" cy="13" r="2.6" />
+      <path d="M15.5 4.6a9 9 0 0 1 4.9 5.6" strokeWidth="3.2" />
+    </>
+  ),
+  Suspension: <path d="M12 2v3M12 19v3M7 6.5l10 2-10 2 10 2-10 2 10 2" />,
+  Steering: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="2.6" />
+      <path d="M3.4 10.6l6.1 1M14.5 11.6l6.1-1M12 14.6V21" />
+    </>
+  ),
+  Drivetrain: (
+    <>
+      <path d="M6 12h12" />
+      <rect x="2" y="9" width="4" height="6" rx="1.6" />
+      <rect x="18" y="9" width="4" height="6" rx="1.6" />
+      <path d="M7.5 9.5l2.5 1v3l-2.5 1M16.5 9.5l-2.5 1v3l2.5 1" />
+    </>
+  ),
+  Cooling: (
+    <>
+      <circle cx="12" cy="12" r="1.8" />
+      <path d="M12 10.2C11.4 6 12.6 3 15.4 3c2.2 0 2.4 3.6-3.4 7.2zM13.8 12c4.2-.6 7.2.6 7.2 3.4 0 2.2-3.6 2.4-7.2-3.4zM12 13.8c.6 4.2-.6 7.2-3.4 7.2-2.2 0-2.4-3.6 3.4-7.2zM10.2 12C6 12.6 3 11.4 3 8.6 3 6.4 6.6 6.2 10.2 12z" />
+    </>
+  ),
+};
 
 const brands = [
   { name: "NIKKEN", logo: "/brands/nikken-logo.svg" },
@@ -203,22 +238,19 @@ export default async function HomePage({
             <Link href="/products" className="sectionLink">View all categories ›</Link>
           </div>
 
-          <div className="categoryGrid">
-            {categories.map((cat, index) => (
+          <div className="categoryTiles">
+            {categories.map((cat) => (
               <Link
                 href={"/products?group=" + cat.name.toLowerCase()}
-                className={"categoryCard " + cat.tone}
+                className="categoryTile"
                 key={cat.name}
               >
-                <div className="categoryVisual">
-                  <span className="categoryIndex">0{index + 1}</span>
-                  <img className="categoryArtwork" src={cat.image} alt="" aria-hidden="true" />
-                </div>
-                <div className="categoryCopy">
-                  <h3>{cat.name}</h3>
-                  <p>{cat.desc}</p>
-                  <span>Shop category</span>
-                </div>
+                <span className="categoryTileIcon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">{categoryIcons[cat.name]}</svg>
+                </span>
+                <strong>{cat.name}</strong>
+                <small>{cat.desc}</small>
+                <span className="categoryTileGo" aria-hidden="true">Shop ›</span>
               </Link>
             ))}
           </div>
