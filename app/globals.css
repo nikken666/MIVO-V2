@@ -10048,3 +10048,60 @@ div{
   }
   .cartPageSelectable .cartMobileCheckoutAction{font-size:12px;font-weight:700}
 }
+
+/* CATALOGUE — hidden non-fitting parts */
+.fitmentResultsToggle{display:block;padding:18px 20px;color:inherit;transition:background .2s}
+.fitmentResultsToggle:hover{background:#f6f7f7}
+.fitmentResultsToggle span{color:var(--red)!important}
+.fitmentMorePanel{margin-top:18px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:26px 40px;align-items:center;padding:34px 36px;border-radius:20px;background:#101316;color:#fff;position:relative;overflow:hidden}
+.fitmentMorePanel:after{content:"";position:absolute;width:420px;height:420px;border:1px solid rgba(255,255,255,.07);border-radius:50%;right:-140px;top:-190px;pointer-events:none}
+.fitmentMoreCopy span{display:block;font-size:9px;font-weight:900;letter-spacing:.16em;color:#ff8a92}
+.fitmentMoreCopy h2{font-size:clamp(24px,2.6vw,34px);letter-spacing:-.045em;line-height:1.05;margin:10px 0 12px}
+.fitmentMoreCopy p{margin:0;max-width:460px;font-size:13px;line-height:1.65;color:#a9afb4}
+.fitmentMoreGroups{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:relative;z-index:1}
+.fitmentMoreGroups a{display:flex;justify-content:space-between;align-items:center;padding:13px 15px;border:1px solid #33383c;border-radius:11px;font-size:12px;font-weight:800;background:rgba(255,255,255,.03);transition:.2s}
+.fitmentMoreGroups a:hover{border-color:#fff;background:rgba(255,255,255,.08)}
+.fitmentMoreGroups a span{color:#ff8a92}
+.fitmentMoreActions{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px;padding-top:22px;border-top:1px solid #2b3034;position:relative;z-index:1}
+.fitmentMoreGhost{display:inline-flex;align-items:center;padding:11px 16px;border:1px solid #454a4e;border-radius:9px;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.fitmentMoreGhost:first-child{background:#fff;color:#111;border-color:#fff}
+.fitmentMoreGhost:hover{opacity:.85}
+@media(max-width:850px){
+  .fitmentMorePanel{grid-template-columns:1fr;padding:26px 20px}
+}
+
+/* POLICY PAGES — shipping, returns, privacy */
+.policyPage{background:#f4f5f5;padding:56px 0 90px}
+.policyLayout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:40px;align-items:start}
+.policyNav{position:sticky;top:24px;display:grid;gap:4px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px}
+.policyNav>span{font-size:9px;font-weight:900;letter-spacing:.14em;color:#8a8f94;margin-bottom:8px}
+.policyNav a{font-size:12px;font-weight:700;padding:9px 10px;border-radius:8px;color:#3a3f43}
+.policyNav a:hover{background:#f2f3f4;color:#111}
+.policyNav a[aria-current="page"]{background:#111417;color:#fff}
+.policyContent{background:#fff;border:1px solid var(--line);border-radius:20px;padding:44px 48px;max-width:820px}
+.policyEyebrow{display:block;font-size:10px;font-weight:900;letter-spacing:.16em;color:var(--red)}
+.policyContent h1{font-size:clamp(34px,4vw,50px);letter-spacing:-.05em;line-height:1;margin:14px 0 16px}
+.policyIntro{font-size:15px;line-height:1.7;color:#5f656a;margin:0 0 10px;max-width:640px}
+.policyUpdated{display:block;font-size:10px;color:#8a8f94;letter-spacing:.04em;padding-bottom:28px;border-bottom:1px solid var(--line)}
+.policyContent section{padding:28px 0;border-bottom:1px solid #eceeef}
+.policyContent section:last-child{border-bottom:0;padding-bottom:0}
+.policyContent h2{display:flex;align-items:baseline;gap:12px;font-size:20px;letter-spacing:-.025em;margin:0 0 14px}
+.policyContent h2 i{font-style:normal;font-size:10px;font-weight:900;letter-spacing:.1em;color:var(--red)}
+.policyContent p,.policyContent li{font-size:14px;line-height:1.75;color:#4b5156}
+.policyContent p{margin:0 0 12px}
+.policyContent ul,.policyContent ol{margin:0;padding-left:20px;display:grid;gap:6px}
+.policyContent a{color:var(--red);font-weight:700;text-decoration:underline;text-underline-offset:2px}
+.policyContent strong{color:#17191b}
+.policyTable{display:grid;border:1px solid #e1e3e4;border-radius:12px;overflow:hidden;margin:0 0 14px}
+.policyTable>div{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.4fr);gap:20px;padding:15px 18px;border-bottom:1px solid #eceeef}
+.policyTable>div:last-child{border-bottom:0}
+.policyTable strong{font-size:13px}
+.policyTable span{font-size:13px;line-height:1.6;color:#5a6065}
+@media(max-width:850px){
+  .policyPage{padding:28px 0 60px}
+  .policyLayout{grid-template-columns:1fr;gap:16px}
+  .policyNav{position:static;display:flex;flex-wrap:wrap;gap:6px;padding:12px}
+  .policyNav>span{width:100%;margin-bottom:2px}
+  .policyContent{padding:28px 20px;border-radius:16px}
+  .policyTable>div{grid-template-columns:1fr;gap:4px}
+}

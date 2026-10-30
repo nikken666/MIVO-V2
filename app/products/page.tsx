@@ -193,7 +193,7 @@ export default async function ProductsPage({
         : getProductFitmentStatus(product.slug, selectedVehicle),
   }));
 
-  const visible = selectedVehicle
+  const ranked = selectedVehicle
     ? withFitment
         .slice()
         .sort(
@@ -202,8 +202,17 @@ export default async function ProductsPage({
         )
     : withFitment;
 
+  // With a vehicle selected, parts confirmed not to fit are hidden unless
+  // the shopper explicitly asks to see everything (?showAll=1).
+  const showAll = params.showAll === "1";
+  const visible =
+    selectedVehicle && !showAll
+      ? ranked.filter((item) => item.fitmentStatus !== "not-fit")
+      : ranked;
+  const hiddenCount = ranked.length - visible.length;
+
   const fitmentCounts = selectedVehicle
-    ? visible.reduce<Record<FitmentStatus, number>>(
+    ? ranked.reduce<Record<FitmentStatus, number>>(
         (counts, item) => {
           counts[item.fitmentStatus] += 1;
           return counts;
@@ -221,6 +230,26 @@ export default async function ProductsPage({
   if (selectedVariant) queryParams.set("variant", selectedVariant);
   if (selectedTransmission) queryParams.set("transmission", selectedTransmission);
   const hrefSuffix = queryParams.toString() ? "?" + queryParams.toString() : "";
+
+  function catalogHref(changes: Record<string, string | null>) {
+    const next = new URLSearchParams(queryParams);
+    if (typeof params.q === "string" && params.q) next.set("q", params.q);
+    if (category) next.set("category", category);
+    if (group) next.set("group", group);
+    if (showAll) next.set("showAll", "1");
+
+    for (const [key, value] of Object.entries(changes)) {
+      if (value === null) next.delete(key);
+      else next.set(key, value);
+    }
+
+    return "/products" + (next.toString() ? "?" + next.toString() : "");
+  }
+
+  const vehicleName = selectedModel || "vehicle";
+  const otherGroups = (Object.keys(groupKeywords) as ProductGroup[]).filter(
+    (item) => item !== group
+  );
 
   return (
     <main className="container pageShell">
@@ -242,10 +271,15 @@ export default async function ProductsPage({
             <span>AWAITING FITMENT DATA</span>
           </div>
           {fitmentCounts["not-fit"] > 0 ? (
-            <div>
+            <a
+              href={catalogHref({ showAll: showAll ? null : "1" })}
+              className="fitmentResultsToggle"
+            >
               <strong>{fitmentCounts["not-fit"]}</strong>
-              <span>NOT FOR YOUR VEHICLE</span>
-            </div>
+              <span>
+                NOT FOR YOUR VEHICLE · {showAll ? "HIDE" : "SHOW"}
+              </span>
+            </a>
           ) : null}
         </div>
       ) : null}
@@ -286,22 +320,69 @@ export default async function ProductsPage({
                 ? "Parts for your vehicle"
                 : "All Products"}
           </h1>
-          <p>{visible.length} products shown</p>
+          <p>
+            {hiddenCount
+              ? visible.length + " parts for your " + vehicleName
+              : visible.length + " products shown"}
+          </p>
         </div>
       </div>
       )}
 
-      {view === "brands" ? null : visible.length ? (
-        <div className="catalogGrid">
-          {visible.map(({ product, fitmentStatus }) => (
-            <ProductCard
-              product={product}
-              fitmentStatus={selectedVehicle ? fitmentStatus : undefined}
-              hrefSuffix={hrefSuffix}
-              key={product.slug}
-            />
-          ))}
-        </div>
+      {view === "brands" ? null : visible.length || hiddenCount ? (
+        <>
+          {visible.length ? (
+            <div className="catalogGrid">
+              {visible.map(({ product, fitmentStatus }) => (
+                <ProductCard
+                  product={product}
+                  fitmentStatus={selectedVehicle ? fitmentStatus : undefined}
+                  hrefSuffix={hrefSuffix}
+                  key={product.slug}
+                />
+              ))}
+            </div>
+          ) : null}
+
+          {hiddenCount ? (
+            <section className="fitmentMorePanel">
+              <div className="fitmentMoreCopy">
+                <span>ONLY PARTS THAT FIT</span>
+                <h2>
+                  {visible.length
+                    ? hiddenCount +
+                      " other parts don't fit your " +
+                      vehicleName +
+                      "."
+                    : "Nothing here fits your " + vehicleName + " yet."}
+                </h2>
+                <p>
+                  We&rsquo;ve hidden parts that are confirmed not to fit, so
+                  you only see what will. Try another system, or show
+                  everything if you&rsquo;re shopping for a different car.
+                </p>
+              </div>
+
+              <div className="fitmentMoreGroups">
+                {otherGroups.map((item) => (
+                  <a key={item} href={catalogHref({ group: item, q: null, category: null, showAll: null })}>
+                    {item.charAt(0).toUpperCase() + item.slice(1)}
+                    <span aria-hidden="true">→</span>
+                  </a>
+                ))}
+              </div>
+
+              <div className="fitmentMoreActions">
+                <a href={catalogHref({ showAll: "1" })} className="fitmentMoreGhost">
+                  Show all {ranked.length} parts
+                </a>
+                <a href="/?addVehicle=1#fitment" className="fitmentMoreGhost">
+                  Change vehicle
+                </a>
+              </div>
+            </section>
+          ) : null}
+        </>
       ) : (
         <div className="emptyState">
           <h2>No matching products yet</h2>
