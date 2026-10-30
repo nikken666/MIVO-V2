@@ -108,18 +108,18 @@ export default async function HomePage({
         <section className="memberHomeHero">
           <div className="container memberHomeHeroGrid">
             <div className="memberHomePromo">
-              <span className="memberHomeEyebrow">MIVO · YOUR AUTOMOTIVE STORE</span>
-              <h1>WELCOME BACK.</h1>
+              <span className="memberHomeEyebrow">Your automotive store</span>
+              <h1>Welcome back.</h1>
               <p>
                 Shop parts, manage your vehicle and keep track of every order
                 from one place.
               </p>
               <div className="memberHomeActions">
                 <Link href="/products" className="btn btnLight">
-                  SHOP PARTS
+                  Shop parts
                 </Link>
                 <Link href="/orders" className="btn btnGhost">
-                  MY ORDERS
+                  My orders
                 </Link>
               </div>
             </div>
@@ -127,7 +127,7 @@ export default async function HomePage({
             <div className="memberGarageCard">
               <div className="memberGarageHead">
                 <div>
-                  <span>MY GARAGE</span>
+                  <span>My Garage</span>
                   <strong>
                     {savedVehicle
                       ? [savedVehicle.make, savedVehicle.model]
@@ -143,14 +143,14 @@ export default async function HomePage({
                 <>
                   <p>{savedVehicleLabel}</p>
                   <Link href="/products" className="memberGarageShop">
-                    SHOP COMPATIBLE PARTS
+                    Shop compatible parts
                   </Link>
                 </>
               ) : (
                 <>
                   <p>Add your vehicle once and MIVO will prioritise compatible parts.</p>
                   <Link href="/?addVehicle=1#fitment" className="memberGarageShop">
-                    + ADD VEHICLE
+                    Add a vehicle
                   </Link>
                 </>
               )}
@@ -163,8 +163,8 @@ export default async function HomePage({
           <Logo variant="watermark" className="heroLogoWatermark" decorative />
           <div className="container heroGrid">
             <div className="heroCopy">
-              <span className="heroEyebrow">PREMIUM AUTOMOTIVE PARTS · MALAYSIA</span>
-              <h1>THE RIGHT PART.<br /><em>WITHOUT THE GUESSWORK.</em></h1>
+              <span className="heroEyebrow">Premium automotive parts</span>
+              <h1>The right part.<br /><em>Without the guesswork.</em></h1>
               <p>
                 Shop trusted automotive parts through a cleaner, more precise buying experience —
                 built around your vehicle, not endless listings.
@@ -187,10 +187,10 @@ export default async function HomePage({
 
       <section className="trustBar">
         <div className="container trustBarInner">
-          <span><i></i> FITMENT-FOCUSED SHOPPING</span>
-          <span><i></i> CURATED AUTOMOTIVE BRANDS</span>
-          <span><i></i> SECURE CHECKOUT</span>
-          <span><i></i> MALAYSIA DELIVERY</span>
+          <span><i></i> Fitment-focused shopping</span>
+          <span><i></i> Curated automotive brands</span>
+          <span><i></i> Secure checkout</span>
+          <span><i></i> Malaysia-wide delivery</span>
         </div>
       </section>
 
@@ -199,8 +199,8 @@ export default async function HomePage({
       <section className="section categorySection">
         <div className="container">
           <div className="sectionHeader">
-            <div><span className="sectionEyebrow">SHOP BY SYSTEM</span><h2>Parts, organised the way<br />cars are built.</h2></div>
-            <Link href="/products" className="sectionLink">VIEW ALL CATEGORIES</Link>
+            <div><span className="sectionEyebrow">Shop by system</span><h2>Parts, organised the way<br />cars are built.</h2></div>
+            <Link href="/products" className="sectionLink">View all categories ›</Link>
           </div>
 
           <div className="categoryGrid">
@@ -228,10 +228,10 @@ export default async function HomePage({
       <section className="section productsSection">
         <div className="container">
           <div className="sectionHeader productHeader">
-            <div><span className="sectionEyebrow">SELECTED FOR MIVO</span><h2>Popular parts.</h2></div>
+            <div><span className="sectionEyebrow">Selected for you</span><h2>Popular parts.</h2></div>
             <div className="productHeaderSide">
               <p>Clean product information, clear pricing and fitment-led discovery.</p>
-              <Link href="/products" className="sectionLink">SHOP ALL PARTS</Link>
+              <Link href="/products" className="sectionLink">Shop all parts ›</Link>
             </div>
           </div>
           <div className="featuredGrid">
@@ -242,7 +242,7 @@ export default async function HomePage({
 
       <section className="brandBand">
         <div className="container">
-          <div className="brandBandTop"><span>TRUSTED NAMES. ONE CLEAN CATALOGUE.</span><Link href="/brands">EXPLORE BRANDS </Link></div>
+          <div className="brandBandTop"><span>Trusted names. One clean catalogue.</span><Link href="/brands">Explore brands ›</Link></div>
           <div className="brandGrid brandLogoGrid">
             {brands.map((brand) => (
               <div className="brandLogoCard brandLogoCardStatic" key={brand.name} aria-label={brand.name}>
@@ -256,7 +256,7 @@ export default async function HomePage({
       <section className="section standardSection" id="standard">
         <div className="container standardGrid">
           <div className="standardIntro">
-            <span className="sectionEyebrow">THE MIVO STANDARD</span>
+            <span className="sectionEyebrow">The MIVO standard</span>
             <h2>Less clutter.<br />More certainty.</h2>
             <p>MIVO is designed around the questions that matter before buying a part: Will it fit? What exactly am I buying? Who made it? When will it arrive?</p>
             <Link href="/products" className="btn btnDark">Explore the catalogue</Link>
@@ -273,12 +273,12 @@ export default async function HomePage({
       <section className="garageCtaSection">
         <div className="container garageCta">
           <div>
-            <span className="microLabel">MIVO GARAGE</span>
+            <span className="microLabel">MIVO Garage</span>
             <h2>Your car becomes<br />your storefront.</h2>
           </div>
           <div className="garageCtaCopy">
             <p>Save your vehicle and make every return visit faster. Compatible parts first. Irrelevant listings out of the way.</p>
-            <Link href="/garage" className="btn btnLight">OPEN MY GARAGE</Link>
+            <Link href="/garage" className="btn btnLight">Open My Garage</Link>
           </div>
         </div>
       </section>

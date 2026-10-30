@@ -5,6 +5,7 @@ import { cache } from "react";
 import { notFound } from "next/navigation";
 import ProductDetailClient from "@/components/ProductDetailClient";
 import SavedVehicleProductsBootstrap from "@/components/SavedVehicleProductsBootstrap";
+import { htmlToPlainText } from "@/lib/plainText";
 import {
   getActiveProductBySlug as fetchActiveProductBySlug,
   getProductPublicReviews,
@@ -23,10 +24,11 @@ export async function generateMetadata({
   const product = await getActiveProductBySlug(slug);
   if (!product) return {};
 
+  const plainDescription = htmlToPlainText(product.description);
   const description = (
-    product.description &&
-    !product.description.startsWith("Product details will be updated")
-      ? product.description
+    plainDescription &&
+    !plainDescription.startsWith("Product details will be updated")
+      ? plainDescription
       : product.brand + " " + product.name + " — available at MIVO with Malaysia-wide delivery."
   ).slice(0, 160);
   const images = product.imageUrls?.length
@@ -135,7 +137,7 @@ export default async function ProductPage({
     "@context": "https://schema.org",
     "@type": activeVariants.length > 1 ? "ProductGroup" : "Product",
     name: product.name,
-    description: product.description,
+    description: htmlToPlainText(product.description),
     image: product.imageUrls?.length
       ? product.imageUrls
       : product.imageUrl

@@ -63,8 +63,8 @@ export default function CartPage() {
   const checkoutAction = (className: string, mobile = false) =>
     selectedQuantity ? (
       <Link href="/checkout" className={className}>
-        {mobile ? <>CHECKOUT ({selectedQuantity})</> : (
-          <span><small>SELECTED PRODUCTS ONLY</small>CHECKOUT ({selectedQuantity})</span>
+        {mobile ? <>Check out ({selectedQuantity})</> : (
+          <span><small>Selected products only</small>Check out ({selectedQuantity})</span>
         )}
       </Link>
     ) : (
