@@ -136,9 +136,14 @@ function lowestPrice(product: Product) {
 
 export default function HomePromotions({
   products,
+  only,
 }: {
   products: Product[];
+  // "vouchers": render just the voucher rail (the homepage has its own
+  // banner carousel and flash-sale row).
+  only?: "vouchers";
 }) {
+  const onlyVouchers = only === "vouchers";
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [claimedIds, setClaimedIds] = useState<string[]>([]);
@@ -286,6 +291,7 @@ export default function HomePromotions({
   if (!campaign && vouchers.length === 0 && deals.length === 0) {
     return null;
   }
+  if (onlyVouchers && vouchers.length === 0) return null;
 
   const countdown =
     campaign && campaign.show_countdown
@@ -366,7 +372,7 @@ export default function HomePromotions({
   return (
     <section className="homePromotions">
       <div className="container">
-        {campaign ? (
+        {campaign && !onlyVouchers ? (
           <div
             className={
               "campaignEvent campaignEvent-" +
@@ -641,7 +647,7 @@ export default function HomePromotions({
           </div>
         ) : null}
 
-        {vouchers.length > 0 && templateType !== "voucher_blast" ? (
+        {vouchers.length > 0 && (onlyVouchers || templateType !== "voucher_blast") ? (
           <div className="voucherSection">
             <div className="voucherSectionHead">
               <div>
@@ -696,7 +702,7 @@ export default function HomePromotions({
           </div>
         ) : null}
 
-        {deals.length > 0 && templateType !== "flash_deal_grid" ? (
+        {deals.length > 0 && !onlyVouchers && templateType !== "flash_deal_grid" ? (
           <div className="flashDealsSection">
             <div className="flashDealsHead">
               <div>

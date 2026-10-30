@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useMarketplace } from "./MarketplaceProvider";
 import Logo from "./Logo";
+import VehiclePickerButton, { openVehiclePicker } from "./VehiclePickerButton";
 
 export default function Header() {
   const { cartCount } = useMarketplace();
@@ -84,9 +85,9 @@ export default function Header() {
             <Logo variant="dark" className="headerLogo" />
           </Link>
 
-          <form className="headerSearch" action="/products">
-            <span className="searchGlyph" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg></span>
-            <input name="q" placeholder="Search part, OEM number, SKU or brand" />
+          <form className="headerSearch hasVehicleChip" action="/products">
+            <VehiclePickerButton variant="chip" autoOpenFromUrl />
+            <input name="q" placeholder="Search parts, OEM number or brand" />
             <button type="submit">Search</button>
           </form>
 
@@ -130,7 +131,14 @@ export default function Header() {
               <Link href="/products?view=brands">Brands</Link>
             </nav>
             <div className="navUtilityLinks">
-              <Link href="/?addVehicle=1#fitment" className="addCarLink">
+              <Link
+                href="/?addVehicle=1"
+                className="addCarLink"
+                onClick={(event) => {
+                  event.preventDefault();
+                  openVehiclePicker();
+                }}
+              >
                 + Add car
               </Link>
               <Link href="/orders" className="trackLink">
