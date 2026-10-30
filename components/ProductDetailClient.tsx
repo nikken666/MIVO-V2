@@ -61,11 +61,12 @@ export default function ProductDetailClient({
   );
 
   const shortDescriptionText = htmlToPlainText(product.shortDescription);
-  const descriptionParagraphs = useMemo(() => {
-    const paragraphs = htmlToParagraphs(product.description);
-    // Skip the long description when it only repeats the short one.
-    return paragraphs.join(" ") === shortDescriptionText ? [] : paragraphs;
-  }, [product.description, shortDescriptionText]);
+  // The long description usually repeats the short one, so show it on its
+  // own and fall back to the short description only when it is missing.
+  const descriptionParagraphs = useMemo(
+    () => htmlToParagraphs(product.description),
+    [product.description]
+  );
 
   const [activeImage, setActiveImage] = useState(0);
   const [reviewFilter, setReviewFilter] = useState<
@@ -753,15 +754,17 @@ export default function ProductDetailClient({
                 <h2>Product Description</h2>
               </div>
 
-              {shortDescriptionText ? (
-                <p className="productShortDescription">
-                  {shortDescriptionText}
-                </p>
-              ) : null}
-
-              {descriptionParagraphs.map((paragraph, index) => (
-                <p key={index}>{paragraph}</p>
-              ))}
+              <div className="productDescriptionBody">
+                {descriptionParagraphs.length ? (
+                  descriptionParagraphs.map((paragraph, index) => (
+                    <p key={index}>{paragraph}</p>
+                  ))
+                ) : shortDescriptionText ? (
+                  <p className="productShortDescription">
+                    {shortDescriptionText}
+                  </p>
+                ) : null}
+              </div>
             </section>
 
             <section className="productWarrantyCard">

@@ -10286,7 +10286,8 @@ a,button,.btn,input,select,textarea{transition:color .2s var(--ease),background-
 .productAddCartButton{background:#fff!important;border:1px solid var(--accent)!important;color:var(--accent)!important}
 .productAddCartButton:disabled,.productBuyNowButton:disabled,.checkoutPlaceOrder:disabled{opacity:.4}
 .productFitmentSelectButton{border-radius:980px;letter-spacing:0;color:var(--accent)}
-.productDescriptionCard p{font-size:15px;line-height:1.7;color:#424245}
+.productDescriptionBody{display:grid;gap:10px;min-width:0}
+.productDescriptionBody p{margin:0;font-size:15px;line-height:1.7;color:#424245;text-transform:none}
 .modernOrderSummary{border:0;border-radius:22px;box-shadow:var(--shadow)}
 
 /* forms */
