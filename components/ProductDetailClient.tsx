@@ -13,6 +13,7 @@ import { formatPrice } from "@/data/products";
 import { useMarketplace } from "./MarketplaceProvider";
 import ProductCard from "./ProductCard";
 import ProductVehicleSelector from "./ProductVehicleSelector";
+import { htmlToParagraphs, htmlToPlainText } from "@/lib/plainText";
 
 function uniqueValues(values: Array<string | null | undefined>) {
   return Array.from(
@@ -58,6 +59,13 @@ export default function ProductDetailClient({
       ),
     [product.imageUrl, product.imageUrls, product.variants]
   );
+
+  const shortDescriptionText = htmlToPlainText(product.shortDescription);
+  const descriptionParagraphs = useMemo(() => {
+    const paragraphs = htmlToParagraphs(product.description);
+    // Skip the long description when it only repeats the short one.
+    return paragraphs.join(" ") === shortDescriptionText ? [] : paragraphs;
+  }, [product.description, shortDescriptionText]);
 
   const [activeImage, setActiveImage] = useState(0);
   const [reviewFilter, setReviewFilter] = useState<
@@ -745,13 +753,15 @@ export default function ProductDetailClient({
                 <h2>Product Description</h2>
               </div>
 
-              {product.shortDescription ? (
+              {shortDescriptionText ? (
                 <p className="productShortDescription">
-                  {product.shortDescription}
+                  {shortDescriptionText}
                 </p>
               ) : null}
 
-              <p>{product.description}</p>
+              {descriptionParagraphs.map((paragraph, index) => (
+                <p key={index}>{paragraph}</p>
+              ))}
             </section>
 
             <section className="productWarrantyCard">

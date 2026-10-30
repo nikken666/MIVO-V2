@@ -437,7 +437,7 @@ input::placeholder,textarea::placeholder{font-family:var(--mivo-ui-font)}
 .quizProgress i{
   display:block;
   height:100%;
-  background:#d52f36;
+  background:var(--accent);
   transition:width .28s ease;
 }
 .quizStepMeta{
@@ -487,7 +487,7 @@ input::placeholder,textarea::placeholder{font-family:var(--mivo-ui-font)}
   font-size:8px;
   font-weight:700;
   letter-spacing:.14em;
-  color:#d52f36;
+  color:var(--accent);
 }
 .quizBody>h3,
 .quizConfirm h3{
@@ -571,9 +571,9 @@ input::placeholder,textarea::placeholder{font-family:var(--mivo-ui-font)}
   cursor:pointer;
 }
 .quizYear:hover{
-  border-color:#d52f36;
+  border-color:var(--accent);
   background:#fff;
-  color:#d52f36;
+  color:var(--accent);
 }
 .quizAnswers--variants{
   grid-template-columns:1fr 1fr;
@@ -4580,7 +4580,7 @@ input::placeholder,textarea::placeholder{font-family:var(--mivo-ui-font)}
   inset:0;
   pointer-events:none;
   background:
-    radial-gradient(circle at 100% 0,rgba(213,47,54,.16),transparent 34%),
+    radial-gradient(circle at 100% 0,rgba(var(--accent-rgb),.16),transparent 34%),
     linear-gradient(120deg,rgba(255,255,255,.025),transparent 45%);
 }
 .savedVehicleAmbient{
@@ -4692,7 +4692,7 @@ input::placeholder,textarea::placeholder{font-family:var(--mivo-ui-font)}
   justify-content:space-between;
   gap:20px;
   border-radius:12px;
-  background:#d52f36;
+  background:var(--accent);
   color:#fff;
   text-decoration:none;
   transition:transform .18s ease,background .18s ease;
@@ -6845,7 +6845,7 @@ input::placeholder,textarea::placeholder{font-family:var(--mivo-ui-font)}
   flex-direction:column;
   justify-content:center;
   background:
-    radial-gradient(circle at 85% 20%,rgba(218,36,47,.24),transparent 34%),
+    radial-gradient(circle at 85% 20%,rgba(var(--accent-rgb),.24),transparent 34%),
     linear-gradient(120deg,#101417,#171c20 68%,#291416);
   color:#fff;
 }
@@ -10277,6 +10277,17 @@ a,button,.btn,input,select,textarea{transition:color .2s var(--ease),background-
 .policyContent a{color:var(--accent);font-weight:500;text-decoration:none}
 .policyContent a:hover{text-decoration:underline}
 .policyEyebrow{font-size:14px;letter-spacing:0;color:var(--accent)}
+
+/* product, cart and checkout actions */
+.productPricePanel{border:0;border-radius:18px;background:var(--soft)}
+.productAddCartButton,.productBuyNowButton,.cartPrimaryButton,.cartCheckoutButton,.checkoutPlaceOrder{border-radius:980px!important;letter-spacing:0!important;font-weight:500!important;font-size:15px!important;text-transform:none}
+.productBuyNowButton:not(:disabled),.cartCheckoutButton,.checkoutPlaceOrder:not(:disabled){background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important}
+.productBuyNowButton:not(:disabled):hover,.cartCheckoutButton:hover,.checkoutPlaceOrder:not(:disabled):hover{background:var(--accent-hover)!important}
+.productAddCartButton{background:#fff!important;border:1px solid var(--accent)!important;color:var(--accent)!important}
+.productAddCartButton:disabled,.productBuyNowButton:disabled,.checkoutPlaceOrder:disabled{opacity:.4}
+.productFitmentSelectButton{border-radius:980px;letter-spacing:0;color:var(--accent)}
+.productDescriptionCard p{font-size:15px;line-height:1.7;color:#424245}
+.modernOrderSummary{border:0;border-radius:22px;box-shadow:var(--shadow)}
 
 /* forms */
 input,select,textarea{border-radius:12px}
