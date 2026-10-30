@@ -10537,6 +10537,16 @@ body{font-feature-settings:"cv11","ss01","ss03";font-optical-sizing:auto}
 }
 .sectionLink:active,.categoryTileGo:active{scale:.95}
 
+/* variant picker: options feel like buttons, and nudge when a buy button is tapped too early */
+.productOptionButton{border-radius:14px!important}
+.productOptionButton:not(:disabled):hover{border-color:var(--accent)!important;box-shadow:0 6px 16px rgba(var(--accent-rgb),.18)!important}
+.productOptionButton.selected{border-color:var(--accent)!important;box-shadow:0 0 0 3px rgba(var(--accent-rgb),.2)!important}
+.productOptionSection{position:relative;border-radius:16px;transition:background-color .3s var(--ease),box-shadow .3s var(--ease)}
+.productOptionSection.needsChoice{background:rgba(var(--accent-rgb),.06);box-shadow:0 0 0 2px rgba(var(--accent-rgb),.45);animation:optionNudge .45s var(--ease)}
+.productOptionSection.needsChoice .productOptionLabel small{color:var(--accent);font-weight:600}
+.productOptionSection.needsChoice .productOptionLabel small::after{content:" · Choose an option first"}
+@keyframes optionNudge{0%,100%{translate:0}20%{translate:-6px}40%{translate:6px}60%{translate:-4px}80%{translate:3px}}
+
 /* disabled buttons: clearly inactive, no motion */
 button:disabled,.btn[aria-disabled="true"]{cursor:not-allowed;translate:none!important;scale:1!important;box-shadow:none!important;filter:none!important}
 

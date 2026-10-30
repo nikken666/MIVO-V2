@@ -325,11 +325,26 @@ export default function ProductDetailClient({
     completePurchaseAction(action);
   }
 
+  // Purchase buttons stay clickable before a variant is chosen; tapping one
+  // guides the shopper to the option picker instead of silently doing nothing.
+  const [promptChoice, setPromptChoice] = useState(false);
+  const outOfStock = selectionComplete && !canBuy;
+
+  function guideToOptions() {
+    setPromptChoice(true);
+    document
+      .querySelector(".productOptionSection")
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    window.setTimeout(() => setPromptChoice(false), 1800);
+  }
+
   function addCurrentToCart() {
+    if (!selectionComplete) return guideToOptions();
     requestPurchaseAction("cart");
   }
 
   function buyNow() {
+    if (!selectionComplete) return guideToOptions();
     requestPurchaseAction("buy");
   }
 
@@ -496,7 +511,7 @@ export default function ProductDetailClient({
             </div>
 
             {product.variation1Name ? (
-              <section className="productOptionSection">
+              <section className={"productOptionSection" + (promptChoice && !selectionComplete ? " needsChoice" : "")}>
                 <div className="productOptionLabel">
                   <span>{product.variation1Name}</span>
                   <small>
@@ -537,7 +552,7 @@ export default function ProductDetailClient({
             ) : null}
 
             {product.variation2Name ? (
-              <section className="productOptionSection">
+              <section className={"productOptionSection" + (promptChoice && !selectionComplete ? " needsChoice" : "")}>
                 <div className="productOptionLabel">
                   <span>{product.variation2Name}</span>
                   <small>
@@ -616,21 +631,17 @@ export default function ProductDetailClient({
               <button
                 type="button"
                 className="productAddCartButton"
-                disabled={!canBuy || !cartReady}
+                disabled={outOfStock || !cartReady}
                 onClick={addCurrentToCart}
               >
                 <span>＋</span>
-                {!selectionComplete
-                  ? "SELECT VARIATION"
-                  : !canBuy
-                    ? "OUT OF STOCK"
-                    : "ADD TO CART"}
+                {outOfStock ? "Out of stock" : "Add to cart"}
               </button>
 
               <button
                 type="button"
                 className="productBuyNowButton"
-                disabled={!canBuy || !cartReady}
+                disabled={outOfStock || !cartReady}
                 onClick={buyNow}
               >
                 Buy now
@@ -994,7 +1005,7 @@ export default function ProductDetailClient({
         <button
           type="button"
           className="mobileProductCart"
-          disabled={!canBuy || !cartReady}
+          disabled={outOfStock || !cartReady}
           onClick={addCurrentToCart}
         >
           <span>＋</span>
@@ -1004,7 +1015,7 @@ export default function ProductDetailClient({
         <button
           type="button"
           className="mobileProductBuy"
-          disabled={!canBuy || !cartReady}
+          disabled={outOfStock || !cartReady}
           onClick={buyNow}
         >
           Buy now
