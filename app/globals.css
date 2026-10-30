@@ -10409,16 +10409,16 @@ body{font-feature-settings:"cv11","ss01","ss03";font-optical-sizing:auto}
 .btn,.miniCartButton,.productHoverAdd,.productHoverView,.headerSearch button,.signInHeaderAction,.addCarLink,
 .productAddCartButton,.productBuyNowButton,.cartCheckoutButton,.cartPrimaryButton,.checkoutPlaceOrder,
 .orderPrimaryButton,.orderGhostButton,.mivoAuthSubmit,.fitmentMoreGhost,.sectionLink,.quizConfirmButton{
-  cursor:pointer;transition:transform .18s var(--ease),box-shadow .25s var(--ease),background-color .2s var(--ease),color .2s var(--ease),border-color .2s var(--ease)!important
+  cursor:pointer;transition:translate .2s var(--ease),scale .15s var(--ease),transform .18s var(--ease),box-shadow .25s var(--ease),background-color .2s var(--ease),color .2s var(--ease),border-color .2s var(--ease),filter .2s var(--ease)!important
 }
 .btnLight:hover,.miniCartButton:hover,.productHoverAdd:hover,.headerSearch button:hover,.productBuyNowButton:not(:disabled):hover,
 .cartCheckoutButton:hover,.checkoutPlaceOrder:not(:disabled):hover,.orderPrimaryButton:hover,.mivoAuthSubmit:hover,.fitmentMoreGhost:first-child:hover{
-  box-shadow:0 6px 18px rgba(var(--accent-rgb),.35);transform:translateY(-1px)
+  box-shadow:0 6px 18px rgba(var(--accent-rgb),.35)
 }
 .btn:active,.miniCartButton:active,.productHoverAdd:active,.productHoverView:active,.headerSearch button:active,.signInHeaderAction:active,
 .addCarLink:active,.productAddCartButton:active,.productBuyNowButton:active,.cartCheckoutButton:active,.cartPrimaryButton:active,
 .checkoutPlaceOrder:active,.orderPrimaryButton:active,.orderGhostButton:active,.mivoAuthSubmit:active,.fitmentMoreGhost:active,.quizConfirmButton:active{
-  transform:scale(.96)!important;box-shadow:none
+  box-shadow:none
 }
 
 /* header navigation: pill highlight under the pointer */
@@ -10485,4 +10485,61 @@ body{font-feature-settings:"cv11","ss01","ss03";font-optical-sizing:auto}
   .categoryTileIcon{width:52px;height:52px;border-radius:16px}
   .categoryTile small,.categoryTileGo{display:none}
   .categoryTile strong{font-size:13px}
+}
+
+/* ---------- Universal button feel ----------
+   Every clickable control on the storefront gets the same tactile response:
+   lift + shadow on hover, a quick squeeze on press. Uses the individual
+   `translate`/`scale` properties so it never fights a component's own
+   `transform` (e.g. centred arrows or slide-in panels). */
+:is(button,.btn,[role="button"],a[class*="Button"],a[class*="button"],a[class*="Btn"],
+    .miniCartButton,.sectionLink,.fitmentMoreGhost,.addCarLink,.signInHeaderAction,.voucherAction,
+    .stripePayAction,.productHoverView,.productHoverAdd,.categoryTileGo):not(:disabled){
+  cursor:pointer;
+  transition:translate .2s var(--ease),scale .15s var(--ease),box-shadow .25s var(--ease),
+    background-color .2s var(--ease),color .2s var(--ease),border-color .2s var(--ease),filter .2s var(--ease)!important
+}
+@media(hover:hover) and (pointer:fine){
+  :is(button,.btn,[role="button"],a[class*="Button"],a[class*="button"],a[class*="Btn"],
+      .miniCartButton,.fitmentMoreGhost,.addCarLink,.signInHeaderAction,.voucherAction,.stripePayAction,
+      .productHoverView,.productHoverAdd):not(:disabled):hover{
+    translate:0 -2px;
+    box-shadow:0 8px 20px rgba(0,0,0,.12);
+    filter:brightness(1.05)
+  }
+}
+:is(button,.btn,[role="button"],a[class*="Button"],a[class*="button"],a[class*="Btn"],
+    .miniCartButton,.sectionLink,.fitmentMoreGhost,.addCarLink,.signInHeaderAction,.voucherAction,
+    .stripePayAction,.productHoverView,.productHoverAdd):not(:disabled):active{
+  translate:0 0;scale:.95;box-shadow:0 2px 6px rgba(0,0,0,.1);filter:brightness(.97)
+}
+
+/* segmented tabs and steppers stay flat: highlight instead of lift */
+.mivoAuthTabs button:hover,.orderStatusTabs button:hover,.quantityStepper button:hover{translate:none!important;box-shadow:none!important}
+.mivoAuthTabs button:not(.active):hover,.orderStatusTabs button:not(.active):hover{background:rgba(0,0,0,.04)}
+.quantityStepper button:not(:disabled):hover{background:rgba(var(--accent-rgb),.1);color:var(--accent)}
+
+/* outlined buttons fill with a light tint so the hover is obvious */
+.productAddCartButton:not(:disabled):hover,.orderGhostButton:hover,.vehicleQuickChangeButton:hover,.toolButton:hover,
+.miniCartButton.ghost:hover{
+  background:rgba(var(--accent-rgb),.08)!important;border-color:var(--accent)!important;color:var(--accent)!important;
+  box-shadow:0 8px 20px rgba(var(--accent-rgb),.22)!important
+}
+/* solid blue buttons glow in brand blue */
+.productBuyNowButton:not(:disabled):hover,.cartCheckoutButton:hover,.checkoutPlaceOrder:not(:disabled):hover,
+.orderPrimaryButton:hover,.mivoAuthSubmit:hover,.btnLight:hover,.miniCartButton:hover,.productHoverAdd:hover,
+.headerSearch button:hover,.quizConfirmButton:hover,.savedVehiclePrimary:hover,.addressSaveButton:hover{
+  box-shadow:0 10px 24px rgba(var(--accent-rgb),.38)!important
+}
+/* quiet text-style buttons: tint instead of shadow */
+.cartClearButton:hover,.modernRemoveButton:hover,.orderDangerButton:hover,.orderCancelButton:hover{
+  background:rgba(227,0,0,.07)!important;box-shadow:none!important
+}
+.sectionLink:active,.categoryTileGo:active{scale:.95}
+
+/* disabled buttons: clearly inactive, no motion */
+button:disabled,.btn[aria-disabled="true"]{cursor:not-allowed;translate:none!important;scale:1!important;box-shadow:none!important;filter:none!important}
+
+@media(prefers-reduced-motion:reduce){
+  :is(button,.btn,a[class*="Button"]):hover,:is(button,.btn,a[class*="Button"]):active{translate:none!important;scale:1!important}
 }
