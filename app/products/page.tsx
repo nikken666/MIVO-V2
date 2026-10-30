@@ -329,7 +329,7 @@ export default async function ProductsPage({
       </div>
       )}
 
-      {view === "brands" ? null : visible.length || hiddenCount ? (
+      {view === "brands" ? null : (
         <>
           {visible.length ? (
             <div className="catalogGrid">
@@ -344,22 +344,35 @@ export default async function ProductsPage({
             </div>
           ) : null}
 
-          {hiddenCount ? (
+          {hiddenCount || !visible.length ? (
             <section className="fitmentMorePanel">
               <div className="fitmentMoreCopy">
-                <span>ONLY PARTS THAT FIT</span>
+                <span>{hiddenCount ? "ONLY PARTS THAT FIT" : "MORE PARTS COMING"}</span>
                 <h2>
-                  {visible.length
-                    ? hiddenCount +
-                      " other parts don't fit your " +
-                      vehicleName +
-                      "."
-                    : "Nothing here fits your " + vehicleName + " yet."}
+                  {!hiddenCount
+                    ? "No " +
+                      (group ? groupHeading(group).toLowerCase() : "matching parts") +
+                      " in the catalogue yet."
+                    : visible.length
+                      ? hiddenCount +
+                        " other parts don't fit your " +
+                        vehicleName +
+                        "."
+                      : "Nothing here fits your " + vehicleName + " yet."}
                 </h2>
                 <p>
-                  We&rsquo;ve hidden parts that are confirmed not to fit, so
-                  you only see what will. Try another system, or show
-                  everything if you&rsquo;re shopping for a different car.
+                  {hiddenCount ? (
+                    <>
+                      We&rsquo;ve hidden parts that are confirmed not to fit, so
+                      you only see what will. Try another system, or show
+                      everything if you&rsquo;re shopping for a different car.
+                    </>
+                  ) : (
+                    <>
+                      We&rsquo;re adding new parts to MIVO regularly. In the
+                      meantime, explore another system.
+                    </>
+                  )}
                 </p>
               </div>
 
@@ -373,24 +386,27 @@ export default async function ProductsPage({
               </div>
 
               <div className="fitmentMoreActions">
-                <a href={catalogHref({ showAll: "1" })} className="fitmentMoreGhost">
-                  Show all {ranked.length} parts
-                </a>
-                <a href="/?addVehicle=1#fitment" className="fitmentMoreGhost">
-                  Change vehicle
-                </a>
+                {hiddenCount ? (
+                  <a href={catalogHref({ showAll: "1" })} className="fitmentMoreGhost">
+                    Show all {ranked.length} parts
+                  </a>
+                ) : (
+                  <a
+                    href={catalogHref({ group: null, q: null, category: null })}
+                    className="fitmentMoreGhost"
+                  >
+                    Browse all parts
+                  </a>
+                )}
+                {selectedVehicle ? (
+                  <a href="/?addVehicle=1#fitment" className="fitmentMoreGhost">
+                    Change vehicle
+                  </a>
+                ) : null}
               </div>
             </section>
           ) : null}
         </>
-      ) : (
-        <div className="emptyState">
-          <h2>No matching products yet</h2>
-          <p>
-            We do not have a verified compatible product for this vehicle in the
-            current catalogue.
-          </p>
-        </div>
       )}
     </main>
   );
