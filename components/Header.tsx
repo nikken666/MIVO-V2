@@ -73,8 +73,8 @@ export default function Header() {
     <>
       <div className="announcementBar">
         <div className="container">
-          <span>MIVO · PREMIUM AUTOMOTIVE PARTS</span>
-          <span>Malaysia-wide delivery · Secure checkout</span>
+          <span>Parts matched to your car, delivered Malaysia-wide.</span>
+          <span>Secure checkout</span>
         </div>
       </div>
 
@@ -87,12 +87,12 @@ export default function Header() {
           <form className="headerSearch" action="/products">
             <span className="searchGlyph" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg></span>
             <input name="q" placeholder="Search part, OEM number, SKU or brand" />
-            <button type="submit">SEARCH</button>
+            <button type="submit">Search</button>
           </form>
 
           <div className="headerActions">
             <Link href="/garage" className="headerAction">
-              <small>VEHICLE</small>
+              <small>Vehicle</small>
               <strong>My Garage</strong>
             </Link>
 
@@ -104,9 +104,9 @@ export default function Header() {
                   : "headerAction accountHeaderAction signInHeaderAction"
               }
             >
-              <small>ACCOUNT</small>
+              <small>Account</small>
               <strong>
-                {loggedIn ? "Hello, " + (customerName || "Customer") : "SIGN IN"}
+                {loggedIn ? "Hello, " + (customerName || "Customer") : "Sign in"}
               </strong>
             </Link>
 
@@ -120,21 +120,21 @@ export default function Header() {
         <div className="navRow">
           <div className="container navInner">
             <nav className="mainNav" aria-label="Main navigation">
-              <Link href="/products">ALL PARTS</Link>
-              <Link href="/products?group=maintenance">MAINTENANCE</Link>
-              <Link href="/products?group=braking">BRAKING</Link>
-              <Link href="/products?group=suspension">SUSPENSION</Link>
-              <Link href="/products?group=steering">STEERING</Link>
-              <Link href="/products?group=drivetrain">DRIVETRAIN</Link>
-              <Link href="/products?group=cooling">COOLING</Link>
-              <Link href="/products?view=brands">BRANDS</Link>
+              <Link href="/products">All Parts</Link>
+              <Link href="/products?group=maintenance">Maintenance</Link>
+              <Link href="/products?group=braking">Braking</Link>
+              <Link href="/products?group=suspension">Suspension</Link>
+              <Link href="/products?group=steering">Steering</Link>
+              <Link href="/products?group=drivetrain">Drivetrain</Link>
+              <Link href="/products?group=cooling">Cooling</Link>
+              <Link href="/products?view=brands">Brands</Link>
             </nav>
             <div className="navUtilityLinks">
               <Link href="/?addVehicle=1#fitment" className="addCarLink">
-                + ADD CAR
+                + Add car
               </Link>
               <Link href="/orders" className="trackLink">
-                TRACK ORDER
+                Track order
               </Link>
             </div>
           </div>

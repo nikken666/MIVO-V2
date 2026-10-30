@@ -6,7 +6,7 @@ export default function Footer() {
     <footer className="siteFooter">
       <div className="container footerTop">
         <div className="footerBrandBlock">
-          <Logo variant="light" className="footerLogoAsset" />
+          <Logo variant="dark" className="footerLogoAsset" />
           <p>Premium automotive parts, matched with more confidence.</p>
         </div>
         <div><h4>SHOP</h4><Link href="/products">All Parts</Link><Link href="/brands">Brands</Link><Link href="/garage">My Garage</Link></div>
