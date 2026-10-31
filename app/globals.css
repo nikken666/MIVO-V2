@@ -10694,6 +10694,16 @@ button:disabled,.btn[aria-disabled="true"]{cursor:not-allowed;translate:none!imp
 .shopDiscoverGrid .premiumProductImage{height:190px}
 .shopDiscoverGrid .premiumProductCard h3{font-size:14px;min-height:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .shopDiscoverGrid .productFitmentText{display:none}
+.shopDiscoverGrid .productBrandRow{display:none}
+.shopDiscoverGrid .productMeta{padding:14px 16px 16px}
+.shopDiscoverGrid .premiumProductCard h3{margin:0 0 4px}
+.shopDiscoverGrid .productBottom{margin-top:10px;padding-top:10px}
+.shopDiscoverGrid .productBottom strong{font-size:16px;white-space:nowrap}
+
+/* product card footer never clips: price and button wrap when the card is narrow */
+.productBottom{flex-wrap:wrap;gap:8px}
+.productCardPriceStack{min-width:0}
+.miniCartButton{flex:none;white-space:nowrap}
 .shopMore{display:flex;justify-content:center;margin-top:22px}
 .shopMore .btn{min-width:220px}
 
