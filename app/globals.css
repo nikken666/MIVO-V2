@@ -10582,8 +10582,13 @@ button:disabled,.btn[aria-disabled="true"]{cursor:not-allowed;translate:none!imp
 .vehiclePickerChip:hover{box-shadow:0 6px 16px rgba(var(--accent-rgb),.25)!important}
 @media(max-width:850px){
   .headerSearch.hasVehicleChip{grid-template-columns:auto 1fr}
-  .vehiclePickerChip{max-width:96px;padding:0 8px}
+  /* the old mobile rule hides every button in the search bar; keep the chip */
+  .headerSearch .vehiclePickerChip{display:inline-flex!important;max-width:96px;height:30px;padding:0 8px}
   .vehiclePickerChip .vehiclePickerCaret{display:none}
+}
+@media(max-width:540px){
+  .vehiclePickerChip span{display:none}
+  .headerSearch .vehiclePickerChip{padding:0 7px}
 }
 
 /* hero: carousel + side banners */
@@ -10735,6 +10740,8 @@ button:disabled,.btn[aria-disabled="true"]{cursor:not-allowed;translate:none!imp
   .shopSideBanner{padding:16px;border-radius:20px}
   .shopSideBanner strong{font-size:16px}
   .shopSideBanner small{display:none}
+  .shopBrandRow{flex-wrap:wrap;gap:8px}
+  .shopBrandRow img{height:13px}
   .shopCategories{gap:2px;padding:12px 6px;border-radius:20px}
   .shopCategoryIcon{width:48px;height:48px}
   .shopCategory{font-size:12px}
