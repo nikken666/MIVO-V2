@@ -325,11 +325,26 @@ export default function ProductDetailClient({
     completePurchaseAction(action);
   }
 
+  // Purchase buttons stay clickable before a variant is chosen; tapping one
+  // guides the shopper to the option picker instead of silently doing nothing.
+  const [promptChoice, setPromptChoice] = useState(false);
+  const outOfStock = selectionComplete && !canBuy;
+
+  function guideToOptions() {
+    setPromptChoice(true);
+    document
+      .querySelector(".productOptionSection")
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    window.setTimeout(() => setPromptChoice(false), 1800);
+  }
+
   function addCurrentToCart() {
+    if (!selectionComplete) return guideToOptions();
     requestPurchaseAction("cart");
   }
 
   function buyNow() {
+    if (!selectionComplete) return guideToOptions();
     requestPurchaseAction("buy");
   }
 
@@ -351,7 +366,7 @@ export default function ProductDetailClient({
     <main className="productDetailPage">
       <div className="container">
         <div className="productBreadcrumb">
-          <Link href="/products">ALL PARTS</Link>
+          <Link href="/products">All parts</Link>
           <span>›</span>
           <Link href={"/products?category=" + encodeURIComponent(product.category)}>
             {product.category.toUpperCase()}
@@ -462,7 +477,7 @@ export default function ProductDetailClient({
               }
             >
               <div>
-                <span>VEHICLE FITMENT</span>
+                <span>Vehicle fitment</span>
                 <strong>
                   {selectedVariantFitmentStatus === "fits"
                     ? "✓ FITS YOUR VEHICLE"
@@ -496,7 +511,7 @@ export default function ProductDetailClient({
             </div>
 
             {product.variation1Name ? (
-              <section className="productOptionSection">
+              <section className={"productOptionSection" + (promptChoice && !selectionComplete ? " needsChoice" : "")}>
                 <div className="productOptionLabel">
                   <span>{product.variation1Name}</span>
                   <small>
@@ -528,7 +543,7 @@ export default function ProductDetailClient({
                           />
                         ) : null}
                         <span>{value}</span>
-                        {soldOut ? <small>SOLD OUT</small> : null}
+                        {soldOut ? <small>Sold out</small> : null}
                       </button>
                     );
                   })}
@@ -537,7 +552,7 @@ export default function ProductDetailClient({
             ) : null}
 
             {product.variation2Name ? (
-              <section className="productOptionSection">
+              <section className={"productOptionSection" + (promptChoice && !selectionComplete ? " needsChoice" : "")}>
                 <div className="productOptionLabel">
                   <span>{product.variation2Name}</span>
                   <small>
@@ -565,7 +580,7 @@ export default function ProductDetailClient({
                         }
                       >
                         {value}
-                        {soldOut ? <small>SOLD OUT</small> : null}
+                        {soldOut ? <small>Sold out</small> : null}
                       </button>
                     );
                   })}
@@ -575,7 +590,7 @@ export default function ProductDetailClient({
 
             <div className="productQuantityLine">
               <div>
-                <span>QUANTITY</span>
+                <span>Quantity</span>
                 <small>
                   {selectionComplete
                     ? stockCopy(
@@ -616,24 +631,20 @@ export default function ProductDetailClient({
               <button
                 type="button"
                 className="productAddCartButton"
-                disabled={!canBuy || !cartReady}
+                disabled={outOfStock || !cartReady}
                 onClick={addCurrentToCart}
               >
                 <span>＋</span>
-                {!selectionComplete
-                  ? "SELECT VARIATION"
-                  : !canBuy
-                    ? "OUT OF STOCK"
-                    : "ADD TO CART"}
+                {outOfStock ? "Out of stock" : "Add to cart"}
               </button>
 
               <button
                 type="button"
                 className="productBuyNowButton"
-                disabled={!canBuy || !cartReady}
+                disabled={outOfStock || !cartReady}
                 onClick={buyNow}
               >
-                BUY NOW
+                Buy now
               </button>
             </div>
 
@@ -667,7 +678,7 @@ export default function ProductDetailClient({
           <div className="productShopeeDetails">
             <section className="productSpecificationCard">
               <div className="productInfoSectionTitle">
-                <span>PRODUCT DETAILS</span>
+                <span>Product details</span>
                 <h2>Product Specifications</h2>
               </div>
 
@@ -750,7 +761,7 @@ export default function ProductDetailClient({
 
             <section className="productDescriptionCard productShopeeDescription">
               <div className="productInfoSectionTitle">
-                <span>DESCRIPTION</span>
+                <span>Description</span>
                 <h2>Product Description</h2>
               </div>
 
@@ -769,7 +780,7 @@ export default function ProductDetailClient({
 
             <section className="productWarrantyCard">
               <div className="productInfoSectionTitle">
-                <span>AFTER-SALES</span>
+                <span>After-sales</span>
                 <h2>Warranty</h2>
               </div>
 
@@ -794,7 +805,7 @@ export default function ProductDetailClient({
         <section className="productReviewsSection">
           <div className="productReviewsHeader">
             <div>
-              <span>PRODUCT RATINGS</span>
+              <span>Product ratings</span>
               <h2>
                 {displayRating.toFixed(1)}
                 <small> / 5</small>
@@ -913,10 +924,10 @@ export default function ProductDetailClient({
           <section className="relatedProductsSection">
             <div className="relatedProductsHead">
               <div>
-                <span>RELATED PARTS</span>
+                <span>Related parts</span>
                 <h2>You may also like</h2>
               </div>
-              <Link href="/products">VIEW ALL PARTS →</Link>
+              <Link href="/products">View all parts →</Link>
             </div>
 
             <div className="relatedProductsGrid">
@@ -953,7 +964,7 @@ export default function ProductDetailClient({
             aria-modal="true"
             aria-labelledby="fitment-override-title"
           >
-            <span>FITMENT WARNING</span>
+            <span>Fitment warning</span>
             <h2 id="fitment-override-title">
               This part does not match your selected vehicle.
             </h2>
@@ -963,7 +974,7 @@ export default function ProductDetailClient({
               you have independently confirmed the fitment.
             </p>
             <div className="fitmentOverrideSummary">
-              <small>SELECTED PART</small>
+              <small>Selected part</small>
               <strong>
                 {[selectedVariant?.variation1Value, selectedVariant?.variation2Value]
                   .filter(Boolean)
@@ -976,7 +987,7 @@ export default function ProductDetailClient({
                 className="fitmentOverrideCancel"
                 onClick={() => setFitmentConfirmAction(null)}
               >
-                GO BACK
+                Go back
               </button>
               <button
                 type="button"
@@ -994,20 +1005,20 @@ export default function ProductDetailClient({
         <button
           type="button"
           className="mobileProductCart"
-          disabled={!canBuy || !cartReady}
+          disabled={outOfStock || !cartReady}
           onClick={addCurrentToCart}
         >
           <span>＋</span>
-          ADD TO CART
+          Add to cart
         </button>
 
         <button
           type="button"
           className="mobileProductBuy"
-          disabled={!canBuy || !cartReady}
+          disabled={outOfStock || !cartReady}
           onClick={buyNow}
         >
-          BUY NOW
+          Buy now
         </button>
       </div>
     </main>

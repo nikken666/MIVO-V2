@@ -15,7 +15,7 @@ export default function HomeGarageManage() {
         aria-haspopup="dialog"
         aria-expanded={open}
       >
-        MANAGE
+        Manage
       </button>
       <ProductVehicleSelector
         open={open}

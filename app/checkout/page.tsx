@@ -709,7 +709,7 @@ export default function CheckoutPage() {
     return (
       <main className="checkoutPage">
         <div className="container checkoutLoading">
-          <span>MIVO CHECKOUT</span>
+          <span>MIVO checkout</span>
           <strong>
             {loading ? "Preparing your checkout..." : "Loading your cart..."}
           </strong>
@@ -723,11 +723,11 @@ export default function CheckoutPage() {
       <main className="checkoutPage">
         <div className="container">
           <div className="cartEmpty">
-            <span>MIVO CHECKOUT</span>
+            <span>MIVO checkout</span>
             <h1>Your cart is empty.</h1>
             <p>Add a product before continuing to checkout.</p>
             <Link href="/products" className="cartPrimaryButton">
-              SHOP PARTS
+              Shop parts
             </Link>
           </div>
         </div>
@@ -740,10 +740,10 @@ export default function CheckoutPage() {
       <main className="checkoutPage">
         <div className="container">
           <div className="cartEmpty">
-            <span>MIVO CHECKOUT</span>
+            <span>MIVO checkout</span>
             <h1>No items selected.</h1>
             <p>Select the products you want to buy from your cart.</p>
-            <Link href="/cart" className="cartPrimaryButton">BACK TO CART</Link>
+            <Link href="/cart" className="cartPrimaryButton">Back to cart</Link>
           </div>
         </div>
       </main>
@@ -764,13 +764,13 @@ export default function CheckoutPage() {
             <span>03 ORDER</span>
           </div>
 
-          <span>SECURE CHECKOUT</span>
+          <span>Secure checkout</span>
         </div>
       </div>
 
       <div className="container checkoutShell">
         <div className="checkoutPageHeader">
-          <span className="cartEyebrow">MIVO CHECKOUT</span>
+          <span className="cartEyebrow">MIVO checkout</span>
           <h1>Complete your order.</h1>
           <p>
             Signed in as <strong>{buyer?.email}</strong>
@@ -783,11 +783,11 @@ export default function CheckoutPage() {
               <div>
                 <span>01</span>
                 <div>
-                  <small>DELIVERY</small>
+                  <small>Delivery</small>
                   <h2>Shipping details</h2>
                 </div>
               </div>
-              <strong>MALAYSIA</strong>
+              <strong>Malaysia</strong>
             </div>
 
             <div className="mivoMobileAddressCard">
@@ -842,7 +842,7 @@ export default function CheckoutPage() {
               </label>
 
               <label className="checkoutField checkoutFieldFull">
-                <span>ADDRESS LINE 2</span>
+                <span>Address line 2</span>
                 <input
                   name="address_line_2"
                   defaultValue={savedAddress?.address_line_2 || ""}
@@ -916,7 +916,7 @@ export default function CheckoutPage() {
             </div>
             <button className="mivoMobileToggleNote" type="button" onClick={() => setNoteExpanded(value => !value)}>{noteExpanded ? "Hide order note" : "Add order note (optional)"}</button>
               <label className={"checkoutField checkoutFieldFull mivoNoteEditor" + (noteExpanded ? " expanded" : "")}>
-                <span>ORDER NOTE</span>
+                <span>Order note</span>
                 <textarea
                   name="customer_note"
                   rows={3}
@@ -950,7 +950,7 @@ export default function CheckoutPage() {
                 }
               >
                 <div>
-                  <span>DELIVERY METHOD</span>
+                  <span>Delivery method</span>
                   <strong>
                     {shippingLoading
                       ? "Calculating..."
@@ -1004,7 +1004,7 @@ export default function CheckoutPage() {
 
             <div className="checkoutActionRow">
               <div>
-                <span>ORDER TOTAL</span>
+                <span>Order total</span>
                 <strong>
                   {formatPrice(checkoutTotal)}
                 </strong>
@@ -1039,12 +1039,12 @@ export default function CheckoutPage() {
           <aside className="checkoutSummaryCard">
             <div className="checkoutSummaryHead">
               <div>
-                <span>YOUR ORDER</span>
+                <span>Your order</span>
                 <strong>
                   {selectedCount} ITEM{selectedCount === 1 ? "" : "S"}
                 </strong>
               </div>
-              <Link href="/cart">EDIT CART</Link>
+              <Link href="/cart">Edit cart</Link>
             </div>
 
             <div className="checkoutItems">
@@ -1119,7 +1119,7 @@ export default function CheckoutPage() {
             <div className={"checkoutVoucherBox mivoVoucherEditor" + (voucherExpanded ? " expanded" : "")}>
               <div className="checkoutVoucherHead">
                 <div>
-                  <span>MIVO VOUCHER</span>
+                  <span>MIVO voucher</span>
                   <strong>
                     {vouchers.length
                       ? vouchers.length + " claimed"
@@ -1132,10 +1132,10 @@ export default function CheckoutPage() {
                     onClick={() => void applyBestVoucher()}
                     disabled={voucherLoading}
                   >
-                    BEST VOUCHER
+                    Best voucher
                   </button>
                 ) : (
-                  <Link href="/">CLAIM</Link>
+                  <Link href="/">Claim</Link>
                 )}
               </div>
 
@@ -1150,7 +1150,7 @@ export default function CheckoutPage() {
                       setVoucherError("");
                     }}
                   >
-                    NO VOUCHER
+                    No voucher
                   </button>
 
                   {vouchers.map((voucher) => {
@@ -1219,7 +1219,7 @@ export default function CheckoutPage() {
               ) : selectedVoucherId && voucherReason ? (
                 <div className="checkoutVoucherUnavailable">
                   <div className="checkoutVoucherReason">
-                    <strong>VOUCHER NOT AVAILABLE YET</strong>
+                    <strong>Voucher not available yet</strong>
                     <p>{voucherReason}</p>
                   </div>
 
@@ -1257,12 +1257,12 @@ export default function CheckoutPage() {
                         <div className="checkoutAddonSection">
                           <div className="checkoutAddonHead">
                             <div>
-                              <span>ADD-ON TO UNLOCK</span>
+                              <span>Add-on to unlock</span>
                               <strong>
                                 Add a little more and use your voucher.
                               </strong>
                             </div>
-                            <Link href="/products">MORE PARTS</Link>
+                            <Link href="/products">More parts</Link>
                           </div>
 
                           {addonSuggestions.length > 0 ? (
@@ -1312,7 +1312,7 @@ export default function CheckoutPage() {
                                 product selection yet.
                               </span>
                               <Link href="/products">
-                                BROWSE PARTS TO UNLOCK
+                                Browse parts to unlock
                               </Link>
                             </div>
                           )}
@@ -1333,7 +1333,7 @@ export default function CheckoutPage() {
 
             <div className="checkoutSummaryTotal">
               <div>
-                <span>TOTAL</span>
+                <span>Total</span>
                 <small>
                   {shippingQuote
                     ? shippingQuote.zone_name

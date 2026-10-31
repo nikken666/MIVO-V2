@@ -14,7 +14,7 @@ export default function ProductsVehicleBanner({
     <>
       <div className="selectedVehicleBanner vehicleMatchBanner">
         <div>
-          <span>YOUR MIVO VEHICLE</span>
+          <span>Your MIVO vehicle</span>
           <strong>{label}</strong>
           <small>
             Confirmed matches are shown first. Products without verified fitment
@@ -27,7 +27,7 @@ export default function ProductsVehicleBanner({
           className="vehicleQuickChangeButton"
           onClick={() => setOpen(true)}
         >
-          CHANGE VEHICLE
+          Change vehicle
         </button>
       </div>
 

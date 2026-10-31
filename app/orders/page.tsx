@@ -346,7 +346,7 @@ export default function OrdersPage() {
       <div className="container">
         <div className="accountDataHeader">
           <div>
-            <span>MIVO ACCOUNT</span>
+            <span>MIVO account</span>
             <h1>My Orders</h1>
             <p>Track payment, fulfilment, delivery and completed orders.</p>
           </div>
@@ -377,7 +377,7 @@ export default function OrdersPage() {
             <div className="ordersEmpty">
               <strong>No orders here yet.</strong>
               <p>Your orders will move between these tabs automatically.</p>
-              <Link href="/products">BROWSE PARTS</Link>
+              <Link href="/products">Browse parts</Link>
             </div>
           ) : (
             <div className="shopOrderList">
@@ -396,7 +396,7 @@ export default function OrdersPage() {
                   <article className="shopOrderCard" key={order.id}>
                     <div className="shopOrderHead">
                       <div>
-                        <span>ORDER</span>
+                        <span>Order</span>
                         <strong>{order.order_number}</strong>
                         <small>
                           {date.toLocaleDateString("en-MY", {
@@ -457,7 +457,7 @@ export default function OrdersPage() {
                           }
                           className="orderGhostButton"
                         >
-                          VIEW ORDER
+                          View order
                         </Link>
 
                         {bucket === "to_pay" ? (
@@ -469,7 +469,7 @@ export default function OrdersPage() {
                                 setUnpaidCancelOrder(order.order_number)
                               }
                             >
-                              CANCEL ORDER
+                              Cancel order
                             </button>
 
                             <StripePayButton
@@ -487,7 +487,7 @@ export default function OrdersPage() {
                               setPaidCancelOrder(order.order_number)
                             }
                           >
-                            CANCEL ORDER
+                            Cancel order
                           </button>
                         ) : null}
 
@@ -513,7 +513,7 @@ export default function OrdersPage() {
                               className="orderGhostButton"
                               disabled
                             >
-                              REVIEWED
+                              Reviewed
                             </button>
                           ) : (
                             <Link
@@ -524,7 +524,7 @@ export default function OrdersPage() {
                               }
                               className="orderPrimaryButton"
                             >
-                              RATE ORDER
+                              Rate order
                             </Link>
                           )
                         ) : null}
@@ -541,7 +541,7 @@ export default function OrdersPage() {
                             }
                             className="orderGhostButton"
                           >
-                            WARRANTY
+                            Warranty
                           </Link>
                         ) : null}
                       </div>

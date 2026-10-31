@@ -157,7 +157,7 @@ export default function MyVouchersPage() {
       <div className="container">
         <div className="accountDataHeader">
           <div>
-            <span>MIVO ACCOUNT</span>
+            <span>MIVO account</span>
             <h1>My Vouchers</h1>
             <p>Claimed discounts ready for your next checkout.</p>
           </div>
@@ -172,7 +172,7 @@ export default function MyVouchersPage() {
           <div className="ordersEmpty">
             <strong>No vouchers claimed yet.</strong>
             <p>Visit the MIVO home page and claim an available promotion.</p>
-            <Link href="/">VIEW PROMOTIONS</Link>
+            <Link href="/">View promotions</Link>
           </div>
         ) : (
           <div className="myVoucherGrid">

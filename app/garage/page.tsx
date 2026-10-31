@@ -141,7 +141,7 @@ export default function GaragePage() {
     <main className="garagePage">
       <section className="garageHero">
         <div className="container">
-          <span className="sectionEyebrow">MIVO GARAGE</span>
+          <span className="sectionEyebrow">MIVO Garage</span>
           <h1>
             Your vehicle.
             <br />
@@ -165,7 +165,7 @@ export default function GaragePage() {
           <div className="savedVehicleCard">
             <div className="savedVehicleTop">
               <div>
-                <span className="vehicleStatus">ACTIVE VEHICLE</span>
+                <span className="vehicleStatus">Active vehicle</span>
                 <h2>{vehicle.label}</h2>
               </div>
               <div className="vehicleBadge">
@@ -175,29 +175,29 @@ export default function GaragePage() {
 
             <div className="vehicleFacts">
               <div>
-                <small>MAKE</small>
+                <small>Make</small>
                 <strong>{vehicle.make}</strong>
               </div>
               <div>
-                <small>MODEL</small>
+                <small>Model</small>
                 <strong>{vehicle.model || details?.model || "—"}</strong>
               </div>
               <div>
-                <small>GENERATION</small>
+                <small>Generation</small>
                 <strong>
                   {vehicle.generation || details?.generation || "—"}
                 </strong>
               </div>
               <div>
-                <small>YEAR</small>
+                <small>Year</small>
                 <strong>{vehicle.year}</strong>
               </div>
               <div>
-                <small>ENGINE / VARIANT</small>
+                <small>Engine / variant</small>
                 <strong>{vehicle.variant}</strong>
               </div>
               <div>
-                <small>TRANSMISSION</small>
+                <small>Transmission</small>
                 <strong>{vehicle.transmission || "—"}</strong>
               </div>
             </div>

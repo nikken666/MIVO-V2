@@ -80,7 +80,7 @@ export default function AccountPage() {
       <section className={styles.panel}>
         <div className={styles.titleRow}>
           <div>
-            <span className={styles.eyebrow}>MIVO ACCOUNT</span>
+            <span className={styles.eyebrow}>MIVO account</span>
             <h1>Hello, {account?.fullName}</h1>
             <p>{account?.email}</p>
           </div>

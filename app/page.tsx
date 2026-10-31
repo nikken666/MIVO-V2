@@ -1,284 +1,193 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import type { ReactNode } from "react";
 import { getActiveProducts } from "@/lib/catalog";
 import ProductCard from "@/components/ProductCard";
-import Logo from "@/components/Logo";
-import VehicleFinder from "@/components/VehicleFinder";
-import HomeGarageManage from "@/components/HomeGarageManage";
 import HomePromotions from "@/components/HomePromotions";
+import HomeBannerCarousel from "@/components/HomeBannerCarousel";
+import FlashSale from "@/components/FlashSale";
+import VehiclePickerButton from "@/components/VehiclePickerButton";
 import { products } from "@/data/products";
 
 const categories = [
-  { name: "Maintenance", desc: "Engine oil, ATF, coolant & filters", tone: "warm", image: "/categories/maintenance.webp" },
-  { name: "Braking", desc: "Brake pads, rotors & repair kits", tone: "dark", image: "/categories/braking.webp" },
-  { name: "Suspension", desc: "Absorbers, mounts, arms & springs", tone: "silver", image: "/categories/suspension.webp" },
-  { name: "Steering", desc: "EPS racks, rack ends & tie rods", tone: "graphite", image: "/categories/steering.webp" },
-  { name: "Drivetrain", desc: "Drive shafts, CV joints & hubs", tone: "warm", image: "/categories/drivetrain.webp" },
-  { name: "Cooling", desc: "Radiators, pumps & thermostats", tone: "silver", image: "/categories/cooling.webp" },
+  { name: "Maintenance", short: "Oil & filters", href: "/products?group=maintenance" },
+  { name: "Braking", short: "Brakes", href: "/products?group=braking" },
+  { name: "Suspension", short: "Suspension", href: "/products?group=suspension" },
+  { name: "Steering", short: "Steering", href: "/products?group=steering" },
+  { name: "Drivetrain", short: "Drivetrain", href: "/products?group=drivetrain" },
+  { name: "Cooling", short: "Cooling", href: "/products?group=cooling" },
+  { name: "Vouchers", short: "Vouchers", href: "/account/vouchers" },
+  { name: "All", short: "All parts", href: "/products" },
 ];
 
-const brands = [
-  { name: "NIKKEN", logo: "/brands/nikken-logo.svg" },
+// Line icons (24px grid, stroked with currentColor) for the category row.
+const categoryIcons: Record<string, ReactNode> = {
+  Maintenance: <path d="M12 3c3.4 4.3 5.5 7 5.5 9.6a5.5 5.5 0 0 1-11 0C6.5 10 8.6 7.3 12 3zM9.5 13.5a2.5 2.5 0 0 0 2.5 2.5" />,
+  Braking: (
+    <>
+      <circle cx="11" cy="13" r="8" />
+      <circle cx="11" cy="13" r="2.6" />
+      <path d="M15.5 4.6a9 9 0 0 1 4.9 5.6" strokeWidth="3.2" />
+    </>
+  ),
+  Suspension: <path d="M12 2v3M12 19v3M7 6.5l10 2-10 2 10 2-10 2 10 2" />,
+  Steering: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="2.6" />
+      <path d="M3.4 10.6l6.1 1M14.5 11.6l6.1-1M12 14.6V21" />
+    </>
+  ),
+  Drivetrain: (
+    <>
+      <path d="M6 12h12" />
+      <rect x="2" y="9" width="4" height="6" rx="1.6" />
+      <rect x="18" y="9" width="4" height="6" rx="1.6" />
+      <path d="M7.5 9.5l2.5 1v3l-2.5 1M16.5 9.5l-2.5 1v3l2.5 1" />
+    </>
+  ),
+  Cooling: (
+    <>
+      <circle cx="12" cy="12" r="1.8" />
+      <path d="M12 10.2C11.4 6 12.6 3 15.4 3c2.2 0 2.4 3.6-3.4 7.2zM13.8 12c4.2-.6 7.2.6 7.2 3.4 0 2.2-3.6 2.4-7.2-3.4zM12 13.8c.6 4.2-.6 7.2-3.4 7.2-2.2 0-2.4-3.6 3.4-7.2zM10.2 12C6 12.6 3 11.4 3 8.6 3 6.4 6.6 6.2 10.2 12z" />
+    </>
+  ),
+  Vouchers: (
+    <>
+      <path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z" />
+      <path d="M9.5 14.5l5-5M9.6 9.6h.01M14.4 14.4h.01" />
+    </>
+  ),
+  All: (
+    <>
+      <rect x="4" y="4" width="6.5" height="6.5" rx="1.8" />
+      <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8" />
+      <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8" />
+      <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.8" />
+    </>
+  ),
+};
+
+const brandLogos = [
   { name: "KYB", logo: "/brands/kyb-logo.svg" },
+  { name: "NIKKEN", logo: "/brands/nikken-logo.svg" },
   { name: "GSP", logo: "/brands/gsp-logo.svg" },
 ];
 
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const query = await searchParams;
-  const addVehicle =
-    typeof query.addVehicle === "string" && query.addVehicle === "1";
+const DISCOVER_COUNT = 20;
 
-  let signedIn = false;
-  let savedVehicle:
-    | {
-        make: string | null;
-        model: string | null;
-        generation: string | null;
-        year: string | null;
-        variant: string | null;
-        transmission: string | null;
-      }
-    | null = null;
-
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    signedIn = Boolean(user);
-
-    if (user) {
-      const { data } = await supabase
-        .from("customer_vehicles")
-        .select("make, model, generation, year, variant, transmission")
-        .eq("user_id", user.id)
-        .order("is_default", { ascending: false })
-        .order("updated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      savedVehicle = data || null;
-    }
-  } catch {}
-
+export default async function HomePage() {
   const liveProducts = await getActiveProducts();
   const catalogue = liveProducts.length ? liveProducts : products;
-  const featured: typeof catalogue = [];
-  const categoryCounts = new Map<string, number>();
-  const selectedSlugs = new Set<string>();
+
+  // Daily discover: a varied mix (max 3 per category first, then fill up).
+  const discover: typeof catalogue = [];
+  const perCategory = new Map<string, number>();
+  const picked = new Set<string>();
   for (const product of catalogue) {
     const category = product.category || "Other";
-    const count = categoryCounts.get(category) || 0;
-    if (count >= 2 || selectedSlugs.has(product.slug)) continue;
-    featured.push(product);
-    selectedSlugs.add(product.slug);
-    categoryCounts.set(category, count + 1);
-    if (featured.length === 8) break;
+    const count = perCategory.get(category) || 0;
+    if (count >= 3 || picked.has(product.slug)) continue;
+    discover.push(product);
+    picked.add(product.slug);
+    perCategory.set(category, count + 1);
+    if (discover.length === DISCOVER_COUNT) break;
   }
-  if (featured.length < 8) {
-    for (const product of catalogue) {
-      if (selectedSlugs.has(product.slug)) continue;
-      featured.push(product);
-      selectedSlugs.add(product.slug);
-      if (featured.length === 8) break;
-    }
+  for (const product of catalogue) {
+    if (discover.length >= DISCOVER_COUNT) break;
+    if (picked.has(product.slug)) continue;
+    discover.push(product);
+    picked.add(product.slug);
   }
-
-  const savedVehicleLabel = savedVehicle
-    ? [
-        savedVehicle.make,
-        savedVehicle.model,
-        savedVehicle.generation,
-        savedVehicle.year,
-        savedVehicle.variant,
-        savedVehicle.transmission,
-      ]
-        .filter(Boolean)
-        .join(" · ")
-    : "";
 
   return (
-    <main className="home">
-      {signedIn && !addVehicle ? (
-        <section className="memberHomeHero">
-          <div className="container memberHomeHeroGrid">
-            <div className="memberHomePromo">
-              <span className="memberHomeEyebrow">Your automotive store</span>
-              <h1>Welcome back.</h1>
-              <p>
-                Shop parts, manage your vehicle and keep track of every order
-                from one place.
-              </p>
-              <div className="memberHomeActions">
-                <Link href="/products" className="btn btnLight">
-                  Shop parts
-                </Link>
-                <Link href="/orders" className="btn btnGhost">
-                  My orders
-                </Link>
-              </div>
-            </div>
-
-            <div className="memberGarageCard">
-              <div className="memberGarageHead">
-                <div>
-                  <span>My Garage</span>
-                  <strong>
-                    {savedVehicle
-                      ? [savedVehicle.make, savedVehicle.model]
-                          .filter(Boolean)
-                          .join(" ")
-                      : "No vehicle selected"}
-                  </strong>
-                </div>
-                <HomeGarageManage />
-              </div>
-
-              {savedVehicle ? (
-                <>
-                  <p>{savedVehicleLabel}</p>
-                  <Link href="/products" className="memberGarageShop">
-                    Shop compatible parts
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <p>Add your vehicle once and MIVO will prioritise compatible parts.</p>
-                  <Link href="/?addVehicle=1#fitment" className="memberGarageShop">
-                    Add a vehicle
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        </section>
-      ) : (
-        <section className="hero">
-          <div className="heroTexture" />
-          <Logo variant="watermark" className="heroLogoWatermark" decorative />
-          <div className="container heroGrid">
-            <div className="heroCopy">
-              <span className="heroEyebrow">Premium automotive parts</span>
-              <h1>The right part.<br /><em>Without the guesswork.</em></h1>
-              <p>
-                Shop trusted automotive parts through a cleaner, more precise buying experience —
-                built around your vehicle, not endless listings.
-              </p>
-              <div className="heroButtons">
-                <a href="#fitment" className="btn btnLight">Find parts for my car</a>
-                <Link href="/products" className="btn btnGhost">Browse all parts</Link>
-              </div>
-              <div className="heroProof">
-                <span><b>01</b> Vehicle-matched catalogue</span>
-                <span><b>02</b> Trusted brands & clear specs</span>
-                <span><b>03</b> Malaysia-wide delivery</span>
-              </div>
-            </div>
-
-            <VehicleFinder />
-          </div>
-        </section>
-      )}
-
-      <section className="trustBar">
-        <div className="container trustBarInner">
-          <span><i></i> Fitment-focused shopping</span>
-          <span><i></i> Curated automotive brands</span>
-          <span><i></i> Secure checkout</span>
-          <span><i></i> Malaysia-wide delivery</span>
+    <main className="home shopHome">
+      {/* Banners: big carousel + two side banners */}
+      <section className="container shopHero">
+        <HomeBannerCarousel />
+        <div className="shopSideBanners">
+          <VehiclePickerButton variant="banner" />
+          <Link href="/products?view=brands" className="shopSideBanner shopSideBannerBrands">
+            <span className="shopSideBannerKicker">Official brands</span>
+            <strong>Shop by brand</strong>
+            <span className="shopBrandRow">
+              {brandLogos.map((brand) => (
+                <img src={brand.logo} alt={brand.name} key={brand.name} />
+              ))}
+            </span>
+            <span className="shopSideBannerCta">View brands ›</span>
+          </Link>
         </div>
       </section>
 
-      <HomePromotions products={liveProducts.length ? liveProducts : products} />
+      {/* Category icons */}
+      <section className="container shopSection">
+        <nav className="shopCategories" aria-label="Shop by category">
+          {categories.map((cat) => (
+            <Link href={cat.href} className={"shopCategory" + (cat.name === "Vouchers" ? " isVoucher" : "")} key={cat.name}>
+              <span className="shopCategoryIcon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">{categoryIcons[cat.name]}</svg>
+              </span>
+              <span>{cat.short}</span>
+            </Link>
+          ))}
+        </nav>
+      </section>
 
-      <section className="section categorySection">
-        <div className="container">
-          <div className="sectionHeader">
-            <div><span className="sectionEyebrow">Shop by system</span><h2>Parts, organised the way<br />cars are built.</h2></div>
-            <Link href="/products" className="sectionLink">View all categories ›</Link>
-          </div>
+      <HomePromotions products={catalogue} only="vouchers" />
 
-          <div className="categoryGrid">
-            {categories.map((cat, index) => (
-              <Link
-                href={"/products?group=" + cat.name.toLowerCase()}
-                className={"categoryCard " + cat.tone}
-                key={cat.name}
-              >
-                <div className="categoryVisual">
-                  <span className="categoryIndex">0{index + 1}</span>
-                  <img className="categoryArtwork" src={cat.image} alt="" aria-hidden="true" />
-                </div>
-                <div className="categoryCopy">
-                  <h3>{cat.name}</h3>
-                  <p>{cat.desc}</p>
-                  <span>Shop category</span>
-                </div>
-              </Link>
-            ))}
+      <FlashSale products={catalogue} />
+
+      {/* Daily discover */}
+      <section className="container shopSection" id="discover">
+        <div className="shopSectionHead">
+          <h2>Daily discover</h2>
+          <div className="shopChips" role="list">
+            <span className="shopChip active" role="listitem">All parts</span>
+            <Link href="/products" className="shopChip" role="listitem">Fits my car</Link>
+            <Link href="/products?group=suspension" className="shopChip" role="listitem">Suspension</Link>
+            <Link href="/products?group=steering" className="shopChip" role="listitem">Steering</Link>
           </div>
+        </div>
+        <div className="shopDiscoverGrid">
+          {discover.map((product) => (
+            <ProductCard product={product} compact key={product.slug} />
+          ))}
+        </div>
+        <div className="shopMore">
+          <Link href="/products" className="btn btnLight">See more parts</Link>
         </div>
       </section>
 
-      <section className="section productsSection">
-        <div className="container">
-          <div className="sectionHeader productHeader">
-            <div><span className="sectionEyebrow">Selected for you</span><h2>Popular parts.</h2></div>
-            <div className="productHeaderSide">
-              <p>Clean product information, clear pricing and fitment-led discovery.</p>
-              <Link href="/products" className="sectionLink">Shop all parts ›</Link>
-            </div>
-          </div>
-          <div className="featuredGrid">
-            {featured.map((product) => <ProductCard product={product} compact key={product.slug} />)}
-          </div>
-        </div>
-      </section>
-
-      <section className="brandBand">
-        <div className="container">
-          <div className="brandBandTop"><span>Trusted names. One clean catalogue.</span><Link href="/brands">Explore brands ›</Link></div>
-          <div className="brandGrid brandLogoGrid">
-            {brands.map((brand) => (
-              <div className="brandLogoCard brandLogoCardStatic" key={brand.name} aria-label={brand.name}>
-                <img src={brand.logo} alt={brand.name} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="section standardSection" id="standard">
-        <div className="container standardGrid">
-          <div className="standardIntro">
-            <span className="sectionEyebrow">The MIVO standard</span>
-            <h2>Less clutter.<br />More certainty.</h2>
-            <p>MIVO is designed around the questions that matter before buying a part: Will it fit? What exactly am I buying? Who made it? When will it arrive?</p>
-            <Link href="/products" className="btn btnDark">Explore the catalogue</Link>
-          </div>
-          <div className="standardCards">
-            <article><span>01</span><div className="standardIcon standardIconCheck" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M6 17l6 6L26 8"/></svg></div><h3>Fitment clarity</h3><p>Vehicle compatibility is treated as core product data, not an afterthought.</p></article>
-            <article><span>02</span><div className="standardIcon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 4L28 16 16 28 4 16Z"/></svg></div><h3>Product transparency</h3><p>Brand, specification, variant and product information are easy to understand.</p></article>
-            <article><span>03</span><div className="standardIcon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 24L24 8M13 8h11v11"/></svg></div><h3>Built for repeat buyers</h3><p>Save vehicles to My Garage and return to a catalogue already tailored to you.</p></article>
-            <article><span>04</span><div className="standardIcon" aria-hidden="true"><svg viewBox="0 0 32 32"><rect x="6" y="6" width="20" height="20"/></svg></div><h3>Professional checkout</h3><p>A focused path from fitment to product to payment — without marketplace noise.</p></article>
-          </div>
-        </div>
-      </section>
-
-      <section className="garageCtaSection">
-        <div className="container garageCta">
+      {/* Why MIVO */}
+      <section className="container shopSection">
+        <div className="shopTrust">
           <div>
-            <span className="microLabel">MIVO Garage</span>
-            <h2>Your car becomes<br />your storefront.</h2>
+            <span className="shopTrustIcon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M8 12.5l2.7 2.7L16.5 9.5" /></svg>
+            </span>
+            <strong>Fitment checked</strong>
+            <small>Parts matched to your exact car</small>
           </div>
-          <div className="garageCtaCopy">
-            <p>Save your vehicle and make every return visit faster. Compatible parts first. Irrelevant listings out of the way.</p>
-            <Link href="/garage" className="btn btnLight">Open My Garage</Link>
+          <div>
+            <span className="shopTrustIcon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7" /><circle cx="7" cy="17.5" r="1.8" /><circle cx="17" cy="17.5" r="1.8" /></svg>
+            </span>
+            <strong>Malaysia-wide delivery</strong>
+            <small>Tracked from our warehouse to you</small>
+          </div>
+          <div>
+            <span className="shopTrustIcon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6z" /><path d="M9 12l2 2 4-4" /></svg>
+            </span>
+            <strong>Warranty included</strong>
+            <small>Claim online from your orders</small>
+          </div>
+          <div>
+            <span className="shopTrustIcon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2.5" /><path d="M3 10h18M7 15h4" /></svg>
+            </span>
+            <strong>Secure checkout</strong>
+            <small>Card payments by Stripe</small>
           </div>
         </div>
       </section>

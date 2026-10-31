@@ -190,7 +190,7 @@ export default function MyWarrantyClaimsPage() {
       <div className="container">
         <div className="accountDataHeader">
           <div>
-            <span>MIVO ACCOUNT</span>
+            <span>MIVO account</span>
             <h1>My Warranty Claims</h1>
             <p>Track warranty requests and MIVO review updates.</p>
           </div>
@@ -207,7 +207,7 @@ export default function MyWarrantyClaimsPage() {
               Active warranty items can be claimed from the order warranty
               page.
             </p>
-            <Link href="/orders">VIEW MY ORDERS</Link>
+            <Link href="/orders">View my orders</Link>
           </div>
         ) : (
           <div className="myClaimsLayout">
@@ -251,31 +251,31 @@ export default function MyWarrantyClaimsPage() {
 
                 <div className="myClaimSummary">
                   <div>
-                    <span>ORDER</span>
+                    <span>Order</span>
                     <strong>{selected.order_number}</strong>
                   </div>
                   <div>
-                    <span>ISSUE</span>
+                    <span>Issue</span>
                     <strong>{statusLabel(selected.issue_type)}</strong>
                   </div>
                   <div>
-                    <span>SUBMITTED</span>
+                    <span>Submitted</span>
                     <strong>{dateLabel(selected.created_at)}</strong>
                   </div>
                   <div>
-                    <span>WARRANTY EXPIRES</span>
+                    <span>Warranty expires</span>
                     <strong>{dateLabel(selected.warranty_expires_at)}</strong>
                   </div>
                 </div>
 
                 <div className="myClaimDescription">
-                  <span>YOUR DESCRIPTION</span>
+                  <span>Your description</span>
                   <p>{selected.description}</p>
                 </div>
 
                 {(selected.display_image_urls || []).length > 0 ? (
                   <div className="myClaimEvidence">
-                    <span>YOUR PHOTOS</span>
+                    <span>Your photos</span>
                     <div>
                       {(selected.display_image_urls || []).map((url) => (
                         <a
@@ -293,14 +293,14 @@ export default function MyWarrantyClaimsPage() {
 
                 {selected.admin_note ? (
                   <div className="myClaimUpdate">
-                    <span>MIVO UPDATE</span>
+                    <span>MIVO update</span>
                     <p>{selected.admin_note}</p>
                   </div>
                 ) : null}
 
                 {selected.resolution_note ? (
                   <div className="myClaimResolution">
-                    <span>RESOLUTION</span>
+                    <span>Resolution</span>
                     <p>{selected.resolution_note}</p>
                   </div>
                 ) : null}
@@ -314,7 +314,7 @@ export default function MyWarrantyClaimsPage() {
                     }
                     className="orderGhostButton"
                   >
-                    VIEW WARRANTY
+                    View warranty
                   </Link>
                   <Link
                     href={
@@ -323,7 +323,7 @@ export default function MyWarrantyClaimsPage() {
                     }
                     className="orderGhostButton"
                   >
-                    VIEW ORDER
+                    View order
                   </Link>
                 </div>
               </section>

@@ -33,7 +33,7 @@ export default function CartPage() {
     return (
       <main className="cartPage">
         <div className="container"><div className="cartEmpty">
-          <span>MIVO CART</span><h1>Loading your cart...</h1>
+          <span>MIVO cart</span><h1>Loading your cart...</h1>
         </div></div>
       </main>
     );
@@ -43,9 +43,9 @@ export default function CartPage() {
     return (
       <main className="cartPage">
         <div className="container"><div className="cartEmpty">
-          <span>MIVO CART</span><h1>Your cart is empty.</h1>
+          <span>MIVO cart</span><h1>Your cart is empty.</h1>
           <p>Find the right parts for your vehicle and add them here.</p>
-          <Link href="/products" className="cartPrimaryButton">SHOP PARTS</Link>
+          <Link href="/products" className="cartPrimaryButton">Shop parts</Link>
         </div></div>
       </main>
     );
@@ -69,7 +69,7 @@ export default function CartPage() {
       </Link>
     ) : (
       <button type="button" className={className} disabled>
-        {mobile ? "SELECT ITEMS" : <span><small>CHOOSE ITEMS TO BUY</small>SELECT ITEMS</span>}
+        {mobile ? "Select items" : <span><small>Choose items to buy</small>Select items</span>}
       </button>
     );
 
@@ -78,17 +78,17 @@ export default function CartPage() {
       <div className="container">
         <div className="cartPageHeader">
           <div>
-            <span className="cartEyebrow">MIVO CART</span>
+            <span className="cartEyebrow">MIVO cart</span>
             <h1>Shopping Cart</h1>
             <p>{cartCount} item{cartCount === 1 ? "" : "s"} in cart · {selectedQuantity} selected</p>
           </div>
-          <button type="button" className="cartClearButton" onClick={clearCart}>CLEAR CART</button>
+          <button type="button" className="cartClearButton" onClick={clearCart}>Clear cart</button>
         </div>
 
         <div className="modernCartLayout">
           <section className="modernCartLines">
             <div className="cartSelectionToolbar">
-              <strong>PRODUCTS</strong><span>Choose the parts you want to check out</span>
+              <strong>Products</strong><span>Choose the parts you want to check out</span>
               {allCheckbox("SELECT ALL")}
             </div>
             <div className="cartStoreBar">
@@ -99,9 +99,9 @@ export default function CartPage() {
                     aria-label="Select all MIVO Direct Store items" />
                 </label>
                 <span className="cartStoreDot">M</span>
-                <div><strong>MIVO DIRECT STORE</strong><small>Official MIVO fulfilment</small></div>
+                <div><strong>MIVO direct store</strong><small>Official MIVO fulfilment</small></div>
               </div>
-              <span>IN STOCK</span>
+              <span>In stock</span>
             </div>
 
             <CartVoucherStrip />
@@ -142,7 +142,7 @@ export default function CartPage() {
                     <strong className="modernCartUnitPrice">{formatPrice(price)}</strong>
                   </div>
                   <div className="modernCartControls">
-                    <span>QUANTITY</span>
+                    <span>Quantity</span>
                     <div className="quantityStepper cartQuantityStepper">
                       <button type="button" disabled={line.quantity <= 1}
                         onClick={() => updateQuantity(line.lineId, line.quantity - 1)}
@@ -153,10 +153,10 @@ export default function CartPage() {
                         aria-label="Increase quantity">+</button>
                     </div>
                     <button type="button" className="modernRemoveButton"
-                      onClick={() => removeFromCart(line.lineId)}>REMOVE</button>
+                      onClick={() => removeFromCart(line.lineId)}>Remove</button>
                   </div>
                   <div className="modernCartLineTotal">
-                    <span>ITEM TOTAL</span><strong>{formatPrice(lineTotal)}</strong>
+                    <span>Item total</span><strong>{formatPrice(lineTotal)}</strong>
                   </div>
                 </article>
               );
@@ -166,7 +166,7 @@ export default function CartPage() {
               {allCheckbox("SELECT ALL")}
               <span>{selectedQuantity} of {cartCount} items selected</span>
               <button type="button" disabled={!selectedCart.length}
-                onClick={() => selectedCart.forEach((line) => removeFromCart(line.lineId))}>REMOVE SELECTED</button>
+                onClick={() => selectedCart.forEach((line) => removeFromCart(line.lineId))}>Remove selected</button>
             </div>
             <div className="cartContinueRow">
               <Link href="/products">← CONTINUE SHOPPING</Link>
@@ -176,7 +176,7 @@ export default function CartPage() {
 
           <aside className="modernOrderSummary">
             <div className="summaryHeading">
-              <span>ORDER SUMMARY</span><strong>{selectedQuantity} SELECTED</strong>
+              <span>Order summary</span><strong>{selectedQuantity} selected</strong>
             </div>
             <div className="summaryRows">
               <div><span>Selected items</span><strong>{selectedQuantity} / {cartCount}</strong></div>
@@ -185,7 +185,7 @@ export default function CartPage() {
             </div>
             <div className="summaryDivider" />
             <div className="modernSummaryTotal">
-              <div><span>SELECTED TOTAL</span><small>Before shipping</small></div>
+              <div><span>Selected total</span><small>Before shipping</small></div>
               <strong>{formatPrice(selectedSubtotal)}</strong>
             </div>
             {checkoutAction("cartCheckoutButton")}
@@ -201,7 +201,7 @@ export default function CartPage() {
       <div className="mobileCheckoutBar cartMobileSelectionBar">
         {allCheckbox("ALL")}
         <div className="cartMobileSelectedTotal">
-          <span>SELECTED TOTAL</span><strong>{formatPrice(selectedSubtotal)}</strong>
+          <span>Selected total</span><strong>{formatPrice(selectedSubtotal)}</strong>
           <small>{selectedQuantity} selected</small>
         </div>
         {checkoutAction("cartMobileCheckoutAction", true)}

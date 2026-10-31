@@ -15,19 +15,19 @@ const brandLogos: Record<string, string> = {
 
 const fitmentCopy: Record<FitmentStatus, { pill: string; text: string }> = {
   fits: {
-    pill: "✓ FITS YOUR VEHICLE",
+    pill: "✓ Fits your car",
     text: "Confirmed compatible with your selected vehicle",
   },
   universal: {
-    pill: "✓ FITS YOUR VEHICLE",
+    pill: "✓ Fits your car",
     text: "Compatible with your selected vehicle",
   },
   "not-fit": {
-    pill: "NOT COMPATIBLE",
+    pill: "Doesn't fit",
     text: "This product does not match your selected vehicle",
   },
   unverified: {
-    pill: "FITMENT NOT VERIFIED",
+    pill: "Fitment unverified",
     text: "Compatibility data has not been confirmed yet",
   },
 };
@@ -126,14 +126,13 @@ export default function ProductCard({
 
   return (
     <article className={cardClass}>
+      <div className="productImageWrap">
       <Link href={detailHref} className={imageClass}>
-        <span className="productCategoryLabel">{product.category}</span>
-
         {product.imageUrl ? (
           <img src={product.imageUrl} alt={product.name} onError={(event) => {
             const image = event.currentTarget;
             image.onerror = null;
-            image.src = product.brand === "GSP" ? "/brands/gsp-logo.svg" : "/mivo-logo.png";
+            image.src = product.brand === "GSP" ? "/brands/gsp-logo.svg" : "/mivo-logo-dark.svg";
             image.title = "Product photo unavailable";
           }} />
         ) : (
@@ -143,9 +142,7 @@ export default function ProductCard({
           </div>
         )}
 
-        <span className={pillClass}>
-          {fitment?.pill || "FITMENT CHECK"}
-        </span>
+        {fitment ? <span className={pillClass}>{fitment.pill}</span> : null}
 
         {cardDiscountPercent ? (
           <span className="productDiscountBadge">
@@ -153,6 +150,23 @@ export default function ProductCard({
           </span>
         ) : null}
       </Link>
+
+      {/* Hover actions (desktop): quick paths without opening the card first. */}
+      <div className="productHoverActions">
+        <Link href={detailHref} className="productHoverView">
+          View details
+        </Link>
+        {!requiresSelection && fitmentStatus !== "not-fit" && !soldOut ? (
+          <button
+            type="button"
+            className="productHoverAdd"
+            onClick={() => addToCart(product, singleVariant, 1)}
+          >
+            Add to cart
+          </button>
+        ) : null}
+      </div>
+      </div>
 
       <div className="productMeta">
         <div className="productBrandRow">
@@ -170,7 +184,7 @@ export default function ProductCard({
           {Number(product.rating || 0) > 0 ? (
             <span>★ {Number(product.rating).toFixed(1)}</span>
           ) : (
-            <span>NEW</span>
+            <span>New</span>
           )}
         </div>
 
@@ -216,7 +230,7 @@ export default function ProductCard({
         {quickAddOpen && !requiresSelection && !soldOut ? (
           <div className="quickAddPanel">
             <div>
-              <span>QUANTITY</span>
+              <span>Quantity</span>
               <div className="quantityStepper">
                 <button
                   type="button"
@@ -243,7 +257,7 @@ export default function ProductCard({
               className="quickAddConfirm"
               onClick={confirmAdd}
             >
-              ADD {quantity} TO CART
+              Add {quantity} to cart
             </button>
           </div>
         ) : null}

@@ -353,7 +353,7 @@ export default function VehicleFinder() {
     return (
       <div className="fitmentCard quizFitment savedVehicleHomeCard" id="fitment">
         <div className="savedVehicleHomeLoading">
-          <span className="microLabel">MIVO GARAGE</span>
+          <span className="microLabel">MIVO Garage</span>
           <strong>Loading your vehicle...</strong>
         </div>
       </div>
@@ -367,7 +367,7 @@ export default function VehicleFinder() {
 
         <div className="savedVehicleHomeTop">
           <div>
-            <span className="savedVehicleEyebrow">MIVO GARAGE · ACTIVE VEHICLE</span>
+            <span className="savedVehicleEyebrow">MIVO Garage · Active vehicle</span>
             <h2>
               <span>{saved.make}</span>
               {saved.model || "Vehicle"}
@@ -381,18 +381,18 @@ export default function VehicleFinder() {
 
         <div className="savedVehicleSpecLine">
           <div>
-            <small>VARIANT</small>
+            <small>Variant</small>
             <strong>{saved.variant}</strong>
           </div>
           <i />
           <div>
-            <small>TRANSMISSION</small>
+            <small>Transmission</small>
             <strong>{saved.transmission || "—"}</strong>
           </div>
           <i />
           <div>
-            <small>FITMENT</small>
-            <strong>READY</strong>
+            <small>Fitment</small>
+            <strong>Ready</strong>
           </div>
         </div>
 
@@ -401,8 +401,8 @@ export default function VehicleFinder() {
           href={"/products?" + savedVehicleQuery}
         >
           <span>
-            <small>SHOP FOR YOUR VEHICLE</small>
-            COMPATIBLE PARTS
+            <small>Shop for your vehicle</small>
+            Compatible parts
           </span>
           <b>→</b>
         </a>
@@ -420,7 +420,7 @@ export default function VehicleFinder() {
           <span>
             {saved.id ? "ACCOUNT SYNCED" : "SAVED ON THIS DEVICE"}
           </span>
-          <a href="/garage">MANAGE GARAGE</a>
+          <a href="/garage">Manage garage</a>
         </div>
       </div>
     );
@@ -444,10 +444,10 @@ export default function VehicleFinder() {
               setAddingVehicle(false);
             }}
           >
-            CANCEL
+            Cancel
           </button>
         ) : (
-          <span className="fitmentBadge">LIVE</span>
+          <span className="fitmentBadge">Live</span>
         )}
       </div>
 
@@ -477,7 +477,7 @@ export default function VehicleFinder() {
       <div className="quizBody">
         {step === 1 ? (
           <>
-            <span className="quizKicker">LET'S START</span>
+            <span className="quizKicker">Let's start</span>
             <h3>What brand is your car?</h3>
             <p>Tap the brand you drive.</p>
             <div className="quizAnswers quizAnswers--makes">
@@ -608,16 +608,16 @@ export default function VehicleFinder() {
         {step === 7 && selectedVehicle ? (
           <div className="quizConfirm">
             <span className="quizConfirmIcon">✓</span>
-            <span className="quizKicker">YOUR VEHICLE</span>
+            <span className="quizKicker">Your vehicle</span>
             <h3>Is this your car?</h3>
 
             <div className="quizVehicleSummary">
-              <div><small>MAKE</small><strong>{make}</strong></div>
-              <div><small>MODEL</small><strong>{selectedVehicle.model}</strong></div>
-              <div><small>GENERATION</small><strong>{selectedVehicle.generation || "—"}</strong></div>
-              <div><small>YEAR</small><strong>{year}</strong></div>
-              <div><small>VARIANT</small><strong>{variant}</strong></div>
-              <div><small>TRANSMISSION</small><strong>{transmission}</strong></div>
+              <div><small>Make</small><strong>{make}</strong></div>
+              <div><small>Model</small><strong>{selectedVehicle.model}</strong></div>
+              <div><small>Generation</small><strong>{selectedVehicle.generation || "—"}</strong></div>
+              <div><small>Year</small><strong>{year}</strong></div>
+              <div><small>Variant</small><strong>{variant}</strong></div>
+              <div><small>Transmission</small><strong>{transmission}</strong></div>
             </div>
 
             <button

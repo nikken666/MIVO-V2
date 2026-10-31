@@ -308,7 +308,7 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
       <section className="productVehicleModal">
         <header className="productVehicleModalHead">
           <div>
-            <span>MIVO VEHICLE FITMENT</span>
+            <span>MIVO vehicle fitment</span>
             <h2>Select your vehicle</h2>
             <p>{mode === "garage" ? "Switch between your saved vehicles or add another car." : "Stay on this product page while MIVO checks compatibility."}</p>
           </div>
@@ -326,7 +326,7 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
         {step === 1 && savedVehicles.length > 0 ? (
           <div className="productVehicleGarage">
             <div className="productVehicleGarageHead">
-              <span>MY GARAGE</span>
+              <span>My Garage</span>
               <strong>Quick switch vehicle</strong>
             </div>
             <div className="productVehicleGarageList">
@@ -368,7 +368,7 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
               ))}
             </div>
             <div className="productVehicleGarageDivider">
-              <span>OR SELECT ANOTHER VEHICLE</span>
+              <span>Or select another vehicle</span>
             </div>
           </div>
         ) : loadingSaved && step === 1 ? (
@@ -519,12 +519,12 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
               <h3>Use this vehicle?</h3>
 
               <div className="productVehicleSummary">
-                <div><span>MAKE</span><strong>{make}</strong></div>
-                <div><span>MODEL</span><strong>{selectedVehicle.model}</strong></div>
-                <div><span>GENERATION</span><strong>{selectedVehicle.generation || "—"}</strong></div>
-                <div><span>YEAR</span><strong>{year}</strong></div>
-                <div><span>VARIANT</span><strong>{variant}</strong></div>
-                <div><span>TRANSMISSION</span><strong>{transmission}</strong></div>
+                <div><span>Make</span><strong>{make}</strong></div>
+                <div><span>Model</span><strong>{selectedVehicle.model}</strong></div>
+                <div><span>Generation</span><strong>{selectedVehicle.generation || "—"}</strong></div>
+                <div><span>Year</span><strong>{year}</strong></div>
+                <div><span>Variant</span><strong>{variant}</strong></div>
+                <div><span>Transmission</span><strong>{transmission}</strong></div>
               </div>
 
               <button
@@ -542,7 +542,7 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
                 onClick={reset}
                 disabled={applying}
               >
-                START AGAIN
+                Start again
               </button>
             </div>
           ) : null}

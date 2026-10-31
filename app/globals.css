@@ -1,6 +1,8 @@
 :root{
   /* Apple-inspired palette: near-black ink, soft greys, one blue accent. */
   --accent:#0071e3;--accent-rgb:0,113,227;--accent-hover:#0077ed;
+  /* Secondary brand colour: used sparingly for deals, highlights and the logo swoosh. */
+  --accent-2:#ffc400;--accent-2-ink:#1d1d1f;
   --black:#000;--black2:#1d1d1f;--ink:#1d1d1f;--grey:#6e6e73;--line:#d2d2d7;
   --soft:#f5f5f7;--paper:#fff;--warm:#f5f5f7;--red:var(--accent);--silver:#d2d2d7;
   --radius:18px;--shadow:0 4px 24px rgba(0,0,0,.06);--shadow-hover:0 12px 36px rgba(0,0,0,.1);
@@ -8994,7 +8996,10 @@ h5,
 h6,
 li,
 div{
-  font-family:Arial,Helvetica,"Helvetica Neue",sans-serif !important;
+  font-family:var(--mivo-ui-font) !important;
+}
+h1,h2,h3{
+  font-family:var(--mivo-display-font) !important;
 }
 
 
@@ -9175,14 +9180,14 @@ div{
 .bannerStyle-motorsport .campaignBenefitStrip span,
 .bannerStyle-garage .campaignBenefitStrip span,
 .bannerStyle-street .campaignBenefitStrip span{
-  font-family:Arial,Helvetica,sans-serif !important;
+  font-family:var(--mivo-ui-font) !important;
 }
 .bannerStyle-garage .campaignBenefitStrip{
   background:rgba(0,0,0,.32);
 }
 .bannerStyle-formal .campaignEventCopy h2,
 .bannerStyle-formal .campaignBigNumber strong{
-  font-family:Arial,Helvetica,sans-serif !important;
+  font-family:var(--mivo-display-font) !important;
   font-style:normal;
 }
 @media(max-width:680px){
@@ -10204,7 +10209,8 @@ a,button,.btn,input,select,textarea{transition:color .2s var(--ease),background-
 .categoryGrid{gap:20px}
 .categoryCard{border:0;border-radius:24px;min-height:300px}
 .categoryCard:hover{transform:scale(1.015);box-shadow:var(--shadow-hover)}
-.categoryVisual{height:180px}
+.categoryVisual{height:180px;background:#f5f5f7}
+.categoryCard:hover .categoryArtwork{transform:scale(1.04)}
 .categoryVisual .categoryIndex{font-size:11px;letter-spacing:.02em;color:var(--ink)}
 .categoryCopy{padding:24px 26px 28px}
 .categoryCopy h3{font-size:24px;letter-spacing:-.02em}
@@ -10293,6 +10299,82 @@ a,button,.btn,input,select,textarea{transition:color .2s var(--ease),background-
 /* forms */
 input,select,textarea{border-radius:12px}
 
+/* ---------- Site-wide pass: every storefront page ---------- */
+
+/* page canvases */
+.cartPage,.checkoutPage,.mivoAuthPage,.accountDataPage,.orderCenterPage,.garagePage,.myClaimsPage,.myVouchersPage,.productDetailPage{background:var(--soft)}
+
+/* content cards: borderless, rounded, soft shadow */
+.checkoutFormCard,.checkoutSummaryCard,.checkoutAddonCard,.orderCenterPanel,.shopOrderCard,.addressBookPanel,.addressEditorPanel,
+.savedVehicleCard,.voucherCard,.productDescriptionCard,.productSpecificationCard,.productWarrantyCard,.brandDirectoryCard,
+.mivoAuthFormPanel,.mivoMobileAddressCard,.campaignProductCard,.contentPanel,.emptyState,.statCard{
+  border:0!important;border-radius:22px!important;background:#fff;box-shadow:var(--shadow)
+}
+.mivoAuthShell{border:0;border-radius:28px;overflow:hidden;box-shadow:var(--shadow-hover)}
+
+/* page headings */
+.cartPageHeader h1,.checkoutPageHeader h1,.accountDataHeader h1,.pageHeading h1,.brandsHero h1,.productTitleBlock h1,.garageHero h1{
+  font-family:var(--mivo-display-font);font-weight:700;letter-spacing:-.03em
+}
+.productTitleBlock h1{font-size:clamp(24px,2.4vw,32px);line-height:1.15;font-weight:600}
+
+/* eyebrow labels */
+.cartEyebrow,.mivoAuthEyebrow,.savedVehicleEyebrow,.productInfoSectionTitle>span,.brandsHero>span{
+  color:var(--accent)!important;font-size:12px!important;font-weight:600!important;letter-spacing:.04em!important
+}
+.productInfoSectionTitle h2{font-size:24px;letter-spacing:-.02em}
+
+/* primary actions: solid blue pill */
+.orderPrimaryButton,.redButton,.addressSaveButton,.mivoAuthSubmit,.quizConfirmButton,.fitmentSubmit,.savedVehiclePrimary,
+.stripePayAction,.voucherAction,.searchButton{
+  border:0!important;border-radius:980px!important;background:var(--accent)!important;color:#fff!important;
+  font-size:15px!important;font-weight:500!important;letter-spacing:0!important;text-transform:none!important
+}
+.orderPrimaryButton:hover,.redButton:hover,.addressSaveButton:hover,.mivoAuthSubmit:hover,.quizConfirmButton:hover,
+.fitmentSubmit:hover,.savedVehiclePrimary:hover,.stripePayAction:hover,.voucherAction:hover,.searchButton:hover{background:var(--accent-hover)!important}
+
+/* secondary actions: outlined pill */
+.orderGhostButton,.vehicleQuickChangeButton,.toolButton{
+  border:1px solid var(--line)!important;border-radius:980px!important;background:#fff!important;color:var(--ink)!important;
+  font-weight:500!important;letter-spacing:0!important
+}
+.orderGhostButton:hover,.vehicleQuickChangeButton:hover,.toolButton:hover{border-color:var(--accent)!important;color:var(--accent)!important}
+
+/* destructive actions: quiet red text, Apple style */
+.orderDangerButton,.orderCancelButton,.modernRemoveButton,.cartClearButton{
+  border-radius:980px!important;color:#e30000!important;letter-spacing:0!important;font-weight:500!important
+}
+
+/* segmented controls */
+.mivoAuthTabs{background:rgba(0,0,0,.05);border-radius:12px;padding:3px;gap:3px;border:0}
+.mivoAuthTabs button{border:0!important;border-radius:9px;min-height:36px;font-weight:500;letter-spacing:0}
+.mivoAuthTabs button.active{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.orderStatusTabs{border-radius:16px;overflow:hidden;border:0;box-shadow:var(--shadow);background:#fff}
+.orderStatusTabs button{letter-spacing:0;font-weight:500}
+.orderStatusTabs button.active{color:var(--accent);border-bottom-color:var(--accent)}
+.orderStatusTabs button.active b{background:rgba(var(--accent-rgb),.12)}
+
+/* dark feature banners → Apple black */
+.selectedVehicleBanner,.vehicleMatchBanner{background:#1d1d1f!important;border:0!important;border-radius:22px!important}
+.garageHero{background:radial-gradient(ellipse at 80% 20%,rgba(var(--accent-rgb),.25),transparent 45%),#000}
+.mivoAuthVisual{background:radial-gradient(ellipse at 80% 25%,rgba(var(--accent-rgb),.3),transparent 45%),radial-gradient(ellipse at 10% 95%,rgba(255,196,0,.14),transparent 40%),#000}
+
+/* deal and discount badges use the yellow accent */
+.productDiscountBadge,.productDetailDiscountBadge,.flashDealImage>b{
+  background:var(--accent-2)!important;color:var(--accent-2-ink)!important;border-radius:980px!important;font-weight:700!important;letter-spacing:0!important
+}
+.flashDealsHead span{color:#b38600}
+
+/* inputs: Apple focus ring */
+main input:not([type=checkbox]):not([type=radio]):focus,main select:focus,main textarea:focus{
+  outline:none;border-color:var(--accent)!important;box-shadow:0 0 0 4px rgba(var(--accent-rgb),.15)
+}
+input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
+
+/* vehicle quiz options */
+.fitmentCard button{letter-spacing:0}
+.fitmentCard [class*="Option"],.fitmentCard [class*="option"]{border-radius:14px}
+
 /* footer: Apple light footer */
 .siteFooter{background:var(--soft);color:var(--grey);border-top:1px solid var(--line)}
 .footerTop{padding:48px 0}
@@ -10316,4 +10398,357 @@ input,select,textarea{border-radius:12px}
   .sectionLink{font-size:15px}
   .garageCta{padding:64px 0}
   .categoryCard:hover,.premiumProductCard:hover{transform:none}
+}
+
+/* ---------- Interaction layer: tactile buttons, hover navigation ---------- */
+
+/* typography: SF on Apple devices, Inter elsewhere, tuned to feel like SF */
+body{font-feature-settings:"cv11","ss01","ss03";font-optical-sizing:auto}
+
+/* every pill/button gets press feedback and a soft lift on hover */
+.btn,.miniCartButton,.productHoverAdd,.productHoverView,.headerSearch button,.signInHeaderAction,.addCarLink,
+.productAddCartButton,.productBuyNowButton,.cartCheckoutButton,.cartPrimaryButton,.checkoutPlaceOrder,
+.orderPrimaryButton,.orderGhostButton,.mivoAuthSubmit,.fitmentMoreGhost,.sectionLink,.quizConfirmButton{
+  cursor:pointer;transition:translate .2s var(--ease),scale .15s var(--ease),transform .18s var(--ease),box-shadow .25s var(--ease),background-color .2s var(--ease),color .2s var(--ease),border-color .2s var(--ease),filter .2s var(--ease)!important
+}
+.btnLight:hover,.miniCartButton:hover,.productHoverAdd:hover,.headerSearch button:hover,.productBuyNowButton:not(:disabled):hover,
+.cartCheckoutButton:hover,.checkoutPlaceOrder:not(:disabled):hover,.orderPrimaryButton:hover,.mivoAuthSubmit:hover,.fitmentMoreGhost:first-child:hover{
+  box-shadow:0 6px 18px rgba(var(--accent-rgb),.35)
+}
+.btn:active,.miniCartButton:active,.productHoverAdd:active,.productHoverView:active,.headerSearch button:active,.signInHeaderAction:active,
+.addCarLink:active,.productAddCartButton:active,.productBuyNowButton:active,.cartCheckoutButton:active,.cartPrimaryButton:active,
+.checkoutPlaceOrder:active,.orderPrimaryButton:active,.orderGhostButton:active,.mivoAuthSubmit:active,.fitmentMoreGhost:active,.quizConfirmButton:active{
+  box-shadow:none
+}
+
+/* header navigation: pill highlight under the pointer */
+.mainNav a{padding:6px 12px;border-radius:980px;margin:0 -6px}
+.mainNav a:hover{background:rgba(var(--accent-rgb),.08);color:var(--accent)}
+.mainNav a:active{transform:scale(.95)}
+.cartAction{padding:6px 12px;border-radius:980px}
+.cartAction:hover{background:rgba(0,0,0,.05)}
+.headerAction:not(.signInHeaderAction){padding:4px 10px;border-radius:12px}
+.headerAction:not(.signInHeaderAction):hover{background:rgba(0,0,0,.05)}
+
+/* product cards: lift, image zoom, actions slide up on hover */
+.premiumProductCard{position:relative;overflow:hidden}
+.premiumProductImage img{transition:transform .5s var(--ease)}
+.productCategoryLabel{display:none}
+.productImageWrap{position:relative;overflow:hidden}
+.productHoverActions{
+  position:absolute;left:12px;right:12px;bottom:12px;z-index:3;
+  display:flex;gap:8px;opacity:0;transform:translateY(10px);pointer-events:none;
+  transition:opacity .25s var(--ease),transform .3s var(--ease)
+}
+.productHoverView,.productHoverAdd{
+  flex:1;display:inline-flex;align-items:center;justify-content:center;height:40px;border-radius:980px;
+  font-size:13px;font-weight:500;letter-spacing:0;border:0;white-space:nowrap
+}
+.productHoverView{background:rgba(255,255,255,.82);-webkit-backdrop-filter:saturate(180%) blur(14px);backdrop-filter:saturate(180%) blur(14px);color:var(--ink);box-shadow:0 2px 10px rgba(0,0,0,.12)}
+.productHoverView:hover{background:#fff}
+.productHoverAdd{background:var(--accent);color:#fff}
+@media(hover:hover) and (pointer:fine){
+  .premiumProductCard:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(0,0,0,.12)}
+  .premiumProductCard:hover .premiumProductImage img{transform:scale(1.06)}
+  .premiumProductCard:hover .productHoverActions{opacity:1;transform:none;pointer-events:auto}
+  .premiumProductCard:hover .fitmentPill{opacity:0}
+}
+.fitmentPill{transition:opacity .2s var(--ease);font-weight:500;text-transform:none;letter-spacing:0;font-size:11px}
+.premiumProductCard h3{transition:color .2s var(--ease)}
+.premiumProductCard:hover h3{color:var(--accent)}
+
+/* category tiles: icon-led, Shopee-style grid with Apple polish */
+.categoryTiles{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px}
+.categoryTile{
+  position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;
+  padding:26px 14px 22px;border-radius:22px;background:#fff;box-shadow:var(--shadow);
+  transition:transform .35s var(--ease),box-shadow .35s var(--ease)
+}
+.categoryTileIcon{
+  width:64px;height:64px;margin-bottom:8px;border-radius:20px;display:grid;place-items:center;
+  background:linear-gradient(145deg,rgba(var(--accent-rgb),.12),rgba(var(--accent-rgb),.04));color:var(--accent);
+  transition:background .3s var(--ease),color .3s var(--ease),transform .35s var(--ease)
+}
+.categoryTileIcon svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.categoryTile strong{font-size:16px;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
+.categoryTile small{font-size:12px;line-height:1.4;color:var(--grey)}
+.categoryTileGo{margin-top:6px;font-size:13px;color:var(--accent);opacity:0;transform:translateY(4px);transition:opacity .25s var(--ease),transform .25s var(--ease)}
+.categoryTile:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(0,0,0,.1)}
+.categoryTile:hover .categoryTileIcon{background:var(--accent);color:#fff;transform:scale(1.06) rotate(-4deg)}
+.categoryTile:hover .categoryTileGo{opacity:1;transform:none}
+.categoryTile:active{transform:scale(.97)}
+.categoryTile:nth-child(3n+2) .categoryTileIcon svg{stroke:currentColor}
+@media(max-width:1100px){.categoryTiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:540px){
+  .categoryTiles{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  .categoryTile{padding:18px 8px 16px;border-radius:18px}
+  .categoryTileIcon{width:52px;height:52px;border-radius:16px}
+  .categoryTile small,.categoryTileGo{display:none}
+  .categoryTile strong{font-size:13px}
+}
+
+/* ---------- Universal button feel ----------
+   Every clickable control on the storefront gets the same tactile response:
+   lift + shadow on hover, a quick squeeze on press. Uses the individual
+   `translate`/`scale` properties so it never fights a component's own
+   `transform` (e.g. centred arrows or slide-in panels). */
+:is(button,.btn,[role="button"],a[class*="Button"],a[class*="button"],a[class*="Btn"],
+    .miniCartButton,.sectionLink,.fitmentMoreGhost,.addCarLink,.signInHeaderAction,.voucherAction,
+    .stripePayAction,.productHoverView,.productHoverAdd,.categoryTileGo):not(:disabled){
+  cursor:pointer;
+  transition:translate .2s var(--ease),scale .15s var(--ease),box-shadow .25s var(--ease),
+    background-color .2s var(--ease),color .2s var(--ease),border-color .2s var(--ease),filter .2s var(--ease)!important
+}
+@media(hover:hover) and (pointer:fine){
+  :is(button,.btn,[role="button"],a[class*="Button"],a[class*="button"],a[class*="Btn"],
+      .miniCartButton,.fitmentMoreGhost,.addCarLink,.signInHeaderAction,.voucherAction,.stripePayAction,
+      .productHoverView,.productHoverAdd):not(:disabled):hover{
+    translate:0 -2px;
+    box-shadow:0 8px 20px rgba(0,0,0,.12);
+    filter:brightness(1.05)
+  }
+}
+:is(button,.btn,[role="button"],a[class*="Button"],a[class*="button"],a[class*="Btn"],
+    .miniCartButton,.sectionLink,.fitmentMoreGhost,.addCarLink,.signInHeaderAction,.voucherAction,
+    .stripePayAction,.productHoverView,.productHoverAdd):not(:disabled):active{
+  translate:0 0;scale:.95;box-shadow:0 2px 6px rgba(0,0,0,.1);filter:brightness(.97)
+}
+
+/* segmented tabs and steppers stay flat: highlight instead of lift */
+.mivoAuthTabs button:hover,.orderStatusTabs button:hover,.quantityStepper button:hover{translate:none!important;box-shadow:none!important}
+.mivoAuthTabs button:not(.active):hover,.orderStatusTabs button:not(.active):hover{background:rgba(0,0,0,.04)}
+.quantityStepper button:not(:disabled):hover{background:rgba(var(--accent-rgb),.1);color:var(--accent)}
+
+/* outlined buttons fill with a light tint so the hover is obvious */
+.productAddCartButton:not(:disabled):hover,.orderGhostButton:hover,.vehicleQuickChangeButton:hover,.toolButton:hover,
+.miniCartButton.ghost:hover{
+  background:rgba(var(--accent-rgb),.08)!important;border-color:var(--accent)!important;color:var(--accent)!important;
+  box-shadow:0 8px 20px rgba(var(--accent-rgb),.22)!important
+}
+/* solid blue buttons glow in brand blue */
+.productBuyNowButton:not(:disabled):hover,.cartCheckoutButton:hover,.checkoutPlaceOrder:not(:disabled):hover,
+.orderPrimaryButton:hover,.mivoAuthSubmit:hover,.btnLight:hover,.miniCartButton:hover,.productHoverAdd:hover,
+.headerSearch button:hover,.quizConfirmButton:hover,.savedVehiclePrimary:hover,.addressSaveButton:hover{
+  box-shadow:0 10px 24px rgba(var(--accent-rgb),.38)!important
+}
+/* quiet text-style buttons: tint instead of shadow */
+.cartClearButton:hover,.modernRemoveButton:hover,.orderDangerButton:hover,.orderCancelButton:hover{
+  background:rgba(227,0,0,.07)!important;box-shadow:none!important
+}
+.sectionLink:active,.categoryTileGo:active{scale:.95}
+
+/* variant picker: options feel like buttons, and nudge when a buy button is tapped too early */
+.productOptionButton{border-radius:14px!important}
+.productOptionButton:not(:disabled):hover{border-color:var(--accent)!important;box-shadow:0 6px 16px rgba(var(--accent-rgb),.18)!important}
+.productOptionButton.selected{border-color:var(--accent)!important;box-shadow:0 0 0 3px rgba(var(--accent-rgb),.2)!important}
+.productOptionSection{position:relative;border-radius:16px;transition:background-color .3s var(--ease),box-shadow .3s var(--ease)}
+.productOptionSection.needsChoice{background:rgba(var(--accent-rgb),.06);box-shadow:0 0 0 2px rgba(var(--accent-rgb),.45);animation:optionNudge .45s var(--ease)}
+.productOptionSection.needsChoice .productOptionLabel small{color:var(--accent);font-weight:600}
+.productOptionSection.needsChoice .productOptionLabel small::after{content:" · Choose an option first"}
+@keyframes optionNudge{0%,100%{translate:0}20%{translate:-6px}40%{translate:6px}60%{translate:-4px}80%{translate:3px}}
+
+/* disabled buttons: clearly inactive, no motion */
+button:disabled,.btn[aria-disabled="true"]{cursor:not-allowed;translate:none!important;scale:1!important;box-shadow:none!important;filter:none!important}
+
+@media(prefers-reduced-motion:reduce){
+  :is(button,.btn,a[class*="Button"]):hover,:is(button,.btn,a[class*="Button"]):active{translate:none!important;scale:1!important}
+}
+
+/* =====================================================================
+   SHOP HOMEPAGE — marketplace layout, livelier "vibe" visuals,
+   Apple-style controls. Brand gradient: blue → violet, yellow accents.
+   ===================================================================== */
+:root{
+  --violet:#7b4dff;
+  --grad-brand:linear-gradient(120deg,#0a3fd8 0%,#0071e3 45%,#5b8cff 100%);
+  --grad-violet:linear-gradient(125deg,#3a1fd1 0%,#7b4dff 55%,#0071e3 100%);
+  --grad-sun:linear-gradient(135deg,#ffe066 0%,#ffc400 55%,#ffad00 100%);
+  --glass:rgba(255,255,255,.72);
+}
+.shopHome{background:var(--soft);padding-bottom:40px}
+.shopSection{margin-top:18px}
+
+/* header: vehicle chip inside the search bar */
+.headerSearch.hasVehicleChip{grid-template-columns:auto 1fr auto}
+.vehiclePickerChip{
+  display:inline-flex;align-items:center;gap:6px;height:32px;margin:0 2px 0 4px;padding:0 10px 0 9px;
+  border:0;border-radius:980px;background:rgba(var(--accent-rgb),.1);color:var(--accent);
+  font-size:13px;font-weight:600;white-space:nowrap;max-width:170px
+}
+.vehiclePickerChip span{overflow:hidden;text-overflow:ellipsis}
+.vehiclePickerChip svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.vehiclePickerChip .vehiclePickerCaret{width:14px;height:14px}
+.vehiclePickerChip.hasVehicle{background:var(--accent);color:#fff}
+.vehiclePickerChip:hover{box-shadow:0 6px 16px rgba(var(--accent-rgb),.25)!important}
+@media(max-width:850px){
+  .headerSearch.hasVehicleChip{grid-template-columns:auto 1fr}
+  /* the old mobile rule hides every button in the search bar; keep the chip */
+  .headerSearch .vehiclePickerChip{display:inline-flex!important;max-width:96px;height:30px;padding:0 8px}
+  .vehiclePickerChip .vehiclePickerCaret{display:none}
+}
+@media(max-width:540px){
+  .vehiclePickerChip span{display:none}
+  .headerSearch .vehiclePickerChip{padding:0 7px}
+}
+
+/* hero: carousel + side banners */
+.shopHero{display:grid;grid-template-columns:minmax(0,2.25fr) minmax(260px,1fr);gap:14px;padding-top:20px}
+.shopCarousel{position:relative;height:340px;border-radius:26px;overflow:hidden;box-shadow:0 18px 40px rgba(0,40,120,.18)}
+.shopCarouselTrack{display:flex;height:100%;transition:transform .7s cubic-bezier(.65,0,.35,1)}
+.shopSlide{position:relative;flex:0 0 100%;height:100%;display:flex;align-items:center;overflow:hidden;color:#fff}
+.shopSlide.tone-blue{background:var(--grad-brand)}
+.shopSlide.tone-violet{background:var(--grad-violet)}
+.shopSlide.tone-night{background:radial-gradient(ellipse at 80% 20%,rgba(var(--accent-rgb),.55),transparent 55%),radial-gradient(ellipse at 10% 100%,rgba(123,77,255,.45),transparent 50%),#070a16}
+.shopSlide.hasImage{background:#111}
+.shopSlideMedia,.shopSlideMedia img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.shopSlideGlow{position:absolute;width:420px;height:420px;right:-90px;top:-150px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,214,10,.55),rgba(255,214,10,0) 65%);filter:blur(10px);animation:shopFloat 9s ease-in-out infinite}
+.shopSlide::after{content:"";position:absolute;right:48px;bottom:-60px;width:260px;height:260px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.18);box-shadow:0 0 0 40px rgba(255,255,255,.04),0 0 0 80px rgba(255,255,255,.03)}
+@keyframes shopFloat{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,24px)}}
+.shopSlideCopy{position:relative;z-index:2;padding:0 48px;max-width:620px}
+.shopSlideBadge{display:inline-flex;padding:6px 12px;border-radius:980px;background:var(--grad-sun);color:#1d1d1f;font-size:12px;font-weight:700;letter-spacing:.01em}
+.shopSlideCopy h2{margin:14px 0 10px;font-size:clamp(28px,3.4vw,44px);line-height:1.05;letter-spacing:-.035em;font-weight:700;color:#fff}
+.shopSlideCopy h2 span{display:block}
+.shopSlideCopy p{margin:0;max-width:440px;font-size:15px;line-height:1.5;color:rgba(255,255,255,.82)}
+.shopSlideCta{display:inline-flex;align-items:center;margin-top:20px;height:42px;padding:0 20px;border-radius:980px;background:#fff;color:var(--accent);font-size:15px;font-weight:600;
+  box-shadow:0 8px 20px rgba(0,0,0,.18);transition:translate .2s var(--ease),box-shadow .25s var(--ease)}
+.shopSlide:hover .shopSlideCta{translate:0 -2px;box-shadow:0 12px 26px rgba(0,0,0,.25)}
+.shopCarouselArrow{position:absolute;top:50%;z-index:4;width:40px;height:40px;margin-top:-20px;border:0;border-radius:50%;
+  background:rgba(255,255,255,.25);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:#fff;font-size:24px;line-height:1;opacity:0;transition:opacity .25s var(--ease)}
+.shopCarouselArrow.prev{left:14px}.shopCarouselArrow.next{right:14px}
+.shopCarousel:hover .shopCarouselArrow{opacity:1}
+.shopCarouselArrow:hover{background:rgba(255,255,255,.4)}
+.shopCarouselDots{position:absolute;left:48px;bottom:20px;z-index:4;display:flex;gap:6px}
+.shopCarouselDots button{width:8px;height:8px;padding:0;border:0;border-radius:980px;background:rgba(255,255,255,.45);transition:width .3s var(--ease),background .3s var(--ease)}
+.shopCarouselDots button.active{width:26px;background:#fff}
+.shopCarouselDots button:hover{translate:none!important;box-shadow:none!important}
+
+.shopSideBanners{display:grid;grid-template-rows:1fr 1fr;gap:14px}
+.shopSideBanner{position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;padding:20px 22px;
+  border:0;border-radius:24px;text-align:left;overflow:hidden;font:inherit;cursor:pointer;
+  transition:translate .25s var(--ease),box-shadow .3s var(--ease)!important}
+.shopSideBanner:hover{translate:0 -3px;box-shadow:0 16px 34px rgba(0,0,0,.14)!important}
+.shopSideBanner:active{scale:.98}
+.shopSideBannerVehicle{background:var(--grad-sun);color:#1d1d1f}
+.shopSideBannerVehicle::after{content:"";position:absolute;right:-30px;bottom:-40px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.35)}
+.shopSideBannerBrands{background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(16px);backdrop-filter:saturate(180%) blur(16px);box-shadow:var(--shadow);color:var(--ink)}
+.shopSideBannerKicker{font-size:12px;font-weight:600;opacity:.75}
+.shopSideBanner strong{font-size:21px;font-weight:700;letter-spacing:-.02em}
+.shopSideBanner small{font-size:13px;opacity:.75}
+.shopSideBannerCta{margin-top:8px;font-size:14px;font-weight:600;color:var(--accent)}
+.shopSideBannerVehicle .shopSideBannerCta{color:#1d1d1f}
+.shopBrandRow{display:flex;gap:14px;align-items:center;margin-top:6px}
+.shopBrandRow img{height:20px;width:auto}
+
+/* category icons */
+.shopCategories{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;padding:18px 12px;border-radius:24px;background:#fff;box-shadow:var(--shadow)}
+.shopCategory{display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px 4px;border-radius:18px;font-size:13px;font-weight:500;color:var(--ink);text-align:center;
+  transition:background-color .25s var(--ease)}
+.shopCategory:hover{background:rgba(var(--accent-rgb),.05)}
+.shopCategoryIcon{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;color:var(--accent);
+  background:linear-gradient(145deg,rgba(var(--accent-rgb),.14),rgba(123,77,255,.1));
+  transition:background .3s var(--ease),color .3s var(--ease),translate .3s var(--ease),box-shadow .3s var(--ease)}
+.shopCategoryIcon svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.shopCategory:hover .shopCategoryIcon{background:var(--grad-brand);color:#fff;translate:0 -4px;box-shadow:0 10px 20px rgba(var(--accent-rgb),.3)}
+.shopCategory:active .shopCategoryIcon{scale:.92}
+.shopCategory.isVoucher .shopCategoryIcon{background:linear-gradient(145deg,rgba(255,196,0,.3),rgba(255,173,0,.15));color:#b37400}
+.shopCategory.isVoucher:hover .shopCategoryIcon{background:var(--grad-sun);color:#1d1d1f;box-shadow:0 10px 20px rgba(255,173,0,.35)}
+
+/* voucher rail inside the homepage */
+.shopHome .homePromotions{background:transparent;padding:18px 0 0}
+
+/* flash sale */
+.flashSale{padding:20px;border-radius:24px;background:#fff;box-shadow:var(--shadow)}
+.flashSaleHead{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.flashSaleHead h2{display:flex;align-items:center;gap:10px;margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em;
+  background:var(--grad-violet);-webkit-background-clip:text;background-clip:text;color:transparent}
+.flashSaleBolt{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:var(--grad-sun);box-shadow:0 6px 14px rgba(255,173,0,.35)}
+.flashSaleBolt svg{width:18px;height:18px;fill:#1d1d1f}
+.flashSaleClock{display:flex;align-items:center;gap:4px;font-weight:700;color:var(--ink)}
+.flashSaleClock small{margin-right:4px;font-size:13px;font-weight:500;color:var(--grey)}
+.flashSaleClock b{min-width:30px;padding:4px 6px;border-radius:8px;background:#1d1d1f;color:#fff;font-size:14px;text-align:center;font-variant-numeric:tabular-nums}
+.flashSaleClock b.tick{animation:shopTick 1s steps(1) infinite}
+@keyframes shopTick{0%{background:#1d1d1f}50%{background:var(--accent)}}
+.flashSaleNote{font-size:13px;color:var(--grey)}
+.shopSeeAll{margin-left:auto;font-size:14px;font-weight:500;color:var(--accent)}
+.shopSeeAll:hover{text-decoration:underline}
+.flashSaleRail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(160px,1fr);gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px;scrollbar-width:thin}
+.flashSaleCard{scroll-snap-align:start;display:flex;flex-direction:column;gap:10px;padding:10px;border-radius:18px;transition:translate .3s var(--ease),box-shadow .3s var(--ease),background .3s var(--ease)}
+.flashSaleCard:hover{translate:0 -4px;background:#fff;box-shadow:0 14px 30px rgba(0,0,0,.1)}
+.flashSaleImage{position:relative;aspect-ratio:1;border-radius:14px;background:#fafafc;overflow:hidden}
+.flashSaleImage img{width:100%;height:100%;object-fit:contain;padding:10px;transition:transform .5s var(--ease)}
+.flashSaleCard:hover .flashSaleImage img{transform:scale(1.06)}
+.flashSaleBadge{position:absolute;top:8px;left:8px;padding:3px 8px;border-radius:980px;background:var(--grad-sun);color:#1d1d1f;font-size:12px;font-weight:700}
+.flashSaleInfo{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px}
+.flashSaleInfo strong{font-size:17px;font-weight:700;color:var(--accent)}
+.flashSaleInfo del{font-size:12px;color:var(--grey)}
+.flashSaleBar{position:relative;width:100%;height:18px;border-radius:980px;background:rgba(var(--accent-rgb),.1);overflow:hidden}
+.flashSaleBar i{position:absolute;inset:0 auto 0 0;border-radius:980px;background:var(--grad-violet)}
+.flashSaleBar span{position:relative;display:block;text-align:center;font-size:11px;font-weight:600;line-height:18px;color:#1d1d1f;mix-blend-mode:normal}
+
+/* daily discover */
+.shopSectionHead{display:flex;align-items:center;flex-wrap:wrap;gap:12px 18px;margin-bottom:14px}
+.shopSectionHead h2{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em}
+.shopChips{display:flex;flex-wrap:wrap;gap:8px}
+.shopChip{display:inline-flex;align-items:center;height:34px;padding:0 14px;border-radius:980px;background:#fff;color:var(--ink);font-size:13px;font-weight:500;
+  box-shadow:inset 0 0 0 1px var(--line);transition:background .2s var(--ease),color .2s var(--ease),box-shadow .2s var(--ease),translate .2s var(--ease)}
+.shopChip:hover{translate:0 -1px;box-shadow:inset 0 0 0 1px var(--accent),0 6px 14px rgba(var(--accent-rgb),.15);color:var(--accent)}
+.shopChip.active{background:var(--ink);color:#fff;box-shadow:none}
+.shopDiscoverGrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+.shopDiscoverGrid .premiumProductImage{height:190px}
+.shopDiscoverGrid .premiumProductCard h3{font-size:14px;min-height:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.shopDiscoverGrid .productFitmentText{display:none}
+.shopDiscoverGrid .productBrandRow{display:none}
+.shopDiscoverGrid .productMeta{padding:14px 16px 16px}
+.shopDiscoverGrid .premiumProductCard h3{margin:0 0 4px}
+.shopDiscoverGrid .productBottom{margin-top:10px;padding-top:10px}
+.shopDiscoverGrid .productBottom strong{font-size:16px;white-space:nowrap}
+
+/* product card footer never clips: price and button wrap when the card is narrow */
+.productBottom{flex-wrap:wrap;gap:8px}
+.productCardPriceStack{min-width:0}
+.miniCartButton{flex:none;white-space:nowrap}
+.shopMore{display:flex;justify-content:center;margin-top:22px}
+.shopMore .btn{min-width:220px}
+
+/* trust strip */
+.shopTrust{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.shopTrust>div{display:flex;flex-direction:column;gap:4px;padding:20px;border-radius:22px;background:#fff;box-shadow:var(--shadow)}
+.shopTrustIcon{display:grid;place-items:center;width:42px;height:42px;margin-bottom:6px;border-radius:14px;background:linear-gradient(145deg,rgba(var(--accent-rgb),.14),rgba(123,77,255,.1));color:var(--accent)}
+.shopTrustIcon svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.shopTrust strong{font-size:15px;font-weight:600}
+.shopTrust small{font-size:13px;color:var(--grey)}
+
+@media(max-width:1100px){
+  .shopHero{grid-template-columns:1fr}
+  .shopSideBanners{grid-template-columns:1fr 1fr;grid-template-rows:none}
+  .shopDiscoverGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .shopTrust{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:850px){
+  .shopCategories{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .shopDiscoverGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:540px){
+  .shopHero{padding-top:12px;gap:10px}
+  .shopCarousel{height:250px;border-radius:20px}
+  .shopSlideCopy{padding:0 22px}
+  .shopSlideCopy p{display:none}
+  .shopCarouselDots{left:22px;bottom:14px}
+  .shopSideBanners{gap:10px}
+  .shopSideBanner{padding:16px;border-radius:20px}
+  .shopSideBanner strong{font-size:16px}
+  .shopSideBanner small{display:none}
+  .shopBrandRow{flex-wrap:wrap;gap:8px}
+  .shopBrandRow img{height:13px}
+  .shopCategories{gap:2px;padding:12px 6px;border-radius:20px}
+  .shopCategoryIcon{width:48px;height:48px}
+  .shopCategory{font-size:12px}
+  .flashSale{padding:14px;border-radius:20px}
+  .flashSaleHead{flex-wrap:wrap;gap:10px}
+  .flashSaleRail{grid-auto-columns:140px}
+  .shopDiscoverGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .shopDiscoverGrid .premiumProductImage{height:150px}
+  .shopTrust{grid-template-columns:1fr 1fr;gap:10px}
 }
