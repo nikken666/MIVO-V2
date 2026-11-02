@@ -205,7 +205,7 @@ export default function AdminPage() {
                 <strong>{loading ? "—" : alertCount}</strong>
               </div>
               <a href="/admin/products/new" className={styles.adminAction}>
-                + ADD PRODUCT
+                + Add product
               </a>
             </div>
           </header>
@@ -216,43 +216,43 @@ export default function AdminPage() {
             <a href="/admin/orders?tab=all" className={styles.dashboardStatPrimary}>
               <span>Today sales</span>
               <strong>{loading ? "—" : money(stats.todaySales)}</strong>
-              <small>Paid orders today · VIEW</small>
+              <small>Paid orders today · View</small>
             </a>
 
             <a href="/admin/orders?tab=all" className={styles.dashboardStat}>
               <span>Orders today</span>
               <strong>{loading ? "—" : stats.ordersToday}</strong>
-              <small>New orders · VIEW</small>
+              <small>New orders · View</small>
             </a>
 
             <a href="/admin/orders?tab=to_pay" className={styles.dashboardStat}>
               <span>Pending payment</span>
               <strong>{loading ? "—" : stats.pendingPayment}</strong>
-              <small>Auto-cancel after 24h · VIEW</small>
+              <small>Auto-cancel after 24h · View</small>
             </a>
 
             <a href="/admin/arrange-shipment" className={styles.dashboardStat}>
               <span>To arrange</span>
               <strong>{loading ? "—" : stats.toShip}</strong>
-              <small>Paid orders ready for fulfilment · VIEW</small>
+              <small>Paid orders ready for fulfilment · View</small>
             </a>
 
             <a href="/admin/products?stock=low" className={styles.dashboardStat}>
               <span>Low stock</span>
               <strong>{loading ? "—" : stats.lowStock}</strong>
-              <small>At or below threshold · VIEW</small>
+              <small>At or below threshold · View</small>
             </a>
 
             <a href="/admin/claims" className={styles.dashboardStat}>
               <span>Open claims</span>
               <strong>{loading ? "—" : stats.openClaims}</strong>
-              <small>Warranty cases needing attention · VIEW</small>
+              <small>Warranty cases needing attention · View</small>
             </a>
 
             <a href="/admin/products?status=active" className={styles.dashboardStat}>
               <span>Active products</span>
               <strong>{loading ? "—" : stats.activeProducts}</strong>
-              <small>Live catalogue · VIEW</small>
+              <small>Live catalogue · View</small>
             </a>
           </div>
 

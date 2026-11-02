@@ -11063,3 +11063,14 @@ button.shopChip{font:inherit;cursor:pointer}
 .searchVehicleHint b{color:var(--accent);font-weight:600;white-space:nowrap}
 .searchVehicleHint:hover{background:rgba(255,196,0,.28)}
 .pageHeading:has(.searchVehicleHint){flex-wrap:wrap}.pageHeading .searchVehicleHint{flex-basis:100%}
+/* Readable text, round 2 (product page, order tabs, policies) */
+.productBreadcrumb a,.productBreadcrumb span,.productBreadcrumb strong,
+.productTitleBlock span.detailBrand,.productTitleMeta span,.productTitleMeta span.productRating,
+.productPricePanel span,.productFitmentCompact span,.productFitmentCompact small,
+.productFitmentCompact button.productFitmentSelectButton,.productQuantityLine small,.productQuantityLine span,
+.productServiceRows small,.productWarrantySummary p,.productReviewFilters button,.productReviewEmpty span,
+.policyNav span,.orderStatusTabs span,.orderStatusTabs b{font-size:12px!important;letter-spacing:normal!important;text-transform:none!important}
+.productFitmentCompact strong,.productServiceRows strong,.productWarrantySummary strong,.productReviewEmpty strong,
+.productRating b,.policyContent small.policyUpdated,.productBrandRow span{font-size:13px!important;letter-spacing:normal!important}
+.productBreadcrumb a,.productBreadcrumb strong{text-transform:none!important}
+.orderStatusTabs a,.orderStatusTabs button{font-size:14px!important;letter-spacing:normal!important}

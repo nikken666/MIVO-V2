@@ -1321,8 +1321,8 @@ export default function AdminProductsPage() {
                 filtered.every((product) =>
                   selectedProductIds.has(product.id)
                 )
-                  ? "CLEAR VISIBLE"
-                  : "SELECT VISIBLE"}
+                  ? "Clear visible"
+                  : "Select visible"}
               </button>
 
               <span>
@@ -1424,7 +1424,7 @@ export default function AdminProductsPage() {
                                     {variants.length} SKU
                                     {variants.length === 1 ? "" : "s"} ·{" "}
                                     {expanded.has(product.id)
-                                      ? "HIDE"
+                                      ? "Hide"
                                       : "SHOW"}{" "}
                                     Variations
                                   </button>
@@ -1465,8 +1465,8 @@ export default function AdminProductsPage() {
                                   onClick={() => copyProduct(product)}
                                 >
                                   {productActionId === product.id
-                                    ? "WORKING..."
-                                    : "COPY"}
+                                    ? "Working…"
+                                    : "Copy"}
                                 </button>
 
                                 {product.status === "active" ? (
@@ -1512,8 +1512,8 @@ export default function AdminProductsPage() {
                                       onClick={() => publishDraftProduct(product)}
                                     >
                                       {productActionId === product.id
-                                        ? "PUBLISHING..."
-                                        : "PUBLISH"}
+                                        ? "Publishing…"
+                                        : "Publish"}
                                     </button>
                                     <button
                                       type="button"
@@ -1526,10 +1526,10 @@ export default function AdminProductsPage() {
                                       onClick={() => deleteDraftProduct(product)}
                                     >
                                       {productActionId === product.id
-                                        ? "WORKING..."
+                                        ? "Working…"
                                         : deleteConfirmId === product.id
-                                          ? "CONFIRM DELETE"
-                                          : "DELETE"}
+                                          ? "Confirm delete"
+                                          : "Delete"}
                                     </button>
                                   </>
                                 ) : null}
@@ -1741,8 +1741,8 @@ export default function AdminProductsPage() {
                                           >
                                             {savingVariantId ===
                                             variant.id
-                                              ? "SAVING..."
-                                              : "SAVE"}
+                                              ? "Saving…"
+                                              : "Save"}
                                           </button>
                                           <button
                                             type="button"
@@ -1892,8 +1892,8 @@ export default function AdminProductsPage() {
                               >
                                 <strong>
                                   {row.description.trim()
-                                    ? "DESCRIPTION ADDED"
-                                    : "ADD DESCRIPTION"}
+                                    ? "Description added"
+                                    : "Add description"}
                                 </strong>
                                 <span>
                                   {row.shortDescription.trim()
@@ -2118,7 +2118,7 @@ export default function AdminProductsPage() {
                       disabled={bulkSaving}
                       onClick={() => void saveBulkEditor()}
                     >
-                      {bulkSaving ? "SAVING..." : "SAVE ALL CHANGES"}
+                      {bulkSaving ? "Saving…" : "Save all changes"}
                     </button>
                   </div>
                 </div>

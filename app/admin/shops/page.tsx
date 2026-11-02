@@ -193,7 +193,7 @@ export default function AdminShopsPage() {
               <label className={styles.adminField}><span>Tagline</span><input {...field("tagline")} placeholder="Short line under the shop name" /></label>
               <label className={styles.adminField}><span>Logo URL</span><input {...field("logo_url")} placeholder="https://…" /></label>
               <label className={styles.adminField}><span>Banner URL</span><input {...field("banner_url")} placeholder="https://…" /></label>
-              <button type="submit" disabled={saving}>{saving ? "SAVING…" : form.id ? "UPDATE SHOP" : "ADD SHOP"}</button>
+              <button type="submit" disabled={saving}>{saving ? "Saving…" : form.id ? "Update shop" : "Add shop"}</button>
               {form.id ? <button type="button" onClick={() => setForm(emptyForm)}>Cancel</button> : null}
             </form>
 

@@ -521,7 +521,7 @@ export default function AdminClaimsPage() {
                           disabled={busy}
                           onClick={() => void saveClaim()}
                         >
-                          {busy ? "SAVING..." : "SAVE CLAIM"}
+                          {busy ? "Saving…" : "Save claim"}
                         </button>
                       </div>
                     </div>

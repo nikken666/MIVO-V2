@@ -960,7 +960,7 @@ export default function MarketingCampaignsPage() {
                           disabled={busy === "toggle-" + campaign.id}
                           onClick={() => void toggleCampaign(campaign)}
                         >
-                          {campaign.is_active ? "DEACTIVATE" : "ACTIVATE"}
+                          {campaign.is_active ? "Deactivate" : "Activate"}
                         </button>
                         <button
                           type="button"
@@ -1468,7 +1468,7 @@ export default function MarketingCampaignsPage() {
                           disabled={busy === "save"}
                           onClick={() => setPublishMode("publish")}
                         >
-                          <span>{busy === "save" ? "SAVING..." : editingId ? "SAVE & PUBLISH" : "PUBLISH CAMPAIGN"}</span>
+                          <span>{busy === "save" ? "Saving…" : editingId ? "SAVE & PUBLISH" : "PUBLISH CAMPAIGN"}</span>
                           <small>Runs automatically inside the selected time window.</small>
                         </button>
                       </div>

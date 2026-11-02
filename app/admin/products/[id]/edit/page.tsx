@@ -2276,7 +2276,7 @@ export default function EditProductPage() {
                     className={styles.adminAction}
                     disabled={busy}
                   >
-                    {busy ? "SAVING..." : "SAVE CHANGES"}
+                    {busy ? "Saving…" : "Save changes"}
                   </button>
                 </div>
               </div>

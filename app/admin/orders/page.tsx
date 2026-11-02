@@ -1096,8 +1096,8 @@ export default function AdminOrdersPage() {
                                   onClick={() => markPaid(order)}
                                 >
                                   {busy === order.order_number
-                                    ? "CONFIRMING..."
-                                    : "MARK AS PAID"}
+                                    ? "Confirming…"
+                                    : "Mark as paid"}
                                 </button>
                               </>
                             ) : null}

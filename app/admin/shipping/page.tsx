@@ -244,7 +244,7 @@ export default function AdminShippingPage() {
                           )
                         }
                       />
-                      <span>{rule.is_active ? "ACTIVE" : "INACTIVE"}</span>
+                      <span>{rule.is_active ? "Active" : "Inactive"}</span>
                     </label>
                   </div>
 
@@ -411,7 +411,7 @@ export default function AdminShippingPage() {
                       disabled={saving === rule.id}
                       onClick={() => saveRule(rule)}
                     >
-                      {saving === rule.id ? "SAVING..." : "SAVE RULE"}
+                      {saving === rule.id ? "Saving…" : "Save rule"}
                     </button>
                   </div>
                 </section>

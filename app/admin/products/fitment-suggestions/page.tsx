@@ -242,7 +242,7 @@ export default function FitmentSuggestionsPage() {
                 </select>
               </label>
               <button type="button" className={styles.adminAction} disabled={busy !== "" || !highReady} onClick={() => void approveAllHigh()}>
-                {busy === "bulk" ? "SAVING…" : "SAVE ALL HIGH-CONFIDENCE (" + highReady + ")"}
+                {busy === "bulk" ? "Saving…" : "SAVE ALL HIGH-CONFIDENCE (" + highReady + ")"}
               </button>
             </div>
 

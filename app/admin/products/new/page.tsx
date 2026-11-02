@@ -2463,7 +2463,7 @@ export default function AdminNewProductPage() {
                             onClick={() => void createBrand()}
                             disabled={savingBrand || !newBrandName.trim()}
                           >
-                            {savingBrand ? "ADDING..." : "ADD BRAND"}
+                            {savingBrand ? "Adding…" : "Add brand"}
                           </button>
                         </div>
                       </div>
@@ -2490,10 +2490,10 @@ export default function AdminNewProductPage() {
                       disabled={busy}
                     >
                       {busy
-                        ? "SAVING PRODUCT..."
+                        ? "Saving product…"
                         : copyMode
-                          ? "SAVE COPIED PRODUCT"
-                          : "SAVE PRODUCT"}
+                          ? "Save copied product"
+                          : "Save product"}
                     </button>
                   </div>
                 </div>

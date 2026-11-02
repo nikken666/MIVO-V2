@@ -730,7 +730,7 @@ export default function ArrangeShipmentPage() {
                               ]
                             }
                           >
-                            {arranged ? "ARRANGED" : "READY"}
+                            {arranged ? "Arranged" : "Ready"}
                           </span>
                           <small>{courierName(order)}</small>
                         </div>
@@ -744,9 +744,9 @@ export default function ArrangeShipmentPage() {
                             {arranged
                               ? order.shipment?.arrangement_method ===
                                 "pickup"
-                                ? "PICKUP"
+                                ? "Pickup"
                                 : "DROP-OFF"
-                              : "PAID"}
+                              : "Paid"}
                           </small>
                         </div>
                       </div>
@@ -811,8 +811,8 @@ export default function ArrangeShipmentPage() {
                             onClick={() => void markShipped(order)}
                           >
                             {shippingBusy === order.key
-                              ? "SAVING..."
-                              : "SAVE TRACKING & MARK SHIPPED"}
+                              ? "Saving…"
+                              : "Save tracking & mark shipped"}
                           </button>
                         </div>
                       ) : null}
@@ -938,7 +938,7 @@ export default function ArrangeShipmentPage() {
                 onClick={() => void arrangeSelected()}
               >
                 {busy
-                  ? "ARRANGING..."
+                  ? "Arranging…"
                   : "CONFIRM " +
                     selected.length +
                     " SHIPMENT" +

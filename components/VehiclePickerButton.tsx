@@ -83,7 +83,7 @@ export default function VehiclePickerButton({
           type="button"
           className={"vehiclePickerChip" + (label ? " hasVehicle" : "")}
           onClick={() => setOpen(true)}
-          aria-label={label ? "Change vehicle: " + label : "Select your car"}
+          aria-label={label ? t("vp.change") + ": " + label : t("vp.selectYourCar")}
         >
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M5 16h14M6.5 16l1.6-5.2A2 2 0 0 1 10 9.4h4a2 2 0 0 1 1.9 1.4L17.5 16M4 16v2.5M20 16v2.5" />
@@ -102,16 +102,16 @@ export default function VehiclePickerButton({
           onClick={() => setOpen(true)}
         >
           <span className="shopSideBannerKicker">
-            {label ? "Your car" : "Vehicle match"}
+            {label ? t("vp.yourCar") : t("vp.vehicleMatch")}
           </span>
-          <strong>{label ? label : "Find parts that fit"}</strong>
+          <strong>{label ? label : t("vp.findParts")}</strong>
           <small>
             {label
-              ? "Change vehicle or add another"
-              : "Pick your make, model and year"}
+              ? t("vp.changeOrAdd")
+              : t("vp.pickMake")}
           </small>
           <span className="shopSideBannerCta">
-            {label ? "Change" : "Select your car"} ›
+            {label ? t("vp.change") : t("vp.selectYourCar")} ›
           </span>
         </button>
       )}

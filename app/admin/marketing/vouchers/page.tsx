@@ -487,7 +487,7 @@ export default function MarketingVouchersPage() {
               <div className={styles.adminPanelHead}>
                 <div>
                   <span className={styles.adminPanelKicker}>
-                    {editingId ? "EDIT VOUCHER" : "CREATE VOUCHER"}
+                    {editingId ? "Edit voucher" : "Create voucher"}
                   </span>
                   <h2>Voucher Builder</h2>
                   <p>
@@ -588,7 +588,7 @@ export default function MarketingVouchersPage() {
                       <span>
                         {form.discount_type === "percent"
                           ? "DISCOUNT %"
-                          : "DISCOUNT RM"}
+                          : "Discount RM"}
                       </span>
                       <input
                         type="number"
@@ -765,9 +765,9 @@ export default function MarketingVouchersPage() {
                     disabled={busy === "save"}
                   >
                     {busy === "save"
-                      ? "SAVING..."
+                      ? "Saving…"
                       : editingId
-                        ? "SAVE VOUCHER"
+                        ? "Save voucher"
                         : "+ CREATE VOUCHER"}
                   </button>
 
@@ -854,7 +854,7 @@ export default function MarketingVouchersPage() {
                               : styles.promotionOff
                           }
                         >
-                          {voucher.is_active ? "ACTIVE" : "OFF"}
+                          {voucher.is_active ? "Active" : "Off"}
                         </button>
                         <button
                           type="button"
@@ -863,8 +863,8 @@ export default function MarketingVouchersPage() {
                           disabled={busy === "delete-" + voucher.id}
                         >
                           {busy === "delete-" + voucher.id
-                            ? "DELETING..."
-                            : "DELETE"}
+                            ? "Deleting…"
+                            : "Delete"}
                         </button>
                       </div>
                     </article>

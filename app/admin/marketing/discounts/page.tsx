@@ -418,7 +418,7 @@ export default function AdminDiscountsPage() {
                   className={styles.adminAction}
                   disabled={busy === "apply" || selected.length === 0}
                 >
-                  {busy === "apply" ? "APPLYING..." : "APPLY DISCOUNT"}
+                  {busy === "apply" ? "Applying…" : "Apply discount"}
                 </button>
                 {selected.length > 0 ? (
                   <button
@@ -450,7 +450,7 @@ export default function AdminDiscountsPage() {
                 className={styles.adminSecondaryAction}
                 onClick={toggleAllVisible}
               >
-                {allVisibleSelected ? "CLEAR VISIBLE" : "SELECT ALL VISIBLE"}
+                {allVisibleSelected ? "Clear visible" : "Select all visible"}
               </button>
             </div>
 
@@ -615,7 +615,7 @@ export default function AdminDiscountsPage() {
                 <div className={styles.discountPickerList}>
                   {filtered.map((row) => { const product=productData(row.products); const checked=selected.includes(row.id); return <button type="button" key={row.id} className={checked ? styles.discountPickerSelected : ""} onClick={() => toggleSelected(row.id)}><i>{checked ? <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.4 12 13 4.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg> : null}</i>{product?.primary_image_url ? <img src={product.primary_image_url} alt="" /> : <span className={styles.discountPickerFallback}>M</span>}<span><strong>{product?.name || "MIVO Product"}</strong><small>{row.title || "Default"} · {row.sku}</small><small>{money(row.price)}</small></span></button>})}
                 </div>
-                <div className={styles.productPickerFooter}><button type="button" className={styles.pickerSelectAll} onClick={toggleAllVisible}>{allVisibleSelected ? "CLEAR VISIBLE" : "SELECT ALL VISIBLE"}</button><span>{selected.length} SKU{selected.length===1?"":"s"} selected</span><button type="button" disabled={!selected.length} onClick={() => setPickerOpen(false)}>Confirm</button></div>
+                <div className={styles.productPickerFooter}><button type="button" className={styles.pickerSelectAll} onClick={toggleAllVisible}>{allVisibleSelected ? "Clear visible" : "Select all visible"}</button><span>{selected.length} SKU{selected.length===1?"":"s"} selected</span><button type="button" disabled={!selected.length} onClick={() => setPickerOpen(false)}>Confirm</button></div>
               </div>
             </div>
           ) : null}
