@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import readXlsxFile, { readSheetNames } from "read-excel-file";
 import { createClient } from "@/lib/supabase/client";
+import { readXlsx } from "@/lib/xlsxReader";
 import {
   guessBrandId,
   guessCategoryId,
@@ -18,6 +18,22 @@ import ui from "../../store-health/StoreHealth.module.css";
 type Option = { id: string; name: string };
 type CategoryRow = { id: string; name: string; parent_id: string | null };
 type LogLine = { name: string; ok: boolean; detail: string };
+
+// Supabase errors are plain objects, not Error instances: show all their parts.
+function describeError(caught: unknown): string {
+  const e = (caught || {}) as { message?: string; details?: string; hint?: string; code?: string };
+  const message = e.message || String(caught);
+  if (e.code === "23505" && /sku/i.test(message + (e.details || ""))) {
+    return (
+      "This SKU already exists in another shop and the database only allows each SKU once. " +
+      "Run supabase/shopee-import-fix.sql in Supabase so the same SKU can be listed in several shops (shared stock)."
+    );
+  }
+  if (e.code === "23502" && /primary_image_url/.test(message)) {
+    return "No product image. Also upload Shopee's Media Info file so each product has images.";
+  }
+  return [message, e.details, e.hint, e.code ? "(" + e.code + ")" : ""].filter(Boolean).join(" · ");
+}
 
 function slugify(value: string) {
   return value
@@ -40,6 +56,7 @@ export default function ShopeeImportPage() {
   const [products, setProducts] = useState<ImportProduct[]>([]);
   const [unrecognised, setUnrecognised] = useState<string[]>([]);
   const [existingSkus, setExistingSkus] = useState<Set<string>>(new Set());
+  const [categoryOverride, setCategoryOverride] = useState<Record<string, string>>({});
 
   const [shopId, setShopId] = useState("");
   const [status, setStatus] = useState<"draft" | "active">("draft");
@@ -90,7 +107,7 @@ export default function ShopeeImportPage() {
         setCategories(rows.filter((c) => !parents.has(c.id)).map((c) => ({ id: c.id, name: c.name })));
         setReady(true);
       } catch (caught) {
-        setError(caught instanceof Error ? caught.message : "Unable to load import tool.");
+        setError(describeError(caught) || "Unable to load import tool.");
       }
     })();
   }, []);
@@ -125,25 +142,32 @@ export default function ShopeeImportPage() {
       const tables: Table[] = [];
       for (const file of Array.from(list)) {
         if (/\.csv$/i.test(file.name)) {
-          tables.push({ name: file.name, rows: parseCsv(await file.text()) });
+          // Strip a UTF-8 byte-order mark so the first header still matches.
+          tables.push({ name: file.name, rows: parseCsv((await file.text()).replace(/^\uFEFF/, "")) });
           continue;
         }
-        const sheets = await readSheetNames(file);
-        for (const sheet of sheets) {
-          const rows = await readXlsxFile(file, { sheet });
-          // The library types date cells loosely; values are plain cells at runtime.
-          tables.push({ name: file.name + (sheets.length > 1 ? " › " + sheet : ""), rows: rows as unknown as Cell[][] });
+        if (/\.xls$/i.test(file.name)) {
+          throw new Error(file.name + " is an old .xls file. Open it in Excel and save as .xlsx, or export CSV.");
+        }
+        try {
+          const sheets = await readXlsx(await file.arrayBuffer());
+          for (const sheet of sheets) {
+            tables.push({ name: file.name + (sheets.length > 1 ? " › " + sheet.name : ""), rows: sheet.rows as Cell[][] });
+          }
+        } catch (caught) {
+          throw new Error(file.name + ": " + (caught instanceof Error ? caught.message : String(caught)));
         }
       }
       const parsed = parseShopeeTables(tables);
       setFiles(Array.from(list).map((f) => f.name));
       setProducts(parsed.products);
+      setCategoryOverride({});
       setUnrecognised(parsed.unrecognisedFiles);
       if (!parsed.products.length) {
         setError("No products found. Upload the product file exported from Shopee Seller Centre (Mass Update / Mass Upload).");
       }
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Unable to read the file.");
+      setError(describeError(caught) || "Unable to read the file.");
     }
   }
 
@@ -152,11 +176,12 @@ export default function ShopeeImportPage() {
       products.map((product) => {
         const newVariants = product.variants.filter((v) => !existingSkus.has(v.sku));
         const brandId = guessBrandId(product, brands);
-        const categoryId = guessCategoryId(product, categories) || defaultCategoryId;
+        const categoryId =
+          categoryOverride[product.key] || guessCategoryId(product, categories) || defaultCategoryId;
         const skip = product.variants.length > 0 && newVariants.length === 0;
         return { product, brandId, categoryId, skip, newVariants };
       }),
-    [products, existingSkus, brands, categories, defaultCategoryId]
+    [products, existingSkus, brands, categories, defaultCategoryId, categoryOverride]
   );
 
   const importable = plan.filter((row) => !row.skip && !row.product.errors.length && row.categoryId);
@@ -278,7 +303,7 @@ export default function ShopeeImportPage() {
         if (productId) await client.from("products").delete().eq("id", productId);
         setLog((current) => [
           ...current,
-          { name: product.name, ok: false, detail: caught instanceof Error ? caught.message : String((caught as { message?: string })?.message || caught) },
+          { name: product.name, ok: false, detail: describeError(caught) },
         ]);
       }
       setDone((n) => n + 1);
@@ -343,7 +368,7 @@ export default function ShopeeImportPage() {
                   You can select several files at once (e.g. basic info, sales info, media info); rows are joined by Product ID.
                 </p>
                 <label className={styles.importDrop}>
-                  <input type="file" accept=".xlsx,.csv" multiple onChange={(e) => void readFiles(e.target.files)} disabled={running} />
+                  <input type="file" accept=".xlsx,.xls,.csv" multiple onChange={(e) => void readFiles(e.target.files)} disabled={running} />
                   <strong>{files.length ? files.join(", ") : "Choose .xlsx / .csv files"}</strong>
                   <small>Your files stay in this browser until you press Import.</small>
                 </label>
@@ -398,7 +423,19 @@ export default function ShopeeImportPage() {
                             <td>{product.variants.map((v) => v.sku).join(", ")}</td>
                             <td>{product.variants.map((v) => v.price ?? "?").join(" / ")}</td>
                             <td>{brands.find((b) => b.id === brandId)?.name || "—"}</td>
-                            <td>{categories.find((c) => c.id === categoryId)?.name || "—"}</td>
+                            <td>
+                              <select
+                                className={styles.importRowSelect}
+                                value={categoryId}
+                                disabled={running}
+                                onChange={(e) =>
+                                  setCategoryOverride((current) => ({ ...current, [product.key]: e.target.value }))
+                                }
+                              >
+                                <option value="">— Choose —</option>
+                                {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                              </select>
+                            </td>
                             <td>
                               {product.errors.length
                                 ? "❌ " + product.errors.join("; ")
@@ -432,6 +469,12 @@ export default function ShopeeImportPage() {
                       <a className={styles.adminAction} href="/admin/products/fitment-suggestions">Review vehicle fitment →</a>
                     ) : null}
                   </div>
+                  {!running && !importable.length && summary.noCategory ? (
+                    <p className={ui.timestamp}>
+                      {summary.noCategory} product(s) have no category. Pick one per row in the preview, or set
+                      “Category when not detected” in Settings.
+                    </p>
+                  ) : null}
                   {running || log.length ? (
                     <>
                       <div className={styles.importProgress}><i style={{ width: (importable.length ? (done / Math.max(1, importable.length)) * 100 : 0) + "%" }} /></div>

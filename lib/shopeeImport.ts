@@ -75,7 +75,8 @@ const matchers: Array<[Field, RegExp]> = [
 ];
 
 function fieldFor(header: Cell): Field | null {
-  const h = norm(header);
+  // Technical keys look like "et_title_product_id"; drop the prefix.
+  const h = norm(header).replace(/^ettitle/, "");
   if (!h || h.length > 60) return null;
   for (const [field, re] of matchers) if (re.test(h)) return field;
   return null;
@@ -123,7 +124,7 @@ function imageUrl(value: Cell): string | null {
 }
 
 // Template guidance rows ("Mandatory", "Please enter…") are not products.
-const guidance = /mandatory|optional|please (enter|fill|select)|characters|e\.g\.|example|template|^\*/i;
+const guidance = /mandatory|optional|required|please (enter|fill|select)|characters|e\.g\.|example|template|^\*/i;
 
 type RowRecord = Partial<Record<Exclude<Field, "image">, string>> & { images: string[] };
 
