@@ -1,4 +1,5 @@
 import type { Product } from "@/data/products";
+import { isVehicleWord } from "@/lib/vehicleTerms";
 
 // Catalogue search: every word may appear anywhere (name, brand, SKU / OEM,
 // category, shop, variation, description), in any order. SKUs and OEM numbers
@@ -81,15 +82,19 @@ export function searchProducts(products: Product[], query: string): {
     const fields = fieldsFor(product);
     const scores = tokens.map((token) => tokenScore(token, fields));
     const matched = scores.filter((s) => s > 0).length;
+    // Every word except car names ("myvi") must match: part names rarely mention the car.
+    const allRequired = tokens.every(
+      (token, i) => scores[i] > 0 || (isVehicleWord(token) && tokens.some((t) => !isVehicleWord(t)))
+    );
     // Whole query as a phrase in the name ranks highest.
     const phrase = fields[0]?.text.includes(normalise(query).trim()) ? 20 : 0;
-    return { product, index, matched, score: scores.reduce((a, b) => a + b, 0) + phrase };
+    return { product, index, matched, allRequired, score: scores.reduce((a, b) => a + b, 0) + phrase };
   });
 
   const byRelevance = (a: (typeof scored)[number], b: (typeof scored)[number]) =>
     b.matched - a.matched || b.score - a.score || a.index - b.index;
 
-  const all = scored.filter((s) => s.matched === tokens.length).sort(byRelevance);
+  const all = scored.filter((s) => s.allRequired).sort(byRelevance);
   if (all.length) return { items: all.map((s) => s.product), exact: true };
 
   const needed = Math.max(1, Math.ceil(tokens.length / 2));

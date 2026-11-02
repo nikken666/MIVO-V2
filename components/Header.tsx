@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useMarketplace } from "./MarketplaceProvider";
 import Logo from "./Logo";
 import VehiclePickerButton, { openVehiclePicker } from "./VehiclePickerButton";
 import { useLanguage } from "./LanguageProvider";
+import SearchSuggest from "./SearchSuggest";
 import { localeNames, locales, type Locale } from "@/lib/i18n";
 
 export default function Header() {
@@ -15,17 +15,8 @@ export default function Header() {
   const { t, locale, setLocale } = useLanguage();
   const [loggedIn, setLoggedIn] = useState(false);
   const [customerName, setCustomerName] = useState("");
-  const pathname = usePathname();
   const searchRef = useRef<HTMLInputElement>(null);
 
-  // Keep the search box showing the current query on the results page.
-  useEffect(() => {
-    if (!searchRef.current) return;
-    searchRef.current.value =
-      pathname === "/products"
-        ? new URLSearchParams(window.location.search).get("q") || ""
-        : "";
-  }, [pathname]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -122,15 +113,7 @@ export default function Header() {
 
           <form className="headerSearch hasVehicleChip" action="/products">
             <VehiclePickerButton variant="chip" autoOpenFromUrl />
-            <input
-              ref={searchRef}
-              name="q"
-              type="search"
-              enterKeyHint="search"
-              autoComplete="off"
-              aria-label="Search parts"
-              placeholder={t("header.searchPlaceholder")}
-            />
+            <SearchSuggest inputRef={searchRef} />
             <button type="submit">{t("header.search")}</button>
           </form>
 
