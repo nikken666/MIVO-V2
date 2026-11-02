@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import ReviewCelebration from "@/components/orders/ReviewCelebration";
 import { FormEvent, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -459,11 +460,13 @@ export default function OrderReviewPage() {
   }
 
   if (submitted && order) {
+    const rated = Object.values(drafts).map((draft) => draft.rating).filter((n) => n > 0);
+    const averageStars = rated.length ? Math.round(rated.reduce((a, b) => a + b, 0) / rated.length) : 0;
     return (
       <main className="accountDataPage reviewOrderPage reviewThanksPage">
         <div className="container">
           <section className="reviewThanksCard">
-            <div className="reviewThanksIcon">✓</div>
+            <ReviewCelebration stars={averageStars} />
             <span>{t("account.review.submitted")}</span>
             <h1>{t("account.review.thanksTitle")}</h1>
             <p>

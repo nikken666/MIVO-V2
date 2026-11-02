@@ -18,7 +18,9 @@ export async function stripeRequest<T>(
   path: string,
   options: StripeRequestOptions = {}
 ): Promise<T> {
-  const response = await fetch("https://api.stripe.com/v1" + path, {
+  // STRIPE_API_BASE lets local tests point at a mock Stripe server.
+  const base = process.env.STRIPE_API_BASE || "https://api.stripe.com";
+  const response = await fetch(base + "/v1" + path, {
     method: options.method || "GET",
     headers: {
       Authorization: "Bearer " + getStripeSecretKey(),

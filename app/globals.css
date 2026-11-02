@@ -11081,3 +11081,9 @@ button.shopChip{font:inherit;cursor:pointer}
 .fitmentLevelTag.level-verified{background:#e8f6ee;color:#1d7a3b}
 .fitmentLevelTag.level-seller{background:rgba(255,196,0,.2);color:#6b5200}
 .fitmentPill.seller-fits{background:#fff4cc!important;color:#6b5200!important}
+/* Review stars: pop when tapped */
+.reviewStars button.active{animation:reviewStarPop .35s cubic-bezier(.3,1.6,.5,1)}
+@keyframes reviewStarPop{0%{transform:scale(.6)}100%{transform:scale(1)}}
+.reviewThanksCard{animation:reviewCardIn .5s ease-out both}
+@keyframes reviewCardIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.reviewStars button.active,.reviewThanksCard{animation:none}}

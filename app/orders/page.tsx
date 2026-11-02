@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import OrderStatusIcon from "@/components/orders/OrderStatusIcon";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -422,9 +423,12 @@ export default function OrdersPage() {
                         </small>
                       </div>
 
-                      <div className={"shopOrderStatus " + bucket}>
-                        <span>{copy.title}</span>
-                        <small>{copy.text}</small>
+                      <div className={"shopOrderStatus " + bucket} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <OrderStatusIcon bucket={bucket} />
+                        <div>
+                          <span>{copy.title}</span>
+                          <small>{copy.text}</small>
+                        </div>
                       </div>
                     </div>
 

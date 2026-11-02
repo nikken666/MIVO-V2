@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import OrderJourney from "@/components/orders/OrderJourney";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import ChatNowButton from "@/components/chat/ChatNowButton";
@@ -64,13 +65,6 @@ type OrderStatusHistoryRow = {
   created_at: string;
 };
 
-const steps: Array<{ key: string; label: Key }> = [
-  { key: "placed", label: "account.detail.stepPlaced" },
-  { key: "paid", label: "account.detail.stepPaid" },
-  { key: "packed", label: "account.detail.stepPacked" },
-  { key: "shipped", label: "account.detail.stepShipped" },
-  { key: "delivered", label: "account.detail.stepDelivered" },
-];
 
 function progressForStatus(status: string) {
   if (status === "delivered") return 4;
@@ -477,21 +471,14 @@ export default function OrderDetailsPage() {
         </div>
 
         {!cancelled ? (
-          <section className="orderProgressCard">
-            <div className="orderProgressLine" />
-            {steps.map((step, index) => (
-              <div
-                className={
-                  "orderProgressStep" +
-                  (index <= progress ? " complete" : "")
-                }
-                key={step.key}
-              >
-                <i>{index <= progress ? "✓" : index + 1}</i>
-                <span>{t(step.label)}</span>
-              </div>
-            ))}
-          </section>
+          <OrderJourney
+            status={order.status}
+            detail={
+              order.status === "shipped" && shipment?.tracking_number
+                ? (shipment.courier_name || t("account.detail.courier")) + " · " + shipment.tracking_number
+                : null
+            }
+          />
         ) : (
           <section className="orderCancelledBanner">
             <strong>{formatStatus(order.status, t)}</strong>
