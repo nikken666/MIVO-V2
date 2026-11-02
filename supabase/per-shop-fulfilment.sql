@@ -63,6 +63,7 @@ declare
   v_seller_snapshot jsonb;
   v_shipment_snapshot jsonb;
   v_columns text;
+  v_step integer;
   v_assignments text;
 begin
   if not public.is_admin() then
@@ -100,7 +101,8 @@ begin
   -- A shop is never behind its parent order (older orders were moved as a whole).
   v_current_rank := greatest(public.mivo_fulfilment_rank(v_seller_order.status), v_parent_rank);
 
-  if v_next_rank <> v_current_rank + 1 then
+  -- Forward only. Shipping may skip processing/packed, like the whole-order flow.
+  if v_next_rank <= v_current_rank or (v_next_rank = 5 and v_current_rank < 4) then
     raise exception 'This shop parcel is %, it cannot move to %',
       public.mivo_fulfilment_status(v_current_rank), p_status;
   end if;
@@ -174,13 +176,16 @@ begin
     order by so.created_at, sh.created_at
     limit 1;
 
-    perform public.admin_update_order_fulfilment(
-      p_order_number => v_order.order_number,
-      p_status => public.mivo_fulfilment_status(v_min_rank),
-      p_courier_name => case when v_min_rank = 4 then v_first_shipment.courier_name end,
-      p_tracking_number => case when v_min_rank = 4 then v_first_shipment.tracking_number end,
-      p_tracking_url => case when v_min_rank = 4 then v_first_shipment.tracking_url end
-    );
+    -- One step at a time, so the parent order passes through every status.
+    for v_step in (v_parent_rank + 1)..v_min_rank loop
+      perform public.admin_update_order_fulfilment(
+        p_order_number => v_order.order_number,
+        p_status => public.mivo_fulfilment_status(v_step),
+        p_courier_name => case when v_step = 4 then v_first_shipment.courier_name end,
+        p_tracking_number => case when v_step = 4 then v_first_shipment.tracking_number end,
+        p_tracking_url => case when v_step = 4 then v_first_shipment.tracking_url end
+      );
+    end loop;
 
     -- Restore per-shop state.
     update public.seller_orders so
@@ -237,6 +242,78 @@ $$;
 revoke all on function public.admin_update_shop_fulfilment(uuid, text, text, text, text)
   from public, anon;
 grant execute on function public.admin_update_shop_fulfilment(uuid, text, text, text, text)
+  to authenticated;
+
+-- Mass-arrange shipment for individual shop parcels (multi-shop orders).
+create or replace function public.admin_arrange_shop_shipments(
+  p_seller_order_ids uuid[],
+  p_arrangement_method text,
+  p_pickup_date text default null,
+  p_courier_name text default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_row record;
+  v_shipment_id uuid;
+  v_courier text;
+  v_count integer := 0;
+begin
+  if not public.is_admin() then
+    raise exception 'Only MIVO admins can arrange shipments';
+  end if;
+  if p_arrangement_method not in ('drop_off', 'pickup') then
+    raise exception 'Unknown arrangement method %', p_arrangement_method;
+  end if;
+
+  for v_row in
+    select so.id, o.shipping_address
+      from public.seller_orders so
+      join public.orders o on o.id = so.order_id
+     where so.id = any(p_seller_order_ids)
+       and o.payment_status = 'paid'
+       and o.status in ('paid', 'processing', 'packed', 'shipped')
+       and public.mivo_fulfilment_rank(so.status) < 4
+  loop
+    v_courier := coalesce(
+      nullif(btrim(p_courier_name), ''),
+      nullif(v_row.shipping_address ->> 'shipping_courier_name', '')
+    );
+
+    select id into v_shipment_id
+      from public.shipments
+     where seller_order_id = v_row.id
+     order by created_at
+     limit 1;
+
+    if v_shipment_id is null then
+      insert into public.shipments
+        (seller_order_id, courier_name, status, arrangement_method, pickup_date)
+      values
+        (v_row.id, v_courier, 'booked', p_arrangement_method,
+         case when p_arrangement_method = 'pickup' then nullif(p_pickup_date, '')::date end);
+    else
+      update public.shipments
+         set courier_name = coalesce(v_courier, courier_name),
+             status = 'booked',
+             arrangement_method = p_arrangement_method,
+             pickup_date = case when p_arrangement_method = 'pickup'
+                                then nullif(p_pickup_date, '')::date end
+       where id = v_shipment_id;
+    end if;
+    v_count := v_count + 1;
+  end loop;
+
+  return jsonb_build_object('processed_count', v_count);
+end;
+$$;
+
+revoke all on function public.admin_arrange_shop_shipments(uuid[], text, text, text)
+  from public, anon;
+grant execute on function public.admin_arrange_shop_shipments(uuid[], text, text, text)
   to authenticated;
 
 commit;

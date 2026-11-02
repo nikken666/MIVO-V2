@@ -7,6 +7,7 @@ import styles from "../Admin.module.css";
 type OrderItemRow = {
   id: string;
   order_id: string;
+  seller_order_id: string | null;
   product_name: string;
   sku: string;
   quantity: number;
@@ -21,6 +22,8 @@ type ProfileRow = {
 type SellerOrderRow = {
   id: string;
   order_id: string;
+  seller_id: string | null;
+  status: string;
 };
 
 type ShipmentRow = {
@@ -51,7 +54,22 @@ type OrderView = OrderRow & {
   customer?: ProfileRow;
   shipment?: ShipmentRow;
   shopCount: number;
+  // One row per order, or per shop parcel when an order spans several shops.
+  key: string;
+  parcelId?: string;
+  shopName?: string;
+  parcelIndex?: number;
 };
+
+const fulfilmentSteps = ["paid", "processing", "packed", "shipped", "delivered"];
+
+function describeError(caught: unknown, fallback: string) {
+  const text =
+    (caught as { message?: string } | null)?.message || fallback;
+  return /admin_(arrange_shop_shipments|update_shop_fulfilment)/.test(text)
+    ? "Run supabase/per-shop-fulfilment.sql in Supabase to ship multi-shop orders per shop."
+    : text;
+}
 
 type PageTab = "ready" | "arranged";
 
@@ -187,14 +205,14 @@ export default function ArrangeShipmentPage() {
         orderIds.length
           ? supabase
               .from("order_items")
-              .select("id, order_id, product_name, sku, quantity")
+              .select("id, order_id, seller_order_id, product_name, sku, quantity")
               .in("order_id", orderIds)
               .order("created_at")
           : Promise.resolve({ data: [], error: null }),
         orderIds.length
           ? supabase
               .from("seller_orders")
-              .select("id, order_id")
+              .select("id, order_id, seller_id, status")
               .in("order_id", orderIds)
               .order("created_at")
           : Promise.resolve({ data: [], error: null }),
@@ -241,40 +259,73 @@ export default function ArrangeShipmentPage() {
 
     if (shipmentResult.error) throw shipmentResult.error;
 
-    // First shop order per order; multi-shop orders ship per shop in Orders.
-    const sellerOrderByOrder = new Map<string, string>();
-    const shopCountByOrder = new Map<string, number>();
+    const sellerIds = Array.from(
+      new Set(
+        sellerOrders
+          .map((row) => row.seller_id)
+          .filter((value): value is string => Boolean(value))
+      )
+    );
+    const shopResult = sellerIds.length
+      ? await supabase.from("sellers").select("id, shop_name").in("id", sellerIds)
+      : { data: [], error: null };
+    const shopNames = new Map(
+      (
+        (shopResult.data as Array<{ id: string; shop_name: string }> | null) ||
+        []
+      ).map((row) => [row.id, row.shop_name])
+    );
+
+    const sellerOrdersByOrder = new Map<string, SellerOrderRow[]>();
     sellerOrders.forEach((row) => {
-      if (!sellerOrderByOrder.has(row.order_id)) {
-        sellerOrderByOrder.set(row.order_id, row.id);
-      }
-      shopCountByOrder.set(
-        row.order_id,
-        (shopCountByOrder.get(row.order_id) || 0) + 1
-      );
+      const rows = sellerOrdersByOrder.get(row.order_id) || [];
+      rows.push(row);
+      sellerOrdersByOrder.set(row.order_id, rows);
     });
-    const shipmentBySellerOrder = new Map(
-      ((shipmentResult.data as ShipmentRow[] | null) || []).map((row) => [
-        row.seller_order_id,
-        row,
-      ])
-    );
+    const shipmentBySellerOrder = new Map<string, ShipmentRow>();
+    ((shipmentResult.data as ShipmentRow[] | null) || []).forEach((row) => {
+      if (!shipmentBySellerOrder.has(row.seller_order_id)) {
+        shipmentBySellerOrder.set(row.seller_order_id, row);
+      }
+    });
 
-    setOrders(
-      baseOrders.map((order) => {
-        const sellerOrderId = sellerOrderByOrder.get(order.id);
+    const rows: OrderView[] = [];
+    baseOrders.forEach((order) => {
+      const items = itemsByOrder.get(order.id) || [];
+      const parcels = sellerOrdersByOrder.get(order.id) || [];
+      const base = {
+        ...order,
+        items,
+        customer: profiles.get(order.user_id),
+        shopCount: Math.max(parcels.length, 1),
+      };
 
-        return {
-          ...order,
-          items: itemsByOrder.get(order.id) || [],
-          customer: profiles.get(order.user_id),
-          shopCount: shopCountByOrder.get(order.id) || 1,
-          shipment: sellerOrderId
-            ? shipmentBySellerOrder.get(sellerOrderId)
-            : undefined,
-        };
-      })
-    );
+      if (parcels.length <= 1) {
+        rows.push({
+          ...base,
+          key: order.order_number,
+          shipment: parcels[0] ? shipmentBySellerOrder.get(parcels[0].id) : undefined,
+        });
+        return;
+      }
+
+      const parentRank = fulfilmentSteps.indexOf(order.status);
+      parcels.forEach((parcel, index) => {
+        // Parcels already shipped are done here.
+        if (Math.max(fulfilmentSteps.indexOf(parcel.status), parentRank) >= 3) return;
+        rows.push({
+          ...base,
+          key: "parcel:" + parcel.id,
+          parcelId: parcel.id,
+          parcelIndex: index + 1,
+          shopName: (parcel.seller_id && shopNames.get(parcel.seller_id)) || "MIVO shop",
+          items: items.filter((item) => item.seller_order_id === parcel.id),
+          shipment: shipmentBySellerOrder.get(parcel.id),
+        });
+      });
+    });
+
+    setOrders(rows);
   }
 
   useEffect(() => {
@@ -343,7 +394,7 @@ export default function ArrangeShipmentPage() {
   const selectable = filtered.filter((order) => !isArranged(order));
   const allVisibleSelected =
     selectable.length > 0 &&
-    selectable.every((order) => selected.includes(order.order_number));
+    selectable.every((order) => selected.includes(order.key));
 
   function toggleOrder(orderNumber: string) {
     setSelected((current) =>
@@ -354,7 +405,7 @@ export default function ArrangeShipmentPage() {
   }
 
   function toggleAllVisible() {
-    const visible = selectable.map((order) => order.order_number);
+    const visible = selectable.map((order) => order.key);
 
     setSelected((current) => {
       const allSelected = visible.every((value) => current.includes(value));
@@ -376,24 +427,48 @@ export default function ArrangeShipmentPage() {
 
     try {
       const supabase = createClient();
-      const { data, error: arrangeError } = await supabase.rpc(
-        "admin_mass_arrange_shipments",
-        {
-          p_order_numbers: selected,
-          p_arrangement_method: arrangementMethod,
-          p_pickup_date:
-            arrangementMethod === "pickup" && pickupDate
-              ? pickupDate
-              : null,
-          p_courier_name: courierOverride.trim() || null,
-        }
-      );
+      const pickup =
+        arrangementMethod === "pickup" && pickupDate ? pickupDate : null;
+      const courierName = courierOverride.trim() || null;
+      // Single-shop orders use the order-level arrangement; shop parcels
+      // of multi-shop orders are arranged one by one.
+      const orderNumbers = selected.filter((key) => !key.startsWith("parcel:"));
+      const parcelIds = selected
+        .filter((key) => key.startsWith("parcel:"))
+        .map((key) => key.slice("parcel:".length));
+      let processedCount = 0;
 
-      if (arrangeError) throw arrangeError;
+      if (orderNumbers.length) {
+        const { data, error: arrangeError } = await supabase.rpc(
+          "admin_mass_arrange_shipments",
+          {
+            p_order_numbers: orderNumbers,
+            p_arrangement_method: arrangementMethod,
+            p_pickup_date: pickup,
+            p_courier_name: courierName,
+          }
+        );
+        if (arrangeError) throw arrangeError;
+        processedCount += Number(
+          (data as { processed_count?: number } | null)?.processed_count || 0
+        );
+      }
 
-      const processedCount = Number(
-        (data as { processed_count?: number } | null)?.processed_count || 0
-      );
+      if (parcelIds.length) {
+        const { data, error: arrangeError } = await supabase.rpc(
+          "admin_arrange_shop_shipments",
+          {
+            p_seller_order_ids: parcelIds,
+            p_arrangement_method: arrangementMethod,
+            p_pickup_date: pickup,
+            p_courier_name: courierName,
+          }
+        );
+        if (arrangeError) throw arrangeError;
+        processedCount += Number(
+          (data as { processed_count?: number } | null)?.processed_count || 0
+        );
+      }
 
       await loadOrders();
       setSelected([]);
@@ -401,23 +476,19 @@ export default function ArrangeShipmentPage() {
       setTab("arranged");
       setMessage(
         processedCount +
-          " paid order" +
+          " shipment" +
           (processedCount === 1 ? "" : "s") +
-          " arranged for shipment."
+          " arranged."
       );
     } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : "Unable to arrange selected shipments."
-      );
+      setError(describeError(caught, "Unable to arrange selected shipments."));
     } finally {
       setBusy(false);
     }
   }
 
   async function markShipped(order: OrderView) {
-    const orderNumber = order.order_number;
+    const orderNumber = order.key;
     const courier = (
       courierInputs[orderNumber] ??
       order.shipment?.courier_name ??
@@ -443,27 +514,32 @@ export default function ArrangeShipmentPage() {
 
     try {
       const supabase = createClient();
-      const { error: shipError } = await supabase.rpc(
-        "admin_update_order_fulfilment",
-        {
-          p_order_number: orderNumber,
-          p_status: "shipped",
-          p_courier_name: courier,
-          p_tracking_number: tracking,
-          p_tracking_url: trackingUrl || null,
-        }
-      );
+      const { error: shipError } = order.parcelId
+        ? await supabase.rpc("admin_update_shop_fulfilment", {
+            p_seller_order_id: order.parcelId,
+            p_status: "shipped",
+            p_courier_name: courier,
+            p_tracking_number: tracking,
+            p_tracking_url: trackingUrl || null,
+          })
+        : await supabase.rpc("admin_update_order_fulfilment", {
+            p_order_number: order.order_number,
+            p_status: "shipped",
+            p_courier_name: courier,
+            p_tracking_number: tracking,
+            p_tracking_url: trackingUrl || null,
+          });
 
       if (shipError) throw shipError;
 
       await loadOrders();
-      setMessage(orderNumber + " marked as SHIPPED.");
-    } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : "Unable to mark this order as shipped."
+      setMessage(
+        order.order_number +
+          (order.shopName ? " · " + order.shopName : "") +
+          " marked as SHIPPED."
       );
+    } catch (caught) {
+      setError(describeError(caught, "Unable to mark this order as shipped."));
     } finally {
       setShippingBusy("");
     }
@@ -604,14 +680,14 @@ export default function ArrangeShipmentPage() {
                   return (
                     <article
                       className={styles.adminOrderCard}
-                      key={order.id}
+                      key={order.key}
                     >
                       {!arranged ? (
                         <label className={styles.adminOrderBatchCheck}>
                           <input
                             type="checkbox"
-                            checked={selected.includes(order.order_number)}
-                            onChange={() => toggleOrder(order.order_number)}
+                            checked={selected.includes(order.key)}
+                            onChange={() => toggleOrder(order.key)}
                           />
                           <span>SELECT</span>
                         </label>
@@ -624,6 +700,12 @@ export default function ArrangeShipmentPage() {
                         <div className={styles.adminOrderIdentity}>
                           <span>ORDER</span>
                           <strong>{order.order_number}</strong>
+                          {order.parcelId ? (
+                            <small>
+                              Parcel {order.parcelIndex}/{order.shopCount} ·{" "}
+                              {order.shopName}
+                            </small>
+                          ) : null}
                           <small>
                             Paid{" "}
                             {order.paid_at
@@ -690,36 +772,20 @@ export default function ArrangeShipmentPage() {
                         </div>
                       </div>
 
-                      {arranged && order.shopCount > 1 ? (
-                        <div className={styles.adminArrangedTracking}>
-                          <p className={styles.adminNotice}>
-                            {order.shopCount} shops in this order. Each shop
-                            ships its own parcel with its own tracking number.
-                          </p>
-                          <a
-                            className={styles.adminAction}
-                            href={
-                              "/admin/orders?order=" +
-                              encodeURIComponent(order.order_number)
-                            }
-                          >
-                            SHIP PER SHOP →
-                          </a>
-                        </div>
-                      ) : arranged ? (
+                      {arranged ? (
                         <div className={styles.adminArrangedTracking}>
                           <label>
                             <span>COURIER *</span>
                             <select
                               value={
-                                courierInputs[order.order_number] ??
+                                courierInputs[order.key] ??
                                 order.shipment?.courier_name ??
                                 ""
                               }
                               onChange={(event) =>
                                 setCourierInputs((current) => ({
                                   ...current,
-                                  [order.order_number]: event.target.value,
+                                  [order.key]: event.target.value,
                                 }))
                               }
                             >
@@ -733,14 +799,14 @@ export default function ArrangeShipmentPage() {
                             <span>TRACKING NUMBER *</span>
                             <input
                               value={
-                                trackingInputs[order.order_number] ??
+                                trackingInputs[order.key] ??
                                 order.shipment?.tracking_number ??
                                 ""
                               }
                               onChange={(event) =>
                                 setTrackingInputs((current) => ({
                                   ...current,
-                                  [order.order_number]: event.target.value,
+                                  [order.key]: event.target.value,
                                 }))
                               }
                               placeholder="Enter tracking number"
@@ -751,21 +817,21 @@ export default function ArrangeShipmentPage() {
                             type="button"
                             className={styles.adminAction}
                             disabled={
-                              shippingBusy === order.order_number ||
+                              shippingBusy === order.key ||
                               !(
-                                courierInputs[order.order_number] ??
+                                courierInputs[order.key] ??
                                 order.shipment?.courier_name ??
                                 ""
                               ).trim() ||
                               !(
-                                trackingInputs[order.order_number] ??
+                                trackingInputs[order.key] ??
                                 order.shipment?.tracking_number ??
                                 ""
                               ).trim()
                             }
                             onClick={() => void markShipped(order)}
                           >
-                            {shippingBusy === order.order_number
+                            {shippingBusy === order.key
                               ? "SAVING..."
                               : "SAVE TRACKING & MARK SHIPPED"}
                           </button>
