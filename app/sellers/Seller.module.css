@@ -255,3 +255,6 @@
     flex-direction: column;
   }
 }
+
+/* Unified theme */
+.eyebrow{color:var(--accent)!important}

@@ -10827,3 +10827,83 @@ button:disabled,.btn[aria-disabled="true"]{cursor:not-allowed;translate:none!imp
   .shopPageHero{padding:28px 0 22px}
   .shopPageAvatar{width:60px;height:60px;border-radius:18px;font-size:24px}
 }
+
+/* =====================================================================
+   UNIFIED THEME (final layer)
+   One palette everywhere: white / soft grey surfaces, MIVO blue for
+   actions and highlights, MIVO yellow for small accents. Replaces the
+   last black and red pieces left from the old black & red theme.
+   ===================================================================== */
+:root{
+  --brand-gradient:linear-gradient(135deg,#0a4fd6 0%,var(--accent) 55%,#4f9bff 100%);
+  --brand-glow:radial-gradient(circle at 85% 15%,rgba(255,196,0,.35),transparent 40%);
+}
+
+/* Header: sign-in is a soft blue pill, not a black block. */
+.signInHeaderAction,
+.signInHeaderAction:hover{background:rgba(var(--accent-rgb),.08)!important;color:var(--accent)!important;box-shadow:none!important}
+.signInHeaderAction small{color:rgba(var(--accent-rgb),.7)!important}
+.signInHeaderAction strong{color:var(--accent)!important}
+.signInHeaderAction:hover{background:rgba(var(--accent-rgb),.14)!important}
+
+/* Dark hero panels become the brand gradient. */
+.garageHero,
+.mivoAuthVisual{background:var(--brand-glow),var(--brand-gradient)!important;color:#fff}
+.garageHero *,
+.mivoAuthVisual *{border-color:rgba(255,255,255,.22)}
+.mivoAuthVisual h1 em,
+.mivoAuthVisual h1 span{color:rgba(255,255,255,.72)!important}
+.shopSlide.tone-night{background:radial-gradient(ellipse at 80% 20%,rgba(255,196,0,.28),transparent 50%),linear-gradient(135deg,#0a3fb0 0%,#0a4fd6 50%,var(--accent) 100%)!important}
+
+/* Buttons, chips and active tabs that were black. */
+.btn.btnDark,
+.ordersEmpty>a,
+.ordersEmpty a{background:var(--accent)!important;color:#fff!important;border-color:transparent!important;border-radius:999px;text-transform:none;letter-spacing:0}
+.btn.btnDark:hover,
+.ordersEmpty a:hover{background:var(--accent-hover)!important}
+.shopChip.active{background:var(--accent)!important;color:#fff!important}
+.policyNav a[aria-current="page"]{background:rgba(var(--accent-rgb),.1)!important;color:var(--accent)!important}
+
+/* Old red accents. */
+.orderCancelButton{color:var(--grey)!important}
+.orderCancelButton:hover{color:var(--ink)!important}
+
+/* Vehicle picker: readable sizes, brand hover states. */
+.productVehicleModal{border:0;border-radius:24px;box-shadow:0 30px 80px rgba(0,0,0,.18)}
+.productVehicleModalHead{padding:24px 28px 18px}
+.productVehicleModalHead h2{font-size:24px;letter-spacing:-.02em}
+.productVehicleModalHead p,
+.productVehicleModalHead span{font-size:13px}
+.productVehicleBody{padding:20px 28px 28px}
+.productVehicleBody h3{font-size:20px;letter-spacing:-.015em}
+.productVehicleProgress{height:4px;border-radius:4px;background:var(--soft)}
+.productVehicleProgress span,
+.productVehicleProgress i{background:var(--accent);border-radius:4px}
+.productVehicleChoiceGrid button,
+.productVehicleYearGrid button,
+.productVehicleTransmissionGrid button{min-height:52px;border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--ink);font-size:15px;font-weight:600;transition:border-color .15s var(--ease),background-color .15s var(--ease),transform .15s var(--ease)}
+.productVehicleChoiceGrid button:hover,
+.productVehicleYearGrid button:hover,
+.productVehicleTransmissionGrid button:hover{border-color:var(--accent);background:rgba(var(--accent-rgb),.05)}
+.productVehicleChoiceGrid button:active,
+.productVehicleYearGrid button:active,
+.productVehicleTransmissionGrid button:active{transform:scale(.98)}
+.productVehicleApply{background:var(--accent);color:#fff;border-radius:999px}
+@media(max-width:600px){
+  .productVehicleModal{border-radius:24px 24px 0 0}
+  .productVehicleModalHead{padding:20px 18px 14px}
+  .productVehicleBody{padding:16px 18px 24px}
+}
+/* Light text on the blue panels. */
+.garageHero p,.garageHero span,.garageHero small,
+.mivoAuthVisual p,.mivoAuthVisual span,.mivoAuthVisual small,.mivoAuthVisual li{color:rgba(255,255,255,.82)!important}
+.garageHero h1,.mivoAuthVisual h1{color:#fff!important}
+.productVehicleChoiceGrid button>*,
+.productVehicleYearGrid button>*,
+.productVehicleTransmissionGrid button>*{font-size:15px!important;font-weight:600}
+.productVehicleChoiceGrid button small,
+.productVehicleYearGrid button small,
+.productVehicleTransmissionGrid button small{font-size:12px!important;font-weight:500;color:var(--grey)}
+.productVehicleStepTop,.productVehicleStepTop *{font-size:12px!important}
+.productVehicleModalHead>div>span:first-child{font-size:12px!important;letter-spacing:.02em}
+.mivoAuthVisual .mivoLogo img,.garageHero .mivoLogo img{filter:brightness(0) invert(1)}
