@@ -1,17 +1,17 @@
 .adminShell{min-height:75vh;padding:34px 0 80px;background:#f3f4f4}
 .adminTop{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:24px}
-.adminEyebrow{font-size:9px;font-weight:900;letter-spacing:.14em;color:#8b9094}
+.adminEyebrow{font-size:9px;font-weight:700;letter-spacing:.14em;color:#8b9094}
 .adminTop h1{margin:6px 0 0;font-size:42px;letter-spacing:-.05em}
 .adminTop p{margin:8px 0 0;color:#777d81;font-size:12px}
-.adminAction{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 17px;border-radius:10px;background:#d52f36;color:#fff;font-size:9px;font-weight:900;letter-spacing:.07em}
-.adminSecondary{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 17px;border:1px solid #d8dbdd;border-radius:10px;background:#fff;color:#33383c;font-size:9px;font-weight:900;letter-spacing:.06em}
+.adminAction{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 17px;border-radius:10px;background:var(--accent);color:#fff;font-size:9px;font-weight:700;letter-spacing:.07em}
+.adminSecondary{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 17px;border:1px solid #d8dbdd;border-radius:10px;background:#fff;color:#33383c;font-size:9px;font-weight:700;letter-spacing:.06em}
 .adminNav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
-.adminNav a{padding:10px 13px;border:1px solid #dde0e1;border-radius:999px;background:#fff;font-size:9px;font-weight:900;color:#565c60}
+.adminNav a{padding:10px 13px;border:1px solid #dde0e1;border-radius:999px;background:#fff;font-size:9px;font-weight:700;color:#565c60}
 .adminNav a:hover{border-color:#aeb3b6;color:#111}
 .adminStats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
 .adminStat{padding:20px;background:#fff;border:1px solid #e0e3e4;border-radius:16px}
 .adminStat span,.adminStat strong{display:block}
-.adminStat span{font-size:8px;font-weight:900;letter-spacing:.12em;color:#969b9f}
+.adminStat span{font-size:8px;font-weight:700;letter-spacing:.12em;color:#969b9f}
 .adminStat strong{margin-top:8px;font-size:28px;letter-spacing:-.04em}
 .adminPanel{background:#fff;border:1px solid #e0e3e4;border-radius:18px;padding:24px}
 .adminPanelHead{display:flex;justify-content:space-between;gap:18px;align-items:center;margin-bottom:18px}
@@ -23,16 +23,16 @@
 .adminTable td{padding:13px 10px;border-bottom:1px solid #eef0f1;font-size:11px}
 .adminProductCell{display:flex;align-items:center;gap:11px;min-width:250px}
 .adminProductThumb{width:46px;height:46px;border-radius:9px;object-fit:cover;background:#f0f1f1;border:1px solid #e2e4e5}
-.adminStatus{display:inline-flex;padding:6px 8px;border-radius:999px;background:#f0f2f2;font-size:8px;font-weight:900;text-transform:uppercase}
+.adminStatus{display:inline-flex;padding:6px 8px;border-radius:999px;background:#f0f2f2;font-size:8px;font-weight:700;text-transform:uppercase}
 .adminForm{display:grid;gap:18px}
 .adminFormGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .adminField{display:grid;gap:7px}
 .adminField.full{grid-column:1/-1}
-.adminField span{font-size:9px;font-weight:850;color:#555b5f}
+.adminField span{font-size:9px;font-weight:600;color:#555b5f}
 .adminField input,.adminField select,.adminField textarea{width:100%;border:1px solid #d9dcde;border-radius:10px;background:#fff;padding:12px 13px;font-size:12px;outline:none}
 .adminField textarea{min-height:130px;resize:vertical}
 .adminField input:focus,.adminField select:focus,.adminField textarea:focus{border-color:#8d9397}
-.adminSectionTitle{margin:7px 0 -4px;padding-top:18px;border-top:1px solid #e7e9ea;font-size:10px;font-weight:900;letter-spacing:.1em;color:#777d81}
+.adminSectionTitle{margin:7px 0 -4px;padding-top:18px;border-top:1px solid #e7e9ea;font-size:10px;font-weight:700;letter-spacing:.1em;color:#777d81}
 .adminUploadBox{padding:20px;border:1px dashed #c8ccce;border-radius:13px;background:#fafafa}
 .adminPreviewGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:12px}
 .adminPreviewGrid img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;border:1px solid #e1e3e4}
@@ -76,14 +76,14 @@
 }
 .adminBrand span{
   font-size:28px;
-  font-weight:950;
+  font-weight:700;
   letter-spacing:-.055em;
 }
 .adminBrand small{
   margin-top:2px;
   color:#8f979c;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.18em;
 }
 .adminSideNav{
@@ -100,13 +100,13 @@
   border-radius:9px;
   color:#a7adb1;
   font-size:9px;
-  font-weight:850;
+  font-weight:600;
   letter-spacing:.025em;
 }
 .adminSideNav a span{
   color:#555d62;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
 }
 .adminSideNav a:hover{
   background:#171b1e;
@@ -117,7 +117,7 @@
   color:#111417;
 }
 .adminSideNav a.active span{
-  color:#d8242f;
+  color:var(--accent);
 }
 .adminSidebarFoot{
   margin-top:auto;
@@ -132,7 +132,7 @@
 .adminSidebarFoot span{
   color:#6f777c;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.12em;
 }
 .adminSidebarFoot strong{
@@ -143,7 +143,7 @@
   margin-top:13px;
   color:#aab0b4;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.08em;
 }
 .adminContent{
@@ -188,7 +188,7 @@
 .adminAttention span{
   color:#90969a;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.1em;
 }
 .adminAttention strong{
@@ -227,7 +227,7 @@
 .dashboardStatPrimary span{
   color:#92989c;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.11em;
 }
 .dashboardStatPrimary span{
@@ -260,13 +260,13 @@
   margin-bottom:5px;
   color:#969ca0;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.12em;
 }
 .adminTextLink{
-  color:#d8242f;
+  color:var(--accent);
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.08em;
 }
 .recentOrders{
@@ -293,7 +293,7 @@
 .recentOrder>div:first-child span{
   color:#959b9f;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
 }
 .recentOrder>div:first-child strong{
   margin-top:3px;
@@ -338,7 +338,7 @@
 .operationsPanel>a span{
   color:#717a80;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.1em;
 }
 .operationsPanel>a strong{
@@ -374,7 +374,7 @@
 }
 .adminOrderTabs button span{
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.07em;
 }
 .adminOrderTabs button b{
@@ -389,13 +389,13 @@
   font-size:7px;
 }
 .adminOrderTabs button.active{
-  border-bottom-color:#d8242f;
+  border-bottom-color:var(--accent);
   background:#fff;
-  color:#d8242f;
+  color:var(--accent);
 }
 .adminOrderTabs button.active b{
-  background:#fff0f1;
-  color:#d8242f;
+  background:#eef5ff;
+  color:var(--accent);
 }
 .adminOrderToolbar{
   padding:14px 16px;
@@ -418,7 +418,7 @@
   margin-bottom:6px;
   color:#969ca0;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.1em;
 }
 .adminOrderToolbar input{
@@ -492,7 +492,7 @@
 .adminOrderAmount span{
   color:#969ca0;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.08em;
 }
 .adminOrderIdentity strong,
@@ -523,7 +523,7 @@
 .adminOrderStatusCell small{
   color:#979da1;
   font-size:7px;
-  font-weight:800;
+  font-weight:600;
 }
 .adminOrderAmount{
   text-align:right;
@@ -534,9 +534,9 @@
 }
 .adminOrderAmount small{
   margin-top:6px;
-  color:#d8242f;
+  color:var(--accent);
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
 }
 .adminOrderDrawer{
   padding:18px;
@@ -645,7 +645,7 @@
   margin-bottom:5px;
   color:#7e8488;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.08em;
 }
 .adminShipForm input{
@@ -674,7 +674,7 @@
 .adminRefundBox span{
   color:#92989c;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.08em;
 }
 .adminTrackingBox strong,
@@ -700,7 +700,7 @@
 .adminTotalsCard span{
   color:#858b8f;
   font-size:7px;
-  font-weight:800;
+  font-weight:600;
 }
 .adminTotalsCard strong{
   font-size:9px;
@@ -712,7 +712,7 @@
 }
 .adminTotalsCard .total span{
   color:#111417;
-  font-weight:900;
+  font-weight:700;
 }
 .adminTotalsCard .total strong{
   font-size:18px;
@@ -734,7 +734,7 @@
 
 /* ORDER STATUS COLOURS */
 .status_pending_payment{
-  background:#fff0f1;
+  background:#eef5ff;
   color:#c5212c;
 }
 .status_paid,
@@ -893,7 +893,7 @@
   padding:5px 8px 9px;
   color:#979da1;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.12em;
 }
 .productEditorNav a{
@@ -901,7 +901,7 @@
   border-radius:8px;
   color:#5f6569;
   font-size:9px;
-  font-weight:850;
+  font-weight:600;
 }
 .productEditorNav a:hover{
   background:#f3f4f4;
@@ -933,9 +933,9 @@
   display:block;
 }
 .productEditorCardHead span{
-  color:#d8242f;
+  color:var(--accent);
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.12em;
 }
 .productEditorCardHead h2{
@@ -992,7 +992,7 @@
 .imageUploadButton small{
   margin-top:4px;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.06em;
 }
 .editorTwoCol{
@@ -1062,9 +1062,9 @@
   display:block;
 }
 .fitmentBuilderHead span{
-  color:#d8242f;
+  color:var(--accent);
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.11em;
 }
 .fitmentBuilderHead strong{
@@ -1098,7 +1098,7 @@
   background:#111417;
   color:#fff;
   font-size:8px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.06em;
   cursor:pointer;
 }
@@ -1137,7 +1137,7 @@
   background:transparent;
   color:#c8242e;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   cursor:pointer;
 }
 .fitmentEmpty{
@@ -1216,12 +1216,12 @@
   background:transparent;
   color:#7d8387;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.06em;
   cursor:pointer;
 }
 .variantExpandButton:hover{
-  color:#d8242f;
+  color:var(--accent);
 }
 .productActionStack{
   display:flex;
@@ -1238,13 +1238,13 @@
   background:#111417;
   color:#fff;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.07em;
 }
 .adminTextAction{
   color:#5e6569;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
 }
 .productVariantRow td{
   background:#fafafa;
@@ -1273,7 +1273,7 @@
   background:#fff;
   color:#8a9094;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
 }
 .productVariantIdentity strong,
 .productVariantIdentity small{
@@ -1303,7 +1303,7 @@
   background:transparent;
   color:#1769d2;
   font-size:8px;
-  font-weight:900;
+  font-weight:700;
   cursor:pointer;
 }
 .quickEditButton:hover{
@@ -1322,7 +1322,7 @@
 .quickEditField>span{
   color:#7b8185;
   font-size:8px;
-  font-weight:900;
+  font-weight:700;
 }
 .quickEditField input{
   width:100%;
@@ -1343,12 +1343,12 @@
   padding:0 9px;
   border-radius:7px;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   cursor:pointer;
 }
 .quickSaveButton{
-  border:1px solid #d8242f;
-  background:#d8242f;
+  border:1px solid var(--accent);
+  background:var(--accent);
   color:#fff;
 }
 .quickCancelButton{
@@ -1362,7 +1362,7 @@
   padding:6px 8px;
   border-radius:999px;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
 }
 .quickStockWarning{
   background:#fff2e5;
@@ -1445,7 +1445,7 @@
   background:transparent;
   color:#c8242e;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   cursor:pointer;
 }
 
@@ -1629,7 +1629,7 @@
   position:absolute;left:7px;top:7px;
   padding:5px 7px;border-radius:999px;
   background:#111417;color:#fff;
-  font-size:6px;font-weight:900;letter-spacing:.08em;
+  font-size:6px;font-weight:700;letter-spacing:.08em;
 }
 .editImageControls{
   position:absolute;left:6px;right:6px;bottom:6px;
@@ -1639,7 +1639,7 @@
   min-width:0;min-height:27px;padding:0 4px;
   border:1px solid rgba(255,255,255,.7);border-radius:6px;
   background:rgba(17,20,23,.88);color:#fff;
-  font-size:7px;font-weight:900;cursor:pointer;
+  font-size:7px;font-weight:700;cursor:pointer;
 }
 .editImageControls button:disabled{opacity:.35;cursor:not-allowed}
 .editImageAdd{
@@ -1649,7 +1649,7 @@
   background:#fafafa;color:#697075;cursor:pointer;text-align:center;
 }
 .editImageAdd strong{display:block;font-size:25px;font-weight:400}
-.editImageAdd span{display:block;margin-top:4px;font-size:7px;font-weight:900}
+.editImageAdd span{display:block;margin-top:4px;font-size:7px;font-weight:700}
 .editImageHint{margin:10px 0 0;color:#8b9195;font-size:8px}
 
 .shippingMode{
@@ -1726,7 +1726,7 @@
 }
 .shippingFormulaCard span{
   font-size:8px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.12em;
   color:#aeb5ba;
 }
@@ -1766,9 +1766,9 @@
 }
 .shippingRuleHead>div>span{
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.12em;
-  color:#d52f36;
+  color:var(--accent);
 }
 .shippingRuleHead h2{
   margin:5px 0 0;
@@ -1786,12 +1786,12 @@
   gap:7px;
   white-space:nowrap;
   font-size:8px;
-  font-weight:900;
+  font-weight:700;
 }
 .shippingActiveToggle input{
   width:16px;
   height:16px;
-  accent-color:#d52f36;
+  accent-color:var(--accent);
 }
 .shippingRuleFields{
   display:grid;
@@ -1838,7 +1838,7 @@
 }
 .shippingRatePreview>span{
   font-size:8px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.1em;
   color:#2c3236;
 }
@@ -1898,7 +1898,7 @@
   align-items:center;
   gap:9px;
   font-size:8px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.08em;
   cursor:pointer;
 }
@@ -1906,7 +1906,7 @@
 .adminOrderBatchCheck input{
   width:16px;
   height:16px;
-  accent-color:#d52f36;
+  accent-color:var(--accent);
 }
 .adminMassArrangeActions{
   display:flex;
@@ -1916,7 +1916,7 @@
 .adminMassArrangeActions>span{
   color:#737a7e;
   font-size:8px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.08em;
 }
 .adminOrderCard{
@@ -1940,7 +1940,7 @@
 }
 .adminOrderBatchCheck span{
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.08em;
 }
 .adminOrderBatchCheck + .adminOrderCardMain{
@@ -1975,9 +1975,9 @@
 }
 .adminMassArrangeHeader span{
   font-size:8px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.13em;
-  color:#d52f36;
+  color:var(--accent);
 }
 .adminMassArrangeHeader h2{
   margin:6px 0 0;
@@ -2042,7 +2042,7 @@
 }
 .adminMassField>span{
   font-size:8px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.08em;
   color:#555d61;
 }
@@ -2073,7 +2073,7 @@
 }
 .adminMassSummary>span{
   font-size:8px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.1em;
   color:#aeb5ba;
 }
@@ -2102,7 +2102,7 @@
   background:#fff;
   color:#30363a;
   font-size:8px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.06em;
   cursor:pointer;
 }
@@ -2154,7 +2154,7 @@
 .adminArrangedTracking label>span{
   color:#777f83;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.08em;
 }
 .adminArrangedTracking input{
@@ -2199,7 +2199,7 @@
 .adminTrackingAutoUrl>span{
   color:#777f83;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.08em;
 }
 .adminTrackingAutoUrl>strong{
@@ -2269,7 +2269,7 @@
 }
 .claimTabs button span{
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.07em;
 }
 .claimTabs button strong{
@@ -2300,7 +2300,7 @@
   margin-bottom:6px;
   color:#969ca0;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.1em;
 }
 .claimToolbar input{
@@ -2358,7 +2358,7 @@
 .claimListItem span{
   color:#969ca0;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
 }
 .claimListItem strong{
   margin-top:5px;
@@ -2387,9 +2387,9 @@
   border-bottom:1px solid #eceeef;
 }
 .claimDetailHead>div span{
-  color:#d8242f;
+  color:var(--accent);
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.08em;
 }
 .claimDetailHead h2{
@@ -2421,7 +2421,7 @@
 .claimAdminForm label>span{
   color:#969ca0;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.08em;
 }
 .claimMetaGrid strong{
@@ -2506,7 +2506,7 @@
   color:#26743c;
 }
 .claim_rejected{
-  background:#fff0f1;
+  background:#eef5ff;
   color:#bd2832;
 }
 .claim_completed{
@@ -2579,9 +2579,9 @@
   display:block;
 }
 .promotionList span{
-  color:#d8242f;
+  color:var(--accent);
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.08em;
 }
 .promotionList strong{
@@ -2599,7 +2599,7 @@
   border:0;
   border-radius:999px;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   cursor:pointer;
 }
 .promotionOn{
@@ -2627,7 +2627,7 @@
 .promotionCheck span{
   color:#555c60;
   font-size:8px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.06em;
 }
 @media(max-width:1050px){
@@ -2675,9 +2675,9 @@
   display:block;
 }
 .campaignImageManagerHead span{
-  color:#d8242f;
+  color:var(--accent);
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.08em;
 }
 .campaignImageManagerHead strong{
@@ -2714,7 +2714,7 @@
   background:rgba(17,20,23,.82);
   color:#fff;
   font-size:6px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.07em;
 }
 .campaignImageUpload input{
@@ -2735,7 +2735,7 @@
   text-align:center;
 }
 .campaignImageUpload>div b{
-  color:#d8242f;
+  color:var(--accent);
   font-size:26px;
   font-weight:400;
 }
@@ -2759,12 +2759,12 @@
   background:#fff;
   color:#646b6f;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   cursor:pointer;
 }
 .campaignImageClearRow button:hover{
-  border-color:#d8242f;
-  color:#d8242f;
+  border-color:var(--accent);
+  color:var(--accent);
 }
 @media(max-width:760px){
   .campaignImageGrid{
@@ -2795,7 +2795,7 @@
   margin-right:auto;
   color:#777e82;
   font-size:8px;
-  font-weight:800;
+  font-weight:600;
 }
 .discountToolbar{
   display:flex;
@@ -2812,7 +2812,7 @@
   margin-bottom:6px;
   color:#90969a;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.08em;
 }
 .discountToolbar input{
@@ -2857,14 +2857,14 @@
   display:grid;
   place-items:center;
   font-size:10px;
-  font-weight:900;
+  font-weight:700;
 }
 .discountProductCell strong{
   font-size:8px;
   line-height:1.4;
 }
 .discountSalePrice{
-  color:#d8242f !important;
+  color:var(--accent) !important;
 }
 .discountStatus{
   display:inline-flex;
@@ -2875,7 +2875,7 @@
   padding:0 8px;
   border-radius:999px;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
 }
 .discountLive{
   background:#eaf6ed;
@@ -2901,7 +2901,7 @@
   background:#fff;
   color:#bd2832;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   cursor:pointer;
 }
 @media(max-width:900px){
@@ -2944,9 +2944,9 @@
   display:block;
 }
 .campaignStyleHead span{
-  color:#d8242f;
+  color:var(--accent);
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.08em;
 }
 .campaignStyleHead strong{
@@ -2977,8 +2977,8 @@
   border-color:#aeb4b7;
 }
 .campaignPresetCard.activePreset{
-  border-color:#d8242f;
-  box-shadow:inset 0 0 0 1px #d8242f;
+  border-color:var(--accent);
+  box-shadow:inset 0 0 0 1px var(--accent);
 }
 .campaignPresetCard i{
   width:100%;
@@ -2989,7 +2989,7 @@
 .campaignPresetCard span{
   color:#24292c;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.04em;
 }
 .campaignPresetCard small{
@@ -3013,7 +3013,7 @@
   margin-bottom:5px;
   color:#80878b;
   font-size:6px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.07em;
 }
 .campaignColourField>div{
@@ -3046,7 +3046,7 @@
   outline:0;
   color:#4d5458;
   font-size:7px;
-  font-weight:800;
+  font-weight:600;
   text-transform:uppercase;
 }
 .campaignMiniPreview{
@@ -3071,7 +3071,7 @@
 }
 .campaignMiniPreview>div>span{
   font-size:6px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.09em;
 }
 .campaignMiniPreview>div>strong{
@@ -3093,7 +3093,7 @@
   align-items:center;
   border-radius:6px;
   font-size:6px;
-  font-weight:900;
+  font-weight:700;
 }
 .campaignMiniPreview>i{
   min-width:170px;
@@ -3102,7 +3102,7 @@
   text-align:center;
   font-size:11px;
   font-style:normal;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.08em;
 }
 @media(max-width:900px){
@@ -3163,7 +3163,7 @@
 .marketingHero>div:first-child>span{
   color:#ef5a63;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.12em;
 }
 .marketingHero h2{
@@ -3197,7 +3197,7 @@
 .marketingHeroStats span{
   color:#aeb4b7;
   font-size:6px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.06em;
 }
 .marketingHeroStats strong{
@@ -3232,17 +3232,17 @@
   place-items:center;
   border-radius:10px;
   background:#f5f6f6;
-  color:#d8242f;
+  color:var(--accent);
   font-size:8px;
-  font-weight:900;
+  font-weight:700;
 }
 .marketingToolCard>div:nth-child(2){
   margin-top:18px;
 }
 .marketingToolCard>div:nth-child(2)>span{
-  color:#d8242f;
+  color:var(--accent);
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.09em;
 }
 .marketingToolCard h2{
@@ -3270,9 +3270,9 @@
   font-size:7px;
 }
 .marketingToolCard footer strong{
-  color:#d8242f;
+  color:var(--accent);
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
 }
 .marketingGuide{
   margin-top:16px;
@@ -3299,7 +3299,7 @@
   display:block;
 }
 .marketingGuide article b{
-  color:#d8242f;
+  color:var(--accent);
   font-size:7px;
 }
 .marketingGuide article strong{
@@ -3336,7 +3336,7 @@
   border-radius:7px;
   color:#737a7e;
   font-size:8px;
-  font-weight:900;
+  font-weight:700;
   white-space:nowrap;
 }
 .marketingSubnav a:hover{
@@ -3397,9 +3397,9 @@
   display:block;
 }
 .marketingListCopy span{
-  color:#d8242f;
+  color:var(--accent);
   font-size:6px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.07em;
 }
 .marketingListCopy strong{
@@ -3428,7 +3428,7 @@
 .marketingVoucherTicket{
   min-width:0;
   padding-left:11px;
-  border-left:3px solid #d8242f;
+  border-left:3px solid var(--accent);
 }
 .marketingVoucherTicket span,
 .marketingVoucherTicket strong,
@@ -3436,9 +3436,9 @@
   display:block;
 }
 .marketingVoucherTicket span{
-  color:#d8242f;
+  color:var(--accent);
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
 }
 .marketingVoucherTicket strong{
   margin-top:3px;
@@ -3457,7 +3457,7 @@
 .marketingVoucherMeta span{
   color:#6e7579;
   font-size:6px;
-  font-weight:900;
+  font-weight:700;
 }
 .marketingVoucherMeta small{
   margin-top:4px;
@@ -3536,9 +3536,9 @@
 .campaignTemplateHead span,
 .campaignProductPickerHead span,
 .campaignBenefitsEditor>div:first-child>span{
-  color:#d8242f;
+  color:var(--accent);
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.08em;
 }
 .campaignTemplateHead strong,
@@ -3570,8 +3570,8 @@
   border-color:#aeb4b7;
 }
 .campaignTemplateActive{
-  border-color:#d8242f;
-  box-shadow:inset 0 0 0 1px #d8242f;
+  border-color:var(--accent);
+  box-shadow:inset 0 0 0 1px var(--accent);
 }
 .campaignTemplateCard>span,
 .campaignTemplateCard>strong,
@@ -3580,9 +3580,9 @@
 }
 .campaignTemplateCard>span{
   margin-top:9px;
-  color:#d8242f;
+  color:var(--accent);
   font-size:6px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.08em;
 }
 .campaignTemplateCard>strong{
@@ -3601,7 +3601,7 @@
   position:relative;
   overflow:hidden;
   border-radius:8px;
-  background:linear-gradient(120deg,#d8242f,#711017);
+  background:linear-gradient(120deg,var(--accent),#711017);
 }
 .campaignTemplateVisual i,
 .campaignTemplateVisual b,
@@ -3683,9 +3683,9 @@
   display:grid;
   place-items:center;
   background:#f2f3f3;
-  color:#d8242f;
+  color:var(--accent);
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
 }
 .campaignBenefitsEditor label input{
   min-width:0;
@@ -3727,7 +3727,7 @@
   cursor:pointer;
 }
 .campaignProductSelected{
-  border-color:#d8242f;
+  border-color:var(--accent);
   background:#fff7f7;
 }
 .campaignProductChoice>div{
@@ -3746,7 +3746,7 @@
 }
 .campaignProductChoice>div>span{
   font-size:9px;
-  font-weight:900;
+  font-weight:700;
 }
 .campaignProductChoice>strong{
   min-width:0;
@@ -3757,9 +3757,9 @@
   text-overflow:ellipsis;
 }
 .campaignProductChoice>small{
-  color:#d8242f;
+  color:var(--accent);
   font-size:6px;
-  font-weight:900;
+  font-weight:700;
   white-space:nowrap;
 }
 @media(max-width:760px){
@@ -3786,9 +3786,9 @@
   gap:24px;
 }
 .marketingV2Header>div>span{
-  color:#d8242f;
+  color:var(--accent);
   font-size:8px;
-  font-weight:800;
+  font-weight:600;
   letter-spacing:.08em;
 }
 .marketingV2Header h1{
@@ -3810,9 +3810,9 @@
   background:#e92b37;
   color:#fff;
   font-size:9px;
-  font-weight:800;
+  font-weight:600;
   cursor:pointer;
-  box-shadow:0 8px 20px rgba(216,36,47,.16);
+  box-shadow:0 8px 20px rgba(var(--accent-rgb),.16);
 }
 .marketingCreateButton:hover{background:#cf202b}
 
@@ -3860,7 +3860,7 @@
 .marketingSectionHead>div:first-child>span{
   color:#8f979b;
   font-size:7px;
-  font-weight:800;
+  font-weight:600;
   letter-spacing:.09em;
 }
 .marketingSectionHead h2{
@@ -3886,7 +3886,7 @@
   margin-top:2px;
   color:#8c9397;
   font-size:6px;
-  font-weight:800;
+  font-weight:600;
   letter-spacing:.08em;
 }
 .marketingEmptyState{
@@ -3913,7 +3913,7 @@
   background:#171a1d;
   color:#fff;
   font-size:8px;
-  font-weight:800;
+  font-weight:600;
   cursor:pointer;
 }
 .marketingCampaignListV2{
@@ -3943,7 +3943,7 @@
 }
 .marketingCampaignThumbV2>span{
   font-size:6px;
-  font-weight:800;
+  font-weight:600;
   letter-spacing:.08em;
   opacity:.82;
 }
@@ -3969,9 +3969,9 @@
 }
 .marketingCampaignTitleRow>div{min-width:0}
 .marketingCampaignTitleRow span{
-  color:#d8242f;
+  color:var(--accent);
   font-size:6px;
-  font-weight:800;
+  font-weight:600;
   letter-spacing:.07em;
 }
 .marketingCampaignTitleRow h3{
@@ -3991,7 +3991,7 @@
   justify-content:center;
   border-radius:999px;
   font-size:6px;
-  font-weight:800;
+  font-weight:600;
 }
 .marketingStatusActive{background:#eaf6ed;color:#27733c}
 .marketingStatusScheduled{background:#e9f3fb;color:#286a9e}
@@ -4008,7 +4008,7 @@
 .marketingCampaignMetaV2 span{
   color:#9aa0a4;
   font-size:6px;
-  font-weight:800;
+  font-weight:600;
   letter-spacing:.06em;
 }
 .marketingCampaignMetaV2 strong{
@@ -4030,7 +4030,7 @@
   background:#fff;
   color:#30363a;
   font-size:6px;
-  font-weight:800;
+  font-weight:600;
   cursor:pointer;
 }
 .marketingCampaignActionsV2 button:hover{border-color:#aeb5b9}
@@ -4066,9 +4066,9 @@
   background:#fff;
 }
 .marketingBuilderTopbar>div>span{
-  color:#d8242f;
+  color:var(--accent);
   font-size:7px;
-  font-weight:800;
+  font-weight:600;
   letter-spacing:.08em;
 }
 .marketingBuilderTopbar h2{
@@ -4126,9 +4126,9 @@
   font-size:8px;
 }
 .marketingStepHead span{
-  color:#d8242f;
+  color:var(--accent);
   font-size:6px;
-  font-weight:800;
+  font-weight:600;
   letter-spacing:.08em;
 }
 .marketingStepHead h3{
@@ -4176,9 +4176,9 @@
 .marketingTemplateV2>span{
   display:block;
   margin-top:8px;
-  color:#d8242f;
+  color:var(--accent);
   font-size:6px;
-  font-weight:800;
+  font-weight:600;
 }
 .marketingTemplateV2>strong{
   display:block;
@@ -4210,7 +4210,7 @@
 .marketingColourGridV2 label>span{
   color:#697176;
   font-size:7px;
-  font-weight:800;
+  font-weight:600;
   letter-spacing:.05em;
 }
 .marketingFormGridV2 input,
@@ -4274,7 +4274,7 @@
   cursor:pointer;
 }
 .marketingProductGridV2 button.active{
-  border-color:#d8242f;
+  border-color:var(--accent);
   background:#fff7f8;
 }
 .marketingProductGridV2 img,
@@ -4405,7 +4405,7 @@
   border-radius:8px;
   background:#fff;
 }
-.marketingToggleV2 input{width:16px!important;min-height:16px!important;accent-color:#d8242f}
+.marketingToggleV2 input{width:16px!important;min-height:16px!important;accent-color:var(--accent)}
 .marketingToggleV2 strong{font-size:7px}
 .marketingPublishChoiceV2{
   display:grid;
@@ -4426,15 +4426,15 @@
   box-shadow:0 0 0 1px #171a1d inset;
 }
 .marketingPublishChoiceV2 button:last-child.active{
-  border-color:#d8242f;
+  border-color:var(--accent);
   background:#fff8f8;
-  box-shadow:0 0 0 1px #d8242f inset;
+  box-shadow:0 0 0 1px var(--accent) inset;
 }
 .marketingPublishChoiceV2 span,
 .marketingPublishChoiceV2 small{display:block}
 .marketingPublishChoiceV2 span{
   font-size:9px;
-  font-weight:800;
+  font-weight:600;
 }
 .marketingPublishChoiceV2 small{
   margin-top:4px;
@@ -4458,9 +4458,9 @@
   border-bottom:1px solid #eceeef;
 }
 .marketingPreviewHeadV2 span{
-  color:#d8242f;
+  color:var(--accent);
   font-size:6px;
-  font-weight:800;
+  font-weight:600;
   letter-spacing:.08em;
 }
 .marketingPreviewHeadV2 strong{font-size:8px}
@@ -4475,7 +4475,7 @@
 }
 .marketingPreviewCanvasV2>span{
   font-size:6px;
-  font-weight:800;
+  font-weight:600;
   letter-spacing:.08em;
 }
 .marketingPreviewCanvasV2 h3{
@@ -4501,7 +4501,7 @@
   border:0;
   border-radius:7px;
   font-size:7px;
-  font-weight:800;
+  font-weight:600;
 }
 .marketingPreviewDetailsV2{
   padding:11px 13px;
@@ -4514,7 +4514,7 @@
 .marketingPreviewDetailsV2 span{
   color:#999fa3;
   font-size:5px;
-  font-weight:800;
+  font-weight:600;
 }
 .marketingPreviewDetailsV2 strong{
   margin-top:3px;
@@ -4574,9 +4574,9 @@
   display:block;
 }
 .marketingBannerStyleHead span{
-  color:#d8242f;
+  color:var(--accent);
   font-size:6px;
-  font-weight:800;
+  font-weight:600;
   letter-spacing:.08em;
 }
 .marketingBannerStyleHead strong{
@@ -4602,8 +4602,8 @@
   cursor:pointer;
 }
 .marketingBannerStyleCard.active{
-  border-color:#d8242f;
-  box-shadow:0 0 0 1px #d8242f inset;
+  border-color:var(--accent);
+  box-shadow:0 0 0 1px var(--accent) inset;
 }
 .marketingBannerStyleCard>div{
   height:76px;
@@ -4635,10 +4635,10 @@
   margin-top:3px;
   font-size:8px;
   font-style:normal;
-  font-weight:800;
+  font-weight:600;
 }
 .bannerStyle_formal>div{
-  background:linear-gradient(135deg,#d8242f,#731017);
+  background:linear-gradient(135deg,var(--accent),#731017);
 }
 .bannerStyle_formal>div i{
   background:radial-gradient(circle at 82% 18%,rgba(255,255,255,.18),transparent 28%);
@@ -4651,7 +4651,7 @@
 }
 .bannerStyle_motorsport>div b,
 .bannerStyle_motorsport>div em{
-  font-family:"Arial Black",Impact,Arial,sans-serif!important;
+  font-family:var(--mivo-display-font)!important;
   font-style:italic;
   letter-spacing:-.04em;
 }
@@ -4666,12 +4666,12 @@
 }
 .bannerStyle_garage>div b,
 .bannerStyle_garage>div em{
-  font-family:"Arial Black",Impact,Arial,sans-serif!important;
+  font-family:var(--mivo-display-font)!important;
   font-style:italic;
 }
 .bannerStyle_street>div{
   background:
-    radial-gradient(circle at 78% 20%,rgba(216,36,47,.48),transparent 25%),
+    radial-gradient(circle at 78% 20%,rgba(var(--accent-rgb),.48),transparent 25%),
     linear-gradient(125deg,#08090c,#17121a 55%,#091018);
 }
 .bannerStyle_street>div i{
@@ -4679,16 +4679,16 @@
 }
 .bannerStyle_street>div b,
 .bannerStyle_street>div em{
-  font-family:"Arial Black",Impact,Arial,sans-serif!important;
+  font-family:var(--mivo-display-font)!important;
   font-style:italic;
   letter-spacing:-.04em;
 }
 .marketingBannerStyleCard>span{
   display:block;
   margin-top:7px;
-  color:#d8242f;
+  color:var(--accent);
   font-size:5px;
-  font-weight:800;
+  font-weight:600;
   letter-spacing:.07em;
 }
 .marketingBannerStyleCard>strong{
@@ -4707,7 +4707,7 @@
   margin-top:8px;
   color:inherit;
   font-size:44px;
-  font-weight:900;
+  font-weight:700;
   line-height:.82;
   letter-spacing:-.07em;
 }
@@ -4731,7 +4731,7 @@
 }
 .previewStyle_street{
   background:
-    radial-gradient(circle at 80% 20%,rgba(216,36,47,.38),transparent 22%),
+    radial-gradient(circle at 80% 20%,rgba(var(--accent-rgb),.38),transparent 22%),
     linear-gradient(125deg,#08090c,#151118 55%,#091018)!important;
 }
 .previewStyle_motorsport .marketingPreviewEventCode,
@@ -4740,7 +4740,7 @@
 .previewStyle_motorsport h3,
 .previewStyle_garage h3,
 .previewStyle_street h3{
-  font-family:"Arial Black",Impact,Arial,sans-serif!important;
+  font-family:var(--mivo-display-font)!important;
   font-style:italic;
   text-transform:uppercase;
 }
@@ -4794,7 +4794,7 @@
   border-radius:8px;
   background:#fff;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.02em;
   line-height:1;
   cursor:pointer;
@@ -4987,20 +4987,20 @@
 /* Shopee-style product selection for voucher scope */
 .productPickerTrigger{width:100%;min-height:46px;padding:0 13px;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #d9dcde;border-radius:10px;background:#fff;text-align:left;cursor:pointer}
 .productPickerTrigger>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#222;font-size:11px}
-.productPickerTrigger>b{color:#d8242f;font-size:8px;letter-spacing:.08em}
+.productPickerTrigger>b{color:var(--accent);font-size:8px;letter-spacing:.08em}
 .productPickerOverlay{position:fixed;inset:0;z-index:1000;padding:24px;display:grid;place-items:center;background:rgba(10,12,14,.48);backdrop-filter:blur(4px)}
 .productPickerModal{width:min(760px,100%);max-height:min(760px,90vh);display:flex;flex-direction:column;overflow:hidden;border-radius:18px;background:#fff;box-shadow:0 28px 80px rgba(0,0,0,.24)}
 .productPickerHead{padding:20px 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e7e9ea}
-.productPickerHead span{color:#d8242f;font-size:7px;font-weight:900;letter-spacing:.12em}.productPickerHead h2{margin:4px 0 0;font-size:22px}.productPickerHead button{border:0;background:none;font-size:8px;font-weight:900;cursor:pointer}
-.productPickerSearch{padding:14px 22px;display:flex;align-items:center;gap:12px;background:#f7f8f8;border-bottom:1px solid #e7e9ea}.productPickerSearch input{flex:1;min-width:0;height:42px;padding:0 13px;border:1px solid #d9dcde;border-radius:9px;background:#fff;font-size:11px;outline:0}.productPickerSearch span{font-size:7px;font-weight:900;color:#8b9195;white-space:nowrap}
-.productPickerList{padding:10px 22px;overflow:auto;display:grid}.productPickerList button{min-height:58px;padding:10px 8px;display:grid;grid-template-columns:28px 1fr;align-items:center;gap:11px;border:0;border-bottom:1px solid #eceeef;background:#fff;text-align:left;cursor:pointer}.productPickerList button:hover{background:#fafafa}.productPickerList i{width:22px;height:22px;display:grid;place-items:center;border:1px solid #c9ced1;border-radius:4px;font-style:normal;font-size:12px}.productPickerList button.productPickerSelected i{border-color:#d8242f;background:#d8242f;color:#fff}.productPickerList button>span{font-size:11px;line-height:1.4}
-.productPickerFooter{padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #e7e9ea;background:#fff}.productPickerFooter span{color:#858b8f;font-size:9px}.productPickerFooter button{min-width:110px;height:40px;border:0;border-radius:9px;background:#d8242f;color:#fff;font-size:8px;font-weight:900;letter-spacing:.08em}.productPickerFooter button:disabled{opacity:.4}
+.productPickerHead span{color:var(--accent);font-size:7px;font-weight:700;letter-spacing:.12em}.productPickerHead h2{margin:4px 0 0;font-size:22px}.productPickerHead button{border:0;background:none;font-size:8px;font-weight:700;cursor:pointer}
+.productPickerSearch{padding:14px 22px;display:flex;align-items:center;gap:12px;background:#f7f8f8;border-bottom:1px solid #e7e9ea}.productPickerSearch input{flex:1;min-width:0;height:42px;padding:0 13px;border:1px solid #d9dcde;border-radius:9px;background:#fff;font-size:11px;outline:0}.productPickerSearch span{font-size:7px;font-weight:700;color:#8b9195;white-space:nowrap}
+.productPickerList{padding:10px 22px;overflow:auto;display:grid}.productPickerList button{min-height:58px;padding:10px 8px;display:grid;grid-template-columns:28px 1fr;align-items:center;gap:11px;border:0;border-bottom:1px solid #eceeef;background:#fff;text-align:left;cursor:pointer}.productPickerList button:hover{background:#fafafa}.productPickerList i{width:22px;height:22px;display:grid;place-items:center;border:1px solid #c9ced1;border-radius:4px;font-style:normal;font-size:12px}.productPickerList button.productPickerSelected i{border-color:var(--accent);background:var(--accent);color:#fff}.productPickerList button>span{font-size:11px;line-height:1.4}
+.productPickerFooter{padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #e7e9ea;background:#fff}.productPickerFooter span{color:#858b8f;font-size:9px}.productPickerFooter button{min-width:110px;height:40px;border:0;border-radius:9px;background:var(--accent);color:#fff;font-size:8px;font-weight:700;letter-spacing:.08em}.productPickerFooter button:disabled{opacity:.4}
 @media(max-width:600px){.productPickerOverlay{padding:0;align-items:end}.productPickerModal{width:100%;max-height:86vh;border-radius:20px 20px 0 0}.productPickerHead{padding:18px 16px}.productPickerSearch{padding:12px 16px}.productPickerList{padding:6px 16px}.productPickerFooter{padding:12px 16px 20px}.productPickerList button{min-height:64px}.productPickerHead h2{font-size:20px}}
 
 /* Discount product / variation picker */
 .discountPickerList{padding:8px 22px;overflow:auto;display:grid}
 .discountPickerList>button{width:100%;min-height:76px;padding:10px 8px;display:grid;grid-template-columns:24px 52px minmax(0,1fr);align-items:center;gap:12px;border:0;border-bottom:1px solid #eceeef;background:#fff;text-align:left;cursor:pointer}
-.discountPickerList>button:hover{background:#fafafa}.discountPickerList>button>i{width:22px;height:22px;display:grid;place-items:center;border:1px solid #c9ced1;border-radius:4px;font-style:normal;font-size:12px}.discountPickerList>button.discountPickerSelected>i{border-color:#d8242f;background:#d8242f;color:#fff}.discountPickerList img,.discountPickerFallback{width:52px;height:52px;object-fit:contain;border:1px solid #eceeef;border-radius:7px;background:#f7f7f7}.discountPickerFallback{display:grid;place-items:center;font-weight:900}.discountPickerList>button>span:last-child{min-width:0;display:grid;gap:3px}.discountPickerList strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}.discountPickerList small{color:#858b8f;font-size:8px}.pickerSelectAll{min-width:auto!important;background:#fff!important;color:#222!important;border:1px solid #d9dcde!important}
+.discountPickerList>button:hover{background:#fafafa}.discountPickerList>button>i{width:22px;height:22px;display:grid;place-items:center;border:1px solid #c9ced1;border-radius:4px;font-style:normal;font-size:12px}.discountPickerList>button.discountPickerSelected>i{border-color:var(--accent);background:var(--accent);color:#fff}.discountPickerList img,.discountPickerFallback{width:52px;height:52px;object-fit:contain;border:1px solid #eceeef;border-radius:7px;background:#f7f7f7}.discountPickerFallback{display:grid;place-items:center;font-weight:700}.discountPickerList>button>span:last-child{min-width:0;display:grid;gap:3px}.discountPickerList strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}.discountPickerList small{color:#858b8f;font-size:8px}.pickerSelectAll{min-width:auto!important;background:#fff!important;color:#222!important;border:1px solid #d9dcde!important}
 @media(max-width:600px){.discountPickerList{padding:6px 14px}.discountPickerList>button{grid-template-columns:24px 48px minmax(0,1fr);min-height:72px}.discountPickerList img,.discountPickerFallback{width:48px;height:48px}}
 
 
@@ -5055,7 +5055,7 @@
   background:rgba(17,20,23,.88);
   color:#fff;
   font-size:6px;
-  font-weight:900;
+  font-weight:700;
   cursor:pointer;
 }
 .variationImageUpload{
@@ -5068,7 +5068,7 @@
 .variationImageUpload input{display:none}
 .variationImageUpload span{
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.06em;
 }
 .editVariationImages{
@@ -5107,7 +5107,7 @@
   background:#fff;
   color:#454b4f;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.06em;
   cursor:pointer;
 }
@@ -5126,7 +5126,7 @@
 }
 .productActionDanger:hover{
   border-color:#dc9ca1;
-  background:#fff0f1;
+  background:#eef5ff;
 }
 .productActionPositive{
   border-color:#bedbc5;
@@ -5231,7 +5231,7 @@
   background:transparent;
   color:#252a2d;
   font-size:10px;
-  font-weight:800;
+  font-weight:600;
   cursor:pointer;
 }
 .productStatusTabs button b{
@@ -5251,10 +5251,10 @@
 }
 .productStatusTabs button.active,
 .productStatusTabs button.active b{
-  color:#ee4d2d;
+  color:var(--accent);
 }
 .productStatusTabs button.active::after{
-  background:#ee4d2d;
+  background:var(--accent);
 }
 .productLiveSubTabs{
   display:flex;
@@ -5274,7 +5274,7 @@
   background:transparent;
   color:#4d5357;
   font-size:9px;
-  font-weight:800;
+  font-weight:600;
   cursor:pointer;
 }
 .productLiveSubTabs button::after{
@@ -5287,10 +5287,10 @@
   background:transparent;
 }
 .productLiveSubTabs button.active{
-  color:#ee4d2d;
+  color:var(--accent);
 }
 .productLiveSubTabs button.active::after{
-  background:#ee4d2d;
+  background:var(--accent);
 }
 .productCatalogueSearch{
   width:min(620px,100%);
@@ -5325,7 +5325,7 @@
   background:#fafafa;
   color:#8b9195;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.09em;
 }
 .newVariantTable td{
@@ -5354,7 +5354,7 @@
 .newVariantTable td:nth-child(2){
   color:#252a2d;
   font-size:9px;
-  font-weight:800;
+  font-weight:600;
 }
 .newVariantTable input{
   width:100%;
@@ -5375,8 +5375,8 @@
   border-color:#bfc4c7;
 }
 .newVariantTable input:focus{
-  border-color:#ee4d2d;
-  box-shadow:0 0 0 2px rgba(238,77,45,.08);
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(var(--accent-rgb),.08);
   background:#fff;
 }
 .newVariantTable input[type="number"]{
@@ -5401,7 +5401,7 @@
 }
 .productVariantDragging{
   opacity:.48;
-  background:#fff7f5 !important;
+  background:#eef5ff !important;
 }
 .productVariantDragHandle{
   width:18px !important;
@@ -5415,13 +5415,13 @@
   color:#9ca2a6 !important;
   background:transparent !important;
   font-size:12px !important;
-  font-weight:900 !important;
+  font-weight:700 !important;
   letter-spacing:-3px;
   cursor:grab;
   user-select:none;
 }
 .productVariantRow:hover .productVariantDragHandle{
-  color:#ee4d2d !important;
+  color:var(--accent) !important;
   background:#fff1ed !important;
 }
 .productVariantIdentity{
@@ -5446,14 +5446,14 @@
   color:#9ca2a6;
   background:transparent;
   font-size:12px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:-3px;
   cursor:grab;
   user-select:none;
 }
 .newVariantDragHandle:hover,
 .newVariantDragHandle:active{
-  color:#ee4d2d;
+  color:var(--accent);
   background:#fff1ed;
 }
 .newVariantNameInput{
@@ -5466,7 +5466,7 @@
   background:transparent !important;
   color:#202427;
   font-size:9px !important;
-  font-weight:800;
+  font-weight:600;
   outline:0;
   box-shadow:none !important;
 }
@@ -5475,16 +5475,16 @@
   background:#fff !important;
 }
 .newVariantNameInput:focus{
-  border-color:#ee4d2d !important;
+  border-color:var(--accent) !important;
   background:#fff !important;
-  box-shadow:0 0 0 2px rgba(238,77,45,.08) !important;
+  box-shadow:0 0 0 2px rgba(var(--accent-rgb),.08) !important;
 }
 .newVariantRowDragging{
   opacity:.46;
-  background:#fff7f5 !important;
+  background:#eef5ff !important;
 }
 .newVariantRowDragging td{
-  background:#fff7f5 !important;
+  background:#eef5ff !important;
 }
 
 
@@ -5537,7 +5537,7 @@
   background:#f8f9f9;
   color:#62696d;
   font-size:8px;
-  font-weight:800;
+  font-weight:600;
   letter-spacing:.02em;
   text-align:left;
 }
@@ -5627,7 +5627,7 @@
   background:#fff;
 }
 .shopeeVariationPhotoUpload{
-  color:#ee4d2d;
+  color:var(--accent);
   cursor:pointer;
 }
 .shopeeVariationPhotoUpload input{
@@ -5635,7 +5635,7 @@
 }
 .shopeeVariationPhotoUpload span{
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.04em;
 }
 .shopeeVariationPhotoPreview{
@@ -5660,7 +5660,7 @@
   background:rgba(17,20,23,.82);
   color:#fff;
   font-size:5px;
-  font-weight:900;
+  font-weight:700;
   cursor:pointer;
 }
 .shopeeMoneyInput{
@@ -5675,8 +5675,8 @@
   background:#fff;
 }
 .shopeeMoneyInput:focus-within{
-  border-color:#ee4d2d;
-  box-shadow:0 0 0 2px rgba(238,77,45,.08);
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(var(--accent-rgb),.08);
 }
 .shopeeMoneyInput>span{
   height:100%;
@@ -5717,7 +5717,7 @@
   background:#fff;
   color:#2d3337;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.06em;
   cursor:pointer;
   white-space:nowrap;
@@ -5745,9 +5745,9 @@
   box-shadow:0 28px 70px rgba(0,0,0,.2);
 }
 .brandModal>span{
-  color:#d8242f;
+  color:var(--accent);
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.11em;
 }
 .brandModal h3{
@@ -5771,8 +5771,8 @@
   box-sizing:border-box;
 }
 .brandModal>input:focus{
-  border-color:#ee4d2d;
-  box-shadow:0 0 0 2px rgba(238,77,45,.08);
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(var(--accent-rgb),.08);
 }
 .brandModal>div{
   margin-top:16px;
@@ -5788,12 +5788,12 @@
   background:#fff;
   color:#343a3e;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   cursor:pointer;
 }
 .brandModal>div button:last-child{
-  border-color:#d8242f;
-  background:#d8242f;
+  border-color:var(--accent);
+  background:var(--accent);
   color:#fff;
 }
 .brandModal>div button:disabled{
@@ -5837,7 +5837,7 @@
 .fitmentModeGrid button strong{
   color:#262b2e;
   font-size:9px;
-  font-weight:900;
+  font-weight:700;
 }
 .fitmentModeGrid button span{
   margin-top:5px;
@@ -5846,9 +5846,9 @@
   line-height:1.5;
 }
 .fitmentModeGrid button.active{
-  border-color:#ee4d2d;
-  background:#fff7f5;
-  box-shadow:0 0 0 2px rgba(238,77,45,.06);
+  border-color:var(--accent);
+  background:#eef5ff;
+  box-shadow:0 0 0 2px rgba(var(--accent-rgb),.06);
 }
 .universalFitmentNotice{
   padding:14px 16px;
@@ -5863,7 +5863,7 @@
 .universalFitmentNotice strong{
   color:#2b7440;
   font-size:8px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.05em;
 }
 .universalFitmentNotice span{
@@ -5885,7 +5885,7 @@
 }
 .destinationRestrictionBox>div:first-child strong{
   font-size:8px;
-  font-weight:900;
+  font-weight:700;
 }
 .destinationRestrictionBox>div:first-child span{
   margin-top:4px;
@@ -5915,7 +5915,7 @@
 .destinationRestrictionOptions span{
   color:#4a5054;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.03em;
 }
 @media(max-width:700px){
@@ -5946,15 +5946,15 @@
   background:#fff;
   color:#22282b;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.05em;
   cursor:pointer;
   white-space:nowrap;
 }
 .editVariationAddButton:hover{
-  border-color:#ee4d2d;
-  color:#ee4d2d;
-  background:#fff7f5;
+  border-color:var(--accent);
+  color:var(--accent);
+  background:#eef5ff;
 }
 @media(max-width:680px){
   .editVariationHeaderActions{
@@ -5985,14 +5985,14 @@
 .shopeeVariationSetupTitle strong{
   color:#2c3236;
   font-size:10px;
-  font-weight:900;
+  font-weight:700;
 }
 .shopeeVariationSetupTitle button{
   border:0;
   background:transparent;
-  color:#d8242f;
+  color:var(--accent);
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   cursor:pointer;
 }
 .shopeeVariationOptionsLabel{
@@ -6005,7 +6005,7 @@
 .shopeeVariationOptionsLabel>span{
   color:#747b7f;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.06em;
 }
 .shopeeVariationOptionsLabel button{
@@ -6016,12 +6016,12 @@
   background:#fff;
   color:#33393d;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   cursor:pointer;
 }
 .shopeeVariationOptionsLabel button:hover{
-  border-color:#ee4d2d;
-  color:#ee4d2d;
+  border-color:var(--accent);
+  color:var(--accent);
 }
 .shopeeVariationOptionList{
   margin-top:8px;
@@ -6045,7 +6045,7 @@
   border:1px solid #e1e4e5;
   color:#92989c;
   font-size:6px;
-  font-weight:900;
+  font-weight:700;
 }
 .shopeeVariationOptionRow>input{
   width:100%;
@@ -6060,8 +6060,8 @@
   font-size:9px;
 }
 .shopeeVariationOptionRow>input:focus{
-  border-color:#ee4d2d;
-  box-shadow:0 0 0 2px rgba(238,77,45,.08);
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(var(--accent-rgb),.08);
 }
 .shopeeVariationOptionPhoto{
   width:64px;
@@ -6084,9 +6084,9 @@
   height:100%;
   display:grid;
   place-items:center;
-  color:#ee4d2d;
+  color:var(--accent);
   font-size:6px;
-  font-weight:900;
+  font-weight:700;
   cursor:pointer;
 }
 .shopeeVariationOptionPhoto label input{
@@ -6101,7 +6101,7 @@
   background:rgba(17,20,23,.82);
   color:#fff;
   font-size:5px;
-  font-weight:900;
+  font-weight:700;
   cursor:pointer;
 }
 .shopeeVariationDelete{
@@ -6119,7 +6119,7 @@
 }
 .shopeeVariationDelete:hover{
   border-color:#efb7bd;
-  color:#d8242f;
+  color:var(--accent);
   background:#fff7f7;
 }
 .shopeeAddVariation2{
@@ -6129,12 +6129,12 @@
   background:#fff;
   color:#4b5256;
   font-size:8px;
-  font-weight:900;
+  font-weight:700;
   cursor:pointer;
 }
 .shopeeAddVariation2:hover{
-  border-color:#ee4d2d;
-  color:#ee4d2d;
+  border-color:var(--accent);
+  color:var(--accent);
   background:#fff9f7;
 }
 .shopeeVariationMatrixTitle{
@@ -6149,7 +6149,7 @@
 .shopeeVariationMatrixTitle strong{
   color:#272c30;
   font-size:8px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.06em;
 }
 .shopeeVariationMatrixTitle span{
@@ -6193,7 +6193,7 @@
   margin-right:auto;
   color:#6f7579;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.06em;
 }
 .productBulkPrimary,
@@ -6202,7 +6202,7 @@
   padding:0 12px;
   border-radius:8px;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.04em;
   cursor:pointer;
   white-space:nowrap;
@@ -6245,8 +6245,8 @@
   position:relative;
 }
 .productBulkCheckbox input:checked+span{
-  border-color:#ee4d2d;
-  background:#ee4d2d;
+  border-color:var(--accent);
+  background:var(--accent);
 }
 .productBulkCheckbox input:checked+span::after{
   content:"";
@@ -6289,9 +6289,9 @@
   border-bottom:1px solid #eceeef;
 }
 .productBulkModalHead span{
-  color:#ee4d2d;
+  color:var(--accent);
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.12em;
 }
 .productBulkModalHead h3{
@@ -6315,7 +6315,7 @@
   background:#fff;
   color:#4d5458;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   cursor:pointer;
 }
 .productBulkRows{
@@ -6360,7 +6360,7 @@
   margin-top:4px;
   color:#92989c;
   font-size:6px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.05em;
 }
 .productBulkPhoto{
@@ -6384,7 +6384,7 @@
 .productBulkPhoto>span{
   color:#9ca2a6;
   font-size:6px;
-  font-weight:900;
+  font-weight:700;
 }
 .productBulkPhoto label{
   position:absolute;
@@ -6398,7 +6398,7 @@
   background:rgba(17,20,23,.84);
   color:#fff;
   font-size:5px;
-  font-weight:900;
+  font-weight:700;
   cursor:pointer;
 }
 .productBulkPhoto label input{
@@ -6417,7 +6417,7 @@
 .productBulkDimensions span{
   color:#747b7f;
   font-size:6px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.05em;
 }
 .productBulkDimensions input{
@@ -6433,8 +6433,8 @@
   font-size:9px;
 }
 .productBulkDimensions input:focus{
-  border-color:#ee4d2d;
-  box-shadow:0 0 0 2px rgba(238,77,45,.08);
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(var(--accent-rgb),.08);
 }
 .productBulkModalFoot{
   padding:14px 18px;
@@ -6493,7 +6493,7 @@
   background:#fff;
   color:#4d5458;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   cursor:pointer;
   white-space:nowrap;
 }
@@ -6528,7 +6528,7 @@
   background:#f4f5f6;
   color:#51585c;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.05em;
   text-align:left;
 }
@@ -6568,13 +6568,13 @@
   box-sizing:border-box;
   color:#2b3034;
   font-size:8px;
-  font-weight:800;
+  font-weight:600;
   line-height:1.45;
   outline:0;
 }
 .productBulkNameInput:focus{
-  border-color:#ee4d2d;
-  box-shadow:0 0 0 2px rgba(238,77,45,.08);
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(var(--accent-rgb),.08);
 }
 .productBulkImageButton{
   width:86px;
@@ -6604,7 +6604,7 @@
 .productBulkImageButton>div>span{
   color:#9ca2a6;
   font-size:6px;
-  font-weight:900;
+  font-weight:700;
 }
 .productBulkImageButton b{
   position:absolute;
@@ -6615,14 +6615,14 @@
   background:rgba(17,20,23,.86);
   color:#fff;
   font-size:5px;
-  font-weight:900;
+  font-weight:700;
 }
 .productBulkImageButton small{
   display:block;
   margin-top:6px;
   color:#2e6acb;
   font-size:6px;
-  font-weight:900;
+  font-weight:700;
 }
 .productBulkDescriptionButton{
   width:100%;
@@ -6641,7 +6641,7 @@
 .productBulkDescriptionButton strong{
   color:#2f6fd6;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
 }
 .productBulkDescriptionButton span{
   margin-top:5px;
@@ -6666,7 +6666,7 @@
   overflow:hidden;
   color:#7a8185;
   font-size:6px;
-  font-weight:800;
+  font-weight:600;
   text-overflow:ellipsis;
   white-space:nowrap;
 }
@@ -6685,8 +6685,8 @@
 }
 .productBulkVariantStack input:focus,
 .productBulkWeightInput:focus{
-  border-color:#ee4d2d;
-  box-shadow:0 0 0 2px rgba(238,77,45,.07);
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(var(--accent-rgb),.07);
 }
 .productBulkMoneyInput{
   height:34px;
@@ -6699,8 +6699,8 @@
   background:#fff;
 }
 .productBulkMoneyInput:focus-within{
-  border-color:#ee4d2d;
-  box-shadow:0 0 0 2px rgba(238,77,45,.07);
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(var(--accent-rgb),.07);
 }
 .productBulkMoneyInput>b{
   height:100%;
@@ -6709,7 +6709,7 @@
   border-right:1px solid #e7e9ea;
   color:#9a9fa3;
   font-size:7px;
-  font-weight:800;
+  font-weight:600;
 }
 .productBulkMoneyInput input{
   height:32px !important;
@@ -6730,7 +6730,7 @@
 .productBulkParcelInputs span{
   color:#858c90;
   font-size:6px;
-  font-weight:900;
+  font-weight:700;
 }
 .productBulkParcelInputs input{
   width:100%;
@@ -6744,7 +6744,7 @@
   font-size:8px;
 }
 .productBulkParcelInputs input:focus{
-  border-color:#ee4d2d;
+  border-color:var(--accent);
 }
 .productBulkFullEdit{
   min-height:32px;
@@ -6757,7 +6757,7 @@
   background:#fff;
   color:#2f6fd6;
   font-size:6px;
-  font-weight:900;
+  font-weight:700;
   white-space:nowrap;
 }
 .productBulkModalFoot>span{
@@ -6765,7 +6765,7 @@
   align-self:center;
   color:#7e8589;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.06em;
 }
 
@@ -6803,9 +6803,9 @@
   border-bottom:1px solid #eceeef;
 }
 .productBulkSubModalHead span{
-  color:#ee4d2d;
+  color:var(--accent);
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.1em;
 }
 .productBulkSubModalHead h4{
@@ -6828,7 +6828,7 @@
   background:#fff;
   color:#555c60;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   cursor:pointer;
 }
 .productBulkImageGrid{
@@ -6863,7 +6863,7 @@
   background:#17a673;
   color:#fff;
   font-size:6px;
-  font-weight:900;
+  font-weight:700;
 }
 .productBulkGalleryCard>div{
   position:absolute;
@@ -6883,7 +6883,7 @@
   background:rgba(17,20,23,.84);
   color:#fff;
   font-size:5px;
-  font-weight:900;
+  font-weight:700;
   cursor:pointer;
 }
 .productBulkGalleryCard button:disabled{
@@ -6903,13 +6903,13 @@
   display:none;
 }
 .productBulkGalleryAdd strong{
-  color:#ee4d2d;
+  color:var(--accent);
   font-size:28px;
   font-weight:400;
 }
 .productBulkGalleryAdd span{
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
 }
 .productBulkGalleryAdd small{
   color:#9aa0a4;
@@ -6928,7 +6928,7 @@
 .productBulkDescriptionFields span{
   color:#62696d;
   font-size:7px;
-  font-weight:900;
+  font-weight:700;
   letter-spacing:.06em;
 }
 .productBulkDescriptionFields input,
@@ -6948,8 +6948,8 @@
 }
 .productBulkDescriptionFields input:focus,
 .productBulkDescriptionFields textarea:focus{
-  border-color:#ee4d2d;
-  box-shadow:0 0 0 2px rgba(238,77,45,.07);
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(var(--accent-rgb),.07);
 }
 .productBulkSubModalFoot{
   padding:13px 18px;
@@ -6990,7 +6990,7 @@
   overflow:hidden;
   color:#7a8185;
   font-size:6px;
-  font-weight:800;
+  font-weight:600;
   text-overflow:ellipsis;
   white-space:nowrap;
 }
@@ -7006,11 +7006,85 @@
   background:#fff;
   color:#4f565a;
   font-size:6px;
-  font-weight:900;
+  font-weight:700;
   cursor:pointer;
 }
 .productBulkRowActions>button:hover{
-  border-color:#ee4d2d;
-  color:#ee4d2d;
+  border-color:var(--accent);
+  color:var(--accent);
   background:#fff8f5;
 }
+
+/* =====================================================================
+   MIVO ADMIN — Apple-style refresh (matches the storefront)
+   Light frosted sidebar, soft cards, pill controls, blue focus ring.
+   ===================================================================== */
+.adminShell{background:var(--soft);font-family:var(--mivo-ui-font)}
+.adminWorkspace{gap:24px}
+
+.adminSidebar{
+  background:rgba(255,255,255,.78);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);
+  color:var(--ink);border:0;border-radius:24px;box-shadow:var(--shadow)
+}
+.adminBrand{border-bottom:1px solid var(--line)}
+.adminBrand span{font-size:26px;font-weight:700;letter-spacing:-.04em;background:var(--grad-brand);-webkit-background-clip:text;background-clip:text;color:transparent}
+.adminBrand small{color:var(--grey);font-size:10px;font-weight:600;letter-spacing:.08em}
+.adminSideNav a{min-height:38px;border-radius:10px;color:#424245;font-size:13px;font-weight:500;letter-spacing:0;transition:background-color .2s var(--ease),color .2s var(--ease)}
+.adminSideNav a span{color:var(--grey);font-size:11px;font-weight:600}
+.adminSideNav a:hover{background:rgba(var(--accent-rgb),.07);color:var(--accent)}
+.adminSideNav a.active{background:var(--accent);color:#fff;box-shadow:0 6px 16px rgba(var(--accent-rgb),.28)}
+.adminSideNav a.active span{color:rgba(255,255,255,.8)}
+.adminSidebarFoot{border-top:1px solid var(--line)}
+.adminSidebarFoot span{color:var(--grey);font-size:10px;font-weight:600;letter-spacing:.06em}
+.adminSidebarFoot strong{color:var(--ink);font-size:12px}
+.adminSidebarFoot a{color:var(--accent);font-size:12px;font-weight:500}
+
+.adminEyebrow{font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--accent)}
+.adminTop h1,.adminHeader h1{font-family:var(--mivo-display-font);font-weight:700;letter-spacing:-.035em}
+.adminTop p,.adminHeader p{color:var(--grey);font-size:14px}
+
+.adminAction,.adminSecondary{
+  min-height:38px;padding:0 18px;border-radius:980px;font-size:13px;font-weight:500;letter-spacing:0;
+  transition:translate .2s var(--ease),box-shadow .25s var(--ease),background-color .2s var(--ease)
+}
+.adminAction{background:var(--accent)}
+.adminAction:hover{background:var(--accent-hover);translate:0 -1px;box-shadow:0 8px 20px rgba(var(--accent-rgb),.32)}
+.adminSecondary{border-color:var(--line);color:var(--ink)}
+.adminSecondary:hover{border-color:var(--accent);color:var(--accent);background:rgba(var(--accent-rgb),.06)}
+.adminAction:active,.adminSecondary:active{scale:.96}
+
+.adminNav a{border-color:var(--line);font-size:12px;font-weight:500;letter-spacing:0;color:var(--ink)}
+.adminNav a:hover{border-color:var(--accent);color:var(--accent)}
+
+.adminPanel,.adminStat{border:0;border-radius:22px;box-shadow:var(--shadow)}
+.adminPanelHead h2{font-weight:700;letter-spacing:-.02em}
+.adminPanelHead p{font-size:13px;color:var(--grey)}
+.adminStat span{font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--grey)}
+.adminStat strong{font-weight:700}
+
+.adminField span{font-size:11px;font-weight:600;letter-spacing:.03em;color:var(--grey)}
+.adminField input,.adminField select,.adminField textarea{border-color:var(--line);border-radius:12px;font-size:14px;transition:border-color .2s var(--ease),box-shadow .2s var(--ease)}
+.adminField input:focus,.adminField select:focus,.adminField textarea:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(var(--accent-rgb),.15)}
+
+.adminShell table th{font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--grey)}
+.adminShell table td{font-size:13px}
+.adminShell button:not(:disabled){cursor:pointer}
+
+/* Shopee import */
+.importStepTitle{margin:0 0 12px;font-size:18px;font-weight:700;letter-spacing:-.01em}
+.importDrop{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:150px;margin-top:12px;padding:24px;
+  border:2px dashed rgba(var(--accent-rgb),.35);border-radius:20px;background:rgba(var(--accent-rgb),.04);text-align:center;cursor:pointer;
+  transition:background-color .2s var(--ease),border-color .2s var(--ease)}
+.importDrop:hover{background:rgba(var(--accent-rgb),.08);border-color:var(--accent)}
+.importDrop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.importDrop strong{font-size:15px;color:var(--accent)}
+.importDrop small{font-size:12px;color:var(--grey)}
+.importCheck{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink)}
+.importActions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.importActions button{min-height:40px;padding:0 18px;border:1px solid var(--line);border-radius:980px;background:#fff;font-size:14px;font-weight:500}
+.importActions .importPrimary{border:0;background:var(--accent);color:#fff;box-shadow:0 8px 20px rgba(var(--accent-rgb),.3)}
+.importActions .importPrimary:disabled{opacity:.45;box-shadow:none}
+.importProgress{height:10px;margin-top:16px;border-radius:980px;background:rgba(var(--accent-rgb),.12);overflow:hidden}
+.importProgress i{display:block;height:100%;border-radius:980px;background:var(--grad-violet);transition:width .3s var(--ease)}
+.importErrors{margin:10px 0 0;padding-left:18px;font-size:13px;color:#b00020;line-height:1.6}
