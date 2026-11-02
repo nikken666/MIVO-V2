@@ -123,6 +123,7 @@ function combinationKey(value1: string, value2: string) {
 
 export default function AdminNewProductPage() {
   const [store, setStore] = useState<Store | null>(null);
+  const [stores, setStores] = useState<Store[]>([]);
   const [brands, setBrands] = useState<Option[]>([]);
   const [selectedBrandId, setSelectedBrandId] = useState("");
   const [brandModalOpen, setBrandModalOpen] = useState(false);
@@ -213,8 +214,7 @@ export default function AdminNewProductPage() {
             .from("sellers")
             .select("id, shop_name, status")
             .eq("status", "approved")
-            .limit(1)
-            .maybeSingle(),
+            .order("shop_name"),
           supabase
             .from("brands")
             .select("id, name")
@@ -237,7 +237,16 @@ export default function AdminNewProductPage() {
 
         const vehicles = (vehicleData as VehicleDbRow[] | null) || [];
 
-        setStore((sellerData as Store | null) || null);
+        // Several shops share the MIVO warehouse; default to MIVO Direct.
+        const shopList = (sellerData as Store[] | null) || [];
+        setStores(shopList);
+        const requestedShop = new URLSearchParams(window.location.search).get("shop");
+        setStore(
+          shopList.find((item) => item.id === requestedShop) ||
+            shopList.find((item) => /^mivo direct/i.test(item.shop_name)) ||
+            shopList[0] ||
+            null
+        );
         setBrands((brandData as Option[] | null) || []);
         setCategories((categoryData as CategoryNode[] | null) || []);
         setVehicleRows(vehicles);
@@ -1054,7 +1063,7 @@ export default function AdminNewProductPage() {
       } = await supabase.auth.getUser();
 
       if (!user) throw new Error("Your admin session expired.");
-      if (!sellerId) throw new Error("MIVO Direct Store is not configured.");
+      if (!sellerId) throw new Error("Choose a shop for this product.");
       if (!name) throw new Error("Product name is required.");
       if (!categoryId) throw new Error("Choose the final product category.");
       if (files.length === 0 && sourceImages.length === 0) {
@@ -2394,10 +2403,19 @@ export default function AdminNewProductPage() {
 
                     <div className={styles.editorTwoCol}>
                       <div className={styles.adminField}>
-                        <span>STORE</span>
-                        <div className={styles.adminNotice}>
-                          {store?.shop_name || "MIVO DIRECT STORE"}
-                        </div>
+                        <span>SHOP</span>
+                        <select
+                          value={store?.id || ""}
+                          onChange={(event) =>
+                            setStore(stores.find((item) => item.id === event.target.value) || null)
+                          }
+                        >
+                          {stores.map((item) => (
+                            <option key={item.id} value={item.id}>
+                              {item.shop_name}
+                            </option>
+                          ))}
+                        </select>
                       </div>
 
                       <label className={styles.adminField}>

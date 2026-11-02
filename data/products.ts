@@ -45,6 +45,10 @@ export type Product = {
   imageUrl?: string;
   imageUrls?: string[];
   seller?: string;
+  sellerId?: string;
+  sellerSlug?: string;
+  sellerTier?: "direct" | "preferred" | "standard";
+  sellerLogo?: string;
   sku?: string;
   stock?: number;
   variation1Name?: string | null;

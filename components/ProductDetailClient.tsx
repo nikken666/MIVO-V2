@@ -14,6 +14,7 @@ import { useMarketplace } from "./MarketplaceProvider";
 import ProductCard from "./ProductCard";
 import ProductVehicleSelector from "./ProductVehicleSelector";
 import { htmlToParagraphs, htmlToPlainText } from "@/lib/plainText";
+import ShopBadge, { shopHref } from "./ShopBadge";
 
 function uniqueValues(values: Array<string | null | undefined>) {
   return Array.from(
@@ -446,6 +447,24 @@ export default function ProductDetailClient({
                 </span>
                 {displaySku ? <span>SKU {displaySku}</span> : null}
               </div>
+
+              {product.seller ? (
+                <Link href={shopHref(product)} className="productShopCard">
+                  <span className="productShopAvatar" aria-hidden="true">
+                    {product.sellerLogo ? (
+                      <img src={product.sellerLogo} alt="" />
+                    ) : (
+                      product.seller.slice(0, 1)
+                    )}
+                  </span>
+                  <span className="productShopText">
+                    <strong>
+                      {product.seller} <ShopBadge tier={product.sellerTier} />
+                    </strong>
+                    <small>Visit shop ›</small>
+                  </span>
+                </Link>
+              ) : null}
             </div>
 
             <div className="productPricePanel">
@@ -652,8 +671,12 @@ export default function ProductDetailClient({
               <div>
                 <span>✓</span>
                 <p>
-                  <strong>MIVO Direct Store</strong>
-                  <small>Sold and fulfilled by MIVO</small>
+                  <strong>Ships from the MIVO warehouse</strong>
+                  <small>
+                    {product.sellerTier === "direct"
+                      ? "Sold and fulfilled by MIVO"
+                      : "Sold by " + (product.seller || "MIVO") + ", fulfilled by MIVO"}
+                  </small>
                 </p>
               </div>
               <div>

@@ -10752,3 +10752,78 @@ button:disabled,.btn[aria-disabled="true"]{cursor:not-allowed;translate:none!imp
   .shopDiscoverGrid .premiumProductImage{height:150px}
   .shopTrust{grid-template-columns:1fr 1fr;gap:10px}
 }
+
+/* =====================================================================
+   MARKETPLACE SHOPS — tier badges, shop lines, shop pages
+   ===================================================================== */
+.shopBadge{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 8px;border-radius:980px;font-size:11px;font-weight:700;letter-spacing:0;white-space:nowrap;vertical-align:middle}
+.shopBadge.md{height:24px;padding:0 10px;font-size:12px}
+.shopBadge svg{width:13px;height:13px}
+.shopBadgeDirect{background:var(--grad-brand);color:#fff;box-shadow:0 2px 8px rgba(var(--accent-rgb),.3)}
+.shopBadgeDirect svg path:first-child{fill:var(--accent-2)}
+.shopBadgeDirect svg .tick{fill:none;stroke:#0a3fd8;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.shopBadgePreferred{background:var(--grad-sun);color:#1d1d1f}
+
+.productShopLine{display:flex;align-items:center;gap:6px;margin:6px 0 2px;min-width:0;font-size:12px;color:var(--grey)}
+.productShopLine span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.productShopLine:hover span:last-child{color:var(--accent);text-decoration:underline}
+
+.productShopCard{display:flex;align-items:center;gap:12px;margin-top:14px;padding:12px 14px;border-radius:16px;background:var(--soft);transition:background .2s var(--ease),translate .2s var(--ease)}
+.productShopCard:hover{background:rgba(var(--accent-rgb),.08);translate:0 -1px}
+.productShopAvatar{display:grid;place-items:center;width:40px;height:40px;flex:none;border-radius:12px;overflow:hidden;background:var(--grad-brand);color:#fff;font-weight:700}
+.productShopAvatar img{width:100%;height:100%;object-fit:cover}
+.productShopText{display:flex;flex-direction:column;gap:2px;min-width:0}
+.productShopText strong{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:14px}
+.productShopText small{font-size:12px;color:var(--accent)}
+
+.cartStoreBar{margin-top:10px}
+.cartStoreLink{display:flex;align-items:center;gap:10px;color:inherit}
+.cartStoreLink strong{display:inline-flex;align-items:center;gap:6px}
+.cartStoreLink:hover strong{color:var(--accent)}
+
+/* shop list */
+.shopsPage,.shopPage{background:var(--soft);min-height:70vh;padding-bottom:50px}
+.shopsHero{padding:40px 0 22px}
+.shopsHero span{font-size:14px;font-weight:600;color:var(--accent)}
+.shopsHero h1{margin:6px 0 8px;font-size:clamp(36px,4.5vw,54px);letter-spacing:-.035em}
+.shopsHero p{margin:0;max-width:560px;color:var(--grey)}
+.shopsGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.shopsCard{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:0 20px 18px;border-radius:24px;background:#fff;box-shadow:var(--shadow);overflow:hidden;color:var(--ink);transition:translate .3s var(--ease),box-shadow .3s var(--ease)}
+.shopsCard:hover{translate:0 -4px;box-shadow:0 18px 36px rgba(0,0,0,.12)}
+.shopsCardBanner{display:block;width:calc(100% + 40px);height:84px;margin:0 -20px;background:var(--grad-violet)}
+.shopsCard.tier-direct .shopsCardBanner{background:var(--grad-brand)}
+.shopsCard.tier-preferred .shopsCardBanner{background:var(--grad-sun)}
+.shopsCardBanner img{width:100%;height:100%;object-fit:cover}
+.shopsCardAvatar{display:grid;place-items:center;width:58px;height:58px;margin-top:-30px;border:3px solid #fff;border-radius:18px;background:#1d1d1f;color:#fff;font-size:22px;font-weight:700;overflow:hidden}
+.shopsCardAvatar img{width:100%;height:100%;object-fit:cover}
+.shopsCard strong{font-size:17px}
+.shopsCard small{font-size:13px;color:var(--grey);line-height:1.45}
+.shopsCardFoot{display:flex;justify-content:space-between;width:100%;margin-top:6px;padding-top:12px;border-top:1px solid #f0f0f2;font-size:13px;color:var(--grey)}
+.shopsCardFoot b{color:var(--accent);font-weight:600}
+.shopsEmpty{padding:40px 0;color:var(--grey)}
+
+/* single shop */
+.shopPageHero{position:relative;overflow:hidden;padding:46px 0 34px;background:var(--grad-violet);color:#fff}
+.shopPageHero.tier-direct{background:radial-gradient(ellipse at 85% 10%,rgba(255,214,10,.35),transparent 45%),var(--grad-brand)}
+.shopPageHero.tier-preferred{background:radial-gradient(ellipse at 85% 10%,rgba(255,255,255,.4),transparent 45%),var(--grad-sun);color:#1d1d1f}
+.shopPageBanner{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.35}
+.shopPageHeroInner{position:relative;display:grid;grid-template-columns:auto 1fr minmax(240px,340px);align-items:center;gap:20px}
+.shopPageAvatar{display:grid;place-items:center;width:84px;height:84px;border-radius:24px;background:rgba(255,255,255,.18);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);font-size:32px;font-weight:700;overflow:hidden;border:2px solid rgba(255,255,255,.5)}
+.shopPageAvatar img{width:100%;height:100%;object-fit:cover}
+.shopPageHero h1{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 6px;font-size:clamp(26px,3vw,38px);letter-spacing:-.03em;color:inherit}
+.shopPageHero p{margin:0;opacity:.85}
+.shopPageStats{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:12px;font-size:13px;opacity:.9}
+.shopPageStats b{font-weight:700}
+.shopPageSearch{display:flex;gap:6px;padding:5px;border-radius:980px;background:rgba(255,255,255,.9);box-shadow:0 10px 24px rgba(0,0,0,.15)}
+.shopPageSearch input{flex:1;min-width:0;border:0;background:transparent;padding:0 12px;font-size:14px;outline:none;color:var(--ink)}
+.shopPageSearch button{border:0;border-radius:980px;background:var(--accent);color:#fff;padding:9px 16px;font-size:13px;font-weight:600}
+.shopPageBody{padding-top:20px}
+.shopPageBody .shopChips{margin-bottom:16px}
+@media(max-width:850px){
+  .shopPageHeroInner{grid-template-columns:auto 1fr}
+  .shopPageSearch{grid-column:1/-1}
+}
+@media(max-width:540px){
+  .shopPageHero{padding:28px 0 22px}
+  .shopPageAvatar{width:60px;height:60px;border-radius:18px;font-size:24px}
+}

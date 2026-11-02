@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { Fragment, useEffect } from "react";
 import { formatPrice } from "@/data/products";
 import { useMarketplace } from "@/components/MarketplaceProvider";
 import CartVoucherStrip from "@/components/CartVoucherStrip";
+import ShopBadge, { shopHref } from "@/components/ShopBadge";
 
 export default function CartPage() {
   const {
@@ -91,22 +92,17 @@ export default function CartPage() {
               <strong>Products</strong><span>Choose the parts you want to check out</span>
               {allCheckbox("SELECT ALL")}
             </div>
-            <div className="cartStoreBar">
-              <div>
-                <label className="cartCheckOnly" title="Select all MIVO Direct Store items">
-                  <input type="checkbox" className="cartCheckInput" checked={allSelected}
-                    onChange={(event) => selectAllCartLines(event.target.checked)}
-                    aria-label="Select all MIVO Direct Store items" />
-                </label>
-                <span className="cartStoreDot">M</span>
-                <div><strong>MIVO direct store</strong><small>Official MIVO fulfilment</small></div>
-              </div>
-              <span>In stock</span>
-            </div>
-
             <CartVoucherStrip />
 
-            {cart.map((line) => {
+            {[...cart]
+              .sort((a, b) => (a.product.seller || "").localeCompare(b.product.seller || ""))
+              .map((line, lineIndex, lines) => {
+              // Lines are grouped visually by shop, Shopee-style; every shop
+              // ships from the same MIVO warehouse.
+              const shopName = line.product.seller || "MIVO";
+              const newShop =
+                lineIndex === 0 ||
+                (lines[lineIndex - 1].product.seller || "MIVO") !== shopName;
               const price = line.variant?.price ?? line.product.price;
               const lineTotal = price * line.quantity;
               const checked = selectedIds.has(line.lineId);
@@ -115,7 +111,20 @@ export default function CartPage() {
                 : typeof line.product.stock === "number" ? line.product.stock : undefined;
 
               return (
-                <article className={"modernCartLine cartLineSelectable" + (checked ? "" : " cartLineUnselected")} key={line.lineId}>
+                <Fragment key={line.lineId}>
+                {newShop ? (
+                  <div className="cartStoreBar">
+                    <Link href={shopHref(line.product)} className="cartStoreLink">
+                      <span className="cartStoreDot">{shopName.slice(0, 1)}</span>
+                      <div>
+                        <strong>{shopName} <ShopBadge tier={line.product.sellerTier} /></strong>
+                        <small>Ships from the MIVO warehouse</small>
+                      </div>
+                    </Link>
+                    <span>Visit shop ›</span>
+                  </div>
+                ) : null}
+                <article className={"modernCartLine cartLineSelectable" + (checked ? "" : " cartLineUnselected")}>
                   <label className="cartCheckOnly" title={"Select " + line.product.name}>
                     <input type="checkbox" className="cartCheckInput" checked={checked}
                       onChange={() => toggleCartLineSelection(line.lineId)}
@@ -159,6 +168,7 @@ export default function CartPage() {
                     <span>Item total</span><strong>{formatPrice(lineTotal)}</strong>
                   </div>
                 </article>
+                </Fragment>
               );
             })}
 

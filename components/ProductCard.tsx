@@ -6,6 +6,7 @@ import type { Product } from "@/data/products";
 import { formatPrice } from "@/data/products";
 import type { FitmentStatus } from "@/data/fitments";
 import { useMarketplace } from "./MarketplaceProvider";
+import { ShopLine } from "./ShopBadge";
 
 const brandLogos: Record<string, string> = {
   NIKKEN: "/brands/nikken-logo.svg",
@@ -191,6 +192,13 @@ export default function ProductCard({
         <Link href={detailHref}>
           <h3>{product.name}</h3>
         </Link>
+
+        <ShopLine
+          name={product.seller}
+          tier={product.sellerTier}
+          sellerSlug={product.sellerSlug}
+          sellerId={product.sellerId}
+        />
 
         <p className={fitmentTextClass}>
           {fitment?.text || "Check compatibility with your vehicle"}

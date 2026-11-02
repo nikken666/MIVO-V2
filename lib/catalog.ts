@@ -8,6 +8,14 @@ import {
 
 type NamedRelation = { name: string } | Array<{ name: string }> | null;
 
+type SellerRelation = {
+  id?: string;
+  shop_name: string;
+  slug?: string | null;
+  tier?: "direct" | "preferred" | "standard" | null;
+  logo_url?: string | null;
+};
+
 type ProductRow = {
   id: string;
   category_id: string | null;
@@ -24,7 +32,7 @@ type ProductRow = {
   restricted_shipping_states: string[] | null;
   brands: NamedRelation;
   categories: NamedRelation;
-  sellers: { shop_name: string } | Array<{ shop_name: string }> | null;
+  sellers: SellerRelation | Array<SellerRelation> | null;
   product_images:
     | Array<{
         image_url: string;
@@ -62,14 +70,12 @@ function relationName(value: NamedRelation, fallback: string) {
   return value?.name || fallback;
 }
 
-function sellerName(
-  value:
-    | { shop_name: string }
-    | Array<{ shop_name: string }>
-    | null
-) {
-  if (Array.isArray(value)) return value[0]?.shop_name || "MIVO Seller";
-  return value?.shop_name || "MIVO Seller";
+function sellerOf(value: SellerRelation | Array<SellerRelation> | null) {
+  return (Array.isArray(value) ? value[0] : value) || null;
+}
+
+function sellerName(value: SellerRelation | Array<SellerRelation> | null) {
+  return sellerOf(value)?.shop_name || "MIVO Seller";
 }
 
 function mapVariants(row: ProductRow): ProductVariant[] {
@@ -176,6 +182,10 @@ function mapProduct(row: ProductRow): Product | null {
       )
     ),
     seller: sellerName(row.sellers),
+    sellerId: sellerOf(row.sellers)?.id || undefined,
+    sellerSlug: sellerOf(row.sellers)?.slug || undefined,
+    sellerTier: sellerOf(row.sellers)?.tier || undefined,
+    sellerLogo: sellerOf(row.sellers)?.logo_url || undefined,
     sku: variants.length === 1 ? firstVariant.sku : undefined,
     stock: totalStock,
     variation1Name: row.variation_1_name,
@@ -187,7 +197,34 @@ function mapProduct(row: ProductRow): Product | null {
 }
 
 const selectQuery =
-  "id, category_id, brand_id, slug, name, description, short_description, warranty_months, primary_image_url, variation_1_name, variation_2_name, is_universal_fitment, restricted_shipping_states, brands(name), categories(name), sellers(shop_name), product_images(image_url, sort_order), product_variants(id, title, variation_1_value, variation_2_value, variant_image_url, sort_order, sku, price, compare_at_price, discount_enabled, discount_percent, discount_starts_at, discount_ends_at, stock_on_hand, stock_reserved, weight_kg, length_cm, width_cm, height_cm, is_active)";
+  "id, category_id, brand_id, slug, name, description, short_description, warranty_months, primary_image_url, variation_1_name, variation_2_name, is_universal_fitment, restricted_shipping_states, brands(name), categories(name), sellers(id, shop_name, slug, tier, logo_url), product_images(image_url, sort_order), product_variants(id, title, variation_1_value, variation_2_value, variant_image_url, sort_order, sku, price, compare_at_price, discount_enabled, discount_percent, discount_starts_at, discount_ends_at, stock_on_hand, stock_reserved, weight_kg, length_cm, width_cm, height_cm, is_active)";
+
+// Until supabase/multi-shop-linked-stock.sql has run, the shop columns
+// (e.g. sellers.tier) don't exist; fall back to the previous query so the
+// catalogue keeps working whichever is deployed first.
+const legacySelectQuery = selectQuery.replace(
+  "sellers(id, shop_name, slug, tier, logo_url)",
+  "sellers(shop_name)"
+);
+let shopColumnsAvailable = true;
+
+type QueryResult = { data: unknown; error: { code?: string; message?: string } | null };
+
+async function withShopFallback(
+  run: (select: string) => PromiseLike<QueryResult>
+): Promise<QueryResult> {
+  if (shopColumnsAvailable) {
+    const result = await run(selectQuery);
+    const missingColumn =
+      result.error &&
+      (result.error.code === "42703" ||
+        result.error.code === "42501" ||
+        /column|permission/i.test(result.error.message || ""));
+    if (!missingColumn) return result;
+    shopColumnsAvailable = false;
+  }
+  return run(legacySelectQuery);
+}
 
 type ReviewStat = {
   rating: number;
@@ -254,11 +291,13 @@ async function attachReviewStats(
 export async function getActiveProducts(): Promise<Product[]> {
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("products")
-      .select(selectQuery)
-      .eq("status", "active")
-      .order("created_at", { ascending: false });
+    const { data, error } = await withShopFallback((select) =>
+      supabase
+        .from("products")
+        .select(select)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+    );
 
     if (error) throw error;
 
@@ -277,16 +316,18 @@ export async function getActiveProductBySlug(
 ): Promise<Product | null> {
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("products")
-      .select(selectQuery)
-      .eq("slug", slug)
-      .eq("status", "active")
-      .limit(1);
+    const { data, error } = await withShopFallback((select) =>
+      supabase
+        .from("products")
+        .select(select)
+        .eq("slug", slug)
+        .eq("status", "active")
+        .limit(1)
+    );
 
     if (error) throw error;
 
-    const row = (data?.[0] || null) as unknown as ProductRow | null;
+    const row = ((data as unknown[] | null)?.[0] || null) as ProductRow | null;
     const mapped = row ? mapProduct(row) : null;
 
     if (mapped) {
@@ -355,7 +396,7 @@ export async function getRelatedProducts(
     ) {
       let query = supabase
         .from("products")
-        .select(selectQuery)
+        .select(shopColumnsAvailable ? selectQuery : legacySelectQuery)
         .eq("status", "active")
         .neq("id", product.id!)
         .limit(limit);
