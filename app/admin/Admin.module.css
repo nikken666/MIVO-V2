@@ -7372,3 +7372,5 @@ span.adminPanelKicker{font-size:12px!important;letter-spacing:normal!important}
 .platformPill.done{background:#f1f2f4;color:var(--grey)}
 .platformPill.yes{background:#e8f6ee;color:#1d7a3b}
 .platformPill.no{background:#fdecea;color:#b3261e}
+.adminPanel button:not([class]),.adminContent td button:not([class]){min-height:34px;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
+.adminPanel button:not([class]):hover,.adminContent td button:not([class]):hover{border-color:var(--accent);color:var(--accent)}
