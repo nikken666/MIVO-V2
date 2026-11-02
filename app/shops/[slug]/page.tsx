@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import ChatNowButton from "@/components/chat/ChatNowButton";
 import ProductCard from "@/components/ProductCard";
 import ShopBadge from "@/components/ShopBadge";
 import { getActiveProducts } from "@/lib/catalog";
@@ -65,6 +66,9 @@ export default async function ShopPage({
               <span><b>{all.length}</b> products</span>
               <span><b>{categories.length}</b> categories</span>
               <span>Ships from MIVO warehouse</span>
+            </div>
+            <div className="shopPageActions">
+              <ChatNowButton sellerId={shop.id} />
             </div>
           </div>
           <form className="shopPageSearch" action={base}>

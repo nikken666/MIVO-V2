@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../../Admin.module.css";
+import AdminSidebar from "@/components/admin/AdminSidebar";
 
 type CampaignOption = {
   id: string;
@@ -443,29 +444,7 @@ export default function MarketingVouchersPage() {
   return (
     <main className={styles.adminShell}>
       <div className={styles.adminWorkspace}>
-        <aside className={styles.adminSidebar}>
-          <a href="/admin" className={styles.adminBrand}>
-            <span>MIVO</span>
-            <small>STORE CONTROL</small>
-          </a>
-          <nav className={styles.adminSideNav}>
-            <a href="/admin"><span>01</span>Dashboard</a>
-            <a href="/admin/orders"><span>02</span>Orders</a>
-            <a href="/admin/arrange-shipment"><span>03</span>Arrange Shipment</a>
-            <a href="/admin/claims"><span>04</span>Claims</a>
-            <a href="/admin/marketing" className={styles.active}>
-              <span>05</span>Marketing Centre
-            </a>
-            <a href="/admin/products"><span>06</span>Products</a>
-            <a href="/admin/products/new"><span>07</span>Add Product</a>
-            <a href="/admin/shipping"><span>08</span>Shipping</a>
-          </nav>
-          <div className={styles.adminSidebarFoot}>
-            <span>ACTIVE VOUCHERS</span>
-            <strong>{loading ? "—" : activeCount}</strong>
-            <a href="/admin/marketing">MARKETING CENTRE</a>
-          </div>
-        </aside>
+        <AdminSidebar />
 
         <section className={styles.adminContent}>
           <header className={styles.adminHeader}>

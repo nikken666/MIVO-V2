@@ -14,6 +14,7 @@ import AdminFitmentBuilder, {
   type AdminFitmentDraft,
 } from "@/components/AdminFitmentBuilder";
 import styles from "../../../Admin.module.css";
+import AdminSidebar from "@/components/admin/AdminSidebar";
 
 type Option = { id: string; name: string };
 
@@ -1467,31 +1468,7 @@ export default function EditProductPage() {
   return (
     <main className={styles.adminShell}>
       <div className={styles.adminWorkspace}>
-        <aside className={styles.adminSidebar}>
-          <a href="/admin" className={styles.adminBrand}>
-            <span>MIVO</span>
-            <small>STORE CONTROL</small>
-          </a>
-
-          <nav className={styles.adminSideNav}>
-            <a href="/admin"><span>01</span>Dashboard</a>
-            <a href="/admin/orders"><span>02</span>Orders</a>
-            <a href="/admin/arrange-shipment"><span>03</span>Arrange Shipment</a>
-            <a href="/admin/claims"><span>04</span>Claims</a>
-            <a href="/admin/marketing"><span>05</span>Marketing Centre</a>
-            <a href="/admin/products" className={styles.active}><span>06</span>Products</a>
-            <a href="/admin/products/new"><span>07</span>Add Product</a>
-            <a href="/admin/shipping"><span>08</span>Shipping</a>
-          </nav>
-
-          <div className={styles.adminSidebarFoot}>
-            <span>EDIT MODE</span>
-            <strong>{variants.length} SKU</strong>
-            <a href={"/products/" + product.slug}>
-              OPEN PRODUCT ↗
-            </a>
-          </div>
-        </aside>
+        <AdminSidebar />
 
         <section className={styles.adminContent}>
           <header className={styles.adminHeader}>

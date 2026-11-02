@@ -1,21 +1,41 @@
+"use client";
+
 import Link from "next/link";
 import Logo from "./Logo";
+import { useT } from "./LanguageProvider";
 
 export default function Footer() {
+  const t = useT();
   return (
     <footer className="siteFooter">
       <div className="container footerTop">
         <div className="footerBrandBlock">
           <Logo variant="dark" className="footerLogoAsset" />
-          <p>Premium automotive parts, matched with more confidence.</p>
+          <p>{t("footer.tagline")}</p>
         </div>
-        <div><h4>Shop</h4><Link href="/products">All Parts</Link><Link href="/brands">Brands</Link><Link href="/garage">My Garage</Link></div>
-        <div><h4>Support</h4><Link href="/orders">Track Order</Link><Link href="/account">My Account</Link><Link href="/shipping-policy">Shipping Policy</Link><Link href="/returns-policy">Returns &amp; Refunds</Link><Link href="/privacy-policy">Privacy Policy</Link></div>
-        <div><h4>About</h4><Link href="/#fitment">Vehicle Match</Link><Link href="/#standard">Our Standard</Link></div>
+        <div>
+          <h4>{t("footer.shop")}</h4>
+          <Link href="/products">{t("footer.allParts")}</Link>
+          <Link href="/products?view=brands">{t("footer.brands")}</Link>
+          <Link href="/garage">{t("footer.garage")}</Link>
+        </div>
+        <div>
+          <h4>{t("footer.support")}</h4>
+          <Link href="/orders">{t("footer.track")}</Link>
+          <Link href="/account">{t("footer.account")}</Link>
+          <Link href="/shipping-policy">{t("footer.shipping")}</Link>
+          <Link href="/returns-policy">{t("footer.returns")}</Link>
+          <Link href="/privacy-policy">{t("footer.privacy")}</Link>
+        </div>
+        <div>
+          <h4>{t("footer.about")}</h4>
+          <Link href="/#fitment">{t("footer.vehicleMatch")}</Link>
+          <Link href="/#standard">{t("footer.standard")}</Link>
+        </div>
       </div>
       <div className="container footerBottom">
-        <span>© 2026 MIVO. All rights reserved.</span>
-        <span>Secure payment · Malaysia delivery</span>
+        <span>{t("footer.rights", { year: new Date().getFullYear() })}</span>
+        <span>{t("footer.bottom")}</span>
       </div>
     </footer>
   );

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import ProductVehicleSelector from "./ProductVehicleSelector";
+import { useT } from "./LanguageProvider";
 
 type StoredVehicle = {
   make?: string;
@@ -39,6 +40,7 @@ export default function VehiclePickerButton({
   variant?: "chip" | "banner";
   autoOpenFromUrl?: boolean;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [vehicle, setVehicle] = useState<StoredVehicle | null>(null);
 
@@ -88,7 +90,7 @@ export default function VehiclePickerButton({
             <circle cx="8" cy="16" r="1.4" />
             <circle cx="16" cy="16" r="1.4" />
           </svg>
-          <span>{label || "Select car"}</span>
+          <span>{label || t("header.selectCar")}</span>
           <svg className="vehiclePickerCaret" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M7 10l5 5 5-5" />
           </svg>

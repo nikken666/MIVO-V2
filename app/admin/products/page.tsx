@@ -4,6 +4,7 @@ import { Fragment, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
+import AdminSidebar from "@/components/admin/AdminSidebar";
 
 type ProductVariantRow = {
   id: string;
@@ -1219,33 +1220,7 @@ export default function AdminProductsPage() {
   return (
     <main className={styles.adminShell}>
       <div className={styles.adminWorkspace}>
-        <aside className={styles.adminSidebar}>
-          <a href="/admin" className={styles.adminBrand}>
-            <span>MIVO</span>
-            <small>STORE CONTROL</small>
-          </a>
-
-          <nav className={styles.adminSideNav}>
-            <a href="/admin"><span>01</span>Dashboard</a>
-            <a href="/admin/orders"><span>02</span>Orders</a>
-            <a href="/admin/arrange-shipment"><span>03</span>Arrange Shipment</a>
-            <a href="/admin/claims"><span>04</span>Claims</a>
-            <a href="/admin/marketing"><span>05</span>Marketing Centre</a>
-            <a href="/admin/products" className={styles.active}><span>06</span>Products</a>
-            <a href="/admin/store-health"><span>09</span>Store Health</a>
-            <a href="/admin/shops"><span>10</span>Shops</a>
-            <a href="/admin/products/import"><span>11</span>Import from Shopee</a>
-            <a href="/admin/products/fitment-suggestions"><span>12</span>Fitment suggestions</a>
-            <a href="/admin/products/new"><span>07</span>Add Product</a>
-            <a href="/admin/shipping"><span>08</span>Shipping</a>
-          </nav>
-
-          <div className={styles.adminSidebarFoot}>
-            <span>STORE MODE</span>
-            <strong>MIVO DIRECT</strong>
-            <a href="/">OPEN STOREFRONT ↗</a>
-          </div>
-        </aside>
+        <AdminSidebar />
 
         <section className={styles.adminContent}>
           <header className={styles.adminHeader}>

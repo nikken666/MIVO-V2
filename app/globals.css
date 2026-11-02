@@ -10907,3 +10907,90 @@ button:disabled,.btn[aria-disabled="true"]{cursor:not-allowed;translate:none!imp
 .productVehicleStepTop,.productVehicleStepTop *{font-size:12px!important}
 .productVehicleModalHead>div>span:first-child{font-size:12px!important;letter-spacing:.02em}
 .mivoAuthVisual .mivoLogo img,.garageHero .mivoLogo img{filter:brightness(0) invert(1)}
+
+/* Language switch (top bar) */
+.announcementTools{display:flex;align-items:center;gap:18px}
+.languageSwitch{position:relative;display:inline-flex;align-items:center;gap:6px;color:inherit;cursor:pointer}
+.languageSwitch svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6}
+.languageSwitch select{appearance:none;-webkit-appearance:none;border:0;background:transparent;color:inherit;font:inherit;font-size:12px;padding:2px 14px 2px 0;cursor:pointer;
+  background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);
+  background-position:calc(100% - 6px) 55%,calc(100% - 2px) 55%;background-size:4px 4px;background-repeat:no-repeat}
+.languageSwitch select:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.srOnly{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media(max-width:850px){.announcementBar span.announcementTools{display:flex!important}.announceSecure{display:none}}
+
+/* ===================== Chat ===================== */
+.chatLauncher{position:fixed;right:20px;bottom:20px;z-index:300;display:flex;align-items:center;gap:8px;height:48px;padding:0 18px 0 14px;border:0;border-radius:999px;
+  background:var(--accent);color:#fff;font:inherit;font-size:15px;font-weight:600;box-shadow:0 10px 30px rgba(var(--accent-rgb),.35);cursor:pointer;transition:transform .15s var(--ease)}
+.chatLauncher:hover{background:var(--accent-hover)}
+.chatLauncher:active{transform:scale(.96)}
+.chatLauncher svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round}
+.chatLauncher b{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--accent-2);color:var(--accent-2-ink);font-size:12px;display:grid;place-items:center}
+.chatPanel{position:fixed;right:20px;bottom:80px;z-index:310;width:min(720px,calc(100vw - 32px));height:min(560px,calc(100vh - 120px));display:flex;flex-direction:column;
+  background:#fff;border-radius:20px;box-shadow:0 24px 70px rgba(0,0,0,.2);overflow:hidden;animation:chatIn .22s var(--ease)}
+@keyframes chatIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+.chatPanelHead{display:flex;align-items:center;gap:10px;min-height:54px;padding:0 12px 0 18px;border-bottom:1px solid #eef0f2}
+.chatPanelHead strong{flex:1;font-size:16px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chatShopLink{font-size:13px;color:var(--accent);font-weight:500}
+.chatClose,.chatBack{width:34px;height:34px;border:0;border-radius:50%;background:transparent;font-size:24px;line-height:1;color:var(--grey);cursor:pointer}
+.chatClose:hover,.chatBack:hover{background:var(--soft)}
+.chatBack{display:none}
+.chatBody{flex:1;min-height:0;display:grid;grid-template-columns:240px 1fr}
+.chatList{margin:0;padding:6px;list-style:none;overflow:auto;border-right:1px solid #eef0f2}
+.chatList button{width:100%;display:flex;align-items:center;gap:10px;padding:10px;border:0;border-radius:12px;background:transparent;text-align:left;font:inherit;cursor:pointer}
+.chatList button:hover{background:var(--soft)}
+.chatList button.active{background:rgba(var(--accent-rgb),.08)}
+.chatList b{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--accent);color:#fff;font-size:12px;display:grid;place-items:center}
+.chatAvatar{flex:none;width:40px;height:40px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:rgba(var(--accent-rgb),.12);color:var(--accent);font-weight:700;font-size:16px}
+.chatAvatar img{width:100%;height:100%;object-fit:cover}
+.chatListText{flex:1;min-width:0}
+.chatListText strong,.chatListText small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chatListText strong{font-size:14px;font-weight:600}
+.chatListText small{margin-top:2px;font-size:13px;color:var(--grey)}
+.chatMain{min-width:0;min-height:0;display:flex;flex-direction:column;background:var(--soft)}
+.chatEmpty{flex:1;display:grid;place-content:center;gap:8px;padding:24px;text-align:center;color:var(--grey);font-size:14px}
+.chatEmpty strong{color:var(--ink);font-size:15px;font-weight:600}
+.chatPrimary{justify-self:center;padding:10px 22px;border-radius:999px;background:var(--accent);color:#fff;font-weight:600}
+.chatThread{flex:1;min-height:0;display:flex;flex-direction:column}
+.chatMessages{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:8px}
+.chatBubbleRow{display:flex}
+.chatBubbleRow.mine{justify-content:flex-end}
+.chatBubble{max-width:78%;padding:9px 12px;border-radius:16px 16px 16px 4px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.05);font-size:14px;line-height:1.45}
+.mine .chatBubble{border-radius:16px 16px 4px 16px;background:var(--accent);color:#fff}
+.chatBubble p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.chatBubble time{display:block;margin-top:3px;font-size:11px;opacity:.6;text-align:right}
+.chatProductCard{display:flex;gap:10px;align-items:center;margin-bottom:6px;padding:8px;border-radius:12px;background:#fff;color:var(--ink)}
+.chatProductCard img,.chatProductCard>span:first-child{width:48px;height:48px;border-radius:8px;object-fit:cover;background:var(--soft)}
+.chatProductCard strong{display:block;font-size:13px;font-weight:600;line-height:1.3}
+.chatProductCard small{color:var(--accent);font-weight:600}
+.chatOrderCard{display:block;margin-bottom:6px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.9);color:var(--accent);font-size:13px;font-weight:600}
+.chatQuick{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 10px}
+.chatQuick button{padding:7px 12px;border:1px solid rgba(var(--accent-rgb),.3);border-radius:999px;background:#fff;color:var(--accent);font:inherit;font-size:13px;cursor:pointer}
+.chatAttach{display:flex;align-items:center;gap:10px;margin:0 12px 8px;padding:8px 10px;border-radius:12px;background:#fff;border:1px solid rgba(var(--accent-rgb),.25)}
+.chatAttach img{width:40px;height:40px;border-radius:8px;object-fit:cover}
+.chatAttach span{flex:1;min-width:0}
+.chatAttach small{display:block;color:var(--grey);font-size:12px}
+.chatAttach strong{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chatAttach button{border:0;background:transparent;font-size:20px;color:var(--grey);cursor:pointer}
+.chatError{margin:0 12px 8px;color:#c0392b;font-size:13px}
+.chatComposer{display:flex;gap:8px;align-items:flex-end;padding:10px 12px;border-top:1px solid #eef0f2;background:#fff}
+.chatComposer textarea{flex:1;min-height:40px;max-height:120px;padding:10px 12px;border:1px solid var(--line);border-radius:20px;font:inherit;font-size:14px;resize:none;outline:0}
+.chatComposer textarea:focus{border-color:var(--accent)}
+.chatComposer button{height:40px;padding:0 18px;border:0;border-radius:999px;background:var(--accent);color:#fff;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.chatComposer button:disabled{opacity:.45;cursor:default}
+@media(max-width:640px){
+  .chatLauncher{right:14px;bottom:14px;height:46px}
+  .chatPanel{right:0;left:0;bottom:0;width:100%;height:min(88vh,100dvh);border-radius:20px 20px 0 0}
+  .chatBody{grid-template-columns:1fr}
+  .chatPanel.hasActive .chatList{display:none}
+  .chatPanel:not(.hasActive) .chatMain{display:none}
+  .chatPanel.hasActive .chatBack{display:block}
+}
+/* "Chat now" buttons */
+.chatNowButton{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:0 14px;border:1px solid var(--accent);border-radius:999px;
+  background:#fff;color:var(--accent);font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.chatNowButton:hover{background:rgba(var(--accent-rgb),.06)}
+.chatNowButton svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round}
+.productShopRow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.productShopRow .productShopCard{flex:1;min-width:0}
+.shopPageActions{margin-top:14px}
+.orderChatRow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}.orderChatRow strong{font-size:14px;font-weight:600}

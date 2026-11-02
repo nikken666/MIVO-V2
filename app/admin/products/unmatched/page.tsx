@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../../Admin.module.css";
 import ui from "./Unmatched.module.css";
+import AdminSidebar from "@/components/admin/AdminSidebar";
 
 type SKU = { id: string; product_id: string; sku: string; title: string; is_active: boolean };
 type Product = { id: string; name: string; status: string; is_universal_fitment: boolean; primary_image_url: string | null };
@@ -92,16 +93,7 @@ export default function UnmatchedSkuPage() {
 
   return <main className={styles.adminShell}>
     <div className={styles.adminWorkspace}>
-      <aside className={styles.adminSidebar}>
-        <a href="/admin" className={styles.adminBrand}><span>MIVO</span><small>STORE CONTROL</small></a>
-        <nav className={styles.adminSideNav}>
-          <a href="/admin">Dashboard</a>
-          <a href="/admin/orders">Orders</a>
-          <a href="/admin/products">Products</a>
-          <a href="/admin/products/unmatched" className={styles.active}>Unmatched SKU</a>
-          <a href="/admin/products/new">Add Product</a>
-        </nav>
-      </aside>
+      <AdminSidebar />
       <section className={styles.adminContent}>
         <header className={styles.adminHeader}>
           <div><span className={styles.adminEyebrow}>CATALOGUE · VEHICLE MATCHING</span>

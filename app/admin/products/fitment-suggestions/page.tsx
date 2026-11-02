@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { suggestFitment, type FitmentSuggestion, type Generation } from "@/lib/fitmentSuggest";
 import styles from "../../Admin.module.css";
 import ui from "../../store-health/StoreHealth.module.css";
+import AdminSidebar from "@/components/admin/AdminSidebar";
 
 type ProductRow = { id: string; name: string; status: string; seller_id: string; is_universal_fitment: boolean };
 type VehicleRow = { id: string; make: string; model: string; generation: string; generation_key: string; year_from: number; year_to: number | null };
@@ -210,17 +211,7 @@ export default function FitmentSuggestionsPage() {
   return (
     <main className={styles.adminShell}>
       <div className={styles.adminWorkspace}>
-        <aside className={styles.adminSidebar}>
-          <a href="/admin" className={styles.adminBrand}><span>MIVO</span><small>STORE CONTROL</small></a>
-          <nav className={styles.adminSideNav}>
-            <a href="/admin">Dashboard</a>
-            <a href="/admin/products">Products</a>
-            <a href="/admin/products/import">Import from Shopee</a>
-            <a href="/admin/products/fitment-suggestions" className={styles.active}>Fitment suggestions</a>
-            <a href="/admin/shops">Shops</a>
-            <a href="/admin/store-health">Store Health</a>
-          </nav>
-        </aside>
+        <AdminSidebar />
 
         <section className={styles.adminContent}>
           <header className={styles.adminHeader}>

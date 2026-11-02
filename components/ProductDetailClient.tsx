@@ -9,6 +9,8 @@ import type {
   ProductVariant,
 } from "@/data/products";
 import { isFitmentVerifiedShop, type FitmentStatus } from "@/data/fitments";
+import { useT } from "./LanguageProvider";
+import { openChat } from "./chat/ChatWidget";
 import { formatPrice } from "@/data/products";
 import { useMarketplace } from "./MarketplaceProvider";
 import ProductCard from "./ProductCard";
@@ -44,6 +46,7 @@ export default function ProductDetailClient({
   variantFitmentStatuses?: Record<string, FitmentStatus>;
   selectedVehicleLabel?: string;
 }) {
+  const t = useT();
   const router = useRouter();
   const { addToCart, startBuyNow, cartReady } = useMarketplace();
 
@@ -449,21 +452,37 @@ export default function ProductDetailClient({
               </div>
 
               {product.seller ? (
-                <Link href={shopHref(product)} className="productShopCard">
-                  <span className="productShopAvatar" aria-hidden="true">
-                    {product.sellerLogo ? (
-                      <img src={product.sellerLogo} alt="" />
-                    ) : (
-                      product.seller.slice(0, 1)
-                    )}
-                  </span>
-                  <span className="productShopText">
-                    <strong>
-                      {product.seller} <ShopBadge tier={product.sellerTier} />
-                    </strong>
-                    <small>Visit shop ›</small>
-                  </span>
-                </Link>
+                <div className="productShopRow">
+                  <Link href={shopHref(product)} className="productShopCard">
+                    <span className="productShopAvatar" aria-hidden="true">
+                      {product.sellerLogo ? (
+                        <img src={product.sellerLogo} alt="" />
+                      ) : (
+                        product.seller.slice(0, 1)
+                      )}
+                    </span>
+                    <span className="productShopText">
+                      <strong>
+                        {product.seller} <ShopBadge tier={product.sellerTier} />
+                      </strong>
+                      <small>{t("shop.visit")} ›</small>
+                    </span>
+                  </Link>
+                  {product.sellerId ? (
+                    <button
+                      type="button"
+                      className="chatNowButton"
+                      onClick={() =>
+                        openChat({ sellerId: product.sellerId, productId: product.id })
+                      }
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4A2.5 2.5 0 0 1 4 13.5z" />
+                      </svg>
+                      {t("chat.chatNow")}
+                    </button>
+                  ) : null}
+                </div>
               ) : null}
             </div>
 

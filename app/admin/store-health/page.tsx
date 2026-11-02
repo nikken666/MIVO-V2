@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
 import ui from "./StoreHealth.module.css";
+import AdminSidebar from "@/components/admin/AdminSidebar";
 
 type Product={id:string;name:string;status:string;is_universal_fitment:boolean;primary_image_url:string|null;description:string|null;category_id:string|null;brand_id:string|null};
 type Variant={id:string;product_id:string;sku:string;title:string;price:number;stock_on_hand:number;stock_reserved:number;weight_kg:number;length_cm:number;width_cm:number;height_cm:number;variant_image_url:string|null;is_active:boolean};
@@ -106,7 +107,7 @@ export default function StoreHealth(){
   const a=document.createElement("a");a.href=url;a.download="mivo-store-health.csv";a.click();URL.revokeObjectURL(url);
  }
  return <main className={styles.adminShell}><div className={styles.adminWorkspace}>
-  <aside className={styles.adminSidebar}><a href="/admin" className={styles.adminBrand}><span>MIVO</span><small>STORE CONTROL</small></a><nav className={styles.adminSideNav}><a href="/admin">Dashboard</a><a href="/admin/orders">Orders</a><a href="/admin/products">Products</a><a href="/admin/store-health" className={styles.active}>Store Health</a><a href="/admin/products/unmatched">Unmatched SKU</a></nav></aside>
+  <AdminSidebar />
   <section className={styles.adminContent}>
    <header className={styles.adminHeader}><div><span className={styles.adminEyebrow}>MIVO STORE CONTROL · CATALOGUE QUALITY</span><h1>Store Health</h1><p>Monitor vehicle matching, missing images, stock and product data.</p></div><a className={styles.adminAction} href="/admin/products">ALL PRODUCTS</a></header>
    <section className={styles.adminPanel}>

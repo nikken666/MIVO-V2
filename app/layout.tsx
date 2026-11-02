@@ -4,6 +4,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import MarketplaceProvider from "@/components/MarketplaceProvider";
 import SiteChrome from "@/components/SiteChrome";
+import LanguageProvider from "@/components/LanguageProvider";
+import { getLocale } from "@/lib/i18n/server";
 
 
 // SF Pro is used on Apple devices; Inter is the closest match everywhere else.
@@ -34,13 +36,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const locale = await getLocale();
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang={locale === "zh" ? "zh-Hans" : locale} className={inter.variable}>
       <body>
-        <MarketplaceProvider>
-          <SiteChrome>{children}</SiteChrome>
-        </MarketplaceProvider>
+        <LanguageProvider initialLocale={locale}>
+          <MarketplaceProvider>
+            <SiteChrome>{children}</SiteChrome>
+          </MarketplaceProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

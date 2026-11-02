@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import ChatNowButton from "@/components/chat/ChatNowButton";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/data/products";
 import PaidCancellationModal from "@/components/PaidCancellationModal";
@@ -88,6 +89,7 @@ export default function OrderDetailsPage() {
   const [items, setItems] = useState<OrderItem[]>([]);
   const [shipments, setShipments] = useState<ShipmentInfo[]>([]);
   const [shopCount, setShopCount] = useState(1);
+  const [orderShops, setOrderShops] = useState<Array<{ id: string; name: string }>>([]);
   const shipment = shipments[0] || null;
   const [statusHistory, setStatusHistory] = useState<OrderStatusHistoryRow[]>([]);
   const [reviewedAll, setReviewedAll] = useState(false);
@@ -291,6 +293,20 @@ export default function OrderDetailsPage() {
     setItems(loadedItems);
     setShipments(shipmentData);
     setShopCount(Math.max(sellerOrderRows.length, 1));
+    {
+      const ids = Array.from(
+        new Set(sellerOrderRows.map((row) => row.seller_id).filter((v): v is string => Boolean(v)))
+      );
+      const { data: shopRows } = ids.length
+        ? await supabase.from("sellers").select("id, shop_name").in("id", ids)
+        : { data: [] };
+      setOrderShops(
+        ((shopRows || []) as Array<{ id: string; shop_name: string }>).map((row) => ({
+          id: row.id,
+          name: row.shop_name,
+        }))
+      );
+    }
     setReviewedAll(allReviewed);
     setStatusHistory(
       (historyData as OrderStatusHistoryRow[] | null) || []
@@ -586,6 +602,18 @@ export default function OrderDetailsPage() {
           </div>
 
           <aside className="orderDetailSide">
+            {orderShops.length ? (
+              <section className="orderSideCard orderChatCard">
+                <span>Questions about this order?</span>
+                {orderShops.map((shop) => (
+                  <div className="orderChatRow" key={shop.id}>
+                    <strong>{shop.name}</strong>
+                    <ChatNowButton sellerId={shop.id} orderNumber={order.order_number} />
+                  </div>
+                ))}
+              </section>
+            ) : null}
+
             <section className="orderSideCard">
               <span>Delivery address</span>
               <strong>{address.full_name}</strong>

@@ -7165,3 +7165,65 @@
 .fitmentAddButton,
 .claimTabs .active{background:var(--accent)!important;color:#fff!important;border-color:transparent!important}
 .fitmentBuilderHead>b{background:rgba(var(--accent-rgb),.1)!important;color:var(--accent)!important}
+
+/* ===== Shared Seller Centre sidebar (components/admin/AdminSidebar.tsx) ===== */
+.adminWorkspace{grid-template-columns:240px minmax(0,1fr)}
+.adminSidebar{overflow:auto;scrollbar-width:thin}
+.adminBrand small{font-size:12px!important;letter-spacing:.01em!important;text-transform:none}
+.adminSideNavGrouped{gap:2px}
+.adminSideNavGrouped a{min-height:36px;padding:0 12px;font-size:14px!important;justify-content:space-between}
+.adminNavGroup{display:grid;gap:2px;margin-top:12px}
+.adminNavGroupTitle{padding:0 12px 4px;color:var(--grey);font-size:12px;font-weight:600}
+.adminNavBadge{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--accent-2);color:var(--accent-2-ink);font-size:11px;font-weight:700;display:grid;place-items:center}
+.adminSideNav a.active .adminNavBadge{background:#fff;color:var(--accent)}
+.adminMe{margin-top:auto;padding:14px 8px 8px;display:flex;align-items:center;gap:10px;border-top:1px solid var(--line)}
+.adminMeAvatar{flex:none;width:38px;height:38px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:var(--accent);color:#fff;font-weight:700}
+.adminMeAvatar img{width:100%;height:100%;object-fit:cover}
+.adminMeText{min-width:0}
+.adminMeText strong,.adminMeText small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adminMeText strong{font-size:14px;font-weight:600}
+.adminMeText small{font-size:12px;color:var(--grey)}
+.adminMeLinks{display:flex;flex-wrap:wrap;gap:4px 12px;padding:4px 8px 0}
+.adminMeLinks a,.adminMeLinks button{border:0;background:none;padding:0;color:var(--accent);font:inherit;font-size:13px;cursor:pointer}
+.adminMenuToggle{display:none}
+@media(max-width:920px){
+  .adminMenuToggle{display:inline-flex;align-items:center;gap:6px;margin:12px 0 0;padding:10px 16px;border:0;border-radius:999px;background:#fff;box-shadow:var(--shadow);font:inherit;font-size:15px;font-weight:600;color:var(--ink)}
+  .adminSidebar{display:none}
+  .adminSidebar.adminSidebarOpen{display:flex}
+  .adminSideNavGrouped{display:grid!important;overflow:visible}
+}
+
+/* ===== Admin chat inbox ===== */
+.chatInbox{display:grid;grid-template-columns:340px minmax(0,1fr);height:calc(100vh - 210px);min-height:520px;border-radius:20px;background:#fff;box-shadow:var(--shadow);overflow:hidden}
+.chatInboxList{display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--line)}
+.chatInboxFilters{display:grid;gap:8px;padding:12px;border-bottom:1px solid var(--line)}
+.chatInboxFilters input[type="text"],.chatInboxFilters>input{height:38px;padding:0 12px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:14px}
+.chatInboxFilters>div{display:flex;gap:10px;align-items:center}
+.chatInboxFilters select{flex:1;height:36px;padding:0 8px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;font-size:14px}
+.chatInboxFilters label{display:flex;align-items:center;gap:6px;font-size:14px}
+.chatInboxList ul{flex:1;margin:0;padding:6px;list-style:none;overflow:auto}
+.chatInboxList li button{width:100%;display:flex;align-items:center;gap:10px;padding:10px;border:0;border-radius:12px;background:transparent;text-align:left;font:inherit;cursor:pointer}
+.chatInboxList li button:hover{background:var(--soft)}
+.chatInboxList li button.active{background:rgba(var(--accent-rgb),.08)}
+.chatInboxList b{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--accent);color:#fff;font-size:12px;display:grid;place-items:center}
+.chatInboxAvatar{flex:none;width:40px;height:40px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:rgba(var(--accent-rgb),.12);color:var(--accent);font-weight:700}
+.chatInboxAvatar img{width:100%;height:100%;object-fit:cover}
+.chatInboxText{flex:1;min-width:0}
+.chatInboxText strong{display:flex;justify-content:space-between;gap:8px;font-size:14px;font-weight:600}
+.chatInboxText time{color:var(--grey);font-size:12px;font-weight:400}
+.chatInboxText small,.chatInboxText em{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chatInboxText small{margin-top:2px;color:var(--grey);font-size:13px}
+.chatInboxText em{margin-top:2px;color:var(--accent);font-size:12px;font-style:normal}
+.chatInboxThread{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--soft)}
+.chatInboxHead{display:flex;align-items:center;gap:10px;padding:12px 16px;background:#fff;border-bottom:1px solid var(--line)}
+.chatInboxHead strong,.chatInboxHead small{display:block}
+.chatInboxHead strong{font-size:15px;font-weight:600}
+.chatInboxHead small{color:var(--grey);font-size:12px}
+.chatInboxBack{display:none;border:0;background:none;font-size:26px;color:var(--grey);cursor:pointer}
+.chatInboxEmpty{flex:1;display:grid;place-content:center;padding:24px;color:var(--grey);font-size:14px;text-align:center}
+@media(max-width:920px){
+  .chatInbox{grid-template-columns:1fr;height:calc(100vh - 160px)}
+  .chatInboxActive .chatInboxList{display:none}
+  .chatInbox:not(.chatInboxActive) .chatInboxThread{display:none}
+  .chatInboxBack{display:block}
+}

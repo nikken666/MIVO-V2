@@ -14,6 +14,7 @@ import {
 } from "@/lib/shopeeImport";
 import styles from "../../Admin.module.css";
 import ui from "../../store-health/StoreHealth.module.css";
+import AdminSidebar from "@/components/admin/AdminSidebar";
 
 type Option = { id: string; name: string };
 type CategoryRow = { id: string; name: string; parent_id: string | null };
@@ -326,17 +327,7 @@ export default function ShopeeImportPage() {
   return (
     <main className={styles.adminShell}>
       <div className={styles.adminWorkspace}>
-        <aside className={styles.adminSidebar}>
-          <a href="/admin" className={styles.adminBrand}><span>MIVO</span><small>STORE CONTROL</small></a>
-          <nav className={styles.adminSideNav}>
-            <a href="/admin">Dashboard</a>
-            <a href="/admin/orders">Orders</a>
-            <a href="/admin/products">Products</a>
-            <a href="/admin/products/import" className={styles.active}>Import from Shopee</a>
-            <a href="/admin/shops">Shops</a>
-            <a href="/admin/store-health">Store Health</a>
-          </nav>
-        </aside>
+        <AdminSidebar />
 
         <section className={styles.adminContent}>
           <header className={styles.adminHeader}>
