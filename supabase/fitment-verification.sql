@@ -49,3 +49,6 @@ create trigger product_vehicle_fitments_reset_verified
   for each row execute function public.mivo_reset_fitment_verified();
 
 commit;
+
+-- Make new functions available to the website immediately.
+notify pgrst, 'reload schema';

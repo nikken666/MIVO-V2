@@ -61,3 +61,6 @@ using (
     or public.is_admin()
   )
 );
+
+-- Make new functions available to the website immediately.
+notify pgrst, 'reload schema';

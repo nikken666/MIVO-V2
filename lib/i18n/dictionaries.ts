@@ -2,6 +2,7 @@ import * as browse from "./modules/browse";
 import * as buy from "./modules/buy";
 import * as account from "./modules/account";
 import * as returns from "./modules/returns";
+import * as sell from "./modules/sell";
 
 // Phrases shown to customers, in English, Bahasa Melayu and Chinese.
 // Add new phrases to `en` first; the other languages fall back to English.
@@ -197,7 +198,7 @@ const core = {
   "common.error": "Something went wrong. Please try again.",
 };
 
-const en = { ...core, ...browse.en, ...buy.en, ...account.en, ...returns.en };
+const en = { ...core, ...browse.en, ...buy.en, ...account.en, ...returns.en, ...sell.en };
 
 export type Key = keyof typeof en;
 type Dict = Partial<Record<Key, string>>;
@@ -536,7 +537,7 @@ const zhCore: Dict = {
   "common.error": "出了点问题，请再试一次。",
 };
 
-const ms: Dict = { ...msCore, ...browse.ms, ...buy.ms, ...account.ms, ...returns.ms };
-const zh: Dict = { ...zhCore, ...browse.zh, ...buy.zh, ...account.zh, ...returns.zh };
+const ms: Dict = { ...msCore, ...browse.ms, ...buy.ms, ...account.ms, ...returns.ms, ...sell.ms };
+const zh: Dict = { ...zhCore, ...browse.zh, ...buy.zh, ...account.zh, ...returns.zh, ...sell.zh };
 
 export const dictionaries = { en, ms, zh };

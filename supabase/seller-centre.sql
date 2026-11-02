@@ -255,3 +255,6 @@ create policy "MIVO sellers delete images of own shops" on storage.objects for d
          and (storage.foldername(name))[1] in (select id::text from public.my_shop_ids()));
 
 commit;
+
+-- Make new functions available to the website immediately.
+notify pgrst, 'reload schema';

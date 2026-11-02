@@ -458,3 +458,6 @@ create policy "MIVO return evidence read" on storage.objects for select to authe
   using (bucket_id = 'return-evidence' and ((storage.foldername(name))[1] = auth.uid()::text or public.is_admin()));
 
 commit;
+
+-- Make new functions available to the website immediately.
+notify pgrst, 'reload schema';

@@ -56,3 +56,6 @@ commit;
 -- Check: unique rules left on product_variants
 --   select indexname, indexdef from pg_indexes
 --    where tablename = 'product_variants' and indexdef ilike '%unique%';
+
+-- Make new functions available to the website immediately.
+notify pgrst, 'reload schema';

@@ -344,3 +344,6 @@ commit;
 --    where o.id in (select order_id from public.seller_orders
 --                    group by order_id having count(*) > 1)
 --    order by o.created_at desc;
+
+-- Make new functions available to the website immediately.
+notify pgrst, 'reload schema';

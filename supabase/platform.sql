@@ -405,3 +405,6 @@ begin
 end $$;
 
 commit;
+
+-- Make new functions available to the website immediately.
+notify pgrst, 'reload schema';

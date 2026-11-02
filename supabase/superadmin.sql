@@ -50,3 +50,6 @@ commit;
 -- Check:
 --   select u.email, r.role from public.platform_roles r join auth.users u on u.id = r.user_id;
 --   select shop_name, owner_id from public.sellers where tier = 'direct';
+
+-- Make new functions available to the website immediately.
+notify pgrst, 'reload schema';

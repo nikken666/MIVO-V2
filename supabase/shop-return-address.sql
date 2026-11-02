@@ -59,3 +59,6 @@ grant execute on function public.admin_get_shop_return_address(uuid) to authenti
 grant execute on function public.return_request_return_address(uuid) to authenticated;
 
 commit;
+
+-- Make new functions available to the website immediately.
+notify pgrst, 'reload schema';

@@ -25,3 +25,6 @@ create index if not exists orders_payment_holds_idx
   where payment_capture_status = 'authorized';
 
 commit;
+
+-- Make new functions available to the website immediately.
+notify pgrst, 'reload schema';
