@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useMarketplace } from "./MarketplaceProvider";
 import Logo from "./Logo";
@@ -11,6 +12,17 @@ export default function Header() {
   const { cartCount } = useMarketplace();
   const [loggedIn, setLoggedIn] = useState(false);
   const [customerName, setCustomerName] = useState("");
+  const pathname = usePathname();
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // Keep the search box showing the current query on the results page.
+  useEffect(() => {
+    if (!searchRef.current) return;
+    searchRef.current.value =
+      pathname === "/products"
+        ? new URLSearchParams(window.location.search).get("q") || ""
+        : "";
+  }, [pathname]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -87,7 +99,15 @@ export default function Header() {
 
           <form className="headerSearch hasVehicleChip" action="/products">
             <VehiclePickerButton variant="chip" autoOpenFromUrl />
-            <input name="q" placeholder="Search parts, OEM number or brand" />
+            <input
+              ref={searchRef}
+              name="q"
+              type="search"
+              enterKeyHint="search"
+              autoComplete="off"
+              aria-label="Search parts"
+              placeholder="Search parts, OEM number or brand"
+            />
             <button type="submit">Search</button>
           </form>
 

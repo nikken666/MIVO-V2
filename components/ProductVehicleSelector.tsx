@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import {
   vehicleDatabase,
@@ -293,9 +294,11 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
     await applyVehicle(vehicle);
   }
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
-  return (
+  // Portal to <body>: the header's backdrop-filter would otherwise trap this
+  // fixed modal inside the header, and header form styles would leak in.
+  return createPortal(
     <div
       className="productVehicleModalBackdrop"
       role="dialog"
@@ -548,6 +551,7 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
           ) : null}
         </div>
       </section>
-    </div>
+    </div>,
+    document.body
   );
 }

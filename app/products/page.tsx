@@ -8,9 +8,11 @@ import { getActiveProducts } from "@/lib/catalog";
 import {
   fitmentRank,
   getProductFitmentStatus,
+  shopFitmentStatus,
   type FitmentStatus,
 } from "@/data/fitments";
 import { getLiveFitmentStatuses } from "@/lib/liveFitment";
+import { searchProducts } from "@/lib/search";
 
 
 type ProductGroup =
@@ -89,7 +91,7 @@ export default async function ProductsPage({
   const params = await searchParams;
   const productsPromise = getActiveProducts();
 
-  const q = typeof params.q === "string" ? params.q.toLowerCase() : "";
+  const rawQuery = typeof params.q === "string" ? params.q.trim() : "";
   const category =
     typeof params.category === "string" ? params.category.toLowerCase() : "";
   const group =
@@ -166,15 +168,14 @@ export default async function ProductsPage({
   ];
 
 
-  const baseFiltered = products.filter(
+  const inSection = products.filter(
     (product) =>
-      (!q ||
-        (product.name + " " + product.brand + " " + product.category)
-          .toLowerCase()
-          .includes(q)) &&
       (!category || product.category.toLowerCase().includes(category)) &&
       (!group || matchesProductGroup(product.category, group))
   );
+  // Word-by-word search across name, brand, SKU/OEM, category, shop and more.
+  const search = searchProducts(inSection, rawQuery);
+  const baseFiltered = search.items;
 
   const liveFitmentStatuses = selectedVehicle
     ? await getLiveFitmentStatuses(
@@ -187,10 +188,12 @@ export default async function ProductsPage({
 
   const withFitment = baseFiltered.map((product) => ({
     product,
-    fitmentStatus:
+    fitmentStatus: shopFitmentStatus(
+      product,
       product.id && liveFitmentStatuses[product.id]
         ? liveFitmentStatuses[product.id]
-        : getProductFitmentStatus(product.slug, selectedVehicle),
+        : getProductFitmentStatus(product.slug, selectedVehicle)
+    ),
   }));
 
   const ranked = selectedVehicle
@@ -268,7 +271,7 @@ export default async function ProductsPage({
           </div>
           <div>
             <strong>{fitmentCounts.unverified}</strong>
-            <span>AWAITING FITMENT DATA</span>
+            <span>NOT VERIFIED BY MIVO</span>
           </div>
           {fitmentCounts["not-fit"] > 0 ? (
             <a
@@ -314,16 +317,20 @@ export default async function ProductsPage({
       <div className="pageHeading">
         <div>
           <h1>
-            {group
+            {rawQuery
+              ? "Results for \u201c" + rawQuery + "\u201d"
+              : group
               ? groupHeading(group)
               : selectedVehicle
                 ? "Parts for your vehicle"
                 : "All Products"}
           </h1>
           <p>
-            {hiddenCount
+            {rawQuery && !search.exact && visible.length
+              ? "No exact match. Showing " + visible.length + " close match" + (visible.length === 1 ? "" : "es") + "."
+              : hiddenCount
               ? visible.length + " parts for your " + vehicleName
-              : visible.length + " products shown"}
+              : visible.length + (visible.length === 1 ? " product" : " products") + " shown"}
           </p>
         </div>
       </div>
@@ -349,7 +356,9 @@ export default async function ProductsPage({
               <div className="fitmentMoreCopy">
                 <span>{hiddenCount ? "ONLY PARTS THAT FIT" : "MORE PARTS COMING"}</span>
                 <h2>
-                  {!hiddenCount
+                  {!hiddenCount && rawQuery
+                    ? "No parts match \u201c" + rawQuery + "\u201d."
+                    : !hiddenCount
                     ? "No " +
                       (group ? groupHeading(group).toLowerCase() : "matching parts") +
                       " in the catalogue yet."
