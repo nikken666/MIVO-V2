@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import type { Product } from "@/data/products";
 import { formatPrice } from "@/data/products";
-import type { FitmentStatus } from "@/data/fitments";
+import { isFitmentVerifiedShop, type FitmentStatus } from "@/data/fitments";
 import { useMarketplace } from "./MarketplaceProvider";
 import { ShopLine } from "./ShopBadge";
 
@@ -91,7 +91,15 @@ export default function ProductCard({
         : 99;
 
   const detailHref = "/products/" + product.slug + hrefSuffix;
-  const fitment = fitmentStatus ? fitmentCopy[fitmentStatus] : null;
+  // Other shops' parts: listed, but fitment is the shop's own claim.
+  const fitment = !fitmentStatus
+    ? null
+    : fitmentStatus === "unverified" && !isFitmentVerifiedShop(product)
+      ? {
+          pill: "Check fitment",
+          text: "Fitment not verified by MIVO. Confirm with the shop.",
+        }
+      : fitmentCopy[fitmentStatus];
   const visualFitmentStatus =
     fitmentStatus === "universal" ? "fits" : fitmentStatus;
   const cardClass =

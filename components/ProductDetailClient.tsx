@@ -8,7 +8,7 @@ import type {
   ProductPublicReview,
   ProductVariant,
 } from "@/data/products";
-import type { FitmentStatus } from "@/data/fitments";
+import { isFitmentVerifiedShop, type FitmentStatus } from "@/data/fitments";
 import { formatPrice } from "@/data/products";
 import { useMarketplace } from "./MarketplaceProvider";
 import ProductCard from "./ProductCard";
@@ -505,9 +505,18 @@ export default function ProductDetailClient({
                       : selectedVariantFitmentStatus === "universal"
                         ? "✓ FITS YOUR VEHICLE"
                         : selectedVariantFitmentStatus === "unverified"
-                          ? "FITMENT NOT VERIFIED"
+                          ? isFitmentVerifiedShop(product)
+                            ? "FITMENT NOT VERIFIED"
+                            : "NOT VERIFIED BY MIVO"
                           : "SELECT YOUR VEHICLE"}
                 </strong>
+                {!isFitmentVerifiedShop(product) ? (
+                  <small className="productFitmentShopNote">
+                    MIVO checks fitment for MIVO Direct parts only. This part is
+                    listed by {product.seller || "another shop"}; confirm it
+                    fits your car with the shop before ordering.
+                  </small>
+                ) : null}
                 {selectedVehicleLabel ? (
                   <>
                     <small>{selectedVehicleLabel}</small>

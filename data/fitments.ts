@@ -77,3 +77,24 @@ export function fitmentRank(status: FitmentStatus) {
   if (status === "unverified") return 2;
   return 3;
 }
+
+/**
+ * MIVO verifies vehicle fitment for MIVO Direct parts only. Other shops'
+ * parts are still listed, but always as "not verified": they are never
+ * marked as fitting and never hidden as "doesn't fit".
+ */
+export function isFitmentVerifiedShop(product: {
+  sellerTier?: string | null;
+  seller?: string | null;
+}) {
+  if (product.sellerTier) return product.sellerTier === "direct";
+  // Demo / single-shop catalogue (before shop tiers existed).
+  return !product.seller || /^mivo/i.test(product.seller);
+}
+
+export function shopFitmentStatus(
+  product: { sellerTier?: string | null; seller?: string | null },
+  status: FitmentStatus
+): FitmentStatus {
+  return isFitmentVerifiedShop(product) ? status : "unverified";
+}
