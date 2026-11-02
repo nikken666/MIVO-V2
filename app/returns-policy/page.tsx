@@ -45,7 +45,7 @@ const content: Record<
     title: "Returns & Refunds Policy",
     intro:
       "We want you to get the right part the first time. If something is wrong, here is exactly how returns, refunds and cancellations work.",
-    updated: "30 October 2026",
+    updated: "2 November 2026",
     sections: [
       {
         title: "Return window",
@@ -65,27 +65,36 @@ const content: Record<
           <>
             <div className="policyTable">
               <div>
-                <strong>Wrong, damaged or defective item</strong>
+                <strong>
+                  Wrong, damaged, defective, not as described, missing parts or
+                  not received
+                </strong>
                 <span>
-                  MIVO pays the return shipping and sends the correct or
-                  replacement part at no extra cost.
+                  The seller&rsquo;s responsibility: full refund of the item
+                  price and its share of shipping. MIVO covers the return
+                  postage.
                 </span>
               </div>
               <div>
                 <strong>
-                  Item marked &ldquo;Fits your vehicle&rdquo; that does not fit
+                  Item from MIVO Direct marked &ldquo;Fits your vehicle&rdquo;
+                  that does not fit
                 </strong>
                 <span>
-                  Treated as a MIVO error. MIVO pays the return shipping,
-                  provided the vehicle details saved on the order are correct.
+                  Treated as a MIVO error, same as above, provided the vehicle
+                  details saved on the order are correct.
                 </span>
               </div>
               <div>
-                <strong>Change of mind</strong>
+                <strong>
+                  Change of mind, no reason, or a part whose fitment was not
+                  verified by MIVO
+                </strong>
                 <span>
-                  Accepted, but the customer pays shipping both ways: the
-                  original delivery fee is not refunded and the customer pays
-                  to send the item back.
+                  The customer pays shipping both ways: the original delivery
+                  fee is not refunded, the customer pays to send the item back,
+                  and the payment processing fee for that item (which the
+                  payment provider does not return) is deducted.
                 </span>
               </div>
             </div>
@@ -116,23 +125,41 @@ const content: Record<
       {
         title: "How to request a return",
         body: (
-          <ol>
-            <li>
-              Sign in and open the order from{" "}
-              <Link href="/orders">My Orders</Link>.
-            </li>
-            <li>
-              Tap <strong>View Warranty</strong> on the delivered order and
-              submit a claim for the item. Choose the closest issue type (for
-              example &ldquo;Fitment issue&rdquo; or &ldquo;Damage&rdquo;, or
-              &ldquo;Other&rdquo; for a change of mind), explain the reason, and
-              add clear photos of the item and its packaging.
-            </li>
-            <li>
-              Wait for approval and return instructions before sending anything
-              back. Parcels sent without approval may not be accepted.
-            </li>
-          </ol>
+          <>
+            <ol>
+              <li>
+                Sign in, open the order from{" "}
+                <Link href="/orders">My Orders</Link> and tap{" "}
+                <strong>Return / Refund</strong> (available once the order has
+                shipped, until 7 days after delivery).
+              </li>
+              <li>
+                Choose the items (one shop at a time), the reason, and add a
+                description and clear photos or video of the item and
+                packaging. You will see the estimated refund before you submit.
+              </li>
+              <li>
+                The seller has 2 days to respond: accept, offer a partial refund
+                (you keep the item), or raise a dispute. If the seller
+                doesn&rsquo;t respond in time, the request is approved
+                automatically.
+              </li>
+              <li>
+                If a return is approved, send the item back within 7 days and
+                enter the courier and tracking number on the request page.
+                Requests not sent back in time are closed.
+              </li>
+              <li>
+                If you and the seller disagree (an offer you reject, a dispute,
+                or a problem found with the returned item), MIVO reviews the
+                photos and history and makes the final decision.
+              </li>
+            </ol>
+            <p>
+              You can follow every step, and chat with the seller, from{" "}
+              <Link href="/account/returns">My returns &amp; refunds</Link>.
+            </p>
+          </>
         ),
       },
       {
@@ -140,13 +167,15 @@ const content: Record<
         body: (
           <>
             <p>
-              Once the returned item arrives and passes inspection, the refund
-              is issued to the original payment method. Banks usually take 5–10
-              working days to show it on your statement.
+              Refunds go back to the original payment method once approved
+              (after the returned item is received and checked, or straight
+              away for refunds without a return). Banks usually take 5–10
+              working days to show it.
             </p>
             <p>
-              For a change-of-mind return, the refund covers the item price
-              only. Shipping fees are not refunded.
+              If the returned item comes back used, damaged or incomplete, the
+              seller may propose a lower amount; MIVO checks the evidence before
+              any amount is reduced.
             </p>
           </>
         ),
@@ -172,15 +201,22 @@ const content: Record<
               placed.
             </li>
             <li>
-              Paid orders can be cancelled from the order page until they are
-              shipped. Payment processing charges are non-refundable, and a
-              cancellation administration fee of 3% (capped at RM20) plus a RM2
-              service fee applies. The exact refund is shown before you
+              Card payments are only held (authorised) when you order and are
+              charged when the order ships. If you cancel a card-paid order
+              before it ships, the hold is released in full and nothing is
+              charged — no fees.
+            </li>
+            <li>
+              Orders paid by FPX online banking or GrabPay are charged straight
+              away. If cancelled before shipping, the payment processing charge
+              (non-refundable by the payment provider), a cancellation
+              administration fee of 3% of the order total (capped at RM20) and a
+              RM2 service fee are deducted. The exact refund is shown before you
               confirm.
             </li>
             <li>
-              Once an order has been shipped, it can no longer be cancelled.
-              Use a return request instead.
+              Once any part of an order has shipped, it can no longer be
+              cancelled. Use a return request instead.
             </li>
           </ul>
         ),
@@ -192,7 +228,7 @@ const content: Record<
     title: "Polisi Pulangan & Bayaran Balik",
     intro:
       "Kami mahu anda mendapat alat ganti yang betul pada kali pertama. Jika ada masalah, berikut ialah cara pulangan, bayaran balik dan pembatalan berfungsi.",
-    updated: "30 Oktober 2026",
+    updated: "2 November 2026",
     sections: [
       {
         title: "Tempoh pulangan",
@@ -213,30 +249,38 @@ const content: Record<
           <>
             <div className="policyTable">
               <div>
-                <strong>Barang salah, rosak atau cacat</strong>
+                <strong>
+                  Barang salah, rosak, cacat, tidak seperti yang diterangkan,
+                  bahagian hilang atau tidak diterima
+                </strong>
                 <span>
-                  MIVO menanggung kos penghantaran pulangan dan menghantar alat
-                  ganti yang betul atau gantian tanpa kos tambahan.
+                  Tanggungjawab penjual: bayaran balik penuh harga barang dan
+                  bahagian kos penghantarannya. MIVO menanggung kos pos
+                  pulangan.
                 </span>
               </div>
               <div>
                 <strong>
-                  Barang bertanda &ldquo;Sesuai dengan kenderaan anda&rdquo;
-                  tetapi tidak sesuai
+                  Barang daripada MIVO Direct bertanda &ldquo;Sesuai dengan
+                  kenderaan anda&rdquo; tetapi tidak sesuai
                 </strong>
                 <span>
-                  Dianggap sebagai kesilapan MIVO. MIVO menanggung kos
-                  penghantaran pulangan, dengan syarat butiran kenderaan yang
-                  disimpan pada pesanan adalah betul.
+                  Dianggap sebagai kesilapan MIVO, sama seperti di atas, dengan
+                  syarat butiran kenderaan yang disimpan pada pesanan adalah
+                  betul.
                 </span>
               </div>
               <div>
-                <strong>Tukar fikiran</strong>
+                <strong>
+                  Tukar fikiran, tiada sebab, atau alat ganti yang kesesuaiannya
+                  tidak disahkan oleh MIVO
+                </strong>
                 <span>
-                  Diterima, tetapi pelanggan menanggung kos penghantaran bagi
-                  kedua-dua hala: caj penghantaran asal tidak dikembalikan dan
-                  pelanggan membayar kos untuk menghantar semula barang
-                  tersebut.
+                  Pelanggan menanggung kos penghantaran bagi kedua-dua hala:
+                  caj penghantaran asal tidak dikembalikan, pelanggan membayar
+                  kos untuk menghantar semula barang tersebut, dan yuran
+                  pemprosesan pembayaran bagi barang itu (yang tidak
+                  dikembalikan oleh penyedia pembayaran) akan ditolak.
                 </span>
               </div>
             </div>
@@ -269,26 +313,49 @@ const content: Record<
       {
         title: "Cara membuat permintaan pulangan",
         body: (
-          <ol>
-            <li>
-              Log masuk dan buka pesanan daripada{" "}
-              <Link href="/orders">Pesanan Saya</Link>.
-            </li>
-            <li>
-              Tekan <strong>Lihat Waranti</strong> pada pesanan yang telah
-              diterima dan hantar tuntutan untuk barang tersebut. Pilih jenis
-              masalah yang paling hampir (contohnya &ldquo;Masalah
-              padanan&rdquo; atau &ldquo;Kerosakan&rdquo;, atau
-              &ldquo;Lain-lain&rdquo; untuk tukar fikiran), terangkan sebabnya,
-              dan sertakan gambar yang jelas bagi barang serta
-              pembungkusannya.
-            </li>
-            <li>
-              Tunggu kelulusan dan arahan pulangan sebelum menghantar apa-apa
-              barang. Bungkusan yang dihantar tanpa kelulusan mungkin tidak
-              diterima.
-            </li>
-          </ol>
+          <>
+            <ol>
+              <li>
+                Log masuk, buka pesanan daripada{" "}
+                <Link href="/orders">Pesanan Saya</Link> dan tekan{" "}
+                <strong>Pulangan / Bayaran Balik</strong> (tersedia sebaik
+                sahaja pesanan dihantar, sehingga 7 hari selepas diterima).
+              </li>
+              <li>
+                Pilih barang (satu kedai pada satu masa), sebabnya, dan
+                sertakan penerangan serta gambar atau video yang jelas bagi
+                barang dan pembungkusannya. Anggaran bayaran balik akan
+                dipaparkan sebelum anda menghantar permintaan.
+              </li>
+              <li>
+                Penjual mempunyai 2 hari untuk memberi maklum balas: menerima,
+                menawarkan bayaran balik separa (anda menyimpan barang
+                tersebut), atau membuka pertikaian. Jika penjual tidak memberi
+                maklum balas dalam tempoh itu, permintaan akan diluluskan
+                secara automatik.
+              </li>
+              <li>
+                Jika pulangan diluluskan, hantar semula barang dalam tempoh 7
+                hari dan masukkan nama kurier serta nombor penjejakan di
+                halaman permintaan. Permintaan yang barangnya tidak dihantar
+                semula dalam tempoh tersebut akan ditutup.
+              </li>
+              <li>
+                Jika anda dan penjual tidak bersetuju (tawaran yang anda tolak,
+                pertikaian, atau masalah yang ditemui pada barang yang
+                dipulangkan), MIVO akan menyemak gambar dan sejarah permintaan
+                serta membuat keputusan muktamad.
+              </li>
+            </ol>
+            <p>
+              Anda boleh mengikuti setiap langkah, dan berbual dengan penjual,
+              daripada{" "}
+              <Link href="/account/returns">
+                Pulangan &amp; bayaran balik saya
+              </Link>
+              .
+            </p>
+          </>
         ),
       },
       {
@@ -296,14 +363,16 @@ const content: Record<
         body: (
           <>
             <p>
-              Setelah barang yang dipulangkan tiba dan lulus pemeriksaan,
-              bayaran balik akan dibuat melalui kaedah pembayaran asal. Bank
-              biasanya mengambil masa 5–10 hari bekerja untuk memaparkannya
-              dalam penyata anda.
+              Bayaran balik akan dibuat melalui kaedah pembayaran asal sebaik
+              sahaja diluluskan (selepas barang yang dipulangkan diterima dan
+              diperiksa, atau serta-merta bagi bayaran balik tanpa pulangan).
+              Bank biasanya mengambil masa 5–10 hari bekerja untuk
+              memaparkannya.
             </p>
             <p>
-              Bagi pulangan kerana tukar fikiran, bayaran balik hanya meliputi
-              harga barang. Caj penghantaran tidak dikembalikan.
+              Jika barang yang dipulangkan telah digunakan, rosak atau tidak
+              lengkap, penjual boleh mencadangkan jumlah yang lebih rendah;
+              MIVO akan menyemak bukti sebelum sebarang jumlah dikurangkan.
             </p>
           </>
         ),
@@ -330,16 +399,25 @@ const content: Record<
               selepas dibuat.
             </li>
             <li>
-              Pesanan yang telah dibayar boleh dibatalkan dari halaman pesanan
-              selagi belum dihantar. Caj pemprosesan pembayaran tidak akan
-              dikembalikan, dan yuran pentadbiran pembatalan sebanyak 3%
-              (maksimum RM20) serta yuran perkhidmatan RM2 akan dikenakan.
-              Jumlah sebenar bayaran balik akan dipaparkan sebelum anda
+              Bayaran kad hanya ditahan (dibenarkan) semasa anda membuat pesanan
+              dan dicaj apabila pesanan dihantar. Jika anda membatalkan pesanan
+              yang dibayar dengan kad sebelum ia dihantar, tahanan itu akan
+              dilepaskan sepenuhnya dan tiada caj dikenakan — tanpa sebarang
+              yuran.
+            </li>
+            <li>
+              Pesanan yang dibayar melalui perbankan dalam talian FPX atau
+              GrabPay dicaj serta-merta. Jika dibatalkan sebelum dihantar, caj
+              pemprosesan pembayaran (tidak dikembalikan oleh penyedia
+              pembayaran), yuran pentadbiran pembatalan sebanyak 3% daripada
+              jumlah pesanan (maksimum RM20) dan yuran perkhidmatan RM2 akan
+              ditolak. Jumlah sebenar bayaran balik akan dipaparkan sebelum anda
               mengesahkan.
             </li>
             <li>
-              Pesanan yang telah dihantar tidak boleh dibatalkan lagi. Sila
-              buat permintaan pulangan sebaliknya.
+              Sebaik sahaja mana-mana bahagian pesanan telah dihantar, pesanan
+              tidak boleh dibatalkan lagi. Sila buat permintaan pulangan
+              sebaliknya.
             </li>
           </ul>
         ),
@@ -360,7 +438,7 @@ const content: Record<
     title: "退货与退款政策",
     intro:
       "我们希望您第一次就买对零件。如有任何问题，以下清楚说明退货、退款及取消订单的处理方式。",
-    updated: "2026年10月30日",
+    updated: "2026年11月2日",
     sections: [
       {
         title: "退货期限",
@@ -379,22 +457,26 @@ const content: Record<
           <>
             <div className="policyTable">
               <div>
-                <strong>商品错误、损坏或有瑕疵</strong>
+                <strong>
+                  商品错误、损坏、有瑕疵、与描述不符、缺少零件或未收到
+                </strong>
                 <span>
-                  由 MIVO 承担退货运费，并免费寄出正确的零件或替换零件。
+                  属卖家责任：全额退还商品价格及其所占运费，退货邮费由 MIVO
+                  承担。
                 </span>
               </div>
               <div>
-                <strong>标示&ldquo;适配您的车辆&rdquo;但实际不适配的商品</strong>
+                <strong>
+                  来自 MIVO Direct、标示&ldquo;适配您的车辆&rdquo;但实际不适配的商品
+                </strong>
                 <span>
-                  视为 MIVO 的错误。只要订单上保存的车辆资料正确，退货运费由
-                  MIVO 承担。
+                  视为 MIVO 的错误，处理方式同上（前提是订单上保存的车辆资料正确）。
                 </span>
               </div>
               <div>
-                <strong>改变主意</strong>
+                <strong>改变主意、无理由，或适配性未经 MIVO 验证的零件</strong>
                 <span>
-                  可以退货，但来回运费均由顾客承担：原本的运费不予退还，寄回商品的运费也由顾客支付。
+                  来回运费均由顾客承担：原本的运费不予退还，寄回商品的运费由顾客支付，并将扣除该商品的支付手续费（支付服务商不予退还）。
                 </span>
               </div>
             </div>
@@ -419,18 +501,34 @@ const content: Record<
       {
         title: "如何申请退货",
         body: (
-          <ol>
-            <li>
-              登录后，从<Link href="/orders">我的订单</Link>打开该订单。
-            </li>
-            <li>
-              在已签收的订单上点击<strong>查看保修</strong>
-              ，为该商品提交索赔。选择最接近的问题类型（例如&ldquo;适配问题&rdquo;或&ldquo;损坏&rdquo;；如是改变主意，请选择&ldquo;其他&rdquo;），说明原因，并附上商品及其包装的清晰照片。
-            </li>
-            <li>
-              请等待批准及退货指示后才寄回任何商品。未经批准寄回的包裹可能不予接收。
-            </li>
-          </ol>
+          <>
+            <ol>
+              <li>
+                登录后，从<Link href="/orders">我的订单</Link>
+                打开该订单，并点击<strong>退货/退款</strong>
+                （订单发货后即可申请，直至签收后 7 天）。
+              </li>
+              <li>
+                选择商品（每次限一家店铺）及原因，并填写说明，附上商品及包装的清晰照片或视频。提交前您会看到预计退款金额。
+              </li>
+              <li>
+                卖家须在 2
+                天内回应：同意、提出部分退款（您保留商品）或发起争议。如卖家未在期限内回应，申请将自动获批。
+              </li>
+              <li>
+                退货获批后，请在 7
+                天内寄回商品，并在申请页面填写快递公司及运单号。未在期限内寄回的申请将被关闭。
+              </li>
+              <li>
+                如您与卖家意见不一致（您拒绝了对方的提议、发起了争议，或退回的商品被发现有问题），MIVO
+                将审查照片及记录，并作出最终决定。
+              </li>
+            </ol>
+            <p>
+              您可以在<Link href="/account/returns">我的退货与退款</Link>
+              中跟进每个步骤，并与卖家沟通。
+            </p>
+          </>
         ),
       },
       {
@@ -438,10 +536,13 @@ const content: Record<
         body: (
           <>
             <p>
-              退回的商品送达并通过检查后，退款将退回至原付款方式。银行通常需要
-              5–10 个工作日才会在您的账单上显示。
+              退款获批后将退回至原付款方式（退回的商品收到并检查后退款；无需退货的退款则会立即处理）。银行通常需要
+              5–10 个工作日才会显示。
             </p>
-            <p>因改变主意而退货的，退款只包括商品价格，运费不予退还。</p>
+            <p>
+              如退回的商品已使用、损坏或不完整，卖家可提出较低的退款金额；MIVO
+              会在核查证据后才决定是否减少退款。
+            </p>
           </>
         ),
       },
@@ -459,11 +560,15 @@ const content: Record<
           <ul>
             <li>未付款的订单将在下单 24 小时后自动取消。</li>
             <li>
-              已付款的订单在发货前可从订单页面取消。支付手续费不予退还，并将收取
+              银行卡付款在下单时仅作预授权冻结，订单发货时才正式扣款。如在发货前取消以银行卡付款的订单，冻结金额将全额释放，不会扣取任何款项——不收任何费用。
+            </li>
+            <li>
+              以 FPX 网上银行或 GrabPay
+              付款的订单会立即扣款。如在发货前取消，将扣除支付手续费（支付服务商不予退还）、订单总额
               3% 的取消行政费（最高 RM20）及 RM2
               服务费。确认取消前会显示确切的退款金额。
             </li>
-            <li>订单一经发货便无法取消，请改为申请退货。</li>
+            <li>订单中任何部分一经发货便无法取消，请改为申请退货。</li>
           </ul>
         ),
       },

@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { captureOrderPayment } from "@/lib/stripe/holds";
 
-// Daily (vercel.json): charge card holds that would expire within a day.
+// Daily (vercel.json): charge card holds that would expire within a day,
+// and run return-request housekeeping.
 // Stripe keeps an online card hold about 7 days; holds are due after 6.
 export async function GET(request: NextRequest) {
   const secret = process.env.CRON_SECRET;
@@ -29,5 +30,11 @@ export async function GET(request: NextRequest) {
       results.push({ order: order.order_number, ok: false, error: caught instanceof Error ? caught.message : String(caught) });
     }
   }
-  return NextResponse.json({ captured: results.filter((r) => r.ok).length, results });
+  // Returns: auto-accept requests the seller ignored, close ones never sent back.
+  const returns = await admin.rpc("return_requests_auto").then(
+    (r) => r.data ?? r.error?.message,
+    () => null
+  );
+
+  return NextResponse.json({ captured: results.filter((r) => r.ok).length, results, returns });
 }

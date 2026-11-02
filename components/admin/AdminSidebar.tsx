@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import styles from "@/app/admin/Admin.module.css";
 
-type NavItem = { href: string; label: string; badge?: "toShip" | "chat" };
+type NavItem = { href: string; label: string; badge?: "toShip" | "chat" | "returns" };
 type NavGroup = { title: string; items: NavItem[] };
 
 const groups: NavGroup[] = [
@@ -14,7 +14,8 @@ const groups: NavGroup[] = [
     items: [
       { href: "/admin/orders", label: "My orders", badge: "toShip" },
       { href: "/admin/arrange-shipment", label: "Arrange shipment" },
-      { href: "/admin/claims", label: "Returns & warranty" },
+      { href: "/admin/returns", label: "Returns & refunds", badge: "returns" },
+      { href: "/admin/claims", label: "Warranty claims" },
     ],
   },
   {
@@ -66,7 +67,7 @@ export default function AdminSidebar() {
     avatar: null,
     email: "",
   });
-  const [badges, setBadges] = useState<{ toShip: number; chat: number }>({ toShip: 0, chat: 0 });
+  const [badges, setBadges] = useState<{ toShip: number; chat: number; returns: number }>({ toShip: 0, chat: 0, returns: 0 });
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -79,7 +80,7 @@ export default function AdminSidebar() {
       } = await supabase.auth.getUser();
       if (!user || !active) return;
 
-      const [{ data: profile }, toShip, chats] = await Promise.all([
+      const [{ data: profile }, toShip, chats, returns] = await Promise.all([
         supabase.from("profiles").select("full_name, avatar_url").eq("id", user.id).maybeSingle(),
         supabase
           .from("orders")
@@ -87,6 +88,10 @@ export default function AdminSidebar() {
           .eq("payment_status", "paid")
           .in("status", ["paid", "processing", "packed"]),
         supabase.from("chat_conversations").select("seller_unread").gt("seller_unread", 0),
+        supabase
+          .from("return_requests")
+          .select("id", { count: "exact", head: true })
+          .in("status", ["requested", "mivo_review", "refunding", "returning"]),
       ]);
       if (!active) return;
 
@@ -98,6 +103,7 @@ export default function AdminSidebar() {
       });
       setBadges({
         toShip: toShip.count || 0,
+        returns: returns.count || 0,
         chat: ((chats.data || []) as Array<{ seller_unread: number }>).reduce(
           (sum, row) => sum + (row.seller_unread || 0),
           0

@@ -770,6 +770,15 @@ export default function OrderDetailsPage() {
               </button>
             ) : null}
 
+            {order.status === "shipped" || order.status === "delivered" ? (
+              <Link
+                href={"/orders/" + encodeURIComponent(order.order_number) + "/return"}
+                className="orderGhostButton orderSideMainAction"
+              >
+                {t("ret.request")}
+              </Link>
+            ) : null}
+
             {order.status === "shipped" ? (
               <button
                 type="button"

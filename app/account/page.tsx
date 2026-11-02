@@ -31,6 +31,7 @@ const icons = {
   address: "M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21zM12 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z",
   claim: "M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6zM9 12l2 2 4-4",
   chat: "M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4A2.5 2.5 0 0 1 4 13.5z",
+  returns: "M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3",
   help: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01",
   language: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z",
 };
@@ -302,6 +303,12 @@ export default function MePage() {
               <Icon d={icons.address} />
               <span>
                 <strong>{t("me.addresses")}</strong>
+              </span>
+            </Link>
+            <Link href="/account/returns" className={styles.shortcut}>
+              <Icon d={icons.returns} />
+              <span>
+                <strong>{t("ret.myReturns")}</strong>
               </span>
             </Link>
             <Link href="/account/claims" className={styles.shortcut}>
