@@ -163,11 +163,11 @@ export default function AdminShopsPage() {
         <section className={styles.adminContent}>
           <header className={styles.adminHeader}>
             <div>
-              <span className={styles.adminEyebrow}>MIVO STORE CONTROL · MARKETPLACE</span>
+              <span className={styles.adminEyebrow}>MIVO store control · Marketplace</span>
               <h1>Shops</h1>
               <p>All shops ship from the MIVO warehouse. Listings with the same SKU share one stock.</p>
             </div>
-            <a className={styles.adminAction} href="/shops" target="_blank" rel="noreferrer">VIEW SHOPS ↗</a>
+            <a className={styles.adminAction} href="/shops" target="_blank" rel="noreferrer">View shops ↗</a>
           </header>
 
           <section className={styles.adminPanel}>
@@ -182,19 +182,19 @@ export default function AdminShopsPage() {
             {message ? <p>{message}</p> : null}
 
             <form onSubmit={save} className={ui.toolbar} style={{ flexWrap: "wrap", alignItems: "end" }}>
-              <label className={styles.adminField}><span>SHOP NAME</span><input required {...field("shop_name")} placeholder="e.g. MIVO Auto Parts KL" /></label>
-              <label className={styles.adminField}><span>LINK (SLUG)</span><input {...field("slug")} placeholder="mivo-auto-kl" /></label>
-              <label className={styles.adminField}><span>TIER</span>
+              <label className={styles.adminField}><span>Shop name</span><input required {...field("shop_name")} placeholder="e.g. MIVO Auto Parts KL" /></label>
+              <label className={styles.adminField}><span>Link (slug)</span><input {...field("slug")} placeholder="mivo-auto-kl" /></label>
+              <label className={styles.adminField}><span>Tier</span>
                 <select {...field("tier")}>
                   {(Object.keys(tierLabel) as Tier[]).map((tier) => <option key={tier} value={tier}>{tierLabel[tier]}</option>)}
                 </select>
               </label>
-              <label className={styles.adminField}><span>ORDER</span><input type="number" {...field("sort_order")} /></label>
-              <label className={styles.adminField}><span>TAGLINE</span><input {...field("tagline")} placeholder="Short line under the shop name" /></label>
-              <label className={styles.adminField}><span>LOGO URL</span><input {...field("logo_url")} placeholder="https://…" /></label>
-              <label className={styles.adminField}><span>BANNER URL</span><input {...field("banner_url")} placeholder="https://…" /></label>
+              <label className={styles.adminField}><span>Order</span><input type="number" {...field("sort_order")} /></label>
+              <label className={styles.adminField}><span>Tagline</span><input {...field("tagline")} placeholder="Short line under the shop name" /></label>
+              <label className={styles.adminField}><span>Logo URL</span><input {...field("logo_url")} placeholder="https://…" /></label>
+              <label className={styles.adminField}><span>Banner URL</span><input {...field("banner_url")} placeholder="https://…" /></label>
               <button type="submit" disabled={saving}>{saving ? "SAVING…" : form.id ? "UPDATE SHOP" : "ADD SHOP"}</button>
-              {form.id ? <button type="button" onClick={() => setForm(emptyForm)}>CANCEL</button> : null}
+              {form.id ? <button type="button" onClick={() => setForm(emptyForm)}>Cancel</button> : null}
             </form>
 
             {loading ? (
@@ -202,7 +202,7 @@ export default function AdminShopsPage() {
             ) : (
               <div className={ui.tableWrap}>
                 <table className={ui.table}>
-                  <thead><tr><th>SHOP</th><th>TIER</th><th>LINK</th><th>LISTINGS</th><th>STATUS</th><th>ACTION</th></tr></thead>
+                  <thead><tr><th>Shop</th><th>Tier</th><th>Link</th><th>Listings</th><th>Status</th><th>Action</th></tr></thead>
                   <tbody>
                     {shops.map((shop) => (
                       <tr key={shop.id}>
@@ -228,9 +228,9 @@ export default function AdminShopsPage() {
                               })
                             }
                           >
-                            EDIT
+                            Edit
                           </button>{" "}
-                          <a href={"/admin/products/new?shop=" + shop.id}>ADD PRODUCT</a>
+                          <a href={"/admin/products/new?shop=" + shop.id}>Add product</a>
                         </td>
                       </tr>
                     ))}

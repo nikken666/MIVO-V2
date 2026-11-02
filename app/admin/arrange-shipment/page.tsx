@@ -555,7 +555,7 @@ export default function ArrangeShipmentPage() {
           <header className={styles.adminHeader}>
             <div>
               <span className={styles.adminEyebrow}>
-                MIVO · FULFILMENT
+                MIVO · Fulfilment
               </span>
               <h1>Arrange Shipment</h1>
               <p>
@@ -566,7 +566,7 @@ export default function ArrangeShipmentPage() {
 
             <div className={styles.adminHeaderActions}>
               <div className={styles.adminAttention}>
-                <span>READY</span>
+                <span>Ready</span>
                 <strong>{loading ? "—" : counts.ready}</strong>
               </div>
             </div>
@@ -579,7 +579,7 @@ export default function ArrangeShipmentPage() {
                 className={tab === "ready" ? styles.active : ""}
                 onClick={() => setTab("ready")}
               >
-                <span>READY TO ARRANGE</span>
+                <span>Ready to arrange</span>
                 <b>{counts.ready}</b>
               </button>
               <button
@@ -587,14 +587,14 @@ export default function ArrangeShipmentPage() {
                 className={tab === "arranged" ? styles.active : ""}
                 onClick={() => setTab("arranged")}
               >
-                <span>ARRANGED</span>
+                <span>Arranged</span>
                 <b>{counts.arranged}</b>
               </button>
             </nav>
 
             <div className={styles.adminOrderToolbar}>
               <label>
-                <span>SEARCH PAID ORDERS</span>
+                <span>Search paid orders</span>
                 <input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
@@ -603,7 +603,7 @@ export default function ArrangeShipmentPage() {
               </label>
 
               <div>
-                <span>SHOWING</span>
+                <span>Showing</span>
                 <strong>
                   {loading ? "—" : filtered.length + " / " + orders.length}
                 </strong>
@@ -629,7 +629,7 @@ export default function ArrangeShipmentPage() {
                     disabled={selected.length === 0}
                     onClick={() => setModalOpen(true)}
                   >
-                    MASS ARRANGE SHIPMENT
+                    Mass arrange shipment
                   </button>
                 </div>
               </div>
@@ -668,7 +668,7 @@ export default function ArrangeShipmentPage() {
                             checked={selected.includes(order.key)}
                             onChange={() => toggleOrder(order.key)}
                           />
-                          <span>SELECT</span>
+                          <span>Select</span>
                         </label>
                       ) : null}
 
@@ -677,7 +677,7 @@ export default function ArrangeShipmentPage() {
                         style={!arranged ? { paddingLeft: 102 } : undefined}
                       >
                         <div className={styles.adminOrderIdentity}>
-                          <span>ORDER</span>
+                          <span>Order</span>
                           <strong>{order.order_number}</strong>
                           {order.parcelId ? (
                             <small>
@@ -702,7 +702,7 @@ export default function ArrangeShipmentPage() {
                         </div>
 
                         <div className={styles.adminOrderCustomer}>
-                          <span>CUSTOMER</span>
+                          <span>Customer</span>
                           <strong>{customerName(order)}</strong>
                           <small>
                             {order.customer?.email ||
@@ -712,7 +712,7 @@ export default function ArrangeShipmentPage() {
                         </div>
 
                         <div className={styles.adminOrderItemsBrief}>
-                          <span>ITEMS</span>
+                          <span>Items</span>
                           <strong>{totalQty}</strong>
                           <small>
                             {order.items[0]?.product_name || "No item data"}
@@ -736,7 +736,7 @@ export default function ArrangeShipmentPage() {
                         </div>
 
                         <div className={styles.adminOrderAmount}>
-                          <span>TOTAL</span>
+                          <span>Total</span>
                           <strong>
                             {money(Number(order.total_amount))}
                           </strong>
@@ -754,7 +754,7 @@ export default function ArrangeShipmentPage() {
                       {arranged ? (
                         <div className={styles.adminArrangedTracking}>
                           <label>
-                            <span>COURIER *</span>
+                            <span>Courier *</span>
                             <select
                               value={
                                 courierInputs[order.key] ??
@@ -768,14 +768,14 @@ export default function ArrangeShipmentPage() {
                                 }))
                               }
                             >
-                              <option value="">SELECT COURIER</option>
-                              <option value="SPX Express">SPX EXPRESS</option>
-                              <option value="J&T Express">J&T EXPRESS</option>
+                              <option value="">Select courier</option>
+                              <option value="SPX Express">SPX Express</option>
+                              <option value="J&T Express">J&T Express</option>
                             </select>
                           </label>
 
                           <label>
-                            <span>TRACKING NUMBER *</span>
+                            <span>Tracking number *</span>
                             <input
                               value={
                                 trackingInputs[order.key] ??
@@ -838,8 +838,8 @@ export default function ArrangeShipmentPage() {
           >
             <div className={styles.adminMassArrangeHeader}>
               <div>
-                <span>MIVO FULFILMENT</span>
-                <h2>MASS ARRANGE SHIPMENT</h2>
+                <span>MIVO fulfilment</span>
+                <h2>Mass arrange shipment</h2>
                 <p>
                   Arrange {selected.length} paid order
                   {selected.length === 1 ? "" : "s"} at once.
@@ -865,7 +865,7 @@ export default function ArrangeShipmentPage() {
                   }
                   onClick={() => setArrangementMethod("drop_off")}
                 >
-                  <strong>DROP-OFF</strong>
+                  <strong>Drop-off</strong>
                   <span>Pack and drop parcels at the courier point.</span>
                 </button>
 
@@ -878,14 +878,14 @@ export default function ArrangeShipmentPage() {
                   }
                   onClick={() => setArrangementMethod("pickup")}
                 >
-                  <strong>PICKUP</strong>
+                  <strong>Pickup</strong>
                   <span>Prepare parcels for courier collection.</span>
                 </button>
               </div>
 
               {arrangementMethod === "pickup" ? (
                 <label className={styles.adminMassField}>
-                  <span>PICKUP DATE *</span>
+                  <span>Pickup date *</span>
                   <input
                     type="date"
                     value={pickupDate}
@@ -896,21 +896,21 @@ export default function ArrangeShipmentPage() {
               ) : null}
 
               <label className={styles.adminMassField}>
-                <span>COURIER</span>
+                <span>Courier</span>
                 <select
                   value={courierOverride}
                   onChange={(event) =>
                     setCourierOverride(event.target.value)
                   }
                 >
-                  <option value="">USE EACH ORDER'S COURIER</option>
-                  <option value="SPX Express">SPX EXPRESS</option>
-                  <option value="J&T Express">J&T EXPRESS</option>
+                  <option value="">Use each order's courier</option>
+                  <option value="SPX Express">SPX Express</option>
+                  <option value="J&T Express">J&T Express</option>
                 </select>
               </label>
 
               <div className={styles.adminMassSummary}>
-                <span>PAID ORDERS SELECTED</span>
+                <span>Paid orders selected</span>
                 <strong>{selected.length}</strong>
                 <small>
                   Confirmed orders move to ARRANGED / PACKED.
@@ -925,7 +925,7 @@ export default function ArrangeShipmentPage() {
                 disabled={busy}
                 onClick={() => setModalOpen(false)}
               >
-                CANCEL
+                Cancel
               </button>
               <button
                 type="button"

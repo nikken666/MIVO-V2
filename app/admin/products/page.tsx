@@ -1226,7 +1226,7 @@ export default function AdminProductsPage() {
           <header className={styles.adminHeader}>
             <div>
               <span className={styles.adminEyebrow}>
-                MIVO STORE CONTROL · CATALOGUE
+                MIVO store control · Catalogue
               </span>
               <h1>Products</h1>
               <p>
@@ -1236,10 +1236,10 @@ export default function AdminProductsPage() {
 
             <div className={styles.adminHeaderActions}>
               <div className={styles.adminAttention}>
-                <span>PRODUCTS SHOWN</span>
+                <span>Products shown</span>
                 <strong>{loading ? "—" : filtered.length}</strong>
               </div>
-              <a href="/admin/products/unmatched" className={styles.adminAction}>UNMATCHED SKU</a>
+              <a href="/admin/products/unmatched" className={styles.adminAction}>Unmatched SKU</a>
               <a href="/admin/products/new" className={styles.adminAction}>
                 + ADD PRODUCT
               </a>
@@ -1250,7 +1250,7 @@ export default function AdminProductsPage() {
             <div className={styles.adminPanelHead}>
               <div>
                 <span className={styles.adminPanelKicker}>
-                  CATALOGUE MANAGEMENT
+                  Catalogue management
                 </span>
                 <h2>Product Catalogue</h2>
                 <p>
@@ -1302,7 +1302,7 @@ export default function AdminProductsPage() {
 
             <div className={styles.productCatalogueSearch}>
               <label className={styles.adminField}>
-                <span>SEARCH</span>
+                <span>Search</span>
                 <input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
@@ -1336,7 +1336,7 @@ export default function AdminProductsPage() {
                 disabled={selectedProductIds.size === 0}
                 onClick={openBulkEditor}
               >
-                MASS EDIT PRODUCTS
+                Mass edit products
               </button>
             </div>
 
@@ -1357,13 +1357,13 @@ export default function AdminProductsPage() {
                 >
                   <thead>
                     <tr>
-                      <th>PRODUCT / VARIATION</th>
-                      <th>BRAND</th>
+                      <th>Product / variation</th>
+                      <th>Brand</th>
                       <th>SKU</th>
-                      <th>PRICE</th>
-                      <th>STOCK</th>
-                      <th>STATUS</th>
-                      <th>ACTION</th>
+                      <th>Price</th>
+                      <th>Stock</th>
+                      <th>Status</th>
+                      <th>Action</th>
                     </tr>
                   </thead>
 
@@ -1426,7 +1426,7 @@ export default function AdminProductsPage() {
                                     {expanded.has(product.id)
                                       ? "HIDE"
                                       : "SHOW"}{" "}
-                                    VARIATIONS
+                                    Variations
                                   </button>
                                 </div>
                               </div>
@@ -1455,7 +1455,7 @@ export default function AdminProductsPage() {
                                   }
                                   className={styles.adminActionLink}
                                 >
-                                  EDIT
+                                  Edit
                                 </a>
 
                                 <button
@@ -1482,7 +1482,7 @@ export default function AdminProductsPage() {
                                       setListingStatus(product, "inactive")
                                     }
                                   >
-                                    DELIST
+                                    Delist
                                   </button>
                                 ) : product.status === "inactive" ? (
                                   <button
@@ -1497,7 +1497,7 @@ export default function AdminProductsPage() {
                                       setListingStatus(product, "active")
                                     }
                                   >
-                                    LIST
+                                    List
                                   </button>
                                 ) : product.status === "draft" ? (
                                   <>
@@ -1540,7 +1540,7 @@ export default function AdminProductsPage() {
                                     className={styles.adminTextAction}
                                     target="_blank"
                                   >
-                                    VIEW
+                                    View
                                   </a>
                                 ) : null}
                               </div>
@@ -1706,7 +1706,7 @@ export default function AdminProductsPage() {
                                             styles.quickStockWarning
                                           }
                                         >
-                                          LOW STOCK
+                                          Low stock
                                         </span>
                                       ) : (
                                         <span
@@ -1714,7 +1714,7 @@ export default function AdminProductsPage() {
                                             styles.quickStockOkay
                                           }
                                         >
-                                          IN STOCK
+                                          In stock
                                         </span>
                                       )}
                                     </td>
@@ -1751,7 +1751,7 @@ export default function AdminProductsPage() {
                                             }
                                             onClick={cancelQuickEdit}
                                           >
-                                            CANCEL
+                                            Cancel
                                           </button>
                                         </div>
                                       ) : (
@@ -1764,7 +1764,7 @@ export default function AdminProductsPage() {
                                             beginQuickEdit(variant)
                                           }
                                         >
-                                          QUICK EDIT
+                                          Quick edit
                                         </button>
                                       )}
                                     </td>
@@ -1800,7 +1800,7 @@ export default function AdminProductsPage() {
                 >
                   <div className={styles.productBulkModalHead}>
                     <div>
-                      <span>MASS EDIT</span>
+                      <span>Mass edit</span>
                       <h3 id="mass-edit-products-title">
                         Product Information
                       </h3>
@@ -1815,7 +1815,7 @@ export default function AdminProductsPage() {
                         onClick={closeBulkEditor}
                         disabled={bulkSaving}
                       >
-                        CLOSE
+                        Close
                       </button>
                     </div>
                   </div>
@@ -1824,15 +1824,15 @@ export default function AdminProductsPage() {
                     <table className={styles.productBulkTable}>
                       <thead>
                         <tr>
-                          <th>IMAGE</th>
-                          <th>PRODUCT NAME</th>
-                          <th>DESCRIPTION</th>
-                          <th>VARIATION / SKU</th>
-                          <th>PRICE</th>
-                          <th>STOCK</th>
-                          <th>PARCEL SIZE (CM)</th>
-                          <th>WEIGHT (KG)</th>
-                          <th>ACTION</th>
+                          <th>Image</th>
+                          <th>Product name</th>
+                          <th>Description</th>
+                          <th>Variation / SKU</th>
+                          <th>Price</th>
+                          <th>Stock</th>
+                          <th>Parcel size (cm)</th>
+                          <th>Weight (kg)</th>
+                          <th>Action</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1855,13 +1855,13 @@ export default function AdminProductsPage() {
                                       alt={row.name}
                                     />
                                   ) : (
-                                    <span>NO IMAGE</span>
+                                    <span>No image</span>
                                   )}
                                   {row.images.length > 0 ? (
                                     <b>{row.images.length}/8</b>
                                   ) : null}
                                 </div>
-                                <small>EDIT IMAGES</small>
+                                <small>Edit images</small>
                               </button>
                             </td>
 
@@ -2077,7 +2077,7 @@ export default function AdminProductsPage() {
                                       applyFirstSkuParcelToProduct(row.productId)
                                     }
                                   >
-                                    COPY 1ST SKU SIZE
+                                    Copy 1st SKU size
                                   </button>
                                 ) : null}
                                 <a
@@ -2089,7 +2089,7 @@ export default function AdminProductsPage() {
                                 }
                                 target="_blank"
                                 >
-                                  FULL EDIT
+                                  Full edit
                                 </a>
                               </div>
                             </td>
@@ -2110,7 +2110,7 @@ export default function AdminProductsPage() {
                       disabled={bulkSaving}
                       onClick={closeBulkEditor}
                     >
-                      CANCEL
+                      Cancel
                     </button>
                     <button
                       type="button"
@@ -2142,7 +2142,7 @@ export default function AdminProductsPage() {
                           <div className={styles.productBulkImageManager}>
                             <div className={styles.productBulkSubModalHead}>
                               <div>
-                                <span>EDIT IMAGES</span>
+                                <span>Edit images</span>
                                 <h4>{row.name}</h4>
                                 <p>
                                   First image is the main image. Add, remove or
@@ -2153,7 +2153,7 @@ export default function AdminProductsPage() {
                                 type="button"
                                 onClick={() => setBulkImageEditorId("")}
                               >
-                                CLOSE
+                                Close
                               </button>
                             </div>
 
@@ -2168,7 +2168,7 @@ export default function AdminProductsPage() {
                                     alt={row.name + " " + (index + 1)}
                                   />
                                   {index === 0 ? (
-                                    <b>MAIN IMAGE</b>
+                                    <b>Main image</b>
                                   ) : null}
                                   <div>
                                     <button
@@ -2181,7 +2181,7 @@ export default function AdminProductsPage() {
                                         )
                                       }
                                     >
-                                      MAIN
+                                      Main
                                     </button>
                                     <button
                                       type="button"
@@ -2220,7 +2220,7 @@ export default function AdminProductsPage() {
                                         )
                                       }
                                     >
-                                      DELETE
+                                      Delete
                                     </button>
                                   </div>
                                 </div>
@@ -2241,7 +2241,7 @@ export default function AdminProductsPage() {
                                     }}
                                   />
                                   <strong>+</strong>
-                                  <span>ADD IMAGES</span>
+                                  <span>Add images</span>
                                   <small>
                                     {row.images.length}/8
                                   </small>
@@ -2255,7 +2255,7 @@ export default function AdminProductsPage() {
                                 className={styles.productBulkPrimary}
                                 onClick={() => setBulkImageEditorId("")}
                               >
-                                DONE
+                                Done
                               </button>
                             </div>
                           </div>
@@ -2285,7 +2285,7 @@ export default function AdminProductsPage() {
                           <div className={styles.productBulkDescriptionModal}>
                             <div className={styles.productBulkSubModalHead}>
                               <div>
-                                <span>EDIT DESCRIPTION</span>
+                                <span>Edit description</span>
                                 <h4>{row.name}</h4>
                               </div>
                               <button
@@ -2294,13 +2294,13 @@ export default function AdminProductsPage() {
                                   setBulkDescriptionEditorId("")
                                 }
                               >
-                                CLOSE
+                                Close
                               </button>
                             </div>
 
                             <div className={styles.productBulkDescriptionFields}>
                               <label>
-                                <span>SHORT DESCRIPTION</span>
+                                <span>Short description</span>
                                 <input
                                   maxLength={240}
                                   value={row.shortDescription}
@@ -2314,7 +2314,7 @@ export default function AdminProductsPage() {
                                 />
                               </label>
                               <label>
-                                <span>DESCRIPTION</span>
+                                <span>Description</span>
                                 <textarea
                                   rows={14}
                                   value={row.description}
@@ -2337,7 +2337,7 @@ export default function AdminProductsPage() {
                                   setBulkDescriptionEditorId("")
                                 }
                               >
-                                DONE
+                                Done
                               </button>
                             </div>
                           </div>

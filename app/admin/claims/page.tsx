@@ -47,16 +47,17 @@ type ClaimView = ClaimRow & {
 type TabKey = "all" | ClaimStatus;
 
 const tabs: Array<{ key: TabKey; label: string }> = [
-  { key: "all", label: "ALL" },
-  { key: "new", label: "NEW" },
-  { key: "reviewing", label: "REVIEWING" },
-  { key: "approved", label: "APPROVED" },
-  { key: "rejected", label: "REJECTED" },
-  { key: "completed", label: "COMPLETED" },
+  { key: "all", label: "All" },
+  { key: "new", label: "New" },
+  { key: "reviewing", label: "Reviewing" },
+  { key: "approved", label: "Approved" },
+  { key: "rejected", label: "Rejected" },
+  { key: "completed", label: "Completed" },
 ];
 
 function label(value: string) {
-  return value.replaceAll("_", " ").toUpperCase();
+  const text = value.replaceAll("_", " ").toLowerCase();
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 function dateLabel(value: string) {
@@ -293,7 +294,7 @@ export default function AdminClaimsPage() {
           <header className={styles.adminHeader}>
             <div>
               <span className={styles.adminEyebrow}>
-                AFTER-SALES CONTROL
+                After-sales control
               </span>
               <h1>Warranty Claims</h1>
               <p>Review customer evidence and manage warranty outcomes.</p>
@@ -301,7 +302,7 @@ export default function AdminClaimsPage() {
 
             <div className={styles.adminHeaderActions}>
               <div className={styles.adminAttention}>
-                <span>OPEN CLAIMS</span>
+                <span>Open claims</span>
                 <strong>
                   {loading
                     ? "—"
@@ -335,7 +336,7 @@ export default function AdminClaimsPage() {
           <section className={styles.adminPanel}>
             <div className={styles.claimToolbar}>
               <label>
-                <span>SEARCH CLAIM</span>
+                <span>Search claim</span>
                 <input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
@@ -343,7 +344,7 @@ export default function AdminClaimsPage() {
                 />
               </label>
               <div>
-                <span>RESULTS</span>
+                <span>Results</span>
                 <strong>{filtered.length}</strong>
               </div>
             </div>
@@ -419,7 +420,7 @@ export default function AdminClaimsPage() {
 
                     <div className={styles.claimMetaGrid}>
                       <div>
-                        <span>CUSTOMER</span>
+                        <span>Customer</span>
                         <strong>
                           {selected.customer?.full_name || "MIVO CUSTOMER"}
                         </strong>
@@ -427,12 +428,12 @@ export default function AdminClaimsPage() {
                         <small>{selected.customer?.phone || "—"}</small>
                       </div>
                       <div>
-                        <span>ISSUE</span>
+                        <span>Issue</span>
                         <strong>{label(selected.issue_type)}</strong>
                         <small>{dateLabel(selected.created_at)}</small>
                       </div>
                       <div>
-                        <span>WARRANTY</span>
+                        <span>Warranty</span>
                         <strong>{selected.warranty_months} MONTHS</strong>
                         <small>
                           Expires {dateLabel(selected.warranty_expires_at)}
@@ -441,13 +442,13 @@ export default function AdminClaimsPage() {
                     </div>
 
                     <div className={styles.claimDescription}>
-                      <span>CUSTOMER DESCRIPTION</span>
+                      <span>Customer description</span>
                       <p>{selected.description}</p>
                     </div>
 
                     {(selected.display_image_urls || []).length > 0 ? (
                       <div className={styles.claimEvidence}>
-                        <span>EVIDENCE</span>
+                        <span>Evidence</span>
                         <div>
                           {(selected.display_image_urls || []).map((url) => (
                             <a
@@ -465,23 +466,23 @@ export default function AdminClaimsPage() {
 
                     <div className={styles.claimAdminForm}>
                       <label>
-                        <span>STATUS</span>
+                        <span>Status</span>
                         <select
                           value={status}
                           onChange={(event) =>
                             setStatus(event.target.value as ClaimStatus)
                           }
                         >
-                          <option value="new">NEW</option>
-                          <option value="reviewing">REVIEWING</option>
-                          <option value="approved">APPROVED</option>
-                          <option value="rejected">REJECTED</option>
-                          <option value="completed">COMPLETED</option>
+                          <option value="new">New</option>
+                          <option value="reviewing">Reviewing</option>
+                          <option value="approved">Approved</option>
+                          <option value="rejected">Rejected</option>
+                          <option value="completed">Completed</option>
                         </select>
                       </label>
 
                       <label>
-                        <span>CUSTOMER UPDATE</span>
+                        <span>Customer update</span>
                         <textarea
                           rows={4}
                           value={adminNote}
@@ -493,7 +494,7 @@ export default function AdminClaimsPage() {
                       </label>
 
                       <label>
-                        <span>RESOLUTION</span>
+                        <span>Resolution</span>
                         <textarea
                           rows={4}
                           value={resolutionNote}
@@ -512,7 +513,7 @@ export default function AdminClaimsPage() {
                           }
                           className={styles.adminSecondaryAction}
                         >
-                          VIEW ORDER
+                          View order
                         </a>
                         <button
                           type="button"

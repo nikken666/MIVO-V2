@@ -86,12 +86,12 @@ type TabKey =
   | "cancelled";
 
 const tabs: Array<{ key: TabKey; label: string }> = [
-  { key: "all", label: "ALL" },
-  { key: "to_pay", label: "TO PAY" },
-  { key: "to_ship", label: "TO SHIP" },
-  { key: "shipped", label: "SHIPPED" },
-  { key: "completed", label: "COMPLETED" },
-  { key: "cancelled", label: "CANCELLED / REFUND" },
+  { key: "all", label: "All" },
+  { key: "to_pay", label: "To pay" },
+  { key: "to_ship", label: "To ship" },
+  { key: "shipped", label: "Shipped" },
+  { key: "completed", label: "Completed" },
+  { key: "cancelled", label: "Cancelled / refund" },
 ];
 
 function money(value: number) {
@@ -102,7 +102,8 @@ function money(value: number) {
 }
 
 function label(value: string) {
-  return value.replaceAll("_", " ").toUpperCase();
+  const text = value.replaceAll("_", " ").toLowerCase();
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 function bucket(order: OrderView): Exclude<TabKey, "all"> {
@@ -616,7 +617,7 @@ export default function AdminOrdersPage() {
                   disabled={isBusy}
                   onClick={() => updateParcel(order, parcel, "processing")}
                 >
-                  MARK PROCESSING
+                  Mark processing
                 </button>
               ) : null}
 
@@ -627,14 +628,14 @@ export default function AdminOrdersPage() {
                   disabled={isBusy}
                   onClick={() => updateParcel(order, parcel, "packed")}
                 >
-                  MARK PACKED
+                  Mark packed
                 </button>
               ) : null}
 
               {status === "packed" ? (
                 <div className={styles.adminShipForm}>
                   <label>
-                    <span>COURIER *</span>
+                    <span>Courier *</span>
                     <select
                       value={courierValue}
                       onChange={(event) =>
@@ -644,13 +645,13 @@ export default function AdminOrdersPage() {
                         }))
                       }
                     >
-                      <option value="">SELECT COURIER</option>
-                      <option value="SPX Express">SPX EXPRESS</option>
-                      <option value="J&T Express">J&T EXPRESS</option>
+                      <option value="">Select courier</option>
+                      <option value="SPX Express">SPX Express</option>
+                      <option value="J&T Express">J&T Express</option>
                     </select>
                   </label>
                   <label>
-                    <span>TRACKING NUMBER *</span>
+                    <span>Tracking number *</span>
                     <input
                       value={trackingValue}
                       onChange={(event) =>
@@ -670,16 +671,16 @@ export default function AdminOrdersPage() {
                     }
                     onClick={() => updateParcel(order, parcel, "shipped")}
                   >
-                    MARK SHIPPED
+                    Mark shipped
                   </button>
                 </div>
               ) : null}
 
               {status === "shipped" || status === "delivered" ? (
                 <div className={styles.adminTrackingBox}>
-                  <span>COURIER</span>
+                  <span>Courier</span>
                   <strong>{parcel.shipment?.courier_name || "—"}</strong>
-                  <span>TRACKING</span>
+                  <span>Tracking</span>
                   <strong>{parcel.shipment?.tracking_number || "—"}</strong>
                 </div>
               ) : null}
@@ -691,7 +692,7 @@ export default function AdminOrdersPage() {
                   disabled={isBusy}
                   onClick={() => updateParcel(order, parcel, "delivered")}
                 >
-                  MARK DELIVERED
+                  Mark delivered
                 </button>
               ) : null}
             </div>
@@ -717,14 +718,14 @@ export default function AdminOrdersPage() {
         <section className={styles.adminContent}>
           <header className={styles.adminHeader}>
             <div>
-              <span className={styles.adminEyebrow}>MIVO · ORDER OPERATIONS</span>
+              <span className={styles.adminEyebrow}>MIVO · Order operations</span>
               <h1>Orders</h1>
               <p>Payment, packing, shipment, tracking and refunds.</p>
             </div>
 
             <div className={styles.adminHeaderActions}>
               <div className={styles.adminAttention}>
-                <span>TO SHIP</span>
+                <span>To ship</span>
                 <strong>{loading ? "—" : counts.to_ship}</strong>
               </div>
             </div>
@@ -747,7 +748,7 @@ export default function AdminOrdersPage() {
 
             <div className={styles.adminOrderToolbar}>
               <label>
-                <span>SEARCH ORDERS</span>
+                <span>Search orders</span>
                 <input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
@@ -756,7 +757,7 @@ export default function AdminOrdersPage() {
               </label>
 
               <div>
-                <span>SHOWING</span>
+                <span>Showing</span>
                 <strong>
                   {loading ? "—" : filtered.length + " / " + orders.length}
                 </strong>
@@ -795,7 +796,7 @@ export default function AdminOrdersPage() {
                       onClick={() => openOrder(order)}
                     >
                       <div className={styles.adminOrderIdentity}>
-                        <span>ORDER</span>
+                        <span>Order</span>
                         <strong>{order.order_number}</strong>
                         <small>
                           {new Date(order.created_at).toLocaleString("en-MY", {
@@ -809,7 +810,7 @@ export default function AdminOrdersPage() {
                       </div>
 
                       <div className={styles.adminOrderCustomer}>
-                        <span>CUSTOMER</span>
+                        <span>Customer</span>
                         <strong>{customerName(order)}</strong>
                         <small>
                           {order.customer?.email ||
@@ -819,7 +820,7 @@ export default function AdminOrdersPage() {
                       </div>
 
                       <div className={styles.adminOrderItemsBrief}>
-                        <span>ITEMS</span>
+                        <span>Items</span>
                         <strong>
                           {order.items.reduce(
                             (sum, item) => sum + Number(item.quantity || 0),
@@ -845,7 +846,7 @@ export default function AdminOrdersPage() {
                       </div>
 
                       <div className={styles.adminOrderAmount}>
-                        <span>TOTAL</span>
+                        <span>Total</span>
                         <strong>{money(Number(order.total_amount))}</strong>
                         <small>
                           {selected === order.order_number
@@ -860,7 +861,7 @@ export default function AdminOrdersPage() {
                         <div className={styles.adminOrderDrawerMain}>
                           <section>
                             <span className={styles.adminPanelKicker}>
-                              ORDER ITEMS
+                              Order items
                             </span>
                             {order.parcels.length > 1 ? (
                               order.parcels.map((parcel) => (
@@ -926,7 +927,7 @@ export default function AdminOrdersPage() {
 
                           <section className={styles.adminAddressBlock}>
                             <span className={styles.adminPanelKicker}>
-                              DELIVERY ADDRESS
+                              Delivery address
                             </span>
                             <strong>
                               {order.shipping_address?.full_name ||
@@ -950,7 +951,7 @@ export default function AdminOrdersPage() {
                           {order.customer_note ? (
                             <section className={styles.adminAddressBlock}>
                               <span className={styles.adminPanelKicker}>
-                                CUSTOMER NOTE
+                                Customer note
                               </span>
                               <p>{order.customer_note}</p>
                             </section>
@@ -960,7 +961,7 @@ export default function AdminOrdersPage() {
                         <aside className={styles.adminOrderDrawerSide}>
                           <section className={styles.adminFulfilmentCard}>
                             <span className={styles.adminPanelKicker}>
-                              FULFILMENT
+                              Fulfilment
                             </span>
                             <div className={styles.adminFulfilmentStatus}>
                               <strong>{label(order.status)}</strong>
@@ -988,7 +989,7 @@ export default function AdminOrdersPage() {
                                       updateStatus(order, "processing")
                                     }
                                   >
-                                    MARK PROCESSING
+                                    Mark processing
                                   </button>
                                 ) : null}
 
@@ -1001,31 +1002,31 @@ export default function AdminOrdersPage() {
                                       updateStatus(order, "packed")
                                     }
                                   >
-                                    MARK PACKED
+                                    Mark packed
                                   </button>
                                 ) : null}
 
                                 {order.status === "packed" ? (
                                   <div className={styles.adminShipForm}>
                                     <label>
-                                      <span>COURIER *</span>
+                                      <span>Courier *</span>
                                       <select
                                         value={courier}
                                         onChange={(event) =>
                                           setCourier(event.target.value)
                                         }
                                       >
-                                        <option value="">SELECT COURIER</option>
+                                        <option value="">Select courier</option>
                                         <option value="SPX Express">
-                                          SPX EXPRESS
+                                          SPX Express
                                         </option>
                                         <option value="J&T Express">
-                                          J&T EXPRESS
+                                          J&T Express
                                         </option>
                                       </select>
                                     </label>
                                     <label>
-                                      <span>TRACKING NUMBER *</span>
+                                      <span>Tracking number *</span>
                                       <input
                                         value={tracking}
                                         onChange={(event) =>
@@ -1047,7 +1048,7 @@ export default function AdminOrdersPage() {
                                         updateStatus(order, "shipped")
                                       }
                                     >
-                                      MARK SHIPPED
+                                      Mark shipped
                                     </button>
                                   </div>
                                 ) : null}
@@ -1058,11 +1059,11 @@ export default function AdminOrdersPage() {
                             order.status === "shipped" ? (
                               <>
                                 <div className={styles.adminTrackingBox}>
-                                  <span>COURIER</span>
+                                  <span>Courier</span>
                                   <strong>
                                     {order.shipment?.courier_name || "—"}
                                   </strong>
-                                  <span>TRACKING</span>
+                                  <span>Tracking</span>
                                   <strong>
                                     {order.shipment?.tracking_number || "—"}
                                   </strong>
@@ -1076,7 +1077,7 @@ export default function AdminOrdersPage() {
                                     updateStatus(order, "delivered")
                                   }
                                 >
-                                  MARK DELIVERED
+                                  Mark delivered
                                 </button>
                               </>
                             ) : null}
@@ -1105,7 +1106,7 @@ export default function AdminOrdersPage() {
                               order.status
                             ) ? (
                               <div className={styles.adminRefundBox}>
-                                <span>REFUND STATUS</span>
+                                <span>Refund status</span>
                                 <strong>
                                   {label(order.refund_status || "none")}
                                 </strong>
@@ -1127,13 +1128,13 @@ export default function AdminOrdersPage() {
 
                           <section className={styles.adminTotalsCard}>
                             <div>
-                              <span>SUBTOTAL</span>
+                              <span>Subtotal</span>
                               <strong>
                                 {money(Number(order.subtotal))}
                               </strong>
                             </div>
                             <div>
-                              <span>SHIPPING</span>
+                              <span>Shipping</span>
                               <strong>
                                 {money(Number(order.shipping_amount || 0))}
                               </strong>
@@ -1141,7 +1142,7 @@ export default function AdminOrdersPage() {
                             {Number(order.discount_amount || 0) > 0 ? (
                               <div>
                                 <span>
-                                  VOUCHER
+                                  Voucher
                                   {order.voucher_code
                                     ? " · " + order.voucher_code
                                     : ""}
@@ -1152,7 +1153,7 @@ export default function AdminOrdersPage() {
                               </div>
                             ) : null}
                             <div className={styles.total}>
-                              <span>TOTAL</span>
+                              <span>Total</span>
                               <strong>
                                 {money(Number(order.total_amount))}
                               </strong>

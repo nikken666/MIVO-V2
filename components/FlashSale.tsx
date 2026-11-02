@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Product } from "@/data/products";
 import { formatPrice } from "@/data/products";
+import { useT } from "./LanguageProvider";
 
 type Deal = {
   product: Product;
@@ -45,6 +46,7 @@ function pad(value: number) {
 }
 
 export default function FlashSale({ products }: { products: Product[] }) {
+  const t = useT();
   const deals = useMemo(
     () =>
       products
@@ -106,19 +108,19 @@ export default function FlashSale({ products }: { products: Product[] }) {
             <span className="flashSaleBolt" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M13 2L4.5 13.5H11L10 22l8.5-11.5H12L13 2z" /></svg>
             </span>
-            Flash sale
+            {t("browse.flash.title")}
           </h2>
           {endsAt && remaining > 0 ? (
-            <div className="flashSaleClock" aria-label="Time left">
-              <small>Ends in</small>
-              {days > 0 ? <b>{days}d</b> : null}
+            <div className="flashSaleClock" aria-label={t("browse.flash.timeLeft")}>
+              <small>{t("browse.flash.endsIn")}</small>
+              {days > 0 ? <b>{t("browse.flash.days", { n: days })}</b> : null}
               <b>{clock[0]}</b>:<b>{clock[1]}</b>:<b className="tick">{clock[2]}</b>
             </div>
           ) : (
-            <small className="flashSaleNote">Limited-time prices</small>
+            <small className="flashSaleNote">{t("browse.flash.limited")}</small>
           )}
           <Link href="/products" className="shopSeeAll">
-            See all ›
+            {t("browse.flash.seeAll")}
           </Link>
         </div>
 
@@ -143,7 +145,7 @@ export default function FlashSale({ products }: { products: Product[] }) {
                   <del>{formatPrice(deal.compareAt)}</del>
                   <div className="flashSaleBar" aria-hidden="true">
                     <i style={{ width: bar + "%" }} />
-                    <span>{lowStock ? "Only " + deal.stock + " left" : "In stock"}</span>
+                    <span>{lowStock ? t("browse.flash.onlyLeft", { n: deal.stock ?? 0 }) : t("browse.flash.inStock")}</span>
                   </div>
                 </div>
               </Link>

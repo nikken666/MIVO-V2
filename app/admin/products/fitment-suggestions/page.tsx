@@ -216,11 +216,11 @@ export default function FitmentSuggestionsPage() {
         <section className={styles.adminContent}>
           <header className={styles.adminHeader}>
             <div>
-              <span className={styles.adminEyebrow}>MIVO STORE CONTROL · VEHICLE FITMENT</span>
+              <span className={styles.adminEyebrow}>MIVO store control · Vehicle fitment</span>
               <h1>Fitment suggestions</h1>
               <p>Vehicles read from each product title. Check, untick anything wrong, then save. Nothing is saved without your approval.</p>
             </div>
-            <a className={styles.adminAction} href="/admin/store-health">STORE HEALTH</a>
+            <a className={styles.adminAction} href="/admin/store-health">Store health</a>
           </header>
 
           <section className={styles.adminPanel}>
@@ -235,7 +235,7 @@ export default function FitmentSuggestionsPage() {
             </div>
 
             <div className={ui.toolbar} style={{ alignItems: "end", flexWrap: "wrap" }}>
-              <label className={styles.adminField}><span>SHOP</span>
+              <label className={styles.adminField}><span>Shop</span>
                 <select value={shopFilter} onChange={(e) => setShopFilter(e.target.value)}>
                   <option value="">All shops</option>
                   {shops.map((s) => <option key={s.id} value={s.id}>{s.shop_name}</option>)}

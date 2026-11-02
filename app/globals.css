@@ -11001,3 +11001,60 @@ button:disabled,.btn[aria-disabled="true"]{cursor:not-allowed;translate:none!imp
   .vehiclePickerChip span,.vehiclePickerChip .vehiclePickerCaret{display:none}
 }
 button.shopChip{font:inherit;cursor:pointer}
+
+/* Search suggestions */
+.searchSuggestBox{position:relative;min-width:0;height:100%;display:flex;align-items:center}
+.searchSuggestBox>input{width:100%;height:100%}
+.searchSuggestBox input::-webkit-search-cancel-button{cursor:pointer}
+.searchSuggestPanel{position:absolute;left:-8px;right:-120px;top:calc(100% + 8px);z-index:120;max-height:min(70vh,520px);overflow:auto;padding:8px;border-radius:16px;background:#fff;box-shadow:0 20px 50px rgba(0,0,0,.16)}
+.searchSuggestHead{display:flex;justify-content:space-between;align-items:center;padding:8px 10px 4px;color:var(--grey);font-size:13px;font-weight:600}
+.searchSuggestHead button{border:0;background:none;color:var(--accent);font:inherit;font-size:13px;cursor:pointer}
+.headerSearch .searchSuggestPanel button{all:unset;box-sizing:border-box}
+.headerSearch .searchSuggestRow{display:flex!important;align-items:center;gap:10px;width:100%;padding:9px 10px!important;border-radius:10px;color:var(--ink)!important;font-size:15px!important;cursor:pointer;background:transparent!important}
+.headerSearch .searchSuggestRow:hover,.headerSearch .searchSuggestRow.active{background:var(--soft)!important}
+.searchSuggestIcon{width:22px;text-align:center;color:var(--grey)}
+.searchSuggestThumb{flex:none;width:40px;height:40px;border-radius:8px;overflow:hidden;background:var(--soft)}
+.searchSuggestThumb img{width:100%;height:100%;object-fit:cover}
+.searchSuggestText{min-width:0}
+.searchSuggestText strong,.searchSuggestText small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.searchSuggestText strong{font-size:14px;font-weight:600}
+.searchSuggestText small{margin-top:2px;color:var(--grey);font-size:13px}
+.searchSuggestChips{display:flex;flex-wrap:wrap;gap:8px;padding:6px 10px 10px}
+.headerSearch .searchSuggestChips button{padding:7px 14px!important;border-radius:999px;background:var(--soft)!important;color:var(--ink)!important;font-size:14px!important;cursor:pointer}
+.headerSearch .searchSuggestChips button:hover{background:rgba(var(--accent-rgb),.1)!important;color:var(--accent)!important}
+.headerSearch .searchSuggestAll{display:block!important;width:100%;margin-top:4px;padding:11px 10px!important;border-top:1px solid var(--line);color:var(--accent)!important;font-size:14px!important;font-weight:600;cursor:pointer;background:transparent!important}
+.headerSearch .searchSuggestVehicle{display:flex!important;align-items:center;gap:10px;width:100%;margin-bottom:6px;padding:11px 12px!important;border-radius:12px;background:rgba(255,196,0,.18)!important;color:var(--ink)!important;font-size:14px!important;font-weight:500;cursor:pointer}
+@media(max-width:850px){.searchSuggestPanel{position:fixed;left:8px;right:8px;top:118px}}
+.headerSearch{overflow:visible!important}
+.headerSearch .searchSuggestPanel .searchSuggestVehicle{gap:10px;border-radius:12px;margin-bottom:6px}
+.headerSearch .searchSuggestPanel .searchSuggestRow{gap:12px;border-radius:10px}
+.headerSearch .searchSuggestPanel .searchSuggestChips button{border-radius:999px}
+.headerSearch .searchSuggestPanel .searchSuggestAll{margin-top:4px;border-top:1px solid var(--line)}
+.headerSearch .searchSuggestPanel .searchSuggestHead button{color:var(--accent);font-size:13px;cursor:pointer}
+
+/* ===== Readable text: nothing smaller than 12px (generated from a size audit) ===== */
+.addressEmpty p,
+.addressSaveButton span,
+.cartEmpty p,
+.headerAction small,
+.orderPaymentStatus strong,
+.ordersEmpty p{font-size:13px!important;letter-spacing:normal!important}
+.accountDataHeader a,
+.addressBookHead button,
+.addressEditorHead span,
+.cartEmpty span,
+.orderDetailSide a.orderGhostButton,
+.orderDetailSide button.orderGhostButton,
+.orderPaymentStatus small,
+.orderProgressStep span,
+.orderSideCard p,
+.orderSideCard span,
+.orderSideTotal span,
+.orderTimelineContent p,
+.ordersEmpty a,
+.shopOrderActions a.orderGhostButton,
+.shopOrderActions button.orderGhostButton,
+.shopOrderStatus small,
+.shopOrderStatus span,
+.shopOrderTotal span{font-size:12px!important;letter-spacing:normal!important}
+.shopOrderCard small,.shopOrderCard b,.orderCenterPage .accountDataHeader span{font-size:12px!important;letter-spacing:normal!important}

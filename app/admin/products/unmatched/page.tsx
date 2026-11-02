@@ -96,42 +96,42 @@ export default function UnmatchedSkuPage() {
       <AdminSidebar />
       <section className={styles.adminContent}>
         <header className={styles.adminHeader}>
-          <div><span className={styles.adminEyebrow}>CATALOGUE · VEHICLE MATCHING</span>
+          <div><span className={styles.adminEyebrow}>Catalogue · Vehicle matching</span>
             <h1>Unmatched SKU</h1>
             <p>Find every SKU without any compatible vehicle assigned. Whole-product matching and universal products are counted as matched.</p>
           </div>
           <div className={styles.adminHeaderActions}>
-            <a href="/admin/products" className={styles.adminAction}>ALL PRODUCTS</a>
+            <a href="/admin/products" className={styles.adminAction}>All products</a>
           </div>
         </header>
         <section className={`${styles.adminPanel} ${ui.panel}`}>
           <div className={ui.stats}>
-            <div><small>UNMATCHED SKU</small><h2>{loading ? "—" : rows.length}</h2></div>
-            <div><small>AFFECTED PRODUCTS</small><h2>{loading ? "—" : unmatchedProducts}</h2></div>
+            <div><small>Unmatched SKU</small><h2>{loading ? "—" : rows.length}</h2></div>
+            <div><small>Affected products</small><h2>{loading ? "—" : unmatchedProducts}</h2></div>
           </div>
           <div className={ui.filters}>
-            <label className={`${styles.adminField} ${ui.searchField}`}><span>SEARCH SKU OR PRODUCT</span>
+            <label className={`${styles.adminField} ${ui.searchField}`}><span>Search SKU or product</span>
               <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search SKU, variation, model..." />
             </label>
-            <label className={styles.adminField}><span>PRODUCT STATUS</span>
+            <label className={styles.adminField}><span>Product status</span>
               <select value={scope} onChange={e=>setScope(e.target.value as typeof scope)}>
                 <option value="all">All products</option><option value="active">Live only</option><option value="draft">Unpublished only</option>
               </select>
             </label>
-            <button className={ui.secondaryButton} type="button" onClick={()=>void load()}>REFRESH</button>
-            <button className={ui.secondaryButton} type="button" onClick={downloadCsv} disabled={!shown.length}>EXPORT CSV</button>
+            <button className={ui.secondaryButton} type="button" onClick={()=>void load()}>Refresh</button>
+            <button className={ui.secondaryButton} type="button" onClick={downloadCsv} disabled={!shown.length}>Export CSV</button>
           </div>
           {error && <p role="alert" style={{color:"#c22"}}>{error}</p>}
           {loading ? <p>Checking product variants and vehicle matches...</p> :
           <div className={ui.tableWrap}>
             <table className={ui.table}>
-              <thead><tr><th>PRODUCT</th><th>SKU</th><th>VARIATION</th><th>STATUS</th><th>ACTION</th></tr></thead>
+              <thead><tr><th>Product</th><th>SKU</th><th>Variation</th><th>Status</th><th>Action</th></tr></thead>
               <tbody>{shown.map(row=><tr key={row.id}>
                 <td className={ui.productCell}>{row.product.name}</td>
                 <td className={ui.skuCell}>{row.sku}</td>
                 <td>{row.title || "Default"}</td>
                 <td>{row.product.status}</td>
-                <td><a className={ui.matchLink} href={"/admin/products/"+row.product_id+"/edit#fitment"}>MATCH VEHICLE</a></td>
+                <td><a className={ui.matchLink} href={"/admin/products/"+row.product_id+"/edit#fitment"}>Match vehicle</a></td>
               </tr>)}</tbody>
             </table>
             {!shown.length && <p style={{padding:20}}>{rows.length ? "No SKUs match the filters." : "All SKUs have vehicle matching, or are universal."}</p>}

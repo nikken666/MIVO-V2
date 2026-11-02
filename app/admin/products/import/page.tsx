@@ -332,11 +332,11 @@ export default function ShopeeImportPage() {
         <section className={styles.adminContent}>
           <header className={styles.adminHeader}>
             <div>
-              <span className={styles.adminEyebrow}>MIVO STORE CONTROL · CATALOGUE</span>
+              <span className={styles.adminEyebrow}>MIVO store control · Catalogue</span>
               <h1>Import from Shopee</h1>
               <p>Upload the product file(s) exported from Shopee Seller Centre. Same SKU in several shops shares one stock.</p>
             </div>
-            <a className={styles.adminAction} href="/admin/products">ALL PRODUCTS</a>
+            <a className={styles.adminAction} href="/admin/products">All products</a>
           </header>
 
           {error ? <p role="alert" className={ui.timestamp}>{error}</p> : null}
@@ -347,7 +347,7 @@ export default function ShopeeImportPage() {
               <section className={styles.adminPanel}>
                 <h2 className={styles.importStepTitle}>1 · Choose shop and upload Shopee export</h2>
                 <div className={ui.toolbar} style={{ alignItems: "end" }}>
-                  <label className={styles.adminField}><span>IMPORT INTO SHOP</span>
+                  <label className={styles.adminField}><span>Import into shop</span>
                     <select value={shopId} onChange={(e) => setShopId(e.target.value)} disabled={running}>
                       {shops.map((shop) => <option key={shop.id} value={shop.id}>{shop.name}</option>)}
                     </select>
@@ -372,19 +372,19 @@ export default function ShopeeImportPage() {
                 <section className={styles.adminPanel}>
                   <h2 className={styles.importStepTitle}>2 · Settings</h2>
                   <div className={ui.toolbar} style={{ flexWrap: "wrap", alignItems: "end" }}>
-                    <label className={styles.adminField}><span>STATUS</span>
+                    <label className={styles.adminField}><span>Status</span>
                       <select value={status} onChange={(e) => setStatus(e.target.value as "draft" | "active")} disabled={running}>
                         <option value="draft">Draft (review first)</option>
                         <option value="active">Live immediately</option>
                       </select>
                     </label>
-                    <label className={styles.adminField}><span>CATEGORY WHEN NOT DETECTED</span>
+                    <label className={styles.adminField}><span>Category when not detected</span>
                       <select value={defaultCategoryId} onChange={(e) => setDefaultCategoryId(e.target.value)} disabled={running}>
                         <option value="">— Skip products without a category —</option>
                         {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                       </select>
                     </label>
-                    <label className={styles.adminField}><span>WARRANTY (MONTHS)</span>
+                    <label className={styles.adminField}><span>Warranty (months)</span>
                       <input type="number" min={0} value={warrantyMonths} onChange={(e) => setWarrantyMonths(Number(e.target.value) || 0)} disabled={running} />
                     </label>
                     <label className={styles.importCheck}>
@@ -406,7 +406,7 @@ export default function ShopeeImportPage() {
                   </div>
                   <div className={ui.tableWrap}>
                     <table className={ui.table}>
-                      <thead><tr><th>PRODUCT</th><th>SKUS</th><th>PRICE</th><th>BRAND</th><th>CATEGORY</th><th>STATUS</th></tr></thead>
+                      <thead><tr><th>Product</th><th>SKUS</th><th>Price</th><th>Brand</th><th>Category</th><th>Status</th></tr></thead>
                       <tbody>
                         {plan.slice(0, 300).map(({ product, brandId, categoryId, skip }) => (
                           <tr key={product.key}>

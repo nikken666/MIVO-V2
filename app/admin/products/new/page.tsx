@@ -1471,7 +1471,7 @@ export default function AdminNewProductPage() {
           <header className={styles.adminHeader}>
             <div>
               <span className={styles.adminEyebrow}>
-                MIVO STORE CONTROL · CATALOGUE
+                MIVO store control · Catalogue
               </span>
               <h1>{copyMode ? "Copy Product" : "Add Product"}</h1>
               <p>
@@ -1497,7 +1497,7 @@ export default function AdminNewProductPage() {
               ) : null}
               <div className={styles.productEditorLayout}>
                 <nav className={styles.productEditorNav}>
-                  <span>PRODUCT SETUP</span>
+                  <span>Product setup</span>
                   <a href="#media">01 · Media</a>
                   <a href="#basic">02 · Basic Info</a>
                   <a href="#sales">03 · Sales Info</a>
@@ -1513,7 +1513,7 @@ export default function AdminNewProductPage() {
                   >
                     <div className={styles.productEditorCardHead}>
                       <div>
-                        <span>01 · PRODUCT MEDIA</span>
+                        <span>01 · Product media</span>
                         <h2>Product Images</h2>
                         <p>
                           Upload up to 8 images. The first image becomes the
@@ -1553,7 +1553,7 @@ export default function AdminNewProductPage() {
                           />
                           <div>
                             <strong>+</strong>
-                            <small>ADD IMAGE</small>
+                            <small>Add image</small>
                           </div>
                         </label>
                       ) : null}
@@ -1570,7 +1570,7 @@ export default function AdminNewProductPage() {
                   >
                     <div className={styles.productEditorCardHead}>
                       <div>
-                        <span>02 · BASIC INFORMATION</span>
+                        <span>02 · Basic information</span>
                         <h2>Product Information</h2>
                         <p>
                           Similar to Shopee Seller Centre: title, category,
@@ -1585,7 +1585,7 @@ export default function AdminNewProductPage() {
                           styles.adminField + " " + styles.full
                         }
                       >
-                        <span>PRODUCT NAME *</span>
+                        <span>Product name *</span>
                         <input
                           name="name"
                           required
@@ -1603,7 +1603,7 @@ export default function AdminNewProductPage() {
                       />
 
                       <label className={styles.adminField}>
-                        <span>BRAND</span>
+                        <span>Brand</span>
                         <div className={styles.brandPickerRow}>
                           <select
                             name="brand_id"
@@ -1634,7 +1634,7 @@ export default function AdminNewProductPage() {
                           styles.adminField + " " + styles.full
                         }
                       >
-                        <span>SHORT DESCRIPTION</span>
+                        <span>Short description</span>
                         <input
                           name="short_description"
                           maxLength={240}
@@ -1648,7 +1648,7 @@ export default function AdminNewProductPage() {
                           styles.adminField + " " + styles.full
                         }
                       >
-                        <span>PRODUCT DESCRIPTION</span>
+                        <span>Product description</span>
                         <textarea
                           name="description"
                           defaultValue={copyDefaults?.description || ""}
@@ -1664,7 +1664,7 @@ export default function AdminNewProductPage() {
                   >
                     <div className={styles.productEditorCardHead}>
                       <div>
-                        <span>03 · SALES INFORMATION</span>
+                        <span>03 · Sales information</span>
                         <h2>Price, Stock & Variations</h2>
                         <p>
                           Set price, stock and SKU here. Parcel weight and
@@ -1702,12 +1702,12 @@ export default function AdminNewProductPage() {
                           <input
                             name="sku"
                             defaultValue={copyDefaults?.simpleSku || ""}
-                            placeholder="NKK-DS-BEZZA-RH"
+                            placeholder="Nkk-ds-bezza-rh"
                           />
                         </label>
 
                         <label className={styles.adminField}>
-                          <span>SELLING PRICE (RM) *</span>
+                          <span>Selling price (RM) *</span>
                           <input
                             name="price"
                             type="number"
@@ -1718,7 +1718,7 @@ export default function AdminNewProductPage() {
                         </label>
 
                         <label className={styles.adminField}>
-                          <span>ORIGINAL PRICE (RM)</span>
+                          <span>Original price (RM)</span>
                           <input
                             name="compare_at_price"
                             type="number"
@@ -1729,7 +1729,7 @@ export default function AdminNewProductPage() {
                         </label>
 
                         <label className={styles.adminField}>
-                          <span>STOCK *</span>
+                          <span>Stock *</span>
                           <input
                             name="stock_on_hand"
                             type="number"
@@ -1743,7 +1743,7 @@ export default function AdminNewProductPage() {
                       <>
                         <div className={styles.variationSimpleGrid}>
                           <label className={styles.adminField}>
-                            <span>VARIATION 1 NAME *</span>
+                            <span>Variation 1 name *</span>
                             <input
                               value={variation1Name}
                               onChange={(e) =>
@@ -1754,7 +1754,7 @@ export default function AdminNewProductPage() {
                           </label>
 
                           <label className={styles.adminField}>
-                            <span>VARIATION 1 OPTIONS *</span>
+                            <span>Variation 1 options *</span>
                             <input
                               value={variation1Text}
                               onChange={(e) =>
@@ -1817,7 +1817,7 @@ export default function AdminNewProductPage() {
                         {useVariation2 ? (
                           <div className={styles.variationSimpleGrid}>
                             <label className={styles.adminField}>
-                              <span>VARIATION 2 NAME *</span>
+                              <span>Variation 2 name *</span>
                               <input
                                 value={variation2Name}
                                 onChange={(e) =>
@@ -1828,7 +1828,7 @@ export default function AdminNewProductPage() {
                             </label>
 
                             <label className={styles.adminField}>
-                              <span>VARIATION 2 OPTIONS *</span>
+                              <span>Variation 2 options *</span>
                               <input
                                 value={variation2Text}
                                 onChange={(e) =>
@@ -1861,9 +1861,9 @@ export default function AdminNewProductPage() {
                                   {useVariation2 ? (
                                     <th>{variation2Name || "VARIATION 2"}</th>
                                   ) : null}
-                                  <th>PRICE *</th>
-                                  <th>ORIGINAL</th>
-                                  <th>STOCK *</th>
+                                  <th>Price *</th>
+                                  <th>Original</th>
+                                  <th>Stock *</th>
                                   <th>SKU *</th>
                                 </tr>
                               </thead>
@@ -1934,7 +1934,7 @@ export default function AdminNewProductPage() {
                                                   removeVariationImage(row.value1)
                                                 }
                                               >
-                                                REMOVE
+                                                Remove
                                               </button>
                                             </div>
                                           ) : (
@@ -1949,7 +1949,7 @@ export default function AdminNewProductPage() {
                                                   )
                                                 }
                                               />
-                                              <span>+ PHOTO</span>
+                                              <span>+ Photo</span>
                                             </label>
                                           )}
                                         </div>
@@ -2048,7 +2048,7 @@ export default function AdminNewProductPage() {
                       style={{ marginTop: 14 }}
                     >
                       <label className={styles.adminField}>
-                        <span>LOW STOCK ALERT</span>
+                        <span>Low stock alert</span>
                         <input
                           name="low_stock_threshold"
                           type="number"
@@ -2059,7 +2059,7 @@ export default function AdminNewProductPage() {
                       </label>
 
                       <label className={styles.adminField}>
-                        <span>WARRANTY (MONTHS)</span>
+                        <span>Warranty (months)</span>
                         <input
                           name="warranty_months"
                           type="number"
@@ -2077,7 +2077,7 @@ export default function AdminNewProductPage() {
                   >
                     <div className={styles.productEditorCardHead}>
                       <div>
-                        <span>04 · VEHICLE FITMENT</span>
+                        <span>04 · Vehicle fitment</span>
                         <h2>Compatible Vehicles</h2>
                         <p>
                           Choose specific vehicles, or mark universal items such
@@ -2092,7 +2092,7 @@ export default function AdminNewProductPage() {
                         className={!isUniversalFitment ? styles.active : ""}
                         onClick={() => setIsUniversalFitment(false)}
                       >
-                        <strong>SELECT VEHICLES</strong>
+                        <strong>Select vehicles</strong>
                         <span>Use detailed make, model and variant fitment.</span>
                       </button>
                       <button
@@ -2100,14 +2100,14 @@ export default function AdminNewProductPage() {
                         className={isUniversalFitment ? styles.active : ""}
                         onClick={() => setIsUniversalFitment(true)}
                       >
-                        <strong>MATCH ALL CARS</strong>
+                        <strong>Match all cars</strong>
                         <span>Show this product as compatible with every vehicle.</span>
                       </button>
                     </div>
 
                     {isUniversalFitment ? (
                       <div className={styles.universalFitmentNotice}>
-                        <strong>MATCH ALL CARS ENABLED</strong>
+                        <strong>Match all cars enabled</strong>
                         <span>
                           Buyers will see this product as compatible regardless
                           of the vehicle selected in My Garage.
@@ -2139,7 +2139,7 @@ export default function AdminNewProductPage() {
                   >
                     <div className={styles.productEditorCardHead}>
                       <div>
-                        <span>05 · SHIPPING</span>
+                        <span>05 · Shipping</span>
                         <h2>Weight & Parcel Size</h2>
                         <p>
                           Choose one shared parcel size or set a different size
@@ -2150,7 +2150,7 @@ export default function AdminNewProductPage() {
 
                     <div className={styles.destinationRestrictionBox}>
                       <div>
-                        <strong>DESTINATION RESTRICTIONS</strong>
+                        <strong>Destination restrictions</strong>
                         <span>
                           Block delivery for products that cannot be shipped by
                           air or to East Malaysia.
@@ -2185,7 +2185,7 @@ export default function AdminNewProductPage() {
                           }
                           onClick={() => setShippingMode("same")}
                         >
-                          <strong>SAME SIZE FOR ALL VARIATIONS</strong>
+                          <strong>Same size for all variations</strong>
                           <span>
                             One weight and one L × W × H will be applied to every SKU.
                           </span>
@@ -2198,7 +2198,7 @@ export default function AdminNewProductPage() {
                           }
                           onClick={() => setShippingMode("different")}
                         >
-                          <strong>DIFFERENT SIZE BY VARIATION</strong>
+                          <strong>Different size by variation</strong>
                           <span>
                             Each SKU can have its own weight and parcel dimensions.
                           </span>
@@ -2211,7 +2211,7 @@ export default function AdminNewProductPage() {
                     variantRows.length <= 1 ? (
                       <div className={styles.editorTwoCol}>
                         <label className={styles.adminField}>
-                          <span>WEIGHT (KG)</span>
+                          <span>Weight (kg)</span>
                           <input
                             type="number"
                             min="0"
@@ -2227,7 +2227,7 @@ export default function AdminNewProductPage() {
                         </label>
 
                         <label className={styles.adminField}>
-                          <span>LENGTH (CM)</span>
+                          <span>Length (cm)</span>
                           <input
                             type="number"
                             min="0"
@@ -2243,7 +2243,7 @@ export default function AdminNewProductPage() {
                         </label>
 
                         <label className={styles.adminField}>
-                          <span>WIDTH (CM)</span>
+                          <span>Width (cm)</span>
                           <input
                             type="number"
                             min="0"
@@ -2259,7 +2259,7 @@ export default function AdminNewProductPage() {
                         </label>
 
                         <label className={styles.adminField}>
-                          <span>HEIGHT (CM)</span>
+                          <span>Height (cm)</span>
                           <input
                             type="number"
                             min="0"
@@ -2279,11 +2279,11 @@ export default function AdminNewProductPage() {
                         <table className={styles.variantDimensionTable}>
                           <thead>
                             <tr>
-                              <th>VARIATION</th>
-                              <th>WEIGHT KG</th>
-                              <th>LENGTH CM</th>
-                              <th>WIDTH CM</th>
-                              <th>HEIGHT CM</th>
+                              <th>Variation</th>
+                              <th>Weight kg</th>
+                              <th>Length cm</th>
+                              <th>Width cm</th>
+                              <th>Height cm</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -2371,7 +2371,7 @@ export default function AdminNewProductPage() {
                   >
                     <div className={styles.productEditorCardHead}>
                       <div>
-                        <span>06 · PUBLISH</span>
+                        <span>06 · Publish</span>
                         <h2>Listing Status</h2>
                         <p>
                           Save as draft first or publish directly to the MIVO
@@ -2382,7 +2382,7 @@ export default function AdminNewProductPage() {
 
                     <div className={styles.editorTwoCol}>
                       <div className={styles.adminField}>
-                        <span>SHOP</span>
+                        <span>Shop</span>
                         <select
                           value={store?.id || ""}
                           onChange={(event) =>
@@ -2398,7 +2398,7 @@ export default function AdminNewProductPage() {
                       </div>
 
                       <label className={styles.adminField}>
-                        <span>STATUS</span>
+                        <span>Status</span>
                         <select
                           name="status"
                           defaultValue={copyMode ? "draft" : "active"}
@@ -2429,7 +2429,7 @@ export default function AdminNewProductPage() {
                       }}
                     >
                       <div className={styles.brandModal}>
-                        <span>ADD BRAND</span>
+                        <span>Add brand</span>
                         <h3>Create a new brand</h3>
                         <p>
                           The new brand will be added to MIVO and selected for
@@ -2456,7 +2456,7 @@ export default function AdminNewProductPage() {
                             onClick={() => setBrandModalOpen(false)}
                             disabled={savingBrand}
                           >
-                            CANCEL
+                            Cancel
                           </button>
                           <button
                             type="button"
@@ -2482,7 +2482,7 @@ export default function AdminNewProductPage() {
                       href="/admin/products"
                       className={styles.adminSecondary}
                     >
-                      CANCEL
+                      Cancel
                     </a>
                     <button
                       className={styles.adminAction}

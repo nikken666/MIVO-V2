@@ -5,15 +5,19 @@ import Link from "next/link";
 import ShopBadge from "@/components/ShopBadge";
 import { getActiveProducts } from "@/lib/catalog";
 import { getShops, shopPath } from "@/lib/shops";
+import { getT } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Shops | MIVO",
-  description: "Browse official MIVO Direct and partner auto-parts shops on MIVO.",
-  alternates: { canonical: "/shops" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return {
+    title: t("browse.shops.metaTitle"),
+    description: t("browse.shops.metaDesc"),
+    alternates: { canonical: "/shops" },
+  };
+}
 
 export default async function ShopsPage() {
-  const [shops, products] = await Promise.all([getShops(), getActiveProducts()]);
+  const [shops, products, t] = await Promise.all([getShops(), getActiveProducts(), getT()]);
 
   const countFor = (shop: { id: string; name: string }) =>
     products.filter((p) => (p.sellerId ? p.sellerId === shop.id : p.seller === shop.name)).length;
@@ -22,9 +26,9 @@ export default async function ShopsPage() {
     <main className="shopsPage">
       <div className="container">
         <header className="shopsHero">
-          <span>MIVO marketplace</span>
-          <h1>Shops</h1>
-          <p>Every shop ships from the MIVO warehouse. Look for the MIVO Direct badge for official stock.</p>
+          <span>{t("browse.shops.kicker")}</span>
+          <h1>{t("browse.shops.title")}</h1>
+          <p>{t("browse.shops.intro")}</p>
         </header>
 
         {shops.length ? (
@@ -39,15 +43,15 @@ export default async function ShopsPage() {
                 </span>
                 <strong>{shop.name}</strong>
                 <ShopBadge tier={shop.tier} size="md" />
-                <small>{shop.tagline || shop.description || "Auto parts shipped from the MIVO warehouse"}</small>
+                <small>{shop.tagline || shop.description || t("browse.shops.cardFallback")}</small>
                 <span className="shopsCardFoot">
-                  {countFor(shop)} products <b>Visit ›</b>
+                  {t("browse.shops.productsN", { n: countFor(shop) })} <b>{t("browse.shops.visit")}</b>
                 </span>
               </Link>
             ))}
           </div>
         ) : (
-          <p className="shopsEmpty">No shops are open yet.</p>
+          <p className="shopsEmpty">{t("browse.shops.empty")}</p>
         )}
       </div>
     </main>

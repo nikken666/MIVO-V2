@@ -40,7 +40,8 @@ function money(value: number) {
 }
 
 function statusLabel(value: string) {
-  return value.replaceAll("_", " ").toUpperCase();
+  const text = value.replaceAll("_", " ").toLowerCase();
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 export default function AdminPage() {
@@ -193,14 +194,14 @@ export default function AdminPage() {
         <section className={styles.adminContent}>
           <header className={styles.adminHeader}>
             <div>
-              <span className={styles.adminEyebrow}>MIVO STORE CONTROL CENTER</span>
+              <span className={styles.adminEyebrow}>MIVO store control center</span>
               <h1>Dashboard</h1>
               <p>Orders, sales and stock that need attention today.</p>
             </div>
 
             <div className={styles.adminHeaderActions}>
               <div className={styles.adminAttention}>
-                <span>NEEDS ATTENTION</span>
+                <span>Needs attention</span>
                 <strong>{loading ? "—" : alertCount}</strong>
               </div>
               <a href="/admin/products/new" className={styles.adminAction}>
@@ -213,43 +214,43 @@ export default function AdminPage() {
 
           <div className={styles.dashboardStats}>
             <a href="/admin/orders?tab=all" className={styles.dashboardStatPrimary}>
-              <span>TODAY SALES</span>
+              <span>Today sales</span>
               <strong>{loading ? "—" : money(stats.todaySales)}</strong>
               <small>Paid orders today · VIEW</small>
             </a>
 
             <a href="/admin/orders?tab=all" className={styles.dashboardStat}>
-              <span>ORDERS TODAY</span>
+              <span>Orders today</span>
               <strong>{loading ? "—" : stats.ordersToday}</strong>
               <small>New orders · VIEW</small>
             </a>
 
             <a href="/admin/orders?tab=to_pay" className={styles.dashboardStat}>
-              <span>PENDING PAYMENT</span>
+              <span>Pending payment</span>
               <strong>{loading ? "—" : stats.pendingPayment}</strong>
               <small>Auto-cancel after 24h · VIEW</small>
             </a>
 
             <a href="/admin/arrange-shipment" className={styles.dashboardStat}>
-              <span>TO ARRANGE</span>
+              <span>To arrange</span>
               <strong>{loading ? "—" : stats.toShip}</strong>
               <small>Paid orders ready for fulfilment · VIEW</small>
             </a>
 
             <a href="/admin/products?stock=low" className={styles.dashboardStat}>
-              <span>LOW STOCK</span>
+              <span>Low stock</span>
               <strong>{loading ? "—" : stats.lowStock}</strong>
               <small>At or below threshold · VIEW</small>
             </a>
 
             <a href="/admin/claims" className={styles.dashboardStat}>
-              <span>OPEN CLAIMS</span>
+              <span>Open claims</span>
               <strong>{loading ? "—" : stats.openClaims}</strong>
               <small>Warranty cases needing attention · VIEW</small>
             </a>
 
             <a href="/admin/products?status=active" className={styles.dashboardStat}>
-              <span>ACTIVE PRODUCTS</span>
+              <span>Active products</span>
               <strong>{loading ? "—" : stats.activeProducts}</strong>
               <small>Live catalogue · VIEW</small>
             </a>
@@ -259,12 +260,12 @@ export default function AdminPage() {
             <section className={styles.adminPanel}>
               <div className={styles.adminPanelHead}>
                 <div>
-                  <span className={styles.adminPanelKicker}>LIVE OPERATIONS</span>
+                  <span className={styles.adminPanelKicker}>Live operations</span>
                   <h2>Recent Orders</h2>
                   <p>Latest customer activity across MIVO.</p>
                 </div>
                 <a href="/admin/orders" className={styles.adminTextLink}>
-                  VIEW ALL ORDERS
+                  View all orders
                 </a>
               </div>
 
@@ -317,31 +318,31 @@ export default function AdminPage() {
             </section>
 
             <aside className={styles.operationsPanel}>
-              <span className={styles.adminPanelKicker}>QUICK ACTIONS</span>
+              <span className={styles.adminPanelKicker}>Quick actions</span>
               <h2>Store Operations</h2>
 
               <a href="/admin/orders">
-                <span>ORDERS</span>
+                <span>Orders</span>
                 <strong>Open order centre</strong>
               </a>
               <a href="/admin/arrange-shipment">
-                <span>FULFILMENT</span>
+                <span>Fulfilment</span>
                 <strong>Arrange paid orders</strong>
               </a>
               <a href="/admin/claims">
-                <span>AFTER-SALES</span>
+                <span>After-sales</span>
                 <strong>Review warranty claims</strong>
               </a>
               <a href="/admin/marketing">
-                <span>MARKETING CENTRE</span>
+                <span>Marketing centre</span>
                 <strong>Campaigns, vouchers & discounts</strong>
               </a>
               <a href="/admin/products">
-                <span>CATALOGUE</span>
+                <span>Catalogue</span>
                 <strong>Open products</strong>
               </a>
               <a href="/admin/products/new">
-                <span>NEW LISTING</span>
+                <span>New listing</span>
                 <strong>Add product</strong>
               </a>
             </aside>

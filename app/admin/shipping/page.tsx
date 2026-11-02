@@ -191,7 +191,7 @@ export default function AdminShippingPage() {
           <header className={styles.adminHeader}>
             <div>
               <span className={styles.adminEyebrow}>
-                MIVO STORE CONTROL · SHIPPING
+                MIVO store control · Shipping
               </span>
               <h1>Shipping Rules</h1>
               <p>
@@ -202,7 +202,7 @@ export default function AdminShippingPage() {
           </header>
 
           <section className={styles.shippingFormulaCard}>
-            <span>HOW MIVO CALCULATES SHIPPING</span>
+            <span>How MIVO calculates shipping</span>
             <strong>
               Tiered courier rate card + RM2 MIVO markup.
             </strong>
@@ -279,7 +279,7 @@ export default function AdminShippingPage() {
                   <div className={styles.shippingRuleFields}>
 
                     <label className={styles.adminField}>
-                      <span>VOLUMETRIC DIVISOR</span>
+                      <span>Volumetric divisor</span>
                       <input
                         type="number"
                         min="1"
@@ -296,7 +296,7 @@ export default function AdminShippingPage() {
                     </label>
 
                     <label className={styles.adminField}>
-                      <span>MINIMUM CHARGEABLE KG</span>
+                      <span>Minimum chargeable kg</span>
                       <input
                         type="number"
                         min="0"
@@ -313,7 +313,7 @@ export default function AdminShippingPage() {
                     </label>
 
                     <label className={styles.adminField}>
-                      <span>MIVO MARKUP (RM)</span>
+                      <span>MIVO markup (RM)</span>
                       <input
                         type="number"
                         min="0"
@@ -330,7 +330,7 @@ export default function AdminShippingPage() {
                     </label>
 
                     <label className={styles.adminField}>
-                      <span>BULKY ABOVE (KG)</span>
+                      <span>Bulky above (kg)</span>
                       <input
                         type="number"
                         min="0"
@@ -348,7 +348,7 @@ export default function AdminShippingPage() {
                     </label>
 
                     <label className={styles.adminField}>
-                      <span>BULKY SURCHARGE (RM)</span>
+                      <span>Bulky surcharge (RM)</span>
                       <input
                         type="number"
                         min="0"
@@ -365,7 +365,7 @@ export default function AdminShippingPage() {
                     </label>
 
                     <label className={styles.adminField}>
-                      <span>FREE SHIPPING ABOVE (RM)</span>
+                      <span>Free shipping above (RM)</span>
                       <input
                         type="number"
                         min="0"
@@ -383,7 +383,7 @@ export default function AdminShippingPage() {
                     </label>
 
                     <label className={styles.adminField}>
-                      <span>MAX SHIPPING FEE (RM)</span>
+                      <span>Max shipping fee (RM)</span>
                       <input
                         type="number"
                         min="0"

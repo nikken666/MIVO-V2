@@ -134,7 +134,7 @@ export default function MarketingCentrePage() {
           <header className={styles.adminHeader}>
             <div>
               <span className={styles.adminEyebrow}>
-                MIVO · GROWTH & PROMOTIONS
+                MIVO · Growth & promotions
               </span>
               <h1>Marketing Centre</h1>
               <p>
@@ -148,7 +148,7 @@ export default function MarketingCentrePage() {
 
           <section className={styles.marketingHero}>
             <div>
-              <span>MARKETING CENTRE</span>
+              <span>Marketing centre</span>
               <h2>Plan campaigns like a marketplace.</h2>
               <p>
                 Create traffic, convert with vouchers and push selected products
@@ -157,19 +157,19 @@ export default function MarketingCentrePage() {
             </div>
             <div className={styles.marketingHeroStats}>
               <article>
-                <span>ACTIVE CAMPAIGNS</span>
+                <span>Active campaigns</span>
                 <strong>{loading ? "—" : stats.campaigns}</strong>
               </article>
               <article>
-                <span>UPCOMING CAMPAIGNS</span>
+                <span>Upcoming campaigns</span>
                 <strong>{loading ? "—" : stats.upcomingCampaigns}</strong>
               </article>
               <article>
-                <span>ACTIVE VOUCHERS</span>
+                <span>Active vouchers</span>
                 <strong>{loading ? "—" : stats.vouchers}</strong>
               </article>
               <article>
-                <span>LIVE DISCOUNTS</span>
+                <span>Live discounts</span>
                 <strong>{loading ? "—" : stats.liveDiscounts}</strong>
               </article>
             </div>
@@ -182,7 +182,7 @@ export default function MarketingCentrePage() {
             >
               <div className={styles.marketingToolIcon}>01</div>
               <div>
-                <span>TRAFFIC</span>
+                <span>Traffic</span>
                 <h2>Campaigns</h2>
                 <p>
                   Homepage banners, campaign artwork, colours, countdowns and
@@ -193,7 +193,7 @@ export default function MarketingCentrePage() {
                 <span>
                   {loading ? "—" : stats.campaigns} active
                 </span>
-                <strong>MANAGE CAMPAIGNS</strong>
+                <strong>Manage campaigns</strong>
               </footer>
             </a>
 
@@ -203,7 +203,7 @@ export default function MarketingCentrePage() {
             >
               <div className={styles.marketingToolIcon}>02</div>
               <div>
-                <span>CONVERSION</span>
+                <span>Conversion</span>
                 <h2>Vouchers</h2>
                 <p>
                   Fixed discount, percentage and free-shipping vouchers with
@@ -212,7 +212,7 @@ export default function MarketingCentrePage() {
               </div>
               <footer>
                 <span>{loading ? "—" : stats.vouchers} active</span>
-                <strong>MANAGE VOUCHERS</strong>
+                <strong>Manage vouchers</strong>
               </footer>
             </a>
 
@@ -222,7 +222,7 @@ export default function MarketingCentrePage() {
             >
               <div className={styles.marketingToolIcon}>03</div>
               <div>
-                <span>PRICE CAMPAIGN</span>
+                <span>Price campaign</span>
                 <h2>Discounts</h2>
                 <p>
                   Schedule sale prices by SKU and automatically restore regular
@@ -234,29 +234,29 @@ export default function MarketingCentrePage() {
                   {loading ? "—" : stats.liveDiscounts} live ·{" "}
                   {loading ? "—" : stats.scheduledDiscounts} scheduled
                 </span>
-                <strong>MANAGE DISCOUNTS</strong>
+                <strong>Manage discounts</strong>
               </footer>
             </a>
           </section>
 
           <section className={styles.marketingGuide}>
-            <span className={styles.adminPanelKicker}>CAMPAIGN FLOW</span>
+            <span className={styles.adminPanelKicker}>Campaign flow</span>
             <div>
               <article>
                 <b>1</b>
-                <strong>CREATE TRAFFIC</strong>
+                <strong>Create traffic</strong>
                 <small>Launch a homepage campaign banner.</small>
               </article>
               <i aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></i>
               <article>
                 <b>2</b>
-                <strong>ADD INCENTIVE</strong>
+                <strong>Add incentive</strong>
                 <small>Attach vouchers with clear conditions.</small>
               </article>
               <i aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></i>
               <article>
                 <b>3</b>
-                <strong>PUSH PRODUCTS</strong>
+                <strong>Push products</strong>
                 <small>Run timed discounts on selected SKUs.</small>
               </article>
             </div>

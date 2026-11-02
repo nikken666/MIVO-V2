@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { openVehiclePicker } from "./VehiclePickerButton";
+import { useT } from "./LanguageProvider";
+import type { Key } from "@/lib/i18n";
 
 type Slide = {
   id: string;
@@ -15,42 +17,50 @@ type Slide = {
   image?: string | null;
   mobileImage?: string | null;
   tone: "blue" | "violet" | "night";
+  // Built-in slides hold phrase keys instead of text.
+  builtIn?: boolean;
 };
 
 // Shown when no admin campaign is live. Only real features — no invented offers.
 const defaultSlides: Slide[] = [
   {
     id: "fitment",
-    badge: "Vehicle match",
-    title: "Parts that fit your car.\nNo guesswork.",
-    subtitle: "Pick your make, model and year — we show what fits first.",
-    cta: "Find my parts",
+    badge: "browse.banner.fitBadge",
+    title: "browse.banner.fitTitle",
+    subtitle: "browse.banner.fitSub",
+    cta: "browse.banner.fitCta",
     href: "/?addVehicle=1",
     tone: "blue",
+    builtIn: true,
   },
   {
     id: "brands",
-    badge: "Trusted brands",
-    title: "KYB, NIKKEN and GSP.\nIn one place.",
-    subtitle: "Suspension, steering and drivetrain parts from names you know.",
-    cta: "Explore brands",
+    badge: "browse.banner.brandsBadge",
+    title: "browse.banner.brandsTitle",
+    subtitle: "browse.banner.brandsSub",
+    cta: "browse.banner.brandsCta",
     href: "/products?view=brands",
     tone: "violet",
+    builtIn: true,
   },
   {
     id: "warranty",
-    badge: "After-sales",
-    title: "Warranty claims,\nhandled online.",
-    subtitle: "Track every order and claim warranty from your account.",
-    cta: "Track my orders",
+    badge: "browse.banner.warrantyBadge",
+    title: "browse.banner.warrantyTitle",
+    subtitle: "browse.banner.warrantySub",
+    cta: "browse.banner.warrantyCta",
     href: "/orders",
     tone: "night",
+    builtIn: true,
   },
 ];
 
 const tones: Slide["tone"][] = ["blue", "violet", "night"];
 
 export default function HomeBannerCarousel() {
+  const t = useT();
+  const text = (slide: Slide, field: "badge" | "title" | "subtitle" | "cta") =>
+    slide.builtIn ? t(slide[field] as Key) : slide[field];
   const [slides, setSlides] = useState<Slide[]>(defaultSlides);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -76,10 +86,10 @@ export default function HomeBannerCarousel() {
 
         const campaignSlides: Slide[] = data.map((row, i) => ({
           id: String(row.id),
-          badge: row.badge || "Promotion",
+          badge: row.badge || "",
           title: row.title,
           subtitle: row.subtitle || "",
-          cta: row.cta_label || "Shop now",
+          cta: row.cta_label || "",
           href: row.landing_path || "/products",
           image: row.desktop_image_url,
           mobileImage: row.mobile_image_url,
@@ -141,20 +151,20 @@ export default function HomeBannerCarousel() {
                 {slide.mobileImage ? (
                   <source media="(max-width: 680px)" srcSet={slide.mobileImage} />
                 ) : null}
-                <img src={slide.image} alt={slide.title} />
+                <img src={slide.image} alt={text(slide, "title")} />
               </picture>
             ) : (
               <>
                 <span className="shopSlideGlow" aria-hidden="true" />
                 <div className="shopSlideCopy">
-                  <span className="shopSlideBadge">{slide.badge}</span>
+                  <span className="shopSlideBadge">{text(slide, "badge") || t("browse.banner.promotion")}</span>
                   <h2>
-                    {slide.title.split("\n").map((line, n) => (
+                    {text(slide, "title").split("\n").map((line, n) => (
                       <span key={n}>{line}</span>
                     ))}
                   </h2>
-                  {slide.subtitle ? <p>{slide.subtitle}</p> : null}
-                  <span className="shopSlideCta">{slide.cta} ›</span>
+                  {slide.subtitle ? <p>{text(slide, "subtitle")}</p> : null}
+                  <span className="shopSlideCta">{text(slide, "cta") || t("browse.shopNow")} ›</span>
                 </div>
               </>
             )}
@@ -168,7 +178,7 @@ export default function HomeBannerCarousel() {
             type="button"
             className="shopCarouselArrow prev"
             onClick={() => go(index - 1)}
-            aria-label="Previous banner"
+            aria-label={t("browse.banner.prev")}
           >
             ‹
           </button>
@@ -176,7 +186,7 @@ export default function HomeBannerCarousel() {
             type="button"
             className="shopCarouselArrow next"
             onClick={() => go(index + 1)}
-            aria-label="Next banner"
+            aria-label={t("browse.banner.next")}
           >
             ›
           </button>
@@ -187,7 +197,7 @@ export default function HomeBannerCarousel() {
                 key={slide.id}
                 className={i === index ? "active" : ""}
                 onClick={() => go(i)}
-                aria-label={"Show banner " + (i + 1)}
+                aria-label={t("browse.banner.show", { n: i + 1 })}
               />
             ))}
           </div>
