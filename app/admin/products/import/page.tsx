@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { readXlsx } from "@/lib/xlsxReader";
+import { getStaffAccess } from "@/lib/staff";
 import {
   guessBrandId,
   guessCategoryId,
@@ -80,9 +81,9 @@ export default function ShopeeImportPage() {
           window.location.assign("/login?next=/admin/products/import");
           return;
         }
-        const { data: isAdmin } = await client.rpc("is_admin");
-        if (!isAdmin) {
-          window.location.assign("/admin");
+        const access = await getStaffAccess(client);
+        if (!access.allowed) {
+          window.location.assign("/sell");
           return;
         }
         setUserId(user.id);
@@ -95,7 +96,9 @@ export default function ShopeeImportPage() {
         if (shopRes.error || brandRes.error || categoryRes.error) {
           throw shopRes.error || brandRes.error || categoryRes.error;
         }
-        const shopList = ((shopRes.data || []) as Array<{ id: string; shop_name: string }>).map(
+        const shopList = ((shopRes.data || []) as Array<{ id: string; shop_name: string }>)
+          .filter((s) => access.isAdmin || access.shopIds.includes(s.id))
+          .map(
           (s) => ({ id: s.id, name: s.shop_name })
         );
         setShops(shopList);

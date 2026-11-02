@@ -16,6 +16,14 @@
 
 begin;
 
+-- Who may act for a shop: MIVO admins and the shop's owner (seller).
+create or replace function public.mivo_can_manage_shop(p_seller_id uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select public.is_admin()
+      or exists (select 1 from public.sellers s where s.id = p_seller_id and s.owner_id = auth.uid());
+$$;
+grant execute on function public.mivo_can_manage_shop(uuid) to authenticated;
+
 create or replace function public.mivo_fulfilment_rank(p_status text)
 returns integer
 language sql
@@ -66,9 +74,6 @@ declare
   v_step integer;
   v_assignments text;
 begin
-  if not public.is_admin() then
-    raise exception 'Only MIVO admins can update fulfilment';
-  end if;
 
   if v_next_rank < 2 then
     raise exception 'Unknown fulfilment status %', p_status;
@@ -81,6 +86,11 @@ begin
 
   if not found then
     raise exception 'Shop order not found';
+  end if;
+
+  -- MIVO admins, or the seller who owns this shop.
+  if not public.mivo_can_manage_shop(v_seller_order.seller_id) then
+    raise exception 'Only MIVO or this shop can update its fulfilment';
   end if;
 
   select * into v_order
@@ -154,7 +164,17 @@ begin
   where so.order_id = v_order.id
     and so.status not in ('cancelled', 'refunded');
 
-  if v_min_rank > v_parent_rank then
+  -- Sellers (not MIVO admins) can't run the admin order function: move the
+  -- parent order directly and record each step in its history.
+  if v_min_rank > v_parent_rank and not public.is_admin() then
+    for v_step in (v_parent_rank + 1)..v_min_rank loop
+      update public.orders set status = public.mivo_fulfilment_status(v_step), updated_at = now()
+       where id = v_order.id;
+      insert into public.order_status_history (order_id, old_status, new_status, note, changed_by)
+      values (v_order.id, public.mivo_fulfilment_status(v_step - 1), public.mivo_fulfilment_status(v_step),
+              'All shops reached this step', auth.uid());
+    end loop;
+  elsif v_min_rank > v_parent_rank then
     -- Snapshot per-shop state; the order-level function may overwrite it.
     select coalesce(jsonb_agg(jsonb_build_object('id', id, 'status', status)), '[]'::jsonb)
       into v_seller_snapshot
@@ -262,9 +282,6 @@ declare
   v_courier text;
   v_count integer := 0;
 begin
-  if not public.is_admin() then
-    raise exception 'Only MIVO admins can arrange shipments';
-  end if;
   if p_arrangement_method not in ('drop_off', 'pickup') then
     raise exception 'Unknown arrangement method %', p_arrangement_method;
   end if;
@@ -277,6 +294,7 @@ begin
        and o.payment_status = 'paid'
        and o.status in ('paid', 'processing', 'packed', 'shipped')
        and public.mivo_fulfilment_rank(so.status) < 4
+       and public.mivo_can_manage_shop(so.seller_id)
   loop
     v_courier := coalesce(
       nullif(btrim(p_courier_name), ''),

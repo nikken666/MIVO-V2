@@ -7343,3 +7343,22 @@ span.adminPanelKicker{font-size:12px!important;letter-spacing:normal!important}
 .fitReviewActions{display:flex;gap:12px;align-items:center;justify-content:flex-end;white-space:nowrap}
 .fitReviewActions a{color:var(--accent);font-size:14px}
 .adminMeRole{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:var(--accent-2);color:var(--accent-2-ink);font-size:10px;font-weight:700;vertical-align:middle}
+/* ===== Seller Centre ===== */
+.sellerStats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.sellerStats a{padding:18px;border-radius:18px;background:#fff;box-shadow:var(--shadow);color:var(--ink)}
+.sellerStats span{display:block;color:var(--grey);font-size:13px}
+.sellerStats strong{display:block;margin-top:4px;font-size:28px}
+.sellerShops{display:grid;gap:8px}
+.sellerShop{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:var(--soft)}
+.sellerShop>span:nth-child(2){flex:1}
+.sellerShop strong,.sellerShop small{display:block}
+.sellerShop small{color:var(--grey);font-size:13px}
+.sellerShop a{color:var(--accent);font-size:14px}
+.sellerTable{width:100%;border-collapse:collapse;font-size:14px}
+.sellerTable th{padding:10px;text-align:left;color:var(--grey);font-size:13px;font-weight:600;border-bottom:1px solid var(--line)}
+.sellerTable td{padding:12px 10px;border-bottom:1px solid #f0f1f3;vertical-align:top}
+.sellerTable td small{display:block;color:var(--grey);font-size:12px}
+.sellerShip{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.sellerShip select,.sellerShip input{min-height:34px;padding:0 8px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:13px}
+@media(max-width:700px){.sellerStats{grid-template-columns:1fr}}
+.sellerForm{display:grid;gap:12px;max-width:640px}.sellerForm textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:14px}

@@ -12,7 +12,6 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Please sign in." }, { status: 401 });
     const { data: isAdmin } = await supabase.rpc("is_admin");
-    if (!isAdmin) return NextResponse.json({ error: "Not allowed." }, { status: 403 });
 
     const { orderNumber } = (await request.json()) as { orderNumber?: string };
     if (!orderNumber) return NextResponse.json({ error: "Missing order number." }, { status: 400 });
@@ -24,6 +23,17 @@ export async function POST(request: NextRequest) {
       .eq("order_number", orderNumber)
       .maybeSingle();
     if (!order) return NextResponse.json({ error: "Order not found." }, { status: 404 });
+
+    // Sellers may charge only orders that contain one of their shop parcels.
+    if (!isAdmin) {
+      const { data: mine } = await admin
+        .from("seller_orders")
+        .select("id, sellers!inner(owner_id)")
+        .eq("order_id", order.id)
+        .eq("sellers.owner_id", user.id)
+        .limit(1);
+      if (!mine?.length) return NextResponse.json({ error: "Not allowed." }, { status: 403 });
+    }
 
     const result = await captureOrderPayment(order.id);
     return NextResponse.json({ result });

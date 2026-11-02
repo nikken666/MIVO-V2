@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import { getStaffAccess } from "@/lib/staff";
 import { formatPrice } from "@/data/products";
 import styles from "../Admin.module.css";
 
@@ -90,6 +91,8 @@ export default function AdminReturnsPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  // Sellers act for their shop; MIVO decisions and refunds are admin-only.
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const load = useCallback(async () => {
     const supabase = createClient();
@@ -131,14 +134,15 @@ export default function AdminReturnsPage() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        window.location.href = "/login?next=/admin/returns";
+        window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname);
         return;
       }
-      const { data: isAdmin } = await supabase.rpc("is_admin");
-      if (!isAdmin) {
-        window.location.href = "/";
+      const access = await getStaffAccess(supabase);
+      if (!access.allowed) {
+        window.location.href = "/sell";
         return;
       }
+      setIsAdmin(access.isAdmin);
       await load();
     })();
   }, [load]);
@@ -381,7 +385,7 @@ export default function AdminReturnsPage() {
                     </div>
                   ) : null}
 
-                  {current.status === "mivo_review" || current.status === "seller_offer" ? (
+                  {isAdmin && (current.status === "mivo_review" || current.status === "seller_offer") ? (
                     <div className={styles.returnsActions}>
                       <h3>MIVO decision</h3>
                       <label><span>Refund amount</span><input type="number" min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} /></label>
@@ -400,7 +404,10 @@ export default function AdminReturnsPage() {
                     </div>
                   ) : null}
 
-                  {current.status === "refunding" ? (
+                  {current.status === "refunding" && !isAdmin ? (
+                    <p className={styles.adminNotice}>Approved. MIVO will send the refund to the customer.</p>
+                  ) : null}
+                  {current.status === "refunding" && isAdmin ? (
                     <div className={styles.returnsActions}>
                       <h3>Refund</h3>
                       <button type="button" className={styles.adminAction} disabled={busy} onClick={() => void refund()}>

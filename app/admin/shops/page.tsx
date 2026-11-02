@@ -140,6 +140,18 @@ export default function AdminShopsPage() {
 
   const listingCount = (shopId: string) => listings.filter((row) => row.seller_id === shopId).length;
 
+  // Approve a seller's application, or suspend a shop.
+  async function setStatus(id: string, status: string) {
+    setError("");
+    setMessage("");
+    const { error: statusError } = await createClient().rpc("admin_set_shop_status", { p_id: id, p_status: status });
+    if (statusError) setError(statusError.message);
+    else {
+      setMessage(status === "approved" ? "Shop approved. The seller can now use Seller Centre." : "Shop " + status + ".");
+      await load();
+    }
+  }
+
   async function save(event: React.FormEvent) {
     event.preventDefault();
     setSaving(true);
@@ -246,7 +258,18 @@ export default function AdminShopsPage() {
                         <td>{tierLabel[shop.tier] || shop.tier}</td>
                         <td>{shop.slug ? <a href={"/shops/" + shop.slug} target="_blank" rel="noreferrer">/shops/{shop.slug}</a> : "—"}</td>
                         <td>{listingCount(shop.id)}</td>
-                        <td>{shop.status}</td>
+                        <td>
+                          {shop.status}
+                          {shop.status !== "approved" ? (
+                            <button type="button" className={styles.adminAction} style={{ marginLeft: 8 }} onClick={() => void setStatus(shop.id, "approved")}>
+                              Approve
+                            </button>
+                          ) : shop.tier !== "direct" ? (
+                            <button type="button" style={{ marginLeft: 8 }} onClick={() => void setStatus(shop.id, "suspended")}>
+                              Suspend
+                            </button>
+                          ) : null}
+                        </td>
                         <td>
                           <button
                             type="button"

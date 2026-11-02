@@ -31,6 +31,7 @@ export default function Footer() {
           <h4>{t("footer.about")}</h4>
           <Link href="/#fitment">{t("footer.vehicleMatch")}</Link>
           <Link href="/#standard">{t("footer.standard")}</Link>
+          <Link href="/sell">{t("footer.sell")}</Link>
         </div>
       </div>
       <div className="container footerBottom">

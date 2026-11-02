@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import { getStaffAccess } from "@/lib/staff";
 import ChatThread from "@/components/chat/ChatThread";
 import { translator } from "@/lib/i18n";
 import styles from "../Admin.module.css";
@@ -87,12 +88,12 @@ export default function AdminChatPage() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        window.location.href = "/login?next=/admin/chat";
+        window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname);
         return;
       }
-      const { data: isAdmin } = await supabase.rpc("is_admin");
-      if (!isAdmin) {
-        window.location.href = "/";
+      const access = await getStaffAccess(supabase);
+      if (!access.allowed) {
+        window.location.href = "/sell";
         return;
       }
       setReady(true);

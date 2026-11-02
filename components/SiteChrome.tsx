@@ -15,7 +15,9 @@ export default function SiteChrome({
     pathname === "/admin" ||
     pathname.startsWith("/admin/") ||
     pathname === "/sellers" ||
-    pathname.startsWith("/sellers/");
+    pathname.startsWith("/sellers/") ||
+    pathname === "/seller" ||
+    pathname.startsWith("/seller/");
 
   return (
     <>

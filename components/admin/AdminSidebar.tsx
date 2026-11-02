@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import styles from "@/app/admin/Admin.module.css";
 
-type NavItem = { href: string; label: string; badge?: "toShip" | "chat" | "returns" };
+type NavItem = { href: string; label: string; badge?: "toShip" | "chat" | "returns" | "notices" };
 type NavGroup = { title: string; items: NavItem[] };
 
 const groups: NavGroup[] = [
@@ -51,10 +51,49 @@ const groups: NavGroup[] = [
   },
 ];
 
-function isActive(pathname: string, href: string) {
-  if (href === "/admin") return pathname === "/admin";
+// Superadmin-only platform tools.
+const platformGroup: NavGroup = {
+  title: "Platform",
+  items: [
+    { href: "/admin/platform/campaigns", label: "Platform campaigns" },
+    { href: "/admin/platform/commission", label: "Commission" },
+    { href: "/admin/platform/notices", label: "Notices to sellers" },
+  ],
+};
+
+// Sellers (shop owners who are not MIVO admins) see only their own shops.
+const sellerGroups: NavGroup[] = [
+  {
+    title: "Orders",
+    items: [
+      { href: "/seller/orders", label: "My orders" },
+      { href: "/seller/returns", label: "Returns & refunds", badge: "returns" },
+    ],
+  },
+  {
+    title: "Products",
+    items: [
+      { href: "/seller/products", label: "My products" },
+      { href: "/admin/products/new", label: "Add new product" },
+      { href: "/admin/products/import", label: "Import from Shopee" },
+    ],
+  },
+  {
+    title: "Customer service",
+    items: [{ href: "/seller/chat", label: "Chat", badge: "chat" }],
+  },
+  {
+    title: "Shop",
+    items: [
+      { href: "/seller/shop", label: "Shop settings" },
+      { href: "/seller/notices", label: "MIVO notices", badge: "notices" },
+    ],
+  },
+];
+
+function isActive(pathname: string, href: string, all: string[]) {
+  if (href === "/admin" || href === "/seller") return pathname === href;
   // The most specific matching link wins.
-  const all = groups.flatMap((g) => g.items.map((i) => i.href));
   const matches = all.filter((h) => pathname === h || pathname.startsWith(h + "/"));
   const best = matches.sort((a, b) => b.length - a.length)[0];
   return best === href;
@@ -69,7 +108,13 @@ export default function AdminSidebar() {
     email: "",
     superadmin: false,
   });
-  const [badges, setBadges] = useState<{ toShip: number; chat: number; returns: number }>({ toShip: 0, chat: 0, returns: 0 });
+  const [badges, setBadges] = useState<{ toShip: number; chat: number; returns: number; notices: number }>({
+    toShip: 0,
+    chat: 0,
+    returns: 0,
+    notices: 0,
+  });
+  const [role, setRole] = useState<"admin" | "seller" | null>(null);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -82,7 +127,7 @@ export default function AdminSidebar() {
       } = await supabase.auth.getUser();
       if (!user || !active) return;
 
-      const [{ data: profile }, toShip, chats, returns, superadmin] = await Promise.all([
+      const [{ data: profile }, toShip, chats, returns, superadmin, adminCheck, notices] = await Promise.all([
         supabase.from("profiles").select("full_name, avatar_url").eq("id", user.id).maybeSingle(),
         supabase
           .from("orders")
@@ -95,6 +140,8 @@ export default function AdminSidebar() {
           .select("id", { count: "exact", head: true })
           .in("status", ["requested", "mivo_review", "refunding", "returning"]),
         supabase.rpc("is_superadmin").then((r) => r, () => ({ data: false })),
+        supabase.rpc("is_admin"),
+        supabase.rpc("seller_unread_notices").then((r) => r, () => ({ data: 0 })),
       ]);
       if (!active) return;
 
@@ -105,7 +152,9 @@ export default function AdminSidebar() {
         email: user.email || "",
         superadmin: Boolean((superadmin as { data?: unknown }).data),
       });
+      setRole(adminCheck.data ? "admin" : "seller");
       setBadges({
+        notices: Number((notices as { data?: unknown }).data || 0),
         toShip: toShip.count || 0,
         returns: returns.count || 0,
         chat: ((chats.data || []) as Array<{ seller_unread: number }>).reduce(
@@ -125,6 +174,11 @@ export default function AdminSidebar() {
 
   useEffect(() => setOpen(false), [pathname]);
 
+  const navGroups =
+    role === "seller" ? sellerGroups : me.superadmin ? [...groups, platformGroup] : role === "admin" ? groups : [];
+  const home = role === "seller" ? "/seller" : "/admin";
+  const allHrefs = navGroups.flatMap((g) => g.items.map((i) => i.href));
+
   async function logout() {
     await createClient().auth.signOut();
     window.location.href = "/";
@@ -141,16 +195,16 @@ export default function AdminSidebar() {
         ☰ Menu
       </button>
       <aside className={styles.adminSidebar + (open ? " " + styles.adminSidebarOpen : "")}>
-        <a href="/admin" className={styles.adminBrand}>
+        <a href={role === "seller" ? "/seller" : "/admin"} className={styles.adminBrand}>
           <span>MIVO</span>
-          <small>Seller Centre</small>
+          <small>{role === "seller" ? "Seller Centre" : me.superadmin ? "Platform admin" : "Store control"}</small>
         </a>
 
         <nav className={styles.adminSideNav + " " + styles.adminSideNavGrouped}>
-          <a href="/admin" className={isActive(pathname, "/admin") ? styles.active : ""}>
+          <a href={home} className={isActive(pathname, home, allHrefs) ? styles.active : ""}>
             Dashboard
           </a>
-          {groups.map((group) => (
+          {navGroups.map((group) => (
             <div className={styles.adminNavGroup} key={group.title}>
               <span className={styles.adminNavGroupTitle}>{group.title}</span>
               {group.items.map((item) => {
@@ -159,7 +213,7 @@ export default function AdminSidebar() {
                   <a
                     key={item.href}
                     href={item.href}
-                    className={isActive(pathname, item.href) ? styles.active : ""}
+                    className={isActive(pathname, item.href, allHrefs) ? styles.active : ""}
                   >
                     {item.label}
                     {count ? <b className={styles.adminNavBadge}>{count > 99 ? "99+" : count}</b> : null}

@@ -14,6 +14,7 @@ import AdminFitmentBuilder, {
 } from "@/components/AdminFitmentBuilder";
 import styles from "../../Admin.module.css";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import { getStaffAccess } from "@/lib/staff";
 
 type Option = { id: string; name: string };
 type Store = { id: string; shop_name: string; status: string };
@@ -196,12 +197,10 @@ export default function AdminNewProductPage() {
           return;
         }
 
-        const { data: isAdmin, error: adminError } = await supabase.rpc(
-          "is_admin"
-        );
-        if (adminError) throw adminError;
-        if (!isAdmin) {
-          window.location.href = "/";
+        // MIVO admins, or sellers for their own shops.
+        const access = await getStaffAccess(supabase);
+        if (!access.allowed) {
+          window.location.href = "/sell";
           return;
         }
 
@@ -231,6 +230,14 @@ export default function AdminNewProductPage() {
             .select("id, generation_key, make, model, generation, variant, transmission, year_from, year_to")
             .eq("is_active", true),
         ]);
+
+        if (!access.isAdmin && sellerData) {
+          (sellerData as Array<{ id: string }>).splice(
+            0,
+            sellerData.length,
+            ...(sellerData as Array<{ id: string }>).filter((shop) => access.shopIds.includes(shop.id))
+          );
+        }
 
         if (sellerError || brandError || categoryError || vehicleError) {
           throw sellerError || brandError || categoryError || vehicleError;

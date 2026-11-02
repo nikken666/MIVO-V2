@@ -15,6 +15,7 @@ import AdminFitmentBuilder, {
 } from "@/components/AdminFitmentBuilder";
 import styles from "../../../Admin.module.css";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import { getStaffAccess } from "@/lib/staff";
 
 type Option = { id: string; name: string };
 
@@ -197,12 +198,10 @@ export default function EditProductPage() {
           return;
         }
 
-        const { data: isAdmin, error: adminError } =
-          await supabase.rpc("is_admin");
-
-        if (adminError) throw adminError;
-        if (!isAdmin) {
-          window.location.href = "/";
+        // MIVO admins, or sellers for their own shops' products.
+        const access = await getStaffAccess(supabase);
+        if (!access.allowed) {
+          window.location.href = "/sell";
           return;
         }
 
@@ -308,6 +307,10 @@ export default function EditProductPage() {
         }
 
         const productRow = productResult.data as EditProduct;
+        if (!access.isAdmin && !access.shopIds.includes(productRow.seller_id)) {
+          window.location.href = "/seller/products";
+          return;
+        }
         const variantRows =
           (variantResult.data as EditVariant[] | null) || [];
         const vehicles =
