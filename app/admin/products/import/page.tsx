@@ -329,7 +329,15 @@ export default function ShopeeImportPage() {
           {ready ? (
             <>
               <section className={styles.adminPanel}>
-                <h2 className={styles.importStepTitle}>1 · Upload Shopee export</h2>
+                <h2 className={styles.importStepTitle}>1 · Choose shop and upload Shopee export</h2>
+                <div className={ui.toolbar} style={{ alignItems: "end" }}>
+                  <label className={styles.adminField}><span>IMPORT INTO SHOP</span>
+                    <select value={shopId} onChange={(e) => setShopId(e.target.value)} disabled={running}>
+                      {shops.map((shop) => <option key={shop.id} value={shop.id}>{shop.name}</option>)}
+                    </select>
+                  </label>
+                  <a className={styles.adminSecondary} href="/admin/shops">Manage shops</a>
+                </div>
                 <p className={ui.timestamp}>
                   Seller Centre → My Products → Mass Update (or Mass Upload) → download the product file(s).
                   You can select several files at once (e.g. basic info, sales info, media info); rows are joined by Product ID.
@@ -348,11 +356,6 @@ export default function ShopeeImportPage() {
                 <section className={styles.adminPanel}>
                   <h2 className={styles.importStepTitle}>2 · Settings</h2>
                   <div className={ui.toolbar} style={{ flexWrap: "wrap", alignItems: "end" }}>
-                    <label className={styles.adminField}><span>IMPORT INTO SHOP</span>
-                      <select value={shopId} onChange={(e) => setShopId(e.target.value)} disabled={running}>
-                        {shops.map((shop) => <option key={shop.id} value={shop.id}>{shop.name}</option>)}
-                      </select>
-                    </label>
                     <label className={styles.adminField}><span>STATUS</span>
                       <select value={status} onChange={(e) => setStatus(e.target.value as "draft" | "active")} disabled={running}>
                         <option value="draft">Draft (review first)</option>
@@ -425,6 +428,9 @@ export default function ShopeeImportPage() {
                     </button>
                     {running ? <button type="button" onClick={() => { stopRef.current = true; }}>Stop</button> : null}
                     {log.length ? <button type="button" onClick={downloadLog}>Download log</button> : null}
+                    {!running && log.some((l) => l.ok) ? (
+                      <a className={styles.adminAction} href="/admin/products/fitment-suggestions">Review vehicle fitment →</a>
+                    ) : null}
                   </div>
                   {running || log.length ? (
                     <>
