@@ -7,6 +7,7 @@ import styles from "../Admin.module.css";
 type OrderItemRow = {
   id: string;
   order_id: string;
+  seller_order_id: string | null;
   product_name: string;
   variant_name: string | null;
   sku: string;
@@ -36,6 +37,17 @@ type ShipmentRow = {
 type SellerOrderRow = {
   id: string;
   order_id: string;
+  seller_id: string | null;
+  status: string;
+  created_at: string;
+};
+
+type Parcel = {
+  id: string;
+  shopName: string;
+  status: string;
+  items: OrderItemRow[];
+  shipment?: ShipmentRow;
 };
 
 type OrderRow = {
@@ -61,6 +73,7 @@ type OrderView = OrderRow & {
   items: OrderItemRow[];
   customer?: ProfileRow;
   shipment?: ShipmentRow;
+  parcels: Parcel[];
 };
 
 type TabKey =
@@ -107,6 +120,16 @@ function bucket(order: OrderView): Exclude<TabKey, "all"> {
   return "to_pay";
 }
 
+const fulfilmentSteps = ["paid", "processing", "packed", "shipped", "delivered"];
+
+// A shop parcel is never behind its parent order (older orders moved as a whole).
+function parcelStatus(parcel: Parcel, order: OrderView) {
+  const own = fulfilmentSteps.indexOf(parcel.status);
+  const parent = fulfilmentSteps.indexOf(order.status);
+  if (parent < 0) return order.status;
+  return fulfilmentSteps[Math.max(own, parent)];
+}
+
 function customerName(order: OrderView) {
   return (
     order.customer?.full_name ||
@@ -150,6 +173,8 @@ export default function AdminOrdersPage() {
   const [courier, setCourier] = useState("");
   const [tracking, setTracking] = useState("");
   const [trackingUrl, setTrackingUrl] = useState("");
+  const [parcelCourier, setParcelCourier] = useState<Record<string, string>>({});
+  const [parcelTracking, setParcelTracking] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
@@ -205,7 +230,7 @@ export default function AdminOrdersPage() {
           ? supabase
               .from("order_items")
               .select(
-                "id, order_id, product_name, variant_name, sku, quantity, unit_price, line_subtotal"
+                "id, order_id, seller_order_id, product_name, variant_name, sku, quantity, unit_price, line_subtotal"
               )
               .in("order_id", orderIds)
               .order("created_at")
@@ -213,8 +238,9 @@ export default function AdminOrdersPage() {
         orderIds.length
           ? supabase
               .from("seller_orders")
-              .select("id, order_id")
+              .select("id, order_id, seller_id, status, created_at")
               .in("order_id", orderIds)
+              .order("created_at")
           : Promise.resolve({ data: [], error: null }),
       ]);
 
@@ -233,17 +259,37 @@ export default function AdminOrdersPage() {
     const sellerOrders =
       (sellerOrderResult.data as SellerOrderRow[] | null) || [];
     const sellerOrderIds = sellerOrders.map((row) => row.id);
+    const sellerIds = Array.from(
+      new Set(
+        sellerOrders
+          .map((row) => row.seller_id)
+          .filter((value): value is string => Boolean(value))
+      )
+    );
 
-    const shipmentResult = sellerOrderIds.length
-      ? await supabase
-          .from("shipments")
-          .select(
-            "id, seller_order_id, courier_name, tracking_number, tracking_url, status, arrangement_method, pickup_date"
-          )
-          .in("seller_order_id", sellerOrderIds)
-      : { data: [], error: null };
+    const [shipmentResult, shopResult] = await Promise.all([
+      sellerOrderIds.length
+        ? supabase
+            .from("shipments")
+            .select(
+              "id, seller_order_id, courier_name, tracking_number, tracking_url, status, arrangement_method, pickup_date"
+            )
+            .in("seller_order_id", sellerOrderIds)
+            .order("created_at")
+        : Promise.resolve({ data: [], error: null }),
+      sellerIds.length
+        ? supabase.from("sellers").select("id, shop_name").in("id", sellerIds)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
 
     if (shipmentResult.error) throw shipmentResult.error;
+
+    const shopNames = new Map(
+      (
+        (shopResult.data as Array<{ id: string; shop_name: string }> | null) ||
+        []
+      ).map((row) => [row.id, row.shop_name])
+    );
 
     const profiles = new Map(
       ((profileResult.data as ProfileRow[] | null) || []).map((row) => [
@@ -259,27 +305,40 @@ export default function AdminOrdersPage() {
       itemsByOrder.set(item.order_id, rows);
     });
 
-    const sellerOrderByOrder = new Map(
-      sellerOrders.map((row) => [row.order_id, row.id])
-    );
+    const sellerOrdersByOrder = new Map<string, SellerOrderRow[]>();
+    sellerOrders.forEach((row) => {
+      const rows = sellerOrdersByOrder.get(row.order_id) || [];
+      rows.push(row);
+      sellerOrdersByOrder.set(row.order_id, rows);
+    });
 
-    const shipmentBySellerOrder = new Map(
-      ((shipmentResult.data as ShipmentRow[] | null) || []).map((row) => [
-        row.seller_order_id,
-        row,
-      ])
-    );
+    // Keep the first shipment per shop order.
+    const shipmentBySellerOrder = new Map<string, ShipmentRow>();
+    ((shipmentResult.data as ShipmentRow[] | null) || []).forEach((row) => {
+      if (!shipmentBySellerOrder.has(row.seller_order_id)) {
+        shipmentBySellerOrder.set(row.seller_order_id, row);
+      }
+    });
 
-    const nextOrders = baseOrders.map((order) => {
-      const sellerOrderId = sellerOrderByOrder.get(order.id);
+    const nextOrders: OrderView[] = baseOrders.map((order) => {
+      const items = itemsByOrder.get(order.id) || [];
+      const parcels: Parcel[] = (sellerOrdersByOrder.get(order.id) || []).map(
+        (row) => ({
+          id: row.id,
+          shopName:
+            (row.seller_id && shopNames.get(row.seller_id)) || "MIVO shop",
+          status: row.status,
+          items: items.filter((item) => item.seller_order_id === row.id),
+          shipment: shipmentBySellerOrder.get(row.id),
+        })
+      );
 
       return {
         ...order,
-        items: itemsByOrder.get(order.id) || [],
+        items,
         customer: profiles.get(order.user_id),
-        shipment: sellerOrderId
-          ? shipmentBySellerOrder.get(sellerOrderId)
-          : undefined,
+        shipment: parcels[0]?.shipment,
+        parcels,
       };
     });
 
@@ -424,6 +483,70 @@ export default function AdminOrdersPage() {
     }
   }
 
+  async function updateParcel(
+    order: OrderView,
+    parcel: Parcel,
+    nextStatus: "processing" | "packed" | "shipped" | "delivered"
+  ) {
+    const parcelCourierValue = (
+      parcelCourier[parcel.id] ??
+      parcel.shipment?.courier_name ??
+      ""
+    ).trim();
+    const parcelTrackingValue = (
+      parcelTracking[parcel.id] ??
+      parcel.shipment?.tracking_number ??
+      ""
+    ).trim();
+
+    setBusy(parcel.id);
+    setError("");
+    setMessage("");
+
+    try {
+      const supabase = createClient();
+      const shipping = nextStatus === "shipped";
+      const { error: updateError } = await supabase.rpc(
+        "admin_update_shop_fulfilment",
+        {
+          p_seller_order_id: parcel.id,
+          p_status: nextStatus,
+          p_courier_name: shipping ? parcelCourierValue || null : null,
+          p_tracking_number: shipping ? parcelTrackingValue || null : null,
+          p_tracking_url: shipping
+            ? officialTrackingUrl(parcelCourierValue, parcelTrackingValue) ||
+              null
+            : null,
+        }
+      );
+
+      if (updateError) throw updateError;
+
+      await loadOrders();
+      setMessage(
+        order.order_number +
+          " · " +
+          parcel.shopName +
+          " updated to " +
+          label(nextStatus) +
+          "."
+      );
+    } catch (caught) {
+      const text =
+        caught instanceof Error
+          ? caught.message
+          : (caught as { message?: string } | null)?.message ||
+            "Unable to update this shop parcel.";
+      setError(
+        /admin_update_shop_fulfilment/.test(text)
+          ? "Run supabase/per-shop-fulfilment.sql in Supabase to ship multi-shop orders per shop."
+          : text
+      );
+    } finally {
+      setBusy("");
+    }
+  }
+
   async function markPaid(order: OrderView) {
     setBusy(order.order_number);
     setError("");
@@ -451,6 +574,130 @@ export default function AdminOrdersPage() {
     } finally {
       setBusy("");
     }
+  }
+
+  function renderParcels(order: OrderView) {
+    return (
+      <div className={styles.adminParcelList}>
+        <p className={styles.adminNotice}>
+          This order has {order.parcels.length} shops. Each shop ships its own
+          parcel; the order moves on when the slowest shop does.
+        </p>
+
+        {order.parcels.map((parcel) => {
+          const status = parcelStatus(parcel, order);
+          const isBusy = busy === parcel.id;
+          const courierValue =
+            parcelCourier[parcel.id] ?? parcel.shipment?.courier_name ?? "";
+          const trackingValue =
+            parcelTracking[parcel.id] ??
+            parcel.shipment?.tracking_number ??
+            "";
+
+          return (
+            <div className={styles.adminParcel} key={parcel.id}>
+              <div className={styles.adminParcelHead}>
+                <strong>{parcel.shopName}</strong>
+                <span>{label(status)}</span>
+              </div>
+              <small className={styles.adminParcelMeta}>
+                {parcel.items.reduce(
+                  (sum, item) => sum + Number(item.quantity || 0),
+                  0
+                )}{" "}
+                item(s)
+              </small>
+
+              {status === "paid" ? (
+                <button
+                  type="button"
+                  className={styles.adminAction}
+                  disabled={isBusy}
+                  onClick={() => updateParcel(order, parcel, "processing")}
+                >
+                  MARK PROCESSING
+                </button>
+              ) : null}
+
+              {status === "processing" ? (
+                <button
+                  type="button"
+                  className={styles.adminAction}
+                  disabled={isBusy}
+                  onClick={() => updateParcel(order, parcel, "packed")}
+                >
+                  MARK PACKED
+                </button>
+              ) : null}
+
+              {status === "packed" ? (
+                <div className={styles.adminShipForm}>
+                  <label>
+                    <span>COURIER *</span>
+                    <select
+                      value={courierValue}
+                      onChange={(event) =>
+                        setParcelCourier((current) => ({
+                          ...current,
+                          [parcel.id]: event.target.value,
+                        }))
+                      }
+                    >
+                      <option value="">SELECT COURIER</option>
+                      <option value="SPX Express">SPX EXPRESS</option>
+                      <option value="J&T Express">J&T EXPRESS</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>TRACKING NUMBER *</span>
+                    <input
+                      value={trackingValue}
+                      onChange={(event) =>
+                        setParcelTracking((current) => ({
+                          ...current,
+                          [parcel.id]: event.target.value,
+                        }))
+                      }
+                      placeholder="Tracking number"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    className={styles.adminAction}
+                    disabled={
+                      isBusy || !courierValue.trim() || !trackingValue.trim()
+                    }
+                    onClick={() => updateParcel(order, parcel, "shipped")}
+                  >
+                    MARK SHIPPED
+                  </button>
+                </div>
+              ) : null}
+
+              {status === "shipped" || status === "delivered" ? (
+                <div className={styles.adminTrackingBox}>
+                  <span>COURIER</span>
+                  <strong>{parcel.shipment?.courier_name || "—"}</strong>
+                  <span>TRACKING</span>
+                  <strong>{parcel.shipment?.tracking_number || "—"}</strong>
+                </div>
+              ) : null}
+
+              {status === "shipped" ? (
+                <button
+                  type="button"
+                  className={styles.adminAction}
+                  disabled={isBusy}
+                  onClick={() => updateParcel(order, parcel, "delivered")}
+                >
+                  MARK DELIVERED
+                </button>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+    );
   }
 
   function openOrder(order: OrderView) {
@@ -636,6 +883,43 @@ export default function AdminOrdersPage() {
                             <span className={styles.adminPanelKicker}>
                               ORDER ITEMS
                             </span>
+                            {order.parcels.length > 1 ? (
+                              order.parcels.map((parcel) => (
+                                <div
+                                  className={styles.adminParcelItems}
+                                  key={parcel.id}
+                                >
+                                  <div className={styles.adminParcelHead}>
+                                    <strong>{parcel.shopName}</strong>
+                                    <span>
+                                      {label(parcelStatus(parcel, order))}
+                                    </span>
+                                  </div>
+                                  <div className={styles.adminDrawerItems}>
+                                    {parcel.items.map((item) => (
+                                      <div
+                                        className={styles.adminDrawerItem}
+                                        key={item.id}
+                                      >
+                                        <div>
+                                          <strong>{item.product_name}</strong>
+                                          <span>
+                                            {item.variant_name || "Default"} ·{" "}
+                                            {item.sku}
+                                          </span>
+                                        </div>
+                                        <div>
+                                          <span>QTY {item.quantity}</span>
+                                          <strong>
+                                            {money(Number(item.line_subtotal))}
+                                          </strong>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
                             <div className={styles.adminDrawerItems}>
                               {order.items.map((item) => (
                                 <div
@@ -658,6 +942,7 @@ export default function AdminOrdersPage() {
                                 </div>
                               ))}
                             </div>
+                            )}
                           </section>
 
                           <section className={styles.adminAddressBlock}>
@@ -705,7 +990,13 @@ export default function AdminOrdersPage() {
                               </small>
                             </div>
 
-                            {["paid", "processing", "packed"].includes(
+                            {order.parcels.length > 1 &&
+                            fulfilmentSteps.slice(0, 4).includes(order.status)
+                              ? renderParcels(order)
+                              : null}
+
+                            {order.parcels.length <= 1 &&
+                            ["paid", "processing", "packed"].includes(
                               order.status
                             ) ? (
                               <>
@@ -784,7 +1075,8 @@ export default function AdminOrdersPage() {
                               </>
                             ) : null}
 
-                            {order.status === "shipped" ? (
+                            {order.parcels.length <= 1 &&
+                            order.status === "shipped" ? (
                               <>
                                 <div className={styles.adminTrackingBox}>
                                   <span>COURIER</span>

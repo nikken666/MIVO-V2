@@ -50,6 +50,7 @@ type OrderView = OrderRow & {
   items: OrderItemRow[];
   customer?: ProfileRow;
   shipment?: ShipmentRow;
+  shopCount: number;
 };
 
 type PageTab = "ready" | "arranged";
@@ -195,6 +196,7 @@ export default function ArrangeShipmentPage() {
               .from("seller_orders")
               .select("id, order_id")
               .in("order_id", orderIds)
+              .order("created_at")
           : Promise.resolve({ data: [], error: null }),
       ]);
 
@@ -239,9 +241,18 @@ export default function ArrangeShipmentPage() {
 
     if (shipmentResult.error) throw shipmentResult.error;
 
-    const sellerOrderByOrder = new Map(
-      sellerOrders.map((row) => [row.order_id, row.id])
-    );
+    // First shop order per order; multi-shop orders ship per shop in Orders.
+    const sellerOrderByOrder = new Map<string, string>();
+    const shopCountByOrder = new Map<string, number>();
+    sellerOrders.forEach((row) => {
+      if (!sellerOrderByOrder.has(row.order_id)) {
+        sellerOrderByOrder.set(row.order_id, row.id);
+      }
+      shopCountByOrder.set(
+        row.order_id,
+        (shopCountByOrder.get(row.order_id) || 0) + 1
+      );
+    });
     const shipmentBySellerOrder = new Map(
       ((shipmentResult.data as ShipmentRow[] | null) || []).map((row) => [
         row.seller_order_id,
@@ -257,6 +268,7 @@ export default function ArrangeShipmentPage() {
           ...order,
           items: itemsByOrder.get(order.id) || [],
           customer: profiles.get(order.user_id),
+          shopCount: shopCountByOrder.get(order.id) || 1,
           shipment: sellerOrderId
             ? shipmentBySellerOrder.get(sellerOrderId)
             : undefined,
@@ -678,7 +690,23 @@ export default function ArrangeShipmentPage() {
                         </div>
                       </div>
 
-                      {arranged ? (
+                      {arranged && order.shopCount > 1 ? (
+                        <div className={styles.adminArrangedTracking}>
+                          <p className={styles.adminNotice}>
+                            {order.shopCount} shops in this order. Each shop
+                            ships its own parcel with its own tracking number.
+                          </p>
+                          <a
+                            className={styles.adminAction}
+                            href={
+                              "/admin/orders?order=" +
+                              encodeURIComponent(order.order_number)
+                            }
+                          >
+                            SHIP PER SHOP →
+                          </a>
+                        </div>
+                      ) : arranged ? (
                         <div className={styles.adminArrangedTracking}>
                           <label>
                             <span>COURIER *</span>

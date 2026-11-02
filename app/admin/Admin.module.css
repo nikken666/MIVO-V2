@@ -7111,3 +7111,47 @@
 .fitActions .fitPrimary{border:0;background:var(--accent);color:#fff}
 .fitActions .fitPrimary:disabled{opacity:.45}
 .fitActions a{font-size:13px;color:var(--accent)}
+
+/* Per-shop parcels on multi-shop orders */
+.adminParcelList{
+  display:grid;
+  gap:10px;
+}
+.adminParcel{
+  display:grid;
+  gap:9px;
+  padding:12px;
+  border:1px solid #e6e8ea;
+  border-radius:12px;
+  background:#fafbfc;
+}
+.adminParcel>.adminAction{
+  width:100%;
+}
+.adminParcelItems{
+  margin-top:10px;
+}
+.adminParcelItems+.adminParcelItems{
+  padding-top:10px;
+  border-top:1px solid #eef0f1;
+}
+.adminParcelHead{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:10px;
+}
+.adminParcelHead strong{
+  font-size:12px;
+  font-weight:650;
+}
+.adminParcelHead span{
+  color:var(--accent);
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.06em;
+}
+.adminParcelMeta{
+  color:#92989c;
+  font-size:10px;
+}

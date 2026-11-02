@@ -44,10 +44,12 @@ type OrderItem = {
 };
 
 type ShipmentInfo = {
+  seller_order_id?: string;
   courier_name: string | null;
   tracking_number: string | null;
   tracking_url: string | null;
   status: string;
+  shop_name?: string | null;
 };
 
 type OrderStatusHistoryRow = {
@@ -84,7 +86,9 @@ export default function OrderDetailsPage() {
 
   const [order, setOrder] = useState<OrderRow | null>(null);
   const [items, setItems] = useState<OrderItem[]>([]);
-  const [shipment, setShipment] = useState<ShipmentInfo | null>(null);
+  const [shipments, setShipments] = useState<ShipmentInfo[]>([]);
+  const [shopCount, setShopCount] = useState(1);
+  const shipment = shipments[0] || null;
   const [statusHistory, setStatusHistory] = useState<OrderStatusHistoryRow[]>([]);
   const [reviewedAll, setReviewedAll] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -130,29 +134,64 @@ export default function OrderDetailsPage() {
 
     if (itemError) throw itemError;
 
+    // One seller order per shop; each shop ships its own parcel.
     const { data: sellerOrderData, error: sellerOrderError } = await supabase
       .from("seller_orders")
-      .select("id")
+      .select("id, seller_id")
       .eq("order_id", orderData.id)
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle();
+      .order("created_at", { ascending: true });
 
     if (sellerOrderError) throw sellerOrderError;
 
-    let shipmentData: ShipmentInfo | null = null;
+    const sellerOrderRows =
+      (sellerOrderData as Array<{ id: string; seller_id: string | null }> | null) ||
+      [];
+    let shipmentData: ShipmentInfo[] = [];
 
-    if (sellerOrderData?.id) {
-      const { data: foundShipment, error: shipmentError } = await supabase
-        .from("shipments")
-        .select("courier_name, tracking_number, tracking_url, status")
-        .eq("seller_order_id", sellerOrderData.id)
-        .order("created_at", { ascending: true })
-        .limit(1)
-        .maybeSingle();
+    if (sellerOrderRows.length > 0) {
+      const sellerIds = Array.from(
+        new Set(
+          sellerOrderRows
+            .map((row) => row.seller_id)
+            .filter((value): value is string => Boolean(value))
+        )
+      );
+      const [shipmentResult, shopResult] = await Promise.all([
+        supabase
+          .from("shipments")
+          .select("seller_order_id, courier_name, tracking_number, tracking_url, status")
+          .in(
+            "seller_order_id",
+            sellerOrderRows.map((row) => row.id)
+          )
+          .order("created_at", { ascending: true }),
+        sellerIds.length
+          ? supabase.from("sellers").select("id, shop_name").in("id", sellerIds)
+          : Promise.resolve({ data: [], error: null }),
+      ]);
 
-      if (shipmentError) throw shipmentError;
-      shipmentData = (foundShipment as ShipmentInfo | null) || null;
+      if (shipmentResult.error) throw shipmentResult.error;
+
+      const shopNames = new Map(
+        (
+          (shopResult.data as Array<{ id: string; shop_name: string }> | null) ||
+          []
+        ).map((row) => [row.id, row.shop_name])
+      );
+      const found = (shipmentResult.data as ShipmentInfo[] | null) || [];
+
+      // First shipment per shop, in shop order.
+      shipmentData = sellerOrderRows
+        .map((row): ShipmentInfo | null => {
+          const match = found.find((item) => item.seller_order_id === row.id);
+          return match
+            ? {
+                ...match,
+                shop_name: row.seller_id ? shopNames.get(row.seller_id) : null,
+              }
+            : null;
+        })
+        .filter((value): value is ShipmentInfo => Boolean(value));
     }
 
     const rawItems = (itemData as OrderItem[] | null) || [];
@@ -250,7 +289,8 @@ export default function OrderDetailsPage() {
 
     setOrder(orderData as OrderRow);
     setItems(loadedItems);
-    setShipment(shipmentData);
+    setShipments(shipmentData);
+    setShopCount(Math.max(sellerOrderRows.length, 1));
     setReviewedAll(allReviewed);
     setStatusHistory(
       (historyData as OrderStatusHistoryRow[] | null) || []
@@ -371,11 +411,17 @@ export default function OrderDetailsPage() {
     {
       key: "shipped",
       title: "Shipped",
-      description: shipment?.tracking_number
-        ? (shipment.courier_name || "Courier") +
-          " · " +
-          shipment.tracking_number
-        : "Your parcel has been handed over to the courier.",
+      description:
+        shopCount > 1
+          ? shipments.length +
+            " of " +
+            shopCount +
+            " parcels shipped. Each shop sends its own parcel."
+          : shipment?.tracking_number
+          ? (shipment.courier_name || "Courier") +
+            " · " +
+            shipment.tracking_number
+          : "Your parcel has been handed over to the courier.",
       complete: progress >= 3,
       timestamp:
         statusHistory.find((entry) => entry.new_status === "shipped")
@@ -491,7 +537,7 @@ export default function OrderDetailsPage() {
                     <span>Shipment updates</span>
                     <h2>Tracking Timeline</h2>
                   </div>
-                  {shipment?.courier_name ? (
+                  {shopCount <= 1 && shipment?.courier_name ? (
                     <strong>{shipment.courier_name}</strong>
                   ) : null}
                 </div>
@@ -555,33 +601,44 @@ export default function OrderDetailsPage() {
               </p>
             </section>
 
-            {shipment?.tracking_number ? (
-              <section className="orderSideCard">
-                <span>Shipment tracking</span>
-                <div className="orderPaymentStatus">
-                  <strong>{shipment.courier_name || "COURIER"}</strong>
-                  <small>{formatStatus(shipment.status)}</small>
-                </div>
-
-                <div className="orderSideRows">
-                  <div>
-                    <span>Tracking number</span>
-                    <strong>{shipment.tracking_number}</strong>
+            {shipments
+              .filter((parcel) => parcel.tracking_number)
+              .map((parcel, index) => (
+                <section
+                  className="orderSideCard"
+                  key={parcel.seller_order_id || index}
+                >
+                  <span>
+                    {shopCount > 1
+                      ? "Parcel " +
+                        (index + 1) +
+                        (parcel.shop_name ? " · " + parcel.shop_name : "")
+                      : "Shipment tracking"}
+                  </span>
+                  <div className="orderPaymentStatus">
+                    <strong>{parcel.courier_name || "COURIER"}</strong>
+                    <small>{formatStatus(parcel.status)}</small>
                   </div>
-                </div>
 
-                {shipment.tracking_url ? (
-                  <a
-                    href={shipment.tracking_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="orderPrimaryButton orderSideMainAction"
-                  >
-                    Track parcel
-                  </a>
-                ) : null}
-              </section>
-            ) : null}
+                  <div className="orderSideRows">
+                    <div>
+                      <span>Tracking number</span>
+                      <strong>{parcel.tracking_number}</strong>
+                    </div>
+                  </div>
+
+                  {parcel.tracking_url ? (
+                    <a
+                      href={parcel.tracking_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="orderPrimaryButton orderSideMainAction"
+                    >
+                      Track parcel
+                    </a>
+                  ) : null}
+                </section>
+              ))}
 
             <section className="orderSideCard">
               <span>Payment</span>
