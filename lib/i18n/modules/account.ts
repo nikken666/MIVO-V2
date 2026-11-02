@@ -473,8 +473,6 @@ const paidCancel = {
   "account.paidCancel.confirm": ["Confirm cancellation", "Sahkan pembatalan", "确认取消"],
 } as const satisfies Record<`account.${string}`, Row>;
 
-//__MORE__
-
 const rows = {
   ...login,
   ...garage,
@@ -493,7 +491,6 @@ const rows = {
   ...vouchers,
   ...cancel,
   ...paidCancel,
-  //__SPREAD__
 };
 
 type AccountKey = keyof typeof rows;
