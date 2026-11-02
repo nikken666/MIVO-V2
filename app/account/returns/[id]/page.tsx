@@ -51,6 +51,7 @@ export default function ReturnDetailPage() {
   const [items, setItems] = useState<Map<string, string>>(new Map());
   const [events, setEvents] = useState<Event[]>([]);
   const [photos, setPhotos] = useState<string[]>([]);
+  const [returnTo, setReturnTo] = useState<{ shop?: string; name?: string; phone?: string; address?: string } | null>(null);
   const [courier, setCourier] = useState("");
   const [tracking, setTracking] = useState("");
   const [rejectNote, setRejectNote] = useState("");
@@ -80,6 +81,10 @@ export default function ReturnDetailPage() {
         )
       );
       setEvents((eventRows || []) as Event[]);
+      if (r.status === "approved_return" || r.status === "returning") {
+        const { data: address } = await supabase.rpc("return_request_return_address", { p_request_id: r.id });
+        setReturnTo((address as typeof returnTo) || null);
+      }
       if (r.evidence_paths?.length) {
         const { data: signed } = await supabase.storage.from("return-evidence").createSignedUrls(r.evidence_paths, 3600);
         setPhotos((signed || []).map((s) => s.signedUrl).filter(Boolean) as string[]);
@@ -178,7 +183,18 @@ export default function ReturnDetailPage() {
         {req.status === "approved_return" ? (
           <section className={styles.card}>
             <h2>{t("ret.shipBack")}</h2>
-            <p className={styles.hint}>{t("ret.returnAddress")}</p>
+            {returnTo?.address ? (
+              <div className={styles.noteGood}>
+                <strong>{t("ret.sendTo")}</strong>
+                <br />
+                {returnTo.name || returnTo.shop}
+                {returnTo.phone ? " · " + returnTo.phone : ""}
+                <br />
+                {returnTo.address}
+              </div>
+            ) : (
+              <p className={styles.hint}>{t("ret.returnAddress")}</p>
+            )}
             <div className={styles.formRow}>
               <input className={styles.input} placeholder={t("ret.courier")} value={courier} onChange={(e) => setCourier(e.target.value)} />
               <input className={styles.input} placeholder={t("ret.tracking")} value={tracking} onChange={(e) => setTracking(e.target.value)} />

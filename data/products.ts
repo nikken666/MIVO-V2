@@ -54,6 +54,10 @@ export type Product = {
   variation1Name?: string | null;
   variation2Name?: string | null;
   isUniversalFitment?: boolean;
+  /** verified (MIVO) / seller (shop-declared) / none — see lib/fitmentLevels.ts */
+  fitmentLevel?: "verified" | "seller" | "none";
+  /** Another shop's listing whose fitment MIVO staff checked. */
+  fitmentVerified?: boolean;
   restrictedShippingStates?: string[];
   variants?: ProductVariant[];
 };

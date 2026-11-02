@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { attachFitmentLevels } from "@/lib/fitmentLevels";
 import {
   products as demoProducts,
   type Product,
@@ -305,7 +306,9 @@ export async function getActiveProducts(): Promise<Product[]> {
       .map(mapProduct)
       .filter((product): product is Product => Boolean(product));
 
-    return live.length > 0 ? await attachReviewStats(live) : demoProducts;
+    return live.length > 0
+      ? await attachFitmentLevels(await attachReviewStats(live))
+      : demoProducts;
   } catch {
     return demoProducts;
   }
@@ -331,7 +334,7 @@ export async function getActiveProductBySlug(
     const mapped = row ? mapProduct(row) : null;
 
     if (mapped) {
-      const [withReviews] = await attachReviewStats([mapped]);
+      const [withReviews] = await attachFitmentLevels(await attachReviewStats([mapped]));
       return withReviews;
     }
   } catch {

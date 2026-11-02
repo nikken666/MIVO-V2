@@ -11077,3 +11077,7 @@ button.shopChip{font:inherit;cursor:pointer}
 .cancelHoldNote{margin:4px 0 14px;padding:14px 16px;border-radius:14px;background:#e8f6ee;color:#1d5f35}
 .cancelHoldNote strong{display:block;font-size:15px}
 .cancelHoldNote p{margin:6px 0 0;font-size:14px;line-height:1.5}
+.fitmentLevelTag{display:inline-flex;align-self:flex-start;margin:4px 0 0;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;line-height:1.6}
+.fitmentLevelTag.level-verified{background:#e8f6ee;color:#1d7a3b}
+.fitmentLevelTag.level-seller{background:rgba(255,196,0,.2);color:#6b5200}
+.fitmentPill.seller-fits{background:#fff4cc!important;color:#6b5200!important}

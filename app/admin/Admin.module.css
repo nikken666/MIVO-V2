@@ -7335,3 +7335,11 @@ span.adminPanelKicker{font-size:12px!important;letter-spacing:normal!important}
 .adminSecondaryAction,.adminAction{font-size:13px!important;letter-spacing:normal!important}
 .adminOrderToolbar label span{font-size:12px!important;letter-spacing:normal!important}
 .adminOrderToolbar input{font-size:14px!important}
+.fitReviewTable{width:100%;border-collapse:collapse;font-size:14px}
+.fitReviewTable th{padding:10px;text-align:left;color:var(--grey);font-size:13px;font-weight:600;border-bottom:1px solid var(--line)}
+.fitReviewTable td{padding:12px 10px;border-bottom:1px solid #f0f1f3;vertical-align:middle}
+.fitReviewTable td strong,.fitReviewTable td small{display:block}
+.fitReviewTable td small{color:var(--grey);font-size:12px}
+.fitReviewActions{display:flex;gap:12px;align-items:center;justify-content:flex-end;white-space:nowrap}
+.fitReviewActions a{color:var(--accent);font-size:14px}
+.adminMeRole{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:var(--accent-2);color:var(--accent-2-ink);font-size:10px;font-weight:700;vertical-align:middle}

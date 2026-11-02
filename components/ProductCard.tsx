@@ -34,6 +34,10 @@ function fitmentCopy(t: Translate): Record<FitmentStatus, { pill: string; text: 
       pill: t("fit.unverified"),
       text: t("browse.card.unverifiedText"),
     },
+    "seller-fits": {
+      pill: t("fit.sellerSays"),
+      text: t("fit.sellerSaysText"),
+    },
   };
 }
 
@@ -106,7 +110,7 @@ export default function ProductCard({
         }
       : fitmentCopy(t)[fitmentStatus];
   const visualFitmentStatus =
-    fitmentStatus === "universal" ? "fits" : fitmentStatus;
+    fitmentStatus === "universal" ? "fits" : fitmentStatus === "seller-fits" ? "unverified" : fitmentStatus;
   const cardClass =
     (compact
       ? "productCard premiumProductCard"
@@ -212,6 +216,12 @@ export default function ProductCard({
           sellerSlug={product.sellerSlug}
           sellerId={product.sellerId}
         />
+
+        {!fitmentStatus && product.fitmentLevel && product.fitmentLevel !== "none" ? (
+          <span className={"fitmentLevelTag level-" + product.fitmentLevel}>
+            {product.fitmentLevel === "verified" ? t("fit.levelVerified") : t("fit.levelSeller")}
+          </span>
+        ) : null}
 
         <p className={fitmentTextClass}>
           {fitment?.text || t("browse.card.defaultText")}

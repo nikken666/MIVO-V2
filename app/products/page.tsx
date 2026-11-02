@@ -221,7 +221,7 @@ export default async function ProductsPage({
           counts[item.fitmentStatus] += 1;
           return counts;
         },
-        { fits: 0, universal: 0, unverified: 0, "not-fit": 0 }
+        { fits: 0, universal: 0, unverified: 0, "not-fit": 0, "seller-fits": 0 }
       )
     : null;
 
@@ -270,6 +270,12 @@ export default async function ProductsPage({
             <strong>{fitmentCounts.fits + fitmentCounts.universal}</strong>
             <span>{t("browse.products.confirmedFits")}</span>
           </div>
+          {fitmentCounts["seller-fits"] > 0 ? (
+            <div>
+              <strong>{fitmentCounts["seller-fits"]}</strong>
+              <span>{t("fit.sellerSays")}</span>
+            </div>
+          ) : null}
           <div>
             <strong>{fitmentCounts.unverified}</strong>
             <span>{t("browse.products.notVerified")}</span>

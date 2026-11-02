@@ -67,6 +67,7 @@ const rows = {
   "ret.tracking": ["Tracking number", "Nombor penjejakan", "运单号"],
   "ret.shipBack": ["I've sent it back", "Saya sudah pulangkan", "我已寄回"],
   "ret.returnAddress": ["Send to: MIVO Returns, the address shown in your chat with the seller. Ask in chat if unsure.", "Hantar ke: MIVO Returns, alamat seperti dalam sembang dengan penjual. Tanya dalam sembang jika tidak pasti.", "寄回地址：MIVO 退货处，请以和卖家聊天中提供的地址为准，不确定可在聊天中询问。"],
+  "ret.sendTo": ["Send the item to", "Hantar barang ke", "请寄回到"],
   "ret.cancel": ["Cancel request", "Batalkan permohonan", "取消申请"],
   "ret.cancelConfirm": ["Cancel this return request?", "Batalkan permohonan pulangan ini?", "确定取消这个退货申请吗？"],
   "ret.sellerNote": ["Seller's note", "Nota penjual", "卖家备注"],

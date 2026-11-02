@@ -33,6 +33,9 @@ const emptyForm = {
   logo_url: "",
   banner_url: "",
   sort_order: 100,
+  return_name: "",
+  return_phone: "",
+  return_address: "",
 };
 
 const tierLabel: Record<Tier, string> = {
@@ -106,6 +109,22 @@ export default function AdminShopsPage() {
     void load();
   }, []);
 
+  // Load the saved return address when a shop is opened for editing.
+  useEffect(() => {
+    if (!form.id) return;
+    const id = form.id;
+    void createClient()
+      .rpc("admin_get_shop_return_address", { p_id: id })
+      .then(({ data }) => {
+        const value = (data || {}) as { name?: string | null; phone?: string | null; address?: string | null };
+        setForm((current) =>
+          current.id === id
+            ? { ...current, return_name: value.name || "", return_phone: value.phone || "", return_address: value.address || "" }
+            : current
+        );
+      });
+  }, [form.id]);
+
   // Linked stock overview: groups whose stock is shared by several shops.
   const linked = useMemo(() => {
     const shopsPerGroup = new Map<string, Set<string>>();
@@ -139,6 +158,16 @@ export default function AdminShopsPage() {
         p_sort_order: Number(form.sort_order) || 100,
       });
       if (saveError) throw saveError;
+      // Return address (supabase/shop-return-address.sql). New shops get it on their next edit.
+      if (form.id) {
+        const { error: addressError } = await createClient().rpc("admin_save_shop_return_address", {
+          p_id: form.id,
+          p_name: form.return_name,
+          p_phone: form.return_phone,
+          p_address: form.return_address,
+        });
+        if (addressError && !/admin_save_shop_return_address/.test(addressError.message)) throw addressError;
+      }
       setMessage(form.id ? "Shop updated." : "Shop created.");
       setForm(emptyForm);
       await load();
@@ -193,6 +222,13 @@ export default function AdminShopsPage() {
               <label className={styles.adminField}><span>Tagline</span><input {...field("tagline")} placeholder="Short line under the shop name" /></label>
               <label className={styles.adminField}><span>Logo URL</span><input {...field("logo_url")} placeholder="https://…" /></label>
               <label className={styles.adminField}><span>Banner URL</span><input {...field("banner_url")} placeholder="https://…" /></label>
+              {form.id ? (
+                <>
+                  <label className={styles.adminField}><span>Return to (name)</span><input {...field("return_name")} placeholder="MIVO Returns" /></label>
+                  <label className={styles.adminField}><span>Return phone</span><input {...field("return_phone")} placeholder="01X-XXXXXXX" /></label>
+                  <label className={styles.adminField} style={{ minWidth: 320, flex: 1 }}><span>Return address (shown to customers on approved returns)</span><input {...field("return_address")} placeholder="Street, postcode, city, state" /></label>
+                </>
+              ) : null}
               <button type="submit" disabled={saving}>{saving ? "Saving…" : form.id ? "Update shop" : "Add shop"}</button>
               {form.id ? <button type="button" onClick={() => setForm(emptyForm)}>Cancel</button> : null}
             </form>
@@ -225,6 +261,9 @@ export default function AdminShopsPage() {
                                 logo_url: shop.logo_url || "",
                                 banner_url: shop.banner_url || "",
                                 sort_order: shop.sort_order,
+                                return_name: "",
+                                return_phone: "",
+                                return_address: "",
                               })
                             }
                           >

@@ -25,6 +25,7 @@ const groups: NavGroup[] = [
       { href: "/admin/products/new", label: "Add new product" },
       { href: "/admin/products/import", label: "Import from Shopee" },
       { href: "/admin/products/fitment-suggestions", label: "Vehicle fitment" },
+      { href: "/admin/products/fitment-review", label: "Fitment review" },
     ],
   },
   {
@@ -62,10 +63,11 @@ function isActive(pathname: string, href: string) {
 /** Shared Seller Centre sidebar: grouped menu, live badges, signed-in admin. */
 export default function AdminSidebar() {
   const pathname = usePathname() || "/admin";
-  const [me, setMe] = useState<{ name: string; avatar: string | null; email: string }>({
+  const [me, setMe] = useState<{ name: string; avatar: string | null; email: string; superadmin: boolean }>({
     name: "",
     avatar: null,
     email: "",
+    superadmin: false,
   });
   const [badges, setBadges] = useState<{ toShip: number; chat: number; returns: number }>({ toShip: 0, chat: 0, returns: 0 });
   const [open, setOpen] = useState(false);
@@ -80,7 +82,7 @@ export default function AdminSidebar() {
       } = await supabase.auth.getUser();
       if (!user || !active) return;
 
-      const [{ data: profile }, toShip, chats, returns] = await Promise.all([
+      const [{ data: profile }, toShip, chats, returns, superadmin] = await Promise.all([
         supabase.from("profiles").select("full_name, avatar_url").eq("id", user.id).maybeSingle(),
         supabase
           .from("orders")
@@ -92,6 +94,7 @@ export default function AdminSidebar() {
           .from("return_requests")
           .select("id", { count: "exact", head: true })
           .in("status", ["requested", "mivo_review", "refunding", "returning"]),
+        supabase.rpc("is_superadmin").then((r) => r, () => ({ data: false })),
       ]);
       if (!active) return;
 
@@ -100,6 +103,7 @@ export default function AdminSidebar() {
         name: p.full_name?.trim() || user.email?.split("@")[0] || "Admin",
         avatar: p.avatar_url || null,
         email: user.email || "",
+        superadmin: Boolean((superadmin as { data?: unknown }).data),
       });
       setBadges({
         toShip: toShip.count || 0,
@@ -171,7 +175,10 @@ export default function AdminSidebar() {
             {me.avatar ? <img src={me.avatar} alt="" /> : (me.name || "A").slice(0, 1).toUpperCase()}
           </span>
           <span className={styles.adminMeText}>
-            <strong>{me.name || "…"}</strong>
+            <strong>
+              {me.name || "…"}
+              {me.superadmin ? <span className={styles.adminMeRole}>SUPERADMIN</span> : null}
+            </strong>
             <small>{me.email}</small>
           </span>
         </div>

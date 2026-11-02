@@ -525,6 +525,8 @@ export default function ProductDetailClient({
                       ? t("buy.pd.notCompatible")
                       : selectedVariantFitmentStatus === "universal"
                         ? t("buy.pd.fitsYourVehicle")
+                        : selectedVariantFitmentStatus === "seller-fits"
+                          ? t("fit.sellerSays")
                         : selectedVariantFitmentStatus === "unverified"
                           ? isFitmentVerifiedShop(product)
                             ? t("buy.pd.fitmentNotVerified")
