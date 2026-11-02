@@ -81,6 +81,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Multi-shop orders: once any shop's parcel has shipped, the order as a
+    // whole may still read "packed", but it can no longer be cancelled.
+    // Checked even for "cancelled" orders, in case the cancel RPC was called directly.
+    if (!order.stripe_refund_id) {
+      const { data: parcels } = await supabase
+        .from("seller_orders")
+        .select("id, status")
+        .eq("order_id", order.id);
+      const parcelIds = (parcels || []).map((row) => row.id as string);
+      const parcelShipped = (parcels || []).some((row) =>
+        ["shipped", "delivered"].includes(String(row.status))
+      );
+      const { data: tracked } = parcelIds.length
+        ? await supabase
+            .from("shipments")
+            .select("id")
+            .in("seller_order_id", parcelIds)
+            .not("tracking_number", "is", null)
+            .limit(1)
+        : { data: [] };
+
+      if (parcelShipped || (tracked || []).length > 0) {
+        return NextResponse.json(
+          { error: "Part of this order has already shipped, so it can no longer be cancelled. Please contact MIVO support." },
+          { status: 409 }
+        );
+      }
+    }
+
     const paymentIntentId = order.stripe_payment_intent_id;
 
     if (!paymentIntentId) {

@@ -723,7 +723,9 @@ export default function OrderDetailsPage() {
             {order.payment_status === "paid" &&
             !cancelled &&
             order.status !== "shipped" &&
-            order.status !== "delivered" ? (
+            order.status !== "delivered" &&
+            // A multi-shop order with one parcel already on its way can't be cancelled.
+            !shipments.some((parcel) => parcel.tracking_number) ? (
               <button
                 type="button"
                 className="orderGhostButton orderSideMainAction orderCancelButton"
