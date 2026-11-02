@@ -161,6 +161,11 @@ const core = {
   "errors.fileTooLarge": "That file is too large. Please choose a smaller photo.",
   "errors.notAllowed": "You don't have access to do that.",
 
+  // Card holds
+  "hold.title": "Nothing has been charged yet",
+  "hold.text": "Your card payment is only on hold until the order ships. Cancelling now releases the full {amount} — no fees.",
+  "hold.badge": "Card on hold · charged when shipped",
+
   // Common
   "common.loading": "Loading…",
   "common.signInFirst": "Please sign in first",
@@ -309,6 +314,9 @@ const msCore: Dict = {
   "errors.cannotCancel": "Pesanan ini tidak boleh dibatalkan kerana sudah dihantar. Sembang dengan penjual untuk bantuan.",
   "errors.fileTooLarge": "Fail terlalu besar. Sila pilih foto yang lebih kecil.",
   "errors.notAllowed": "Anda tiada akses untuk berbuat demikian.",
+  "hold.title": "Belum ada caj dikenakan",
+  "hold.text": "Bayaran kad anda hanya ditahan sehingga pesanan dihantar. Membatalkan sekarang akan melepaskan sepenuhnya {amount} — tiada caj.",
+  "hold.badge": "Kad ditahan · dicaj semasa dihantar",
   "common.loading": "Memuatkan…",
   "common.signInFirst": "Sila log masuk dahulu",
   "common.error": "Ada masalah. Sila cuba lagi.",
@@ -451,6 +459,9 @@ const zhCore: Dict = {
   "errors.cannotCancel": "订单已发货，无法取消。如需帮助请联系卖家。",
   "errors.fileTooLarge": "文件太大，请选择较小的照片。",
   "errors.notAllowed": "你没有权限进行这个操作。",
+  "hold.title": "目前还没有扣款",
+  "hold.text": "你的银行卡款项只是暂时冻结，发货时才会扣款。现在取消会全额解冻 {amount}，不收任何费用。",
+  "hold.badge": "卡款已冻结 · 发货时扣款",
   "common.loading": "加载中…",
   "common.signInFirst": "请先登录",
   "common.error": "出了点问题，请再试一次。",

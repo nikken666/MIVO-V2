@@ -36,6 +36,20 @@ export default function PaidCancellationModal({
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  // Card payment still on hold (charged only at shipping): full release, no fees.
+  const [onHold, setOnHold] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .from("orders")
+      .select("payment_capture_status")
+      .eq("order_number", orderNumber)
+      .maybeSingle()
+      .then(({ data }) =>
+        setOnHold((data as { payment_capture_status?: string } | null)?.payment_capture_status === "authorized")
+      );
+  }, [orderNumber]);
 
   useEffect(() => {
     let active = true;
@@ -140,6 +154,13 @@ export default function PaidCancellationModal({
           <p className="accountDataError">{error}</p>
         ) : preview ? (
           <>
+            {onHold ? (
+              <div className="cancelHoldNote">
+                <strong>{t("hold.title")}</strong>
+                <p>{t("hold.text", { amount: formatPrice(Number(preview.order_total)) })}</p>
+              </div>
+            ) : null}
+            {onHold ? null : (
             <div className="cancelRefundBreakdown">
               <div>
                 <span>{t("account.paidCancel.orderTotal")}</span>
@@ -166,6 +187,8 @@ export default function PaidCancellationModal({
               </div>
             </div>
 
+            )}
+
             <div className="cancelRefundTotal">
               <div>
                 <span>{t("account.paidCancel.estimated")}</span>
@@ -173,7 +196,7 @@ export default function PaidCancellationModal({
                   {t("account.paidCancel.estimatedText")}
                 </small>
               </div>
-              <strong>{formatPrice(Number(preview.refund_amount))}</strong>
+              <strong>{formatPrice(Number(onHold ? preview.order_total : preview.refund_amount))}</strong>
             </div>
 
             <div className="cancelPolicyBox">

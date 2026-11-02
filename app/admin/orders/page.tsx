@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
+import { chargeBeforeShipping } from "@/lib/adminPayments";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 
 type OrderItemRow = {
@@ -449,6 +450,8 @@ export default function AdminOrdersPage() {
     setMessage("");
 
     try {
+      // Held card payments are charged at shipping.
+      if (nextStatus === "shipped") await chargeBeforeShipping(order.order_number);
       const supabase = createClient();
       const { error: updateError } = await supabase.rpc(
         "admin_update_order_fulfilment",
@@ -506,8 +509,10 @@ export default function AdminOrdersPage() {
     setMessage("");
 
     try {
-      const supabase = createClient();
       const shipping = nextStatus === "shipped";
+      // Held card payments are charged when the first parcel ships.
+      if (shipping) await chargeBeforeShipping(order.order_number);
+      const supabase = createClient();
       const { error: updateError } = await supabase.rpc(
         "admin_update_shop_fulfilment",
         {

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { stripeRequest } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { holdsEnabled } from "@/lib/stripe/holds";
 
 type OrderRow = {
   id: string;
@@ -141,6 +142,13 @@ export async function POST(request: NextRequest) {
     params.append("payment_method_types[]", "card");
     params.append("payment_method_types[]", "fpx");
     params.append("payment_method_types[]", "grabpay");
+
+    // Cards are only held at checkout and charged when the order ships, so a
+    // cancellation before shipping costs nobody anything. FPX and GrabPay
+    // cannot be held and are charged straight away.
+    if (await holdsEnabled()) {
+      params.set("payment_method_options[card][capture_method]", "manual");
+    }
 
     if (user.email) {
       params.set("customer_email", user.email);

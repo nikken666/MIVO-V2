@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { stripeRequest } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { releaseOrderPayment } from "@/lib/stripe/holds";
 
 type OrderRow = {
   id: string;
@@ -156,6 +157,49 @@ export async function POST(request: NextRequest) {
         refund_status: "pending",
         cancellation_refund_amount: cancellation.refund_amount,
       };
+    }
+
+    // Card still on hold (not charged yet): release it in full, no fees.
+    {
+      const admin = createAdminClient();
+      const { data: hold } = await admin
+        .from("orders")
+        .select("payment_capture_status")
+        .eq("id", order.id)
+        .maybeSingle()
+        .then((r) => r, () => ({ data: null }));
+      if ((hold as { payment_capture_status?: string } | null)?.payment_capture_status === "authorized") {
+        try {
+          await releaseOrderPayment({ id: order.id, stripe_payment_intent_id: paymentIntentId });
+        } catch (releaseError) {
+          return NextResponse.json(
+            {
+              error: releaseError instanceof Error ? releaseError.message : "Unable to release the card hold.",
+              refundPending: true,
+            },
+            { status: 502 }
+          );
+        }
+        const total = Number(order.total_amount);
+        const now = new Date().toISOString();
+        const { error: releaseUpdateError } = await admin
+          .from("orders")
+          .update({
+            payment_capture_status: "released",
+            refund_status: "refunded",
+            payment_status: "refunded",
+            cancellation_refund_amount: total,
+            cancellation_fee_total: 0,
+            cancellation_platform_fee_amount: 0,
+            cancellation_service_fee_amount: 0,
+            payment_processing_fee_amount: 0,
+            refunded_at: now,
+            updated_at: now,
+          })
+          .eq("id", order.id);
+        if (releaseUpdateError) throw releaseUpdateError;
+        return NextResponse.json({ refundId: null, refundStatus: "refunded", refundAmount: total, released: true });
+      }
     }
 
     const refundAmount = Number(order.cancellation_refund_amount || 0);

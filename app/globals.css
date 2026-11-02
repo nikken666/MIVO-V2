@@ -11074,3 +11074,6 @@ button.shopChip{font:inherit;cursor:pointer}
 .productRating b,.policyContent small.policyUpdated,.productBrandRow span{font-size:13px!important;letter-spacing:normal!important}
 .productBreadcrumb a,.productBreadcrumb strong{text-transform:none!important}
 .orderStatusTabs a,.orderStatusTabs button{font-size:14px!important;letter-spacing:normal!important}
+.cancelHoldNote{margin:4px 0 14px;padding:14px 16px;border-radius:14px;background:#e8f6ee;color:#1d5f35}
+.cancelHoldNote strong{display:block;font-size:15px}
+.cancelHoldNote p{margin:6px 0 0;font-size:14px;line-height:1.5}

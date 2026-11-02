@@ -4,6 +4,7 @@ import {
   stripeRequest,
   verifyStripeWebhookSignature,
 } from "@/lib/stripe/server";
+import { getIntent, HOLD_DAYS } from "@/lib/stripe/holds";
 
 type StripeEvent = {
   id: string;
@@ -47,7 +48,10 @@ async function paymentDetails(paymentIntentId: string) {
   };
 }
 
-async function markOrderPaid(session: Record<string, any>) {
+async function markOrderPaid(
+  session: Record<string, any>,
+  hold?: { amount: number }
+) {
   const admin = createAdminClient();
   const orderId =
     typeof session.metadata?.order_id === "string"
@@ -81,8 +85,9 @@ async function markOrderPaid(session: Record<string, any>) {
     paymentMethod: null,
   }));
 
-  const amountPaid =
-    typeof session.amount_total === "number"
+  const amountPaid = hold
+    ? hold.amount
+    : typeof session.amount_total === "number"
       ? session.amount_total / 100
       : Number(order.total_amount);
 
@@ -109,6 +114,24 @@ async function markOrderPaid(session: Record<string, any>) {
     .eq("id", order.id);
 
   if (updateError) throw updateError;
+
+  // Card held, not yet charged: remember it so shipping captures it.
+  // (Columns from supabase/payment-holds.sql; ignored if missing.)
+  await admin
+    .from("orders")
+    .update(
+      hold
+        ? {
+            payment_capture_status: "authorized",
+            payment_authorized_until: new Date(
+              Date.now() + HOLD_DAYS * 24 * 60 * 60 * 1000
+            ).toISOString(),
+            payment_processing_fee_amount: 0,
+          }
+        : { payment_capture_status: "captured", payment_captured_at: now }
+    )
+    .eq("id", order.id)
+    .then(() => undefined, () => undefined);
 
   await admin
     .from("seller_orders")
@@ -252,6 +275,22 @@ export async function POST(request: NextRequest) {
       event.type === "checkout.session.async_payment_succeeded"
     ) {
       await markOrderPaid(object);
+    } else if (
+      event.type === "checkout.session.completed" &&
+      object.payment_status === "unpaid" &&
+      object.payment_intent
+    ) {
+      // Card held (manual capture): the order is confirmed, money is captured at shipping.
+      const intentId =
+        typeof object.payment_intent === "string"
+          ? object.payment_intent
+          : object.payment_intent.id;
+      const intent = await getIntent(intentId);
+      if (intent.status === "requires_capture") {
+        await markOrderPaid(object, {
+          amount: (intent.amount_capturable || 0) / 100,
+        });
+      }
     } else if (
       event.type === "checkout.session.async_payment_failed"
     ) {

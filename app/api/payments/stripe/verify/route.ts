@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripeRequest } from "@/lib/stripe/server";
+import { getIntent } from "@/lib/stripe/holds";
 
 type StripeCheckoutSession = {
   id: string;
@@ -50,8 +51,17 @@ export async function GET(request: NextRequest) {
         ? session.payment_intent
         : session.payment_intent?.id || null;
 
+    // A held card payment (charged at shipping) also counts as paid.
+    let held = false;
+    if (session.payment_status !== "paid" && paymentIntentId) {
+      held = await getIntent(paymentIntentId)
+        .then((intent) => intent.status === "requires_capture")
+        .catch(() => false);
+    }
+
     return NextResponse.json({
-      paid: session.payment_status === "paid",
+      paid: session.payment_status === "paid" || held,
+      held,
       orderNumber,
       sessionId: session.id,
       paymentIntentId,
