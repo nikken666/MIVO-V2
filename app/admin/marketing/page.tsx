@@ -58,31 +58,31 @@ export default function MarketingCentrePage() {
         ] = await Promise.all([
           supabase
             .from("promotion_campaigns")
-            .select("*", { count: "exact", head: true })
+            .select("id", { count: "exact", head: true })
             .eq("is_active", true)
             .lte("starts_at", now)
             .gte("ends_at", now),
           supabase
             .from("promotion_campaigns")
-            .select("*", { count: "exact", head: true })
+            .select("id", { count: "exact", head: true })
             .eq("is_active", true)
             .gt("starts_at", now),
           supabase
             .from("vouchers")
-            .select("*", { count: "exact", head: true })
+            .select("id", { count: "exact", head: true })
             .eq("is_active", true)
             .lte("starts_at", now)
             .gte("ends_at", now),
           supabase
             .from("product_variants")
-            .select("*", { count: "exact", head: true })
+            .select("id", { count: "exact", head: true })
             .eq("is_active", true)
             .eq("discount_enabled", true)
             .lte("discount_starts_at", now)
             .gte("discount_ends_at", now),
           supabase
             .from("product_variants")
-            .select("*", { count: "exact", head: true })
+            .select("id", { count: "exact", head: true })
             .eq("is_active", true)
             .eq("discount_enabled", true)
             .gt("discount_starts_at", now),
