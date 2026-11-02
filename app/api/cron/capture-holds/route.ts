@@ -36,5 +36,11 @@ export async function GET(request: NextRequest) {
     () => null
   );
 
-  return NextResponse.json({ captured: results.filter((r) => r.ok).length, results, returns });
+  // Commission: apply scheduled changes, revert finished temporary ones.
+  const commission = await admin.rpc("mivo_apply_commission_changes").then(
+    (r) => r.data ?? r.error?.message,
+    () => null
+  );
+
+  return NextResponse.json({ captured: results.filter((r) => r.ok).length, results, returns, commission });
 }

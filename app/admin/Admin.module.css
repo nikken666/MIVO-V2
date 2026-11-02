@@ -7362,3 +7362,13 @@ span.adminPanelKicker{font-size:12px!important;letter-spacing:normal!important}
 .sellerShip select,.sellerShip input{min-height:34px;padding:0 8px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:13px}
 @media(max-width:700px){.sellerStats{grid-template-columns:1fr}}
 .sellerForm{display:grid;gap:12px;max-width:640px}.sellerForm textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:14px}
+.platformChips{display:flex;flex-wrap:wrap;gap:8px 16px}
+.platformItem{padding:12px 0;border-top:1px solid #f0f1f3}
+.platformItem strong,.platformItem small{display:block}
+.platformItem small{color:var(--grey);font-size:12px;margin-top:2px}
+.platformItem p{margin:6px 0 0;font-size:14px;white-space:pre-wrap}
+.platformGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;align-items:end}
+.platformPill{display:inline-block;padding:2px 8px;border-radius:999px;background:rgba(var(--accent-rgb),.1);color:var(--accent);font-size:12px;font-weight:600}
+.platformPill.done{background:#f1f2f4;color:var(--grey)}
+.platformPill.yes{background:#e8f6ee;color:#1d7a3b}
+.platformPill.no{background:#fdecea;color:#b3261e}
