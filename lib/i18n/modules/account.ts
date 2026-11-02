@@ -436,6 +436,43 @@ const vouchers = {
   "account.vouchers.useNow": ["Use now", "Guna sekarang", "立即使用"],
 } as const satisfies Record<`account.${string}`, Row>;
 
+const cancel = {
+  "account.cancel.error": ["Unable to cancel this order.", "Tidak dapat membatalkan pesanan ini.", "无法取消此订单。"],
+  "account.cancel.eyebrow": ["Order cancellation", "Pembatalan pesanan", "取消订单"],
+  "account.cancel.title": ["Cancel this order?", "Batalkan pesanan ini?", "确定取消此订单？"],
+  "account.cancel.orderNumber": ["Order number", "Nombor pesanan", "订单编号"],
+  "account.cancel.noFee": ["No cancellation fee", "Tiada caj pembatalan", "无取消费用"],
+  "account.cancel.noFeeText": ["You haven't paid for this order yet.", "Anda belum membuat pembayaran untuk pesanan ini.", "此订单尚未付款。"],
+  "account.cancel.stockReleased": ["Reserved stock will be released", "Stok yang ditempah akan dilepaskan", "预留库存将被释放"],
+  "account.cancel.stockReleasedText": ["Stock reserved for this order becomes available again right away.", "Stok yang ditempah untuk pesanan ini akan tersedia semula serta-merta.", "为此订单预留的库存将立即恢复可售。"],
+  "account.cancel.cannotUndo": ["This can't be undone", "Tindakan ini tidak boleh dibatalkan", "此操作无法撤销"],
+  "account.cancel.cannotUndoText": ["If you change your mind later, you'll need to place a new order.", "Jika anda berubah fikiran nanti, anda perlu membuat pesanan baharu.", "如之后改变主意，需要重新下单。"],
+  "account.cancel.rule": ["24-hour payment rule", "Peraturan bayaran 24 jam", "24 小时付款规则"],
+  "account.cancel.ruleText": ["Unpaid orders are also cancelled automatically 24 hours after they're placed.", "Pesanan yang tidak dibayar juga akan dibatalkan secara automatik 24 jam selepas dibuat.", "未付款的订单在下单 24 小时后也会自动取消。"],
+  "account.cancel.keep": ["Keep order", "Kekalkan pesanan", "保留订单"],
+  "account.cancel.cancelling": ["Cancelling…", "Sedang membatalkan…", "正在取消…"],
+} as const satisfies Record<`account.${string}`, Row>;
+
+const paidCancel = {
+  "account.paidCancel.previewError": ["Unable to calculate the cancellation refund.", "Tidak dapat mengira bayaran balik pembatalan.", "无法计算取消退款金额。"],
+  "account.paidCancel.refundFailed": ["The refund could not be completed.", "Bayaran balik tidak dapat diselesaikan.", "退款未能完成。"],
+  "account.paidCancel.refundPending": ["Your order is cancelled and the refund is marked as pending.", "Pesanan anda telah dibatalkan dan bayaran balik ditandakan sebagai belum selesai.", "订单已取消，退款标记为处理中。"],
+  "account.paidCancel.refundError": ["Unable to cancel and refund this paid order.", "Tidak dapat membatalkan dan memulangkan wang pesanan ini.", "无法取消此已付款订单并退款。"],
+  "account.paidCancel.eyebrow": ["Paid order cancellation", "Pembatalan pesanan berbayar", "取消已付款订单"],
+  "account.paidCancel.title": ["Check your refund first.", "Semak bayaran balik anda dahulu.", "请先确认退款金额。"],
+  "account.paidCancel.calculating": ["Calculating cancellation charges…", "Mengira caj pembatalan…", "正在计算取消费用…"],
+  "account.paidCancel.orderTotal": ["Order total", "Jumlah pesanan", "订单总额"],
+  "account.paidCancel.estimated": ["Estimated refund", "Anggaran bayaran balik", "预计退款"],
+  "account.paidCancel.estimatedText": ["The refund starts once the cancellation is confirmed.", "Bayaran balik akan diproses selepas pembatalan disahkan.", "确认取消后即开始处理退款。"],
+  "account.paidCancel.policy": ["Cancellation policy", "Polisi pembatalan", "取消政策"],
+  "account.paidCancel.policyText": ["Payment processing charges are non-refundable. MIVO charges a 3% cancellation admin fee (up to RM20), plus a RM2 service fee. Orders can't be cancelled once shipped.", "Caj pemprosesan pembayaran tidak akan dikembalikan. MIVO mengenakan caj pentadbiran pembatalan 3% (maksimum RM20) serta caj perkhidmatan RM2. Pesanan tidak boleh dibatalkan selepas dihantar.", "支付手续费不予退还。MIVO 收取 3% 的取消行政费（最高 RM20）及 RM2 服务费。订单发货后无法取消。"],
+  "account.paidCancel.fallbackText": ["The processing fee shown is an estimate based on the standard card rate. When the payment gateway reports the actual fee, MIVO uses that amount.", "Caj pemprosesan yang dipaparkan ialah anggaran berdasarkan kadar kad standard. Apabila gerbang pembayaran memberikan caj sebenar, MIVO akan menggunakan amaun tersebut.", "显示的手续费是按标准银行卡费率估算的。支付网关提供实际费用后，MIVO 将按实际金额计算。"],
+  "account.paidCancel.reason": ["Reason (optional)", "Sebab (pilihan)", "原因（选填）"],
+  "account.paidCancel.reasonPlaceholder": ["Tell us why you're cancelling", "Beritahu kami sebab anda membatalkan", "告诉我们取消的原因"],
+  "account.paidCancel.agree": ["I understand the deductions above and agree to receive the refund amount shown.", "Saya faham potongan di atas dan bersetuju menerima amaun bayaran balik yang dipaparkan.", "我已了解以上扣费，并同意接受显示的退款金额。"],
+  "account.paidCancel.confirm": ["Confirm cancellation", "Sahkan pembatalan", "确认取消"],
+} as const satisfies Record<`account.${string}`, Row>;
+
 //__MORE__
 
 const rows = {
@@ -454,6 +491,8 @@ const rows = {
   ...claims,
   ...addresses,
   ...vouchers,
+  ...cancel,
+  ...paidCancel,
   //__SPREAD__
 };
 
