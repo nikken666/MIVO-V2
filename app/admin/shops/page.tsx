@@ -164,6 +164,7 @@ export default function AdminShopsPage() {
             <a href="/admin/orders">Orders</a>
             <a href="/admin/products">Products</a>
             <a href="/admin/shops" className={styles.active}>Shops</a>
+            <a href="/admin/products/import">Import from Shopee</a>
             <a href="/admin/store-health">Store Health</a>
           </nav>
         </aside>

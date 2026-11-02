@@ -109,7 +109,7 @@
   background: #fff;
   border-radius: 10px;
   padding: 11px 14px;
-  font-weight: 800;
+  font-weight:600;
   cursor: pointer;
 }
 
@@ -157,7 +157,7 @@
   background: #f3f3f5;
   color: #66666d;
   font-size: 12px;
-  font-weight: 900;
+  font-weight:700;
 }
 
 .matrixRow {
@@ -170,7 +170,7 @@
 }
 
 .optionCell {
-  font-weight: 800;
+  font-weight:600;
   overflow-wrap: anywhere;
 }
 

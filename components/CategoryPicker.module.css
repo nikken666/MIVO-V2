@@ -5,7 +5,7 @@
 
 .label {
   font-size: 13px;
-  font-weight: 800;
+  font-weight:600;
 }
 
 .trigger {
@@ -169,7 +169,7 @@
 .column .activeItem {
   background: #fff1f2;
   color: #e60012;
-  font-weight: 850;
+  font-weight:600;
 }
 
 .column .activeItem b {
@@ -249,7 +249,7 @@
   min-width: 92px;
   padding: 11px 18px;
   border-radius: 8px;
-  font-weight: 850;
+  font-weight:600;
   cursor: pointer;
 }
 
