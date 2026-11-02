@@ -173,7 +173,7 @@ export default function SellerApplicationsPage() {
               <div className={ui.card}><small>Rejected</small><strong>{loading ? "—" : count("rejected")}</strong><span>Not accepted</span></div>
             </div>
 
-            <div className={ui.toolbar}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10, margin: "0 0 14px" }}>
               {filters.map((value) => (
                 <button
                   key={value}
@@ -271,7 +271,7 @@ export default function SellerApplicationsPage() {
                                   placeholder="e.g. The IC photo is blurry, please upload a clearer one."
                                 />
                               </label>
-                              <div className={ui.toolbar}>
+                              <div style={{ display: "flex", flexWrap: "wrap", gap: 10, margin: "0 0 14px" }}>
                                 <button type="button" className={styles.adminAction} disabled={busy} onClick={() => void review(app, "approved")}>
                                   Approve and open shop
                                 </button>
