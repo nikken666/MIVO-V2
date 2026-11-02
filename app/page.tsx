@@ -6,6 +6,7 @@ import HomePromotions from "@/components/HomePromotions";
 import HomeBannerCarousel from "@/components/HomeBannerCarousel";
 import FlashSale from "@/components/FlashSale";
 import VehiclePickerButton from "@/components/VehiclePickerButton";
+import FitsMyCarChip from "@/components/FitsMyCarChip";
 import { products } from "@/data/products";
 
 const categories = [
@@ -143,7 +144,7 @@ export default async function HomePage() {
           <h2>Daily discover</h2>
           <div className="shopChips" role="list">
             <span className="shopChip active" role="listitem">All parts</span>
-            <Link href="/products" className="shopChip" role="listitem">Fits my car</Link>
+            <FitsMyCarChip />
             <Link href="/products?group=suspension" className="shopChip" role="listitem">Suspension</Link>
             <Link href="/products?group=steering" className="shopChip" role="listitem">Steering</Link>
           </div>

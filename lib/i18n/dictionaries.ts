@@ -1,7 +1,11 @@
+import * as browse from "./modules/browse";
+import * as buy from "./modules/buy";
+import * as account from "./modules/account";
+
 // Phrases shown to customers, in English, Bahasa Melayu and Chinese.
 // Add new phrases to `en` first; the other languages fall back to English.
 
-const en = {
+const core = {
   // Header & navigation
   "header.announce": "Parts matched to your car, delivered Malaysia-wide.",
   "header.secure": "Secure checkout",
@@ -64,6 +68,8 @@ const en = {
   "fit.notFit": "Doesn't fit",
   "fit.unverified": "Fitment unverified",
   "fit.check": "Check fitment",
+  "fit.fitsMyCar": "Fits my car",
+  "fit.fitsMy": "Fits my {car}",
 
   // Chat
   "chat.chat": "Chat",
@@ -128,10 +134,12 @@ const en = {
   "common.error": "Something went wrong. Please try again.",
 };
 
+const en = { ...core, ...browse.en, ...buy.en, ...account.en };
+
 export type Key = keyof typeof en;
 type Dict = Partial<Record<Key, string>>;
 
-const ms: Dict = {
+const msCore: Dict = {
   "header.announce": "Alat ganti yang padan dengan kereta anda, dihantar ke seluruh Malaysia.",
   "header.secure": "Pembayaran selamat",
   "header.searchPlaceholder": "Cari alat ganti, nombor OEM atau jenama",
@@ -187,6 +195,8 @@ const ms: Dict = {
   "fit.notFit": "Tidak padan",
   "fit.unverified": "Padanan belum disahkan",
   "fit.check": "Semak padanan",
+  "fit.fitsMyCar": "Padan kereta saya",
+  "fit.fitsMy": "Padan {car} saya",
   "chat.chat": "Sembang",
   "chat.chatNow": "Sembang sekarang",
   "chat.title": "Sembang",
@@ -243,7 +253,7 @@ const ms: Dict = {
   "common.error": "Ada masalah. Sila cuba lagi.",
 };
 
-const zh: Dict = {
+const zhCore: Dict = {
   "header.announce": "按车型配对的汽车零件，全马送货。",
   "header.secure": "安全付款",
   "header.searchPlaceholder": "搜索零件、OEM 编号或品牌",
@@ -299,6 +309,8 @@ const zh: Dict = {
   "fit.notFit": "不适合",
   "fit.unverified": "适配未确认",
   "fit.check": "请确认适配",
+  "fit.fitsMyCar": "适合我的车",
+  "fit.fitsMy": "适合我的 {car}",
   "chat.chat": "聊聊",
   "chat.chatNow": "立即聊聊",
   "chat.title": "聊天",
@@ -354,5 +366,8 @@ const zh: Dict = {
   "common.signInFirst": "请先登录",
   "common.error": "出了点问题，请再试一次。",
 };
+
+const ms: Dict = { ...msCore, ...browse.ms, ...buy.ms, ...account.ms };
+const zh: Dict = { ...zhCore, ...browse.zh, ...buy.zh, ...account.zh };
 
 export const dictionaries = { en, ms, zh };

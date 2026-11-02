@@ -120,6 +120,14 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [reviewedOrderIds, setReviewedOrderIds] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<OrderTab>("all");
+
+  // Deep links from the Me page: /orders?tab=to_ship
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("tab");
+    if (tabs.some((item) => item.key === requested)) {
+      setActiveTab(requested as OrderTab);
+    }
+  }, []);
   const [loading, setLoading] = useState(true);
   const [busyOrder, setBusyOrder] = useState("");
   const [unpaidCancelOrder, setUnpaidCancelOrder] = useState("");
