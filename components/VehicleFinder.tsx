@@ -12,10 +12,12 @@ import {
   saveAccountVehicle,
   type AccountVehicle,
 } from "@/lib/customerData";
+import { useT } from "@/components/LanguageProvider";
 
 const TOTAL_STEPS = 6;
 
 export default function VehicleFinder() {
+  const t = useT();
   const [step, setStep] = useState(1);
   const [make, setMake] = useState("");
   const [model, setModel] = useState("");
@@ -353,8 +355,8 @@ export default function VehicleFinder() {
     return (
       <div className="fitmentCard quizFitment savedVehicleHomeCard" id="fitment">
         <div className="savedVehicleHomeLoading">
-          <span className="microLabel">MIVO Garage</span>
-          <strong>Loading your vehicle...</strong>
+          <span className="microLabel">{t("buy.vf.garage")}</span>
+          <strong>{t("buy.vf.loading")}</strong>
         </div>
       </div>
     );
@@ -367,32 +369,32 @@ export default function VehicleFinder() {
 
         <div className="savedVehicleHomeTop">
           <div>
-            <span className="savedVehicleEyebrow">MIVO Garage · Active vehicle</span>
+            <span className="savedVehicleEyebrow">{t("buy.vf.activeEyebrow")}</span>
             <h2>
               <span>{saved.make}</span>
-              {saved.model || "Vehicle"}
+              {saved.model || t("buy.vf.vehicle")}
             </h2>
             <p>
               {[saved.generation, saved.year].filter(Boolean).join(" · ")}
             </p>
           </div>
-          <span className="savedVehicleStatus">✓ ACTIVE</span>
+          <span className="savedVehicleStatus">{t("buy.vf.active")}</span>
         </div>
 
         <div className="savedVehicleSpecLine">
           <div>
-            <small>Variant</small>
+            <small>{t("buy.v.variant")}</small>
             <strong>{saved.variant}</strong>
           </div>
           <i />
           <div>
-            <small>Transmission</small>
-            <strong>{saved.transmission || "—"}</strong>
+            <small>{t("buy.v.transmission")}</small>
+            <strong>{saved.transmission === "AUTO" ? t("buy.v.automatic") : saved.transmission === "MANUAL" ? t("buy.v.manual") : saved.transmission || "—"}</strong>
           </div>
           <i />
           <div>
-            <small>Fitment</small>
-            <strong>Ready</strong>
+            <small>{t("buy.vf.fitment")}</small>
+            <strong>{t("buy.vf.ready")}</strong>
           </div>
         </div>
 
@@ -401,8 +403,8 @@ export default function VehicleFinder() {
           href={"/products?" + savedVehicleQuery}
         >
           <span>
-            <small>Shop for your vehicle</small>
-            Compatible parts
+            <small>{t("buy.vf.shopForVehicle")}</small>
+            {t("buy.vf.compatibleParts")}
           </span>
           <b>→</b>
         </a>
@@ -415,12 +417,12 @@ export default function VehicleFinder() {
               setAddingVehicle(true);
             }}
           >
-            + ADD CAR
+            {t("header.addCar")}
           </button>
           <span>
-            {saved.id ? "ACCOUNT SYNCED" : "SAVED ON THIS DEVICE"}
+            {saved.id ? t("buy.pd.accountSynced") : t("buy.vf.savedOnDevice")}
           </span>
-          <a href="/garage">Manage garage</a>
+          <a href="/garage">{t("buy.vf.manageGarage")}</a>
         </div>
       </div>
     );
@@ -431,9 +433,9 @@ export default function VehicleFinder() {
       <div ref={quizTopRef} className="quizTop">
         <div>
           <span className="microLabel">
-            {saved ? "ADD ANOTHER VEHICLE" : "MIVO VEHICLE MATCH"}
+            {saved ? t("buy.vf.addAnother") : t("buy.vf.vehicleMatch")}
           </span>
-          <h2>Tell us about your car.</h2>
+          <h2>{t("buy.vf.tellUs")}</h2>
         </div>
         {saved ? (
           <button
@@ -444,10 +446,10 @@ export default function VehicleFinder() {
               setAddingVehicle(false);
             }}
           >
-            Cancel
+            {t("buy.vf.cancel")}
           </button>
         ) : (
-          <span className="fitmentBadge">Live</span>
+          <span className="fitmentBadge">{t("buy.vf.live")}</span>
         )}
       </div>
 
@@ -457,9 +459,9 @@ export default function VehicleFinder() {
 
       {step <= TOTAL_STEPS ? (
         <div className="quizStepMeta">
-          <span>QUESTION {String(step).padStart(2, "0")} / {String(TOTAL_STEPS).padStart(2, "0")}</span>
+          <span>{t("buy.vf.question", { n: String(step).padStart(2, "0"), total: String(TOTAL_STEPS).padStart(2, "0") })}</span>
           {step > 1 ? (
-            <button type="button" onClick={goBack}>← BACK</button>
+            <button type="button" onClick={goBack}>{t("buy.v.back")}</button>
           ) : (
             <span />
           )}
@@ -477,9 +479,9 @@ export default function VehicleFinder() {
       <div className="quizBody">
         {step === 1 ? (
           <>
-            <span className="quizKicker">Let's start</span>
-            <h3>What brand is your car?</h3>
-            <p>Tap the brand you drive.</p>
+            <span className="quizKicker">{t("buy.vf.letsStart")}</span>
+            <h3>{t("buy.v.whatBrand")}</h3>
+            <p>{t("buy.vf.tapBrand")}</p>
             <div className="quizAnswers quizAnswers--makes">
               {vehicleDatabase.map((entry) => (
                 <button
@@ -489,7 +491,7 @@ export default function VehicleFinder() {
                   onClick={() => chooseMake(entry.make)}
                 >
                   <strong>{entry.make}</strong>
-                  <span>Choose {entry.make}</span>
+                  <span>{t("buy.vf.choose", { make: entry.make })}</span>
                   <b>→</b>
                 </button>
               ))}
@@ -499,9 +501,9 @@ export default function VehicleFinder() {
 
         {step === 2 ? (
           <>
-            <span className="quizKicker">YOUR {make.toUpperCase()}</span>
-            <h3>Which model do you drive?</h3>
-            <p>Choose the model name first. We'll ask for the exact generation next.</p>
+            <span className="quizKicker">{t("buy.vf.yourMake", { make })}</span>
+            <h3>{t("buy.vf.whichModel")}</h3>
+            <p>{t("buy.vf.whichModelHint")}</p>
             <div className="quizAnswers quizAnswers--models">
               {models.map((item) => (
                 <button
@@ -522,8 +524,8 @@ export default function VehicleFinder() {
         {step === 3 ? (
           <>
             <span className="quizKicker">{make.toUpperCase()} · {model.toUpperCase()}</span>
-            <h3>Which generation is yours?</h3>
-            <p>The year range is shown here so you can identify the correct generation.</p>
+            <h3>{t("buy.vf.whichGeneration")}</h3>
+            <p>{t("buy.vf.generationHint")}</p>
             <div className="quizAnswers quizAnswers--generations">
               {generations.map((vehicle) => (
                 <button
@@ -534,7 +536,7 @@ export default function VehicleFinder() {
                 >
                   <div>
                     <strong>{vehicle.generation || vehicle.model}</strong>
-                    <span>{vehicle.startYear}–{vehicle.endYear ?? "Present"}</span>
+                    <span>{vehicle.startYear}–{vehicle.endYear ?? t("buy.v.present")}</span>
                   </div>
                   <b>→</b>
                 </button>
@@ -546,8 +548,8 @@ export default function VehicleFinder() {
         {step === 4 && selectedVehicle ? (
           <>
             <span className="quizKicker">{selectedVehicle.generation || selectedVehicle.model}</span>
-            <h3>What year is your car?</h3>
-            <p>Only years available for this generation are shown.</p>
+            <h3>{t("buy.v.whatYear")}</h3>
+            <p>{t("buy.vf.yearHint")}</p>
             <div className="quizAnswers quizAnswers--years">
               {years.map((item) => (
                 <button
@@ -566,8 +568,8 @@ export default function VehicleFinder() {
         {step === 5 && selectedVehicle ? (
           <>
             <span className="quizKicker">{year} · {selectedVehicle.model}</span>
-            <h3>Which variant is your car?</h3>
-            <p>Choose the engine / trim that matches your vehicle.</p>
+            <h3>{t("buy.vf.whichVariant")}</h3>
+            <p>{t("buy.vf.variantHint")}</p>
             <div className="quizAnswers quizAnswers--variants">
               {selectedVehicle.variants.map((item) => (
                 <button
@@ -587,8 +589,8 @@ export default function VehicleFinder() {
         {step === 6 && selectedVehicle ? (
           <>
             <span className="quizKicker">{variant}</span>
-            <h3>Automatic or manual?</h3>
-            <p>Transmission matters for some drivetrain and gearbox-related parts.</p>
+            <h3>{t("buy.vf.autoOrManual")}</h3>
+            <p>{t("buy.vf.transmissionHint")}</p>
             <div className="quizTransmission">
               {transmissions.map((item) => (
                 <button
@@ -597,8 +599,8 @@ export default function VehicleFinder() {
                   onClick={() => chooseTransmission(item)}
                 >
                   <span>{item === "AUTO" ? "A" : "M"}</span>
-                  <strong>{item === "AUTO" ? "AUTOMATIC" : "MANUAL"}</strong>
-                  <small>{item === "AUTO" ? "Automatic transmission" : "Manual transmission"}</small>
+                  <strong>{item === "AUTO" ? t("buy.v.automatic") : t("buy.v.manual")}</strong>
+                  <small>{item === "AUTO" ? t("buy.vf.automaticTransmission") : t("buy.vf.manualTransmission")}</small>
                 </button>
               ))}
             </div>
@@ -608,16 +610,16 @@ export default function VehicleFinder() {
         {step === 7 && selectedVehicle ? (
           <div className="quizConfirm">
             <span className="quizConfirmIcon">✓</span>
-            <span className="quizKicker">Your vehicle</span>
-            <h3>Is this your car?</h3>
+            <span className="quizKicker">{t("buy.vf.yourVehicle")}</span>
+            <h3>{t("buy.vf.isThisYourCar")}</h3>
 
             <div className="quizVehicleSummary">
-              <div><small>Make</small><strong>{make}</strong></div>
-              <div><small>Model</small><strong>{selectedVehicle.model}</strong></div>
-              <div><small>Generation</small><strong>{selectedVehicle.generation || "—"}</strong></div>
-              <div><small>Year</small><strong>{year}</strong></div>
-              <div><small>Variant</small><strong>{variant}</strong></div>
-              <div><small>Transmission</small><strong>{transmission}</strong></div>
+              <div><small>{t("buy.v.make")}</small><strong>{make}</strong></div>
+              <div><small>{t("buy.v.model")}</small><strong>{selectedVehicle.model}</strong></div>
+              <div><small>{t("buy.v.generation")}</small><strong>{selectedVehicle.generation || "—"}</strong></div>
+              <div><small>{t("buy.v.year")}</small><strong>{year}</strong></div>
+              <div><small>{t("buy.v.variant")}</small><strong>{variant}</strong></div>
+              <div><small>{t("buy.v.transmission")}</small><strong>{transmission === "AUTO" ? t("buy.v.automatic") : transmission === "MANUAL" ? t("buy.v.manual") : transmission}</strong></div>
             </div>
 
             <button
@@ -626,10 +628,10 @@ export default function VehicleFinder() {
               onClick={confirmVehicle}
               disabled={isNavigating}
             >
-              {isNavigating ? "FINDING PARTS..." : "YES, FIND MY PARTS"} <span>→</span>
+              {isNavigating ? t("buy.vf.finding") : t("buy.vf.yesFind")} <span>→</span>
             </button>
             <button type="button" className="quizRestart" onClick={restart}>
-              NO, START AGAIN
+              {t("buy.vf.noRestart")}
             </button>
           </div>
         ) : null}
@@ -638,16 +640,16 @@ export default function VehicleFinder() {
       <div className="garagePrompt quizGaragePrompt">
         <div className="garageIcon">+</div>
         <div>
-          <strong>{saved ? saved.label : "Already saved a car?"}</strong>
+          <strong>{saved ? saved.label : t("buy.vf.alreadySaved")}</strong>
           <small>
             {saved
               ? saved.id
-                ? "Synced to your MIVO account"
-                : "Saved on this device"
-              : "Open My Garage and continue shopping."}
+                ? t("buy.vf.syncedAccount")
+                : t("buy.vf.savedOnDevice")
+              : t("buy.vf.openGarageHint")}
           </small>
         </div>
-        <a href="/garage">{saved ? "Manage" : "Open Garage"}</a>
+        <a href="/garage">{saved ? t("buy.v.manage") : t("buy.vf.openGarage")}</a>
       </div>
     </div>
   );

@@ -16,6 +16,8 @@ import {
   saveDefaultAddress,
   type AccountAddress,
 } from "@/lib/customerData";
+import { useT } from "@/components/LanguageProvider";
+import type { Translate } from "@/lib/i18n";
 
 type Buyer = {
   email: string;
@@ -70,11 +72,11 @@ type AddonSuggestion = {
   price: number;
 };
 
-function voucherScopeLabel(scope: VoucherOption["scope_type"]) {
-  if (scope === "brand") return "Selected brand";
-  if (scope === "category") return "Selected category";
-  if (scope === "product") return "Selected products";
-  return "All products";
+function voucherScopeLabel(t: Translate, scope: VoucherOption["scope_type"]) {
+  if (scope === "brand") return t("buy.co.scopeBrand");
+  if (scope === "category") return t("buy.co.scopeCategory");
+  if (scope === "product") return t("buy.co.scopeProduct");
+  return t("buy.co.scopeAll");
 }
 
 function voucherValidLabel(value: string) {
@@ -84,37 +86,38 @@ function voucherValidLabel(value: string) {
   });
 }
 
-function friendlyVoucherReason(message: string) {
+function friendlyVoucherReason(t: Translate, message: string) {
   const value = message.toLowerCase();
 
   if (value.includes("first orders only")) {
-    return "This voucher is only available for a customer's first paid order.";
+    return t("buy.co.rFirstOrder");
   }
 
   if (value.includes("already used")) {
-    return "You have already used this voucher.";
+    return t("buy.co.rUsed");
   }
 
   if (value.includes("usage limit")) {
-    return "This voucher has reached its usage limit.";
+    return t("buy.co.rLimit");
   }
 
   if (value.includes("does not apply")) {
-    return "This voucher is only valid for selected products, brands or categories in your cart.";
+    return t("buy.co.rScope");
   }
 
   if (value.includes("not available")) {
-    return "This voucher is no longer available or is outside its valid campaign period.";
+    return t("buy.co.rUnavailable");
   }
 
   if (value.includes("claim this voucher")) {
-    return "Claim this voucher before using it at checkout.";
+    return t("buy.co.rClaim");
   }
 
-  return message || "This voucher cannot be applied to the current order.";
+  return message || t("buy.co.rDefault");
 }
 
 export default function CheckoutPage() {
+  const t = useT();
   const router = useRouter();
   const {
     cart,
@@ -361,15 +364,13 @@ export default function CheckoutPage() {
 
   const voucherReason =
     selectedVoucher && voucherShortfall > 0
-      ? "Add " +
-        formatPrice(voucherShortfall) +
-        " more to use " +
-        selectedVoucher.code +
-        ". Minimum spend is " +
-        formatPrice(selectedMinimumSpend) +
-        "."
+      ? t("buy.co.addMoreToUse", {
+          amount: formatPrice(voucherShortfall),
+          code: selectedVoucher.code,
+          min: formatPrice(selectedMinimumSpend),
+        })
       : voucherError
-        ? friendlyVoucherReason(voucherError)
+        ? friendlyVoucherReason(t, voucherError)
         : "";
 
   useEffect(() => {
@@ -397,7 +398,7 @@ export default function CheckoutPage() {
       if (items.some((item) => item === null)) {
         setShippingQuotes([]);
         setShippingError(
-          "One or more cart items do not have a valid SKU variation."
+          t("buy.co.invalidSku")
         );
         return;
       }
@@ -441,7 +442,7 @@ export default function CheckoutPage() {
         setShippingError(
           caught instanceof Error
             ? caught.message
-            : "Unable to calculate shipping."
+            : t("buy.co.shippingFailed")
         );
       } finally {
         if (active) setShippingLoading(false);
@@ -501,7 +502,7 @@ export default function CheckoutPage() {
         if (!active) return;
         setVoucherPreview(null);
         setVoucherError(
-          caught instanceof Error ? caught.message : "Voucher cannot be applied."
+          caught instanceof Error ? caught.message : t("buy.co.voucherCannotApply")
         );
       } finally {
         if (active) setVoucherLoading(false);
@@ -554,7 +555,7 @@ export default function CheckoutPage() {
         )[0];
 
       if (!best) {
-        setVoucherError("No claimed voucher is eligible for this order.");
+        setVoucherError(t("buy.co.noEligible"));
         return;
       }
 
@@ -577,7 +578,7 @@ export default function CheckoutPage() {
     ) {
       setError(
         shippingError ||
-          "Enter a valid postcode and choose a delivery state."
+          t("buy.co.enterPostcodeState")
       );
       return;
     }
@@ -591,7 +592,7 @@ export default function CheckoutPage() {
       const items = selectedCart.map((line) => {
         if (!line.variant?.id) {
           throw new Error(
-            line.product.name + " does not have a valid SKU variation."
+            t("buy.co.productInvalidSku", { name: line.product.name })
           );
         }
 
@@ -642,7 +643,7 @@ export default function CheckoutPage() {
       const order = data as CheckoutResult | null;
 
       if (!order?.order_number) {
-        throw new Error("Order was created without an order number.");
+        throw new Error(t("buy.co.noOrderNumber"));
       }
 
       const paymentResponse = await fetch(
@@ -695,10 +696,10 @@ export default function CheckoutPage() {
           details?.message,
           details?.details,
           details?.hint,
-          details?.code ? "Error code: " + details.code : "",
+          details?.code ? t("buy.co.errorCode", { code: details.code }) : "",
         ]
           .filter(Boolean)
-          .join(" | ") || "Unable to create order."
+          .join(" | ") || t("buy.co.createFailed")
       );
     } finally {
       setBusy(false);
@@ -709,9 +710,9 @@ export default function CheckoutPage() {
     return (
       <main className="checkoutPage">
         <div className="container checkoutLoading">
-          <span>MIVO checkout</span>
+          <span>{t("buy.co.eyebrow")}</span>
           <strong>
-            {loading ? "Preparing your checkout..." : "Loading your cart..."}
+            {loading ? t("buy.co.preparing") : t("buy.cart.loading")}
           </strong>
         </div>
       </main>
@@ -723,11 +724,11 @@ export default function CheckoutPage() {
       <main className="checkoutPage">
         <div className="container">
           <div className="cartEmpty">
-            <span>MIVO checkout</span>
-            <h1>Your cart is empty.</h1>
-            <p>Add a product before continuing to checkout.</p>
+            <span>{t("buy.co.eyebrow")}</span>
+            <h1>{t("buy.cart.empty")}</h1>
+            <p>{t("buy.co.addProductFirst")}</p>
             <Link href="/products" className="cartPrimaryButton">
-              Shop parts
+              {t("buy.cart.shopParts")}
             </Link>
           </div>
         </div>
@@ -740,10 +741,10 @@ export default function CheckoutPage() {
       <main className="checkoutPage">
         <div className="container">
           <div className="cartEmpty">
-            <span>MIVO checkout</span>
-            <h1>No items selected.</h1>
-            <p>Select the products you want to buy from your cart.</p>
-            <Link href="/cart" className="cartPrimaryButton">Back to cart</Link>
+            <span>{t("buy.co.eyebrow")}</span>
+            <h1>{t("buy.co.noneSelected")}</h1>
+            <p>{t("buy.co.noneSelectedHint")}</p>
+            <Link href="/cart" className="cartPrimaryButton">{t("buy.co.backToCart")}</Link>
           </div>
         </div>
       </main>
@@ -754,26 +755,26 @@ export default function CheckoutPage() {
     <main className="checkoutPage">
       <div className="checkoutTopBand">
         <div className="container checkoutTopInner">
-          <Link href="/cart">← BACK TO CART</Link>
+          <Link href="/cart">{t("buy.co.backToCartArrow")}</Link>
 
-          <div className="checkoutSteps" aria-label="Checkout progress">
-            <span className="done">01 CART</span>
+          <div className="checkoutSteps" aria-label={t("buy.co.progress")}>
+            <span className="done">{t("buy.co.stepCart")}</span>
             <i />
-            <span className="active">02 DETAILS</span>
+            <span className="active">{t("buy.co.stepDetails")}</span>
             <i />
-            <span>03 ORDER</span>
+            <span>{t("buy.co.stepOrder")}</span>
           </div>
 
-          <span>Secure checkout</span>
+          <span>{t("header.secure")}</span>
         </div>
       </div>
 
       <div className="container checkoutShell">
         <div className="checkoutPageHeader">
-          <span className="cartEyebrow">MIVO checkout</span>
-          <h1>Complete your order.</h1>
+          <span className="cartEyebrow">{t("buy.co.eyebrow")}</span>
+          <h1>{t("buy.co.title")}</h1>
           <p>
-            Signed in as <strong>{buyer?.email}</strong>
+            {t("buy.co.signedInAs")} <strong>{buyer?.email}</strong>
           </p>
         </div>
 
@@ -783,45 +784,45 @@ export default function CheckoutPage() {
               <div>
                 <span>01</span>
                 <div>
-                  <small>Delivery</small>
-                  <h2>Shipping details</h2>
+                  <small>{t("buy.co.delivery")}</small>
+                  <h2>{t("buy.co.shippingDetails")}</h2>
                 </div>
               </div>
-              <strong>Malaysia</strong>
+              <strong>{t("buy.co.malaysia")}</strong>
             </div>
 
             <div className="mivoMobileAddressCard">
               <div className="mivoMobileAddressInfo">
-                <strong>Shipping address</strong>
+                <strong>{t("buy.co.shippingAddress")}</strong>
                 {savedAddress && !addressExpanded ? (
                   <><span>{savedAddress.full_name} · {savedAddress.phone}</span><small>{[savedAddress.address_line_1, savedAddress.address_line_2, savedAddress.postcode, savedAddress.city, savedAddress.state].filter(Boolean).join(", ")}</small></>
-                ) : <small>Enter or review your delivery address</small>}
+                ) : <small>{t("buy.co.enterAddress")}</small>}
               </div>
-              <button type="button" onClick={() => setAddressExpanded(value => !value)}>{addressExpanded ? "Done" : savedAddress ? "Change" : "Edit"}</button>
+              <button type="button" onClick={() => setAddressExpanded(value => !value)}>{addressExpanded ? t("buy.co.done") : savedAddress ? t("buy.co.change") : t("buy.co.edit")}</button>
             </div>
             <div className={"mivoAddressEditor" + (savedAddress && !addressExpanded ? " collapsed" : "")}> 
             <div className="checkoutAccountSaveNote">
-              <span>{savedAddress ? "SAVED ADDRESS LOADED" : "ACCOUNT SAVE"}</span>
+              <span>{savedAddress ? t("buy.co.savedLoaded") : t("buy.co.accountSave")}</span>
               <p>
                 {savedAddress
-                  ? "Your default MIVO delivery address has been filled in automatically."
-                  : "This delivery address will be saved to your MIVO account for your next checkout."}
+                  ? t("buy.co.savedLoadedHint")
+                  : t("buy.co.accountSaveHint")}
               </p>
             </div>
 
             <div className="checkoutFields">
               <label className="checkoutField checkoutFieldFull">
-                <span>FULL NAME *</span>
+                <span>{t("buy.co.fullName")}</span>
                 <input
                   name="full_name"
                   required
                   defaultValue={savedAddress?.full_name || buyer?.fullName}
-                  placeholder="Recipient name"
+                  placeholder={t("buy.co.recipientName")}
                 />
               </label>
 
               <label className="checkoutField checkoutFieldFull">
-                <span>PHONE NUMBER *</span>
+                <span>{t("buy.co.phone")}</span>
                 <input
                   name="phone"
                   required
@@ -832,26 +833,26 @@ export default function CheckoutPage() {
               </label>
 
               <label className="checkoutField checkoutFieldFull">
-                <span>ADDRESS LINE 1 *</span>
+                <span>{t("buy.co.address1")}</span>
                 <input
                   name="address_line_1"
                   required
                   defaultValue={savedAddress?.address_line_1 || ""}
-                  placeholder="House / unit number and street"
+                  placeholder={t("buy.co.address1Ph")}
                 />
               </label>
 
               <label className="checkoutField checkoutFieldFull">
-                <span>Address line 2</span>
+                <span>{t("buy.co.address2")}</span>
                 <input
                   name="address_line_2"
                   defaultValue={savedAddress?.address_line_2 || ""}
-                  placeholder="Building, area or landmark (optional)"
+                  placeholder={t("buy.co.address2Ph")}
                 />
               </label>
 
               <label className="checkoutField">
-                <span>POSTCODE *</span>
+                <span>{t("buy.co.postcode")}</span>
                 <input
                   name="postcode"
                   required
@@ -870,17 +871,17 @@ export default function CheckoutPage() {
               </label>
 
               <label className="checkoutField">
-                <span>CITY *</span>
+                <span>{t("buy.co.city")}</span>
                 <input
                   name="city"
                   required
                   defaultValue={savedAddress?.city || ""}
-                  placeholder="City"
+                  placeholder={t("buy.co.cityPh")}
                 />
               </label>
 
               <label className="checkoutField checkoutFieldFull">
-                <span>STATE *</span>
+                <span>{t("buy.co.state")}</span>
                 <select
                   name="state"
                   required
@@ -891,7 +892,7 @@ export default function CheckoutPage() {
                   }}
                 >
                   <option value="" disabled>
-                    Choose state
+                    {t("buy.co.chooseState")}
                   </option>
                   <option>Johor</option>
                   <option>Kedah</option>
@@ -914,13 +915,13 @@ export default function CheckoutPage() {
 
             </div>
             </div>
-            <button className="mivoMobileToggleNote" type="button" onClick={() => setNoteExpanded(value => !value)}>{noteExpanded ? "Hide order note" : "Add order note (optional)"}</button>
+            <button className="mivoMobileToggleNote" type="button" onClick={() => setNoteExpanded(value => !value)}>{noteExpanded ? t("buy.co.hideNote") : t("buy.co.addNote")}</button>
               <label className={"checkoutField checkoutFieldFull mivoNoteEditor" + (noteExpanded ? " expanded" : "")}>
-                <span>Order note</span>
+                <span>{t("buy.co.orderNote")}</span>
                 <textarea
                   name="customer_note"
                   rows={3}
-                  placeholder="Optional note for this order"
+                  placeholder={t("buy.co.orderNotePh")}
                 />
               </label>
 
@@ -931,13 +932,9 @@ export default function CheckoutPage() {
                 required
               />
               <span>
-                <strong>Cancellation & refund policy</strong>
+                <strong>{t("buy.co.policyTitle")}</strong>
                 <small>
-                  Unpaid orders are cancelled automatically after 24 hours.
-                  Paid orders may be cancelled before shipment. Paid
-                  cancellations deduct the actual payment processing fee, a 3%
-                  cancellation administration fee capped at RM20, and a RM2
-                  service fee. Once shipped, the order cannot be cancelled.
+                  {t("buy.co.policy")}
                 </small>
               </span>
             </label>
@@ -950,13 +947,13 @@ export default function CheckoutPage() {
                 }
               >
                 <div>
-                  <span>Delivery method</span>
+                  <span>{t("buy.co.deliveryMethod")}</span>
                   <strong>
                     {shippingLoading
-                      ? "Calculating..."
+                      ? t("buy.co.calculating")
                       : shippingQuotes.length
-                        ? "Choose courier"
-                        : "Unavailable"}
+                        ? t("buy.co.chooseCourier")
+                        : t("buy.co.unavailable")}
                   </strong>
                 </div>
 
@@ -988,7 +985,7 @@ export default function CheckoutPage() {
                         </span>
                         <b>
                           {quote.shipping_amount === 0
-                            ? "FREE"
+                            ? t("buy.co.free")
                             : formatPrice(quote.shipping_amount)}
                         </b>
                       </button>
@@ -1004,14 +1001,14 @@ export default function CheckoutPage() {
 
             <div className="checkoutActionRow">
               <div>
-                <span>Order total</span>
+                <span>{t("buy.co.orderTotal")}</span>
                 <strong>
                   {formatPrice(checkoutTotal)}
                 </strong>
                 <small>
                   {shippingQuote
-                    ? "Includes shipping"
-                    : "Choose state to calculate shipping"}
+                    ? t("buy.co.includesShipping")
+                    : t("buy.co.chooseStateToCalc")}
                 </small>
               </div>
 
@@ -1028,8 +1025,8 @@ export default function CheckoutPage() {
                 }
               >
                 <span>
-                  <small>{busy ? "PROCESSING" : "FINAL STEP"}</small>
-                  {busy ? "OPENING PAYMENT..." : "PLACE ORDER & PAY"}
+                  <small>{busy ? t("buy.co.processing") : t("buy.co.finalStep")}</small>
+                  {busy ? t("buy.pay.opening") : t("buy.co.placeOrder")}
                 </span>
                 <b></b>
               </button>
@@ -1039,12 +1036,12 @@ export default function CheckoutPage() {
           <aside className="checkoutSummaryCard">
             <div className="checkoutSummaryHead">
               <div>
-                <span>Your order</span>
+                <span>{t("buy.co.yourOrder")}</span>
                 <strong>
-                  {selectedCount} ITEM{selectedCount === 1 ? "" : "S"}
+                  {t("buy.co.itemCount", { n: selectedCount })}
                 </strong>
               </div>
-              <Link href="/cart">Edit cart</Link>
+              <Link href="/cart">{t("buy.co.editCart")}</Link>
             </div>
 
             <div className="checkoutItems">
@@ -1089,41 +1086,41 @@ export default function CheckoutPage() {
 
             <div className="checkoutSummaryRows">
               <div>
-                <span>Subtotal</span>
+                <span>{t("buy.cart.subtotal")}</span>
                 <strong>{formatPrice(subtotal)}</strong>
               </div>
               <div>
-                <span>Shipping</span>
+                <span>{t("buy.cart.shipping")}</span>
                 <strong>
                   {!shippingState
-                    ? "Choose state"
+                    ? t("buy.co.chooseState")
                     : !/^\d{5}$/.test(shippingPostcode)
-                      ? "Enter postcode"
+                      ? t("buy.co.enterPostcode")
                       : shippingLoading
-                      ? "Calculating..."
+                      ? t("buy.co.calculating")
                       : shippingQuote
                         ? shippingQuote.shipping_amount === 0
-                          ? "FREE"
+                          ? t("buy.co.free")
                           : formatPrice(
                               shippingQuote.shipping_amount
                             )
-                        : "Unavailable"}
+                        : t("buy.co.unavailable")}
                 </strong>
               </div>
             </div>
 
             <div className="mivoMobileVoucherToggle">
-              <span>Voucher / Promo Code <small>{vouchers.length} available</small></span>
-              <button type="button" onClick={() => setVoucherExpanded(value => !value)}>{voucherExpanded ? "Close" : "Choose"}</button>
+              <span>{t("buy.co.voucherPromo")} <small>{t("buy.co.nAvailable", { n: vouchers.length })}</small></span>
+              <button type="button" onClick={() => setVoucherExpanded(value => !value)}>{voucherExpanded ? t("buy.co.close") : t("buy.co.choose")}</button>
             </div>
             <div className={"checkoutVoucherBox mivoVoucherEditor" + (voucherExpanded ? " expanded" : "")}>
               <div className="checkoutVoucherHead">
                 <div>
-                  <span>MIVO voucher</span>
+                  <span>{t("buy.co.mivoVoucher")}</span>
                   <strong>
                     {vouchers.length
-                      ? vouchers.length + " claimed"
-                      : "No claimed vouchers"}
+                      ? t("buy.co.nClaimed", { n: vouchers.length })
+                      : t("buy.co.noClaimed")}
                   </strong>
                 </div>
                 {vouchers.length > 0 && shippingQuote ? (
@@ -1132,10 +1129,10 @@ export default function CheckoutPage() {
                     onClick={() => void applyBestVoucher()}
                     disabled={voucherLoading}
                   >
-                    Best voucher
+                    {t("buy.co.bestVoucher")}
                   </button>
                 ) : (
-                  <Link href="/">Claim</Link>
+                  <Link href="/">{t("buy.voucher.claim")}</Link>
                 )}
               </div>
 
@@ -1150,7 +1147,7 @@ export default function CheckoutPage() {
                       setVoucherError("");
                     }}
                   >
-                    No voucher
+                    {t("buy.co.noVoucher")}
                   </button>
 
                   {vouchers.map((voucher) => {
@@ -1174,34 +1171,34 @@ export default function CheckoutPage() {
 
                         <div className="checkoutVoucherConditions">
                           <small>
-                            Min. Spend {formatPrice(minSpend)}
+                            {t("buy.voucher.minSpend", { amount: formatPrice(minSpend) })}
                           </small>
 
                           {cap > 0 ? (
-                            <small>Max Discount {formatPrice(cap)}</small>
+                            <small>{t("buy.co.maxDiscount", { amount: formatPrice(cap) })}</small>
                           ) : null}
 
                           {voucher.first_order_only ? (
-                            <small>First Order Only</small>
+                            <small>{t("buy.co.firstOrderOnly")}</small>
                           ) : null}
 
                           {voucher.scope_type !== "all" ? (
                             <small>
-                              {voucherScopeLabel(voucher.scope_type)}
+                              {voucherScopeLabel(t, voucher.scope_type)}
                             </small>
                           ) : null}
 
                           <small>
-                            Valid Till {voucherValidLabel(voucher.ends_at)}
+                            {t("buy.co.validTill", { date: voucherValidLabel(voucher.ends_at) })}
                           </small>
                         </div>
 
                         {shortBy > 0 ? (
                           <em>
-                            Add {formatPrice(shortBy)} more
+                            {t("buy.co.addMore", { amount: formatPrice(shortBy) })}
                           </em>
                         ) : (
-                          <em className="eligible">Eligible</em>
+                          <em className="eligible">{t("buy.co.eligible")}</em>
                         )}
                       </button>
                     );
@@ -1210,16 +1207,18 @@ export default function CheckoutPage() {
               ) : null}
 
               {voucherLoading ? (
-                <small>Checking voucher...</small>
+                <small>{t("buy.co.checkingVoucher")}</small>
               ) : voucherPreview ? (
                 <small className="success">
-                  {voucherPreview.code} saves{" "}
-                  {formatPrice(Number(voucherPreview.discount_amount))}
+                  {t("buy.co.saves", {
+                    code: voucherPreview.code,
+                    amount: formatPrice(Number(voucherPreview.discount_amount)),
+                  })}
                 </small>
               ) : selectedVoucherId && voucherReason ? (
                 <div className="checkoutVoucherUnavailable">
                   <div className="checkoutVoucherReason">
-                    <strong>Voucher not available yet</strong>
+                    <strong>{t("buy.co.notAvailableYet")}</strong>
                     <p>{voucherReason}</p>
                   </div>
 
@@ -1247,9 +1246,9 @@ export default function CheckoutPage() {
                           />
                         </i>
                         <small>
-                          You&apos;re only{" "}
+                          {t("buy.co.awayBefore")}{" "}
                           <strong>{formatPrice(voucherShortfall)}</strong>{" "}
-                          away from unlocking {selectedVoucher.code}.
+                          {t("buy.co.awayAfter", { code: selectedVoucher.code })}
                         </small>
                       </div>
 
@@ -1257,12 +1256,12 @@ export default function CheckoutPage() {
                         <div className="checkoutAddonSection">
                           <div className="checkoutAddonHead">
                             <div>
-                              <span>Add-on to unlock</span>
+                              <span>{t("buy.co.addonEyebrow")}</span>
                               <strong>
-                                Add a little more and use your voucher.
+                                {t("buy.co.addonTitle")}
                               </strong>
                             </div>
-                            <Link href="/products">More parts</Link>
+                            <Link href="/products">{t("buy.co.moreParts")}</Link>
                           </div>
 
                           {addonSuggestions.length > 0 ? (
@@ -1300,7 +1299,7 @@ export default function CheckoutPage() {
                                       )
                                     }
                                   >
-                                    + ADD
+                                    {t("buy.co.add")}
                                   </button>
                                 </article>
                               ))}
@@ -1308,11 +1307,10 @@ export default function CheckoutPage() {
                           ) : (
                             <div className="checkoutAddonEmpty">
                               <span>
-                                No quick add-on is available in your current
-                                product selection yet.
+                                {t("buy.co.noAddon")}
                               </span>
                               <Link href="/products">
-                                Browse parts to unlock
+                                {t("buy.co.browseToUnlock")}
                               </Link>
                             </div>
                           )}
@@ -1326,20 +1324,20 @@ export default function CheckoutPage() {
 
             {voucherPreview && discountAmount > 0 ? (
               <div className="checkoutDiscountRow">
-                <span>Voucher ({voucherPreview.code})</span>
+                <span>{t("buy.co.voucherRow", { code: voucherPreview.code })}</span>
                 <strong>− {formatPrice(discountAmount)}</strong>
               </div>
             ) : null}
 
             <div className="checkoutSummaryTotal">
               <div>
-                <span>Total</span>
+                <span>{t("buy.co.total")}</span>
                 <small>
                   {shippingQuote
                     ? shippingQuote.zone_name
                     : !shippingState
-                      ? "Awaiting delivery state"
-                      : "Awaiting postcode"}
+                      ? t("buy.co.awaitingState")
+                      : t("buy.co.awaitingPostcode")}
                 </small>
               </div>
               <strong>
@@ -1348,9 +1346,9 @@ export default function CheckoutPage() {
             </div>
 
             <div className="checkoutAssurance">
-              <span>Secure account checkout</span>
-              <span>Order tracking after confirmation</span>
-              <span>MIVO customer support</span>
+              <span>{t("buy.co.assure1")}</span>
+              <span>{t("buy.co.assure2")}</span>
+              <span>{t("buy.co.assure3")}</span>
             </div>
           </aside>
         </div>

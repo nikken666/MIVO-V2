@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { useT } from "@/components/LanguageProvider";
 
 export default function StripePayButton({
   orderNumber,
   className = "orderPrimaryButton",
-  children = "PAY NOW",
+  children,
 }: {
   orderNumber: string;
   className?: string;
   children?: string;
 }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -31,13 +33,13 @@ export default function StripePayButton({
       };
 
       if (!response.ok || !data.url) {
-        throw new Error(data.error || "Unable to start payment.");
+        throw new Error(data.error || t("buy.pay.unable"));
       }
 
       window.location.assign(data.url);
     } catch (caught) {
       setError(
-        caught instanceof Error ? caught.message : "Unable to start payment."
+        caught instanceof Error ? caught.message : t("buy.pay.unable")
       );
       setBusy(false);
     }
@@ -51,7 +53,7 @@ export default function StripePayButton({
         disabled={busy}
         onClick={pay}
       >
-        {busy ? "OPENING PAYMENT..." : children}
+        {busy ? t("buy.pay.opening") : children ?? t("buy.pay.payNow")}
       </button>
       {error ? <small className="stripePayError">{error}</small> : null}
     </span>

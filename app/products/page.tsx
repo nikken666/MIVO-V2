@@ -13,6 +13,8 @@ import {
 } from "@/data/fitments";
 import { getLiveFitmentStatuses } from "@/lib/liveFitment";
 import { searchProducts } from "@/lib/search";
+import { vehicleInQuery } from "@/lib/vehicleTerms";
+import SearchVehicleHint from "@/components/SearchVehicleHint";
 import { getT } from "@/lib/i18n/server";
 import type { Key, Translate } from "@/lib/i18n";
 
@@ -316,6 +318,11 @@ export default async function ProductsPage({
         </>
       ) : (
       <div className="pageHeading">
+        {rawQuery && !selectedVehicle && vehicleInQuery(rawQuery) ? (
+          <SearchVehicleHint
+            car={vehicleInQuery(rawQuery)?.model || vehicleInQuery(rawQuery)?.make || ""}
+          />
+        ) : null}
         <div>
           <h1>
             {rawQuery
