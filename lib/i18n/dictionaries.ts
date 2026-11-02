@@ -57,6 +57,7 @@ const core = {
   "search.forCar": "for your {car}",
   "search.inShop": "Shop",
   "search.seeAll": "See all results for “{q}”",
+  "search.pickCar": "Shopping for your {car}? Pick its year to see parts that fit",
 
   // Product card & fitment
   "card.add": "Add",
@@ -186,6 +187,7 @@ const msCore: Dict = {
   "search.forCar": "untuk {car} anda",
   "search.inShop": "Kedai",
   "search.seeAll": "Lihat semua hasil untuk “{q}”",
+  "search.pickCar": "Cari untuk {car} anda? Pilih tahunnya untuk lihat alat ganti yang padan",
   "card.add": "Tambah",
   "card.options": "Pilihan",
   "card.view": "Lihat",
@@ -300,6 +302,7 @@ const zhCore: Dict = {
   "search.forCar": "适合你的 {car}",
   "search.inShop": "店铺",
   "search.seeAll": "查看“{q}”的全部结果",
+  "search.pickCar": "在找 {car} 的零件？选好年份，只看适合的",
   "card.add": "加入",
   "card.options": "选规格",
   "card.view": "查看",

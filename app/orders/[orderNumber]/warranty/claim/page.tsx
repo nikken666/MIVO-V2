@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useT } from "@/components/LanguageProvider";
 
 type ClaimOrder = {
   id: string;
@@ -66,6 +67,7 @@ function dateLabel(value: Date | string | null) {
 export default function WarrantyClaimPage() {
   const params = useParams();
   const router = useRouter();
+  const t = useT();
   const orderNumber = String(params.orderNumber || "");
 
   const [order, setOrder] = useState<ClaimOrder | null>(null);
@@ -88,7 +90,7 @@ export default function WarrantyClaimPage() {
         const orderItemId = search.get("item") || "";
 
         if (!orderItemId) {
-          throw new Error("Choose a warranty item before submitting a claim.");
+          throw new Error(t("account.claim.chooseItem"));
         }
 
         const supabase = createClient();
@@ -117,11 +119,11 @@ export default function WarrantyClaimPage() {
           .maybeSingle();
 
         if (orderError || !orderData) {
-          throw orderError || new Error("Order not found.");
+          throw orderError || new Error(t("account.detail.notFound"));
         }
 
         if (orderData.status !== "delivered") {
-          throw new Error("Warranty claims are available after delivery.");
+          throw new Error(t("account.claim.afterDelivery"));
         }
 
         const { data: itemData, error: itemError } = await supabase
@@ -134,13 +136,13 @@ export default function WarrantyClaimPage() {
           .maybeSingle();
 
         if (itemError || !itemData) {
-          throw itemError || new Error("Warranty item not found.");
+          throw itemError || new Error(t("account.claim.itemNotFound"));
         }
 
         const months = Number(itemData.warranty_months || 0);
 
         if (months <= 0) {
-          throw new Error("This item does not have warranty coverage.");
+          throw new Error(t("account.claim.noCoverage"));
         }
 
         const { data: activeClaim } = await supabase
@@ -197,7 +199,7 @@ export default function WarrantyClaimPage() {
         const expiry = addMonths(startAt, months);
 
         if (Date.now() > expiry.getTime()) {
-          throw new Error("The warranty for this item has expired.");
+          throw new Error(t("account.claim.expired"));
         }
 
         if (!active) return;
@@ -213,7 +215,7 @@ export default function WarrantyClaimPage() {
         setError(
           caught instanceof Error
             ? caught.message
-            : "Unable to prepare warranty claim."
+            : t("account.claim.prepareError")
         );
       } finally {
         if (active) setLoading(false);
@@ -233,7 +235,7 @@ export default function WarrantyClaimPage() {
     const available = Math.max(0, 5 - photos.length);
 
     if (available < 1) {
-      setError("You can upload up to 5 photos.");
+      setError(t("account.claim.maxPhotos"));
       return;
     }
 
@@ -242,12 +244,12 @@ export default function WarrantyClaimPage() {
 
     for (const file of incoming) {
       if (!allowed.has(file.type)) {
-        setError("Only JPG, PNG and WEBP photos are allowed.");
+        setError(t("account.review.photoType"));
         return;
       }
 
       if (file.size > 5 * 1024 * 1024) {
-        setError("Each photo must be 5MB or smaller.");
+        setError(t("account.review.photoSize"));
         return;
       }
     }
@@ -284,7 +286,7 @@ export default function WarrantyClaimPage() {
     if (!order || !item) return;
 
     if (description.trim().length < 10) {
-      setError("Please describe the issue in more detail.");
+      setError(t("account.claim.moreDetail"));
       return;
     }
 
@@ -318,7 +320,7 @@ export default function WarrantyClaimPage() {
 
         if (!response.ok) {
           throw new Error(
-            upload.error || "Unable to upload warranty claim photos."
+            upload.error || t("account.claim.uploadError")
           );
         }
 
@@ -344,7 +346,7 @@ export default function WarrantyClaimPage() {
       setError(
         caught instanceof Error
           ? caught.message
-          : "Unable to submit warranty claim."
+          : t("account.claim.submitError")
       );
     } finally {
       setBusy(false);
@@ -355,7 +357,7 @@ export default function WarrantyClaimPage() {
     return (
       <main className="accountDataPage">
         <div className="container">
-          <p className="accountDataNotice">Preparing warranty claim...</p>
+          <p className="accountDataNotice">{t("account.claim.preparing")}</p>
         </div>
       </main>
     );
@@ -366,10 +368,10 @@ export default function WarrantyClaimPage() {
       <main className="accountDataPage">
         <div className="container">
           <div className="ordersEmpty">
-            <strong>Warranty claim unavailable.</strong>
+            <strong>{t("account.claim.unavailable")}</strong>
             <p>{error}</p>
             <Link href={"/orders/" + encodeURIComponent(orderNumber) + "/warranty"}>
-              BACK TO WARRANTY →
+              {t("account.claim.backToWarranty")} →
             </Link>
           </div>
         </div>
@@ -383,21 +385,20 @@ export default function WarrantyClaimPage() {
         <div className="container">
           <section className="warrantyClaimThanks">
             <div className="warrantyClaimThanksIcon">✓</div>
-            <span>CLAIM SUBMITTED</span>
-            <h1>We received your warranty claim.</h1>
+            <span>{t("account.claim.submitted")}</span>
+            <h1>{t("account.claim.receivedTitle")}</h1>
             <p>
-              MIVO will review the order, product and evidence you submitted.
-              You can follow the claim status from your account.
+              {t("account.claim.receivedText")}
             </p>
 
             <div className="warrantyClaimNumber">
-              <span>CLAIM NUMBER</span>
+              <span>{t("account.claim.claimNumber")}</span>
               <strong>{claim.claim_number}</strong>
             </div>
 
             <div className="warrantyClaimThanksActions">
               <Link href="/account/claims" className="orderPrimaryButton">
-                VIEW MY CLAIMS
+                {t("account.claim.viewMyClaims")}
               </Link>
               <Link
                 href={
@@ -407,7 +408,7 @@ export default function WarrantyClaimPage() {
                 }
                 className="orderGhostButton"
               >
-                BACK TO WARRANTY
+                {t("account.claim.backToWarranty")}
               </Link>
             </div>
           </section>
@@ -426,9 +427,9 @@ export default function WarrantyClaimPage() {
       <div className="container">
         <div className="accountDataHeader">
           <div>
-            <span>MIVO WARRANTY CLAIM</span>
-            <h1>Submit a Claim</h1>
-            <p>Order {order?.order_number}</p>
+            <span>{t("account.claim.eyebrow")}</span>
+            <h1>{t("account.claim.title")}</h1>
+            <p>{t("account.detail.orderNo", { n: order?.order_number ?? "" })}</p>
           </div>
 
           <Link
@@ -438,7 +439,7 @@ export default function WarrantyClaimPage() {
               "/warranty"
             }
           >
-            ← WARRANTY
+            ← {t("account.orders.warranty")}
           </Link>
         </div>
 
@@ -452,17 +453,17 @@ export default function WarrantyClaimPage() {
               )}
             </div>
 
-            <span>WARRANTY ITEM</span>
+            <span>{t("account.claim.item")}</span>
             <strong>{item?.product_name}</strong>
             {item?.variant_name ? <small>{item.variant_name}</small> : null}
 
             <div className="warrantyClaimCoverage">
               <div>
-                <span>PERIOD</span>
-                <strong>{months} MONTHS</strong>
+                <span>{t("account.warranty.period")}</span>
+                <strong>{t("account.warranty.months", { n: months })}</strong>
               </div>
               <div>
-                <span>EXPIRES</span>
+                <span>{t("account.warranty.expires")}</span>
                 <strong>{dateLabel(expiry)}</strong>
               </div>
             </div>
@@ -470,46 +471,45 @@ export default function WarrantyClaimPage() {
 
           <form className="warrantyClaimForm" onSubmit={submit}>
             <div className="warrantyClaimFormHead">
-              <span>CLAIM DETAILS</span>
-              <h2>Tell us what happened.</h2>
+              <span>{t("account.claim.details")}</span>
+              <h2>{t("account.claim.whatHappened")}</h2>
               <p>
-                Add clear photos and enough detail for the MIVO team to review
-                your claim.
+                {t("account.claim.detailsText")}
               </p>
             </div>
 
             <label className="warrantyClaimField">
-              <span>ISSUE TYPE *</span>
+              <span>{t("account.claim.issueType")} *</span>
               <select
                 value={issueType}
                 onChange={(event) => setIssueType(event.target.value)}
               >
-                <option value="defect">Product defect</option>
-                <option value="noise">Noise / abnormal sound</option>
-                <option value="leakage">Leakage</option>
-                <option value="fitment">Fitment issue</option>
-                <option value="damage">Damage</option>
-                <option value="performance">Performance issue</option>
-                <option value="other">Other</option>
+                <option value="defect">{t("account.issue.defect")}</option>
+                <option value="noise">{t("account.issue.noise")}</option>
+                <option value="leakage">{t("account.issue.leakage")}</option>
+                <option value="fitment">{t("account.issue.fitment")}</option>
+                <option value="damage">{t("account.issue.damage")}</option>
+                <option value="performance">{t("account.issue.performance")}</option>
+                <option value="other">{t("account.issue.other")}</option>
               </select>
             </label>
 
             <label className="warrantyClaimField">
-              <span>DESCRIBE THE ISSUE *</span>
+              <span>{t("account.claim.describe")} *</span>
               <textarea
                 rows={6}
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
-                placeholder="Describe when the issue started, what happened and what you observed."
+                placeholder={t("account.claim.describePlaceholder")}
               />
-              <small>{description.trim().length} characters</small>
+              <small>{t("account.claim.characters", { n: description.trim().length })}</small>
             </label>
 
             <div className="warrantyClaimPhotos">
               <div className="warrantyClaimPhotosHead">
                 <div>
-                  <span>PHOTOS</span>
-                  <small>JPG, PNG or WEBP · Max 5MB each</small>
+                  <span>{t("account.claim.photos")}</span>
+                  <small>{t("account.review.photoHint")}</small>
                 </div>
                 <b>{photos.length} / 5</b>
               </div>
@@ -517,11 +517,11 @@ export default function WarrantyClaimPage() {
               <div className="warrantyClaimPhotoGrid">
                 {photos.map((photo, index) => (
                   <div className="warrantyClaimPhoto" key={photo.preview + index}>
-                    <img src={photo.preview} alt="Claim evidence" />
+                    <img src={photo.preview} alt={t("account.claim.evidenceAlt")} />
                     <button
                       type="button"
                       onClick={() => removePhoto(index)}
-                      aria-label="Remove claim photo"
+                      aria-label={t("account.claim.removePhoto")}
                     >
                       ×
                     </button>
@@ -540,8 +540,8 @@ export default function WarrantyClaimPage() {
                       }}
                     />
                     <b>＋</b>
-                    <span>ADD PHOTOS</span>
-                    <small>{5 - photos.length} remaining</small>
+                    <span>{t("account.review.addPhotos")}</span>
+                    <small>{t("account.review.remaining", { n: 5 - photos.length })}</small>
                   </label>
                 ) : null}
               </div>
@@ -551,15 +551,15 @@ export default function WarrantyClaimPage() {
 
             <div className="warrantyClaimSubmitRow">
               <p>
-                By submitting this claim, you confirm the information and
-                photos provided are related to this product and order.
+                {t("account.claim.confirmText")}
               </p>
               <button
                 type="submit"
                 className="orderPrimaryButton"
                 disabled={busy}
               >
-                {busy ? "SUBMITTING..." : "SUBMIT CLAIM"}
+                {busy ? t("account.claim.submitting") : t("account.warranty.submitClaim")}
+
               </button>
             </div>
           </form>

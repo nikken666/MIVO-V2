@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/data/products";
 import styles from "./Success.module.css";
+import { useT } from "@/components/LanguageProvider";
 
 type OrderSummary = {
   id: string;
@@ -72,6 +73,7 @@ const burstDots = Array.from({ length: 14 }, (_, i) => i);
 export default function PaymentSuccessPage() {
   const params = useParams();
   const router = useRouter();
+  const t = useT();
   const orderNumber = String(params.orderNumber || "");
 
   const [order, setOrder] = useState<OrderSummary | null>(null);
@@ -180,33 +182,33 @@ export default function PaymentSuccessPage() {
           </span>
         </div>
 
-        <p className={styles.kicker}>MIVO payment</p>
+        <p className={styles.kicker}>{t("account.success.kicker")}</p>
         <h1 className={styles.title}>
-          {confirmed ? "Payment successful" : "Confirming payment…"}
+          {confirmed ? t("account.success.title") : t("account.success.confirming")}
         </h1>
         <p className={styles.lead}>
           {confirmed
-            ? "Thank you! Your order is confirmed and we're getting it ready."
+            ? t("account.success.lead")
             : timedOut
-              ? "Your payment went through. Confirmation is taking a little longer — your order page will update shortly."
-              : "Hang tight, we're confirming your payment with the bank."}
+              ? t("account.success.slow")
+              : t("account.success.wait")}
         </p>
 
         <div className={styles.printer}>
           <div className={styles.slot} aria-hidden="true" />
-          <article className={styles.paper} aria-label="Receipt">
+          <article className={styles.paper} aria-label={t("account.success.receipt")}>
             <header className={styles.paperHead} style={nextRow()}>
               <strong>MIVO</strong>
-              <span>Official receipt</span>
+              <span>{t("account.receipt.official")}</span>
             </header>
 
             <div className={styles.meta} style={nextRow()}>
               <div>
-                <span>Order</span>
+                <span>{t("account.orders.order")}</span>
                 <strong>{order?.order_number || orderNumber}</strong>
               </div>
               <div>
-                <span>Date</span>
+                <span>{t("account.receipt.date")}</span>
                 <strong>
                   {paidAt.toLocaleString("en-MY", {
                     day: "2-digit",
@@ -233,7 +235,7 @@ export default function PaymentSuccessPage() {
               ))}
               {items.length > 6 ? (
                 <li style={nextRow()}>
-                  <span>+ {items.length - 6} more item(s)</span>
+                  <span>{t("account.orders.moreItems", { n: items.length - 6 })}</span>
                   <strong />
                 </li>
               ) : null}
@@ -243,31 +245,31 @@ export default function PaymentSuccessPage() {
 
             <dl className={styles.sums}>
               <div style={nextRow()}>
-                <dt>Subtotal</dt>
+                <dt>{t("account.common.subtotal")}</dt>
                 <dd>{formatPrice(Number(order?.subtotal || 0))}</dd>
               </div>
               <div style={nextRow()}>
-                <dt>Shipping</dt>
-                <dd>{shipping ? formatPrice(shipping) : "Free"}</dd>
+                <dt>{t("account.common.shipping")}</dt>
+                <dd>{shipping ? formatPrice(shipping) : t("account.receipt.free")}</dd>
               </div>
               {discount > 0 ? (
                 <div style={nextRow()} className={styles.discount}>
-                  <dt>Voucher{order?.voucher_code ? " · " + order.voucher_code : ""}</dt>
+                  <dt>{t("account.common.voucher")}{order?.voucher_code ? " · " + order.voucher_code : ""}</dt>
                   <dd>− {formatPrice(discount)}</dd>
                 </div>
               ) : null}
               <div style={nextRow()} className={styles.total}>
-                <dt>Total paid</dt>
+                <dt>{t("account.receipt.totalPaid")}</dt>
                 <dd>{formatPrice(confirmed ? shown : total)}</dd>
               </div>
             </dl>
 
             <div className={styles.stamp} style={nextRow()}>
-              <span>PAID</span>
+              <span>{t("account.success.stamp")}</span>
               <small>
                 {order?.stripe_payment_method
                   ? order.stripe_payment_method.toUpperCase()
-                  : "CARD / FPX"}
+                  : t("account.success.cardFpx")}
               </small>
             </div>
 
@@ -280,20 +282,21 @@ export default function PaymentSuccessPage() {
             className={styles.primary}
             href={"/orders/" + encodeURIComponent(orderNumber)}
           >
-            Track my order
+            {t("account.success.track")}
           </Link>
           <Link
             className={styles.secondary}
             href={"/orders/" + encodeURIComponent(orderNumber) + "/receipt"}
           >
-            Download receipt
+            {t("account.success.download")}
           </Link>
           <Link className={styles.link} href="/products">
-            Continue shopping ›
+            {t("account.common.continueShopping")} ›
           </Link>
         </div>
 
-        {loading ? <span className={styles.srOnly}>Loading order…</span> : null}
+        {loading ? <span className={styles.srOnly}>{t("account.detail.loading")}</span>
+ : null}
       </section>
     </main>
   );

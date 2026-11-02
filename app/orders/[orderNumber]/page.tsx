@@ -9,6 +9,8 @@ import { formatPrice } from "@/data/products";
 import PaidCancellationModal from "@/components/PaidCancellationModal";
 import UnpaidCancellationModal from "@/components/UnpaidCancellationModal";
 import StripePayButton from "@/components/StripePayButton";
+import { useT } from "@/components/LanguageProvider";
+import type { Key, Translate } from "@/lib/i18n";
 
 type OrderRow = {
   id: string;
@@ -60,12 +62,12 @@ type OrderStatusHistoryRow = {
   created_at: string;
 };
 
-const steps = [
-  { key: "placed", label: "ORDER PLACED" },
-  { key: "paid", label: "PAID" },
-  { key: "packed", label: "PACKED" },
-  { key: "shipped", label: "SHIPPED" },
-  { key: "delivered", label: "DELIVERED" },
+const steps: Array<{ key: string; label: Key }> = [
+  { key: "placed", label: "account.detail.stepPlaced" },
+  { key: "paid", label: "account.detail.stepPaid" },
+  { key: "packed", label: "account.detail.stepPacked" },
+  { key: "shipped", label: "account.detail.stepShipped" },
+  { key: "delivered", label: "account.detail.stepDelivered" },
 ];
 
 function progressForStatus(status: string) {
@@ -76,13 +78,18 @@ function progressForStatus(status: string) {
   return 0;
 }
 
-function formatStatus(value: string) {
-  return value.replaceAll("_", " ").toUpperCase();
+function formatStatus(value: string, t: Translate) {
+  const key = ("account.status." + value) as Key;
+  const label = t(key);
+  if (label !== key) return label;
+  const text = value.replaceAll("_", " ");
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 export default function OrderDetailsPage() {
   const params = useParams();
   const router = useRouter();
+  const t = useT();
   const orderNumber = String(params.orderNumber || "");
 
   const [order, setOrder] = useState<OrderRow | null>(null);
@@ -123,7 +130,7 @@ export default function OrderDetailsPage() {
       .maybeSingle();
 
     if (orderError || !orderData) {
-      throw orderError || new Error("Order not found.");
+      throw orderError || new Error(t("account.detail.notFound"));
     }
 
     const { data: itemData, error: itemError } = await supabase
@@ -322,7 +329,7 @@ export default function OrderDetailsPage() {
       } catch (caught) {
         if (!active) return;
         setError(
-          caught instanceof Error ? caught.message : "Unable to open order."
+          caught instanceof Error ? caught.message : t("account.detail.openError")
         );
       } finally {
         if (active) setLoading(false);
@@ -360,7 +367,7 @@ export default function OrderDetailsPage() {
       setError(
         caught instanceof Error
           ? caught.message
-          : "Unable to confirm this order."
+          : t("account.orders.confirmError")
       );
     } finally {
       setBusy(false);
@@ -371,7 +378,7 @@ export default function OrderDetailsPage() {
     return (
       <main className="accountDataPage">
         <div className="container">
-          <p className="accountDataNotice">Loading order...</p>
+          <p className="accountDataNotice">{t("account.detail.loading")}</p>
         </div>
       </main>
     );
@@ -382,9 +389,9 @@ export default function OrderDetailsPage() {
       <main className="accountDataPage">
         <div className="container">
           <div className="ordersEmpty">
-            <strong>Unable to open order.</strong>
-            <p>{error || "Order not found."}</p>
-            <Link href="/orders">Back to my orders</Link>
+            <strong>{t("account.detail.openError")}</strong>
+            <p>{error || t("account.detail.notFound")}</p>
+            <Link href="/orders">{t("account.detail.backToOrders")}</Link>
           </div>
         </div>
       </main>
@@ -400,15 +407,15 @@ export default function OrderDetailsPage() {
   const timelineSteps = [
     {
       key: "placed",
-      title: "Order Placed",
-      description: "Your order has been received by MIVO.",
+      title: t("account.detail.placedTitle"),
+      description: t("account.detail.placedText"),
       complete: progress >= 0,
       timestamp: order.created_at,
     },
     {
       key: "paid",
-      title: "Payment Confirmed",
-      description: "Your payment has been verified successfully.",
+      title: t("account.detail.paidTitle"),
+      description: t("account.detail.paidText"),
       complete: progress >= 1,
       timestamp:
         statusHistory.find((entry) => entry.new_status === "paid")
@@ -416,8 +423,8 @@ export default function OrderDetailsPage() {
     },
     {
       key: "packed",
-      title: "Packed",
-      description: "Your order is packed and ready for courier handover.",
+      title: t("account.detail.packedTitle"),
+      description: t("account.detail.packedText"),
       complete: progress >= 2,
       timestamp:
         statusHistory.find((entry) =>
@@ -426,18 +433,18 @@ export default function OrderDetailsPage() {
     },
     {
       key: "shipped",
-      title: "Shipped",
+      title: t("account.detail.shippedTitle"),
       description:
         shopCount > 1
-          ? shipments.length +
-            " of " +
-            shopCount +
-            " parcels shipped. Each shop sends its own parcel."
+          ? t("account.detail.parcelsShipped", {
+              n: shipments.length,
+              total: shopCount,
+            })
           : shipment?.tracking_number
-          ? (shipment.courier_name || "Courier") +
+          ? (shipment.courier_name || t("account.detail.courier")) +
             " · " +
             shipment.tracking_number
-          : "Your parcel has been handed over to the courier.",
+          : t("account.detail.shippedText"),
       complete: progress >= 3,
       timestamp:
         statusHistory.find((entry) => entry.new_status === "shipped")
@@ -445,8 +452,8 @@ export default function OrderDetailsPage() {
     },
     {
       key: "delivered",
-      title: "Delivered",
-      description: "Your parcel has been delivered.",
+      title: t("account.detail.deliveredTitle"),
+      description: t("account.detail.deliveredText"),
       complete: progress >= 4,
       timestamp:
         statusHistory.find((entry) => entry.new_status === "delivered")
@@ -459,13 +466,13 @@ export default function OrderDetailsPage() {
       <div className="container">
         <div className="orderDetailTop">
           <div>
-            <Link href="/orders">← MY ORDERS</Link>
-            <span>ORDER {order.order_number}</span>
+            <Link href="/orders">← {t("account.orders.title")}</Link>
+            <span>{t("account.detail.orderNo", { n: order.order_number })}</span>
           </div>
 
           <div>
-            <span>Status</span>
-            <strong>{formatStatus(order.status)}</strong>
+            <span>{t("account.detail.status")}</span>
+            <strong>{formatStatus(order.status, t)}</strong>
           </div>
         </div>
 
@@ -481,17 +488,19 @@ export default function OrderDetailsPage() {
                 key={step.key}
               >
                 <i>{index <= progress ? "✓" : index + 1}</i>
-                <span>{step.label}</span>
+                <span>{t(step.label)}</span>
               </div>
             ))}
           </section>
         ) : (
           <section className="orderCancelledBanner">
-            <strong>{formatStatus(order.status)}</strong>
+            <strong>{formatStatus(order.status, t)}</strong>
             <span>
               {order.refund_status && order.refund_status !== "none"
-                ? "Refund status: " + formatStatus(order.refund_status)
-                : "This order is no longer in the active delivery flow."}
+                ? t("account.detail.refundStatusLine", {
+                    status: formatStatus(order.refund_status, t),
+                  })
+                : t("account.orders.inactiveText")}
             </span>
           </section>
         )}
@@ -501,9 +510,9 @@ export default function OrderDetailsPage() {
             <section className="orderDetailMain">
               <div className="orderDetailSectionHead">
                 <div>
-                  <span>Order items</span>
+                  <span>{t("account.detail.orderItems")}</span>
                   <h2>
-                    {items.length} item{items.length === 1 ? "" : "s"}
+                    {t("account.common.items", { n: items.length })}
                   </h2>
                 </div>
               </div>
@@ -524,12 +533,12 @@ export default function OrderDetailsPage() {
 
                     <div className="orderDetailItemInfo">
                       <strong>{item.product_name}</strong>
-                      <span>{item.variant_name || "Default"}</span>
-                      <small>Qty {item.quantity}</small>
+                      <span>{item.variant_name || t("account.common.defaultVariant")}</span>
+                      <small>{t("account.common.qty", { n: item.quantity })}</small>
                     </div>
 
                     <div className="orderDetailItemPrice">
-                      <span>{formatPrice(Number(item.unit_price))} each</span>
+                      <span>{t("account.common.each", { price: formatPrice(Number(item.unit_price)) })}</span>
                       <strong>
                         {formatPrice(Number(item.line_subtotal))}
                       </strong>
@@ -540,7 +549,7 @@ export default function OrderDetailsPage() {
 
               {order.customer_note ? (
                 <div className="orderCustomerNote">
-                  <span>Order note</span>
+                  <span>{t("account.detail.orderNote")}</span>
                   <p>{order.customer_note}</p>
                 </div>
               ) : null}
@@ -550,8 +559,8 @@ export default function OrderDetailsPage() {
               <section className="orderTimelineCard">
                 <div className="orderTimelineHead">
                   <div>
-                    <span>Shipment updates</span>
-                    <h2>Tracking Timeline</h2>
+                    <span>{t("account.detail.shipmentUpdates")}</span>
+                    <h2>{t("account.detail.timeline")}</h2>
                   </div>
                   {shopCount <= 1 && shipment?.courier_name ? (
                     <strong>{shipment.courier_name}</strong>
@@ -589,7 +598,7 @@ export default function OrderDetailsPage() {
                               )}
                             </time>
                           ) : (
-                            <time>{step.complete ? "Completed" : "Pending"}</time>
+                            <time>{step.complete ? t("account.detail.stepDone") : t("account.detail.stepPending")}</time>
                           )}
                         </div>
                         <p>{step.description}</p>
@@ -604,7 +613,7 @@ export default function OrderDetailsPage() {
           <aside className="orderDetailSide">
             {orderShops.length ? (
               <section className="orderSideCard orderChatCard">
-                <span>Questions about this order?</span>
+                <span>{t("account.detail.questions")}</span>
                 {orderShops.map((shop) => (
                   <div className="orderChatRow" key={shop.id}>
                     <strong>{shop.name}</strong>
@@ -615,7 +624,7 @@ export default function OrderDetailsPage() {
             ) : null}
 
             <section className="orderSideCard">
-              <span>Delivery address</span>
+              <span>{t("account.detail.deliveryAddress")}</span>
               <strong>{address.full_name}</strong>
               <p>
                 {address.phone}
@@ -638,19 +647,18 @@ export default function OrderDetailsPage() {
                 >
                   <span>
                     {shopCount > 1
-                      ? "Parcel " +
-                        (index + 1) +
+                      ? t("account.detail.parcelN", { n: index + 1 }) +
                         (parcel.shop_name ? " · " + parcel.shop_name : "")
-                      : "Shipment tracking"}
+                      : t("account.detail.shipmentTracking")}
                   </span>
                   <div className="orderPaymentStatus">
-                    <strong>{parcel.courier_name || "COURIER"}</strong>
-                    <small>{formatStatus(parcel.status)}</small>
+                    <strong>{parcel.courier_name || t("account.detail.courier")}</strong>
+                    <small>{formatStatus(parcel.status, t)}</small>
                   </div>
 
                   <div className="orderSideRows">
                     <div>
-                      <span>Tracking number</span>
+                      <span>{t("account.detail.trackingNumber")}</span>
                       <strong>{parcel.tracking_number}</strong>
                     </div>
                   </div>
@@ -662,26 +670,26 @@ export default function OrderDetailsPage() {
                       rel="noreferrer"
                       className="orderPrimaryButton orderSideMainAction"
                     >
-                      Track parcel
+                      {t("account.detail.trackParcel")}
                     </a>
                   ) : null}
                 </section>
               ))}
 
             <section className="orderSideCard">
-              <span>Payment</span>
+              <span>{t("account.detail.payment")}</span>
               <div className="orderPaymentStatus">
-                <strong>{formatStatus(order.payment_status)}</strong>
-                <small>{formatStatus(order.status)}</small>
+                <strong>{formatStatus(order.payment_status, t)}</strong>
+                <small>{formatStatus(order.status, t)}</small>
               </div>
 
               <div className="orderSideRows">
                 <div>
-                  <span>Subtotal</span>
+                  <span>{t("account.common.subtotal")}</span>
                   <strong>{formatPrice(Number(order.subtotal))}</strong>
                 </div>
                 <div>
-                  <span>Shipping</span>
+                  <span>{t("account.common.shipping")}</span>
                   <strong>
                     {Number(order.shipping_amount) > 0
                       ? formatPrice(Number(order.shipping_amount))
@@ -691,7 +699,7 @@ export default function OrderDetailsPage() {
                 {Number(order.discount_amount || 0) > 0 ? (
                   <div>
                     <span>
-                      Voucher{order.voucher_code ? " (" + order.voucher_code + ")" : ""}
+                      {t("account.common.voucher")}{order.voucher_code ? " (" + order.voucher_code + ")" : ""}
                     </span>
                     <strong className="orderDiscountValue">
                       − {formatPrice(Number(order.discount_amount))}
@@ -701,7 +709,7 @@ export default function OrderDetailsPage() {
               </div>
 
               <div className="orderSideTotal">
-                <span>Total</span>
+                <span>{t("account.common.total")}</span>
                 <strong>{formatPrice(Number(order.total_amount))}</strong>
               </div>
             </section>
@@ -715,20 +723,19 @@ export default function OrderDetailsPage() {
                 }
                 className="orderGhostButton orderSideMainAction"
               >
-                View receipt
+                {t("account.detail.viewReceipt")}
               </Link>
             ) : null}
 
             {order.status === "pending_payment" ? (
               <>
                 <section className="orderCancellationNotice">
-                  <span>Payment deadline</span>
+                  <span>{t("account.detail.deadline")}</span>
                   <strong>
-                    Pay within 24 hours from order creation
+                    {t("account.detail.deadlineTitle")}
                   </strong>
                   <p>
-                    Unpaid orders are cancelled automatically and reserved stock
-                    is released.
+                    {t("account.detail.deadlineText")}
                   </p>
                 </section>
 
@@ -737,13 +744,13 @@ export default function OrderDetailsPage() {
                   className="orderGhostButton orderSideMainAction orderCancelButton"
                   onClick={() => setShowUnpaidCancel(true)}
                 >
-                  Cancel order
+                  {t("account.orders.cancelOrder")}
                 </button>
 
                 <StripePayButton
                   orderNumber={order.order_number}
                   className="orderPrimaryButton orderSideMainAction"
-                  children="PAY NOW · CARD / FPX / GRABPAY"
+                  children={t("account.detail.payNow")}
                 />
               </>
             ) : null}
@@ -759,7 +766,7 @@ export default function OrderDetailsPage() {
                 className="orderGhostButton orderSideMainAction orderCancelButton"
                 onClick={() => setShowPaidCancel(true)}
               >
-                Cancel order
+                {t("account.orders.cancelOrder")}
               </button>
             ) : null}
 
@@ -770,7 +777,7 @@ export default function OrderDetailsPage() {
                 disabled={busy}
                 onClick={confirmReceived}
               >
-                {busy ? "CONFIRMING..." : "ORDER RECEIVED"}
+                {busy ? t("account.orders.confirming") : t("account.orders.orderReceived")}
               </button>
             ) : null}
 
@@ -781,7 +788,7 @@ export default function OrderDetailsPage() {
                   className="orderGhostButton orderSideMainAction"
                   disabled
                 >
-                  Reviewed
+                  {t("account.orders.reviewed")}
                 </button>
               ) : (
                 <Link
@@ -792,7 +799,7 @@ export default function OrderDetailsPage() {
                   }
                   className="orderPrimaryButton orderSideMainAction"
                 >
-                  Rate order
+                  {t("account.orders.rateOrder")}
                 </Link>
               )
             ) : null}
@@ -807,18 +814,18 @@ export default function OrderDetailsPage() {
                 }
                 className="orderGhostButton orderSideMainAction"
               >
-                View warranty
+                {t("account.detail.viewWarranty")}
               </Link>
             ) : null}
 
             {cancelled &&
             Number(order.cancellation_refund_amount || 0) > 0 ? (
               <section className="orderSideCard refundSummaryCard">
-                <span>Refund summary</span>
+                <span>{t("account.detail.refundSummary")}</span>
 
                 <div className="orderSideRows">
                   <div>
-                    <span>Payment processing fee</span>
+                    <span>{t("account.common.processingFee")}</span>
                     <strong>
                       − {formatPrice(
                         Number(order.payment_processing_fee_amount || 0)
@@ -826,7 +833,7 @@ export default function OrderDetailsPage() {
                     </strong>
                   </div>
                   <div>
-                    <span>Cancellation administration fee</span>
+                    <span>{t("account.common.adminFee")}</span>
                     <strong>
                       − {formatPrice(
                         Number(order.cancellation_platform_fee_amount || 0)
@@ -834,7 +841,7 @@ export default function OrderDetailsPage() {
                     </strong>
                   </div>
                   <div>
-                    <span>Service fee</span>
+                    <span>{t("account.common.serviceFee")}</span>
                     <strong>
                       − {formatPrice(
                         Number(order.cancellation_service_fee_amount || 0)
@@ -844,7 +851,7 @@ export default function OrderDetailsPage() {
                 </div>
 
                 <div className="orderSideTotal">
-                  <span>Refund amount</span>
+                  <span>{t("account.common.refundAmount")}</span>
                   <strong>
                     {formatPrice(
                       Number(order.cancellation_refund_amount || 0)
@@ -853,16 +860,17 @@ export default function OrderDetailsPage() {
                 </div>
 
                 <p className="refundStatusText">
-                  Refund status:{" "}
+                  {t("account.detail.refundStatus")}{" "}
                   <strong>
-                    {formatStatus(order.refund_status || "pending")}
+                    {formatStatus(order.refund_status || "pending", t)}
                   </strong>
                 </p>
               </section>
             ) : null}
 
             <Link href="/products" className="orderGhostButton orderSideMainAction">
-              Continue shopping
+              {t("account.common.continueShopping")}
+
             </Link>
           </aside>
         </div>

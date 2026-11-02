@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/data/products";
+import { useT } from "@/components/LanguageProvider";
+import type { Key, Translate } from "@/lib/i18n";
 
 type ReceiptOrder = {
   id: string;
@@ -56,13 +58,23 @@ function formatDate(value: string | null) {
   });
 }
 
-function formatStatus(value: string | null) {
-  return (value || "—").replaceAll("_", " ").toUpperCase();
+function formatStatus(value: string | null, t: Translate) {
+  if (!value) return "—";
+  const key = ("account.status." + value) as Key;
+  const label = t(key);
+  if (label !== key) return label;
+  const text = value.replaceAll("_", " ");
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+function formatMethod(value: string) {
+  return value.replaceAll("_", " ").toUpperCase();
 }
 
 export default function OrderReceiptPage() {
   const params = useParams();
   const router = useRouter();
+  const t = useT();
   const orderNumber = String(params.orderNumber || "");
 
   const [order, setOrder] = useState<ReceiptOrder | null>(null);
@@ -99,11 +111,11 @@ export default function OrderReceiptPage() {
           .maybeSingle();
 
         if (orderError || !orderData) {
-          throw orderError || new Error("Receipt not found.");
+          throw orderError || new Error(t("account.receipt.notFound"));
         }
 
         if (orderData.payment_status !== "paid") {
-          throw new Error("Receipt is available after payment is completed.");
+          throw new Error(t("account.receipt.notPaid"));
         }
 
         const { data: itemData, error: itemError } = await supabase
@@ -146,7 +158,7 @@ export default function OrderReceiptPage() {
       } catch (caught) {
         if (!active) return;
         setError(
-          caught instanceof Error ? caught.message : "Unable to open receipt."
+          caught instanceof Error ? caught.message : t("account.receipt.openError")
         );
       } finally {
         if (active) setLoading(false);
@@ -164,7 +176,7 @@ export default function OrderReceiptPage() {
     return (
       <main className="accountDataPage">
         <div className="container">
-          <p className="accountDataNotice">Loading receipt...</p>
+          <p className="accountDataNotice">{t("account.receipt.loading")}</p>
         </div>
       </main>
     );
@@ -175,10 +187,10 @@ export default function OrderReceiptPage() {
       <main className="accountDataPage">
         <div className="container">
           <div className="ordersEmpty">
-            <strong>Unable to open receipt.</strong>
-            <p>{error || "Receipt not found."}</p>
+            <strong>{t("account.receipt.openError")}</strong>
+            <p>{error || t("account.receipt.notFound")}</p>
             <Link href={"/orders/" + encodeURIComponent(orderNumber)}>
-              BACK TO ORDER →
+              {t("account.receipt.backToOrder")} →
             </Link>
           </div>
         </div>
@@ -194,14 +206,14 @@ export default function OrderReceiptPage() {
       <div className="container">
         <div className="receiptToolbar receiptNoPrint">
           <Link href={"/orders/" + encodeURIComponent(order.order_number)}>
-            ← ORDER DETAILS
+            ← {t("account.receipt.orderDetails")}
           </Link>
           <button
             type="button"
             className="orderPrimaryButton"
             onClick={() => window.print()}
           >
-            PRINT / SAVE PDF
+            {t("account.receipt.print")}
           </button>
         </div>
 
@@ -209,32 +221,32 @@ export default function OrderReceiptPage() {
           <header className="receiptHeader">
             <div>
               <strong className="receiptBrand">MIVO</strong>
-              <span>PREMIUM AUTOMOTIVE PARTS</span>
+              <span>{t("account.receipt.tagline")}</span>
             </div>
 
             <div>
-              <span>RECEIPT</span>
+              <span>{t("account.success.receipt")}</span>
               <strong>{order.order_number}</strong>
             </div>
           </header>
 
           <div className="receiptMetaGrid">
             <div>
-              <span>ORDER DATE</span>
+              <span>{t("account.receipt.orderDate")}</span>
               <strong>{formatDate(order.created_at)}</strong>
             </div>
             <div>
-              <span>PAID DATE</span>
+              <span>{t("account.receipt.paidDate")}</span>
               <strong>{formatDate(order.paid_at)}</strong>
             </div>
             <div>
-              <span>PAYMENT STATUS</span>
-              <strong>{formatStatus(order.payment_status)}</strong>
+              <span>{t("account.receipt.paymentStatus")}</span>
+              <strong>{formatStatus(order.payment_status, t)}</strong>
             </div>
             <div>
-              <span>PAYMENT METHOD</span>
+              <span>{t("account.receipt.paymentMethod")}</span>
               <strong>
-                {formatStatus(
+                {formatMethod(
                   order.stripe_payment_method || order.payment_provider || "Stripe"
                 )}
               </strong>
@@ -242,8 +254,8 @@ export default function OrderReceiptPage() {
           </div>
 
           <div className="receiptAddressBlock">
-            <span>BILLED / DELIVERED TO</span>
-            <strong>{address.full_name || "MIVO CUSTOMER"}</strong>
+            <span>{t("account.receipt.billedTo")}</span>
+            <strong>{address.full_name || t("account.receipt.customer")}</strong>
             <p>
               {address.phone ? <>{address.phone}<br /></> : null}
               {address.address_line_1}
@@ -258,10 +270,10 @@ export default function OrderReceiptPage() {
 
           <div className="receiptTable">
             <div className="receiptTableHead">
-              <span>ITEM</span>
-              <span>QTY</span>
-              <span>UNIT PRICE</span>
-              <span>AMOUNT</span>
+              <span>{t("account.receipt.item")}</span>
+              <span>{t("account.receipt.qty")}</span>
+              <span>{t("account.receipt.unitPrice")}</span>
+              <span>{t("account.receipt.amount")}</span>
             </div>
 
             {items.map((item) => (
@@ -279,45 +291,45 @@ export default function OrderReceiptPage() {
 
           <div className="receiptBottomGrid">
             <div className="receiptShipment">
-              <span>FULFILMENT</span>
+              <span>{t("account.receipt.fulfilment")}</span>
               {shipment?.courier_name ? (
                 <>
                   <strong>{shipment.courier_name}</strong>
                   {shipment.tracking_number ? (
-                    <p>Tracking: {shipment.tracking_number}</p>
+                    <p>{t("account.receipt.tracking", { n: shipment.tracking_number })}</p>
                   ) : null}
                 </>
               ) : (
-                <strong>Preparing shipment</strong>
+                <strong>{t("account.receipt.preparing")}</strong>
               )}
             </div>
 
             <div className="receiptTotals">
               <div>
-                <span>Subtotal</span>
+                <span>{t("account.common.subtotal")}</span>
                 <strong>{formatPrice(Number(order.subtotal))}</strong>
               </div>
               <div>
-                <span>Shipping</span>
+                <span>{t("account.common.shipping")}</span>
                 <strong>{formatPrice(Number(order.shipping_amount))}</strong>
               </div>
               {Number(order.discount_amount) > 0 ? (
                 <div>
                   <span>
-                    Discount{order.voucher_code ? " (" + order.voucher_code + ")" : ""}
+                    {t("account.receipt.discount")}{order.voucher_code ? " (" + order.voucher_code + ")" : ""}
                   </span>
                   <strong>− {formatPrice(Number(order.discount_amount))}</strong>
                 </div>
               ) : null}
               {Number(order.tax_amount) > 0 ? (
                 <div>
-                  <span>Tax</span>
+                  <span>{t("account.receipt.tax")}</span>
                   <strong>{formatPrice(Number(order.tax_amount))}</strong>
                 </div>
               ) : null}
 
               <div className="receiptGrandTotal">
-                <span>TOTAL PAID</span>
+                <span>{t("account.receipt.totalPaid")}</span>
                 <strong>{formatPrice(paidAmount)}</strong>
               </div>
             </div>
@@ -325,7 +337,7 @@ export default function OrderReceiptPage() {
 
           {order.refund_status && order.refund_status !== "none" ? (
             <div className="receiptRefundNote">
-              Refund status: {formatStatus(order.refund_status)}
+              {t("account.detail.refundStatusLine", { status: formatStatus(order.refund_status, t) })}
               {Number(order.cancellation_refund_amount || 0) > 0
                 ? " · " +
                   formatPrice(Number(order.cancellation_refund_amount || 0))
@@ -334,11 +346,11 @@ export default function OrderReceiptPage() {
           ) : null}
 
           <footer className="receiptFooter">
-            <strong>THANK YOU FOR SHOPPING WITH MIVO.</strong>
+            <strong>{t("account.receipt.thanks")}</strong>
             <span>
-              This is a computer-generated receipt and does not require a
-              signature.
+              {t("account.receipt.computerGenerated")}
             </span>
+
           </footer>
         </section>
       </div>

@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/data/products";
+import { useT } from "@/components/LanguageProvider";
+import type { Translate } from "@/lib/i18n";
 
 type Voucher = {
   id: string;
@@ -32,16 +34,17 @@ function dateLabel(value: string) {
   });
 }
 
-function valueLabel(voucher: Voucher) {
-  if (voucher.discount_type === "free_shipping") return "FREE SHIPPING";
+function valueLabel(voucher: Voucher, t: Translate) {
+  if (voucher.discount_type === "free_shipping") return t("account.vouchers.freeShipping");
   if (voucher.discount_type === "percent") {
-    return Number(voucher.discount_value) + "% OFF";
+    return t("account.vouchers.off", { value: Number(voucher.discount_value) + "%" });
   }
-  return "RM" + Number(voucher.discount_value).toFixed(0) + " OFF";
+  return t("account.vouchers.off", { value: "RM" + Number(voucher.discount_value).toFixed(0) });
 }
 
 export default function MyVouchersPage() {
   const router = useRouter();
+  const t = useT();
   const [vouchers, setVouchers] = useState<ClaimedVoucher[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -138,7 +141,7 @@ export default function MyVouchersPage() {
       } catch (caught) {
         if (!active) return;
         setError(
-          caught instanceof Error ? caught.message : "Unable to load vouchers."
+          caught instanceof Error ? caught.message : t("account.vouchers.loadError")
         );
       } finally {
         if (active) setLoading(false);
@@ -157,22 +160,22 @@ export default function MyVouchersPage() {
       <div className="container">
         <div className="accountDataHeader">
           <div>
-            <span>MIVO account</span>
-            <h1>My Vouchers</h1>
-            <p>Claimed discounts ready for your next checkout.</p>
+            <span>{t("account.common.mivoAccount")}</span>
+            <h1>{t("account.vouchers.title")}</h1>
+            <p>{t("account.vouchers.subtitle")}</p>
           </div>
-          <Link href="/account">← ACCOUNT</Link>
+          <Link href="/account">← {t("account.common.backAccount")}</Link>
         </div>
 
         {error ? <p className="checkoutError">{error}</p> : null}
 
         {loading ? (
-          <p className="accountDataNotice">Loading vouchers...</p>
+          <p className="accountDataNotice">{t("account.vouchers.loading")}</p>
         ) : vouchers.length === 0 ? (
           <div className="ordersEmpty">
-            <strong>No vouchers claimed yet.</strong>
-            <p>Visit the MIVO home page and claim an available promotion.</p>
-            <Link href="/">View promotions</Link>
+            <strong>{t("account.vouchers.emptyTitle")}</strong>
+            <p>{t("account.vouchers.emptyText")}</p>
+            <Link href="/">{t("account.vouchers.viewPromotions")}</Link>
           </div>
         ) : (
           <div className="myVoucherGrid">
@@ -188,30 +191,31 @@ export default function MyVouchersPage() {
                 >
                   <div>
                     <span>{voucher.code}</span>
-                    <strong>{valueLabel(voucher)}</strong>
+                    <strong>{valueLabel(voucher, t)}</strong>
                     <p>{voucher.description || voucher.name}</p>
                   </div>
 
                   <div className="myVoucherMeta">
                     <span>
-                      Min. spend {formatPrice(Number(voucher.minimum_spend))}
+                      {t("account.vouchers.minSpend", { price: formatPrice(Number(voucher.minimum_spend)) })}
                     </span>
                     {voucher.max_discount ? (
                       <span>
-                        Max discount {formatPrice(Number(voucher.max_discount))}
+                        {t("account.vouchers.maxDiscount", { price: formatPrice(Number(voucher.max_discount)) })}
                       </span>
                     ) : null}
                     {voucher.first_order_only ? (
-                      <span>First order only</span>
+                      <span>{t("account.vouchers.firstOrder")}</span>
                     ) : null}
-                    <span>Valid until {dateLabel(voucher.ends_at)}</span>
+                    <span>{t("account.vouchers.validUntil", { date: dateLabel(voucher.ends_at) })}</span>
                   </div>
 
                   <Link
                     href={expired ? "/" : "/products"}
                     className={expired ? "disabled" : ""}
                   >
-                    {expired ? "EXPIRED" : "USE NOW"}
+                    {expired ? t("account.status.expired") : t("account.vouchers.useNow")}
+
                   </Link>
                 </article>
               );

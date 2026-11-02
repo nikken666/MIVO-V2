@@ -10,6 +10,7 @@ import {
   setDefaultAccountAddress,
   type AccountAddress,
 } from "@/lib/customerData";
+import { useT } from "@/components/LanguageProvider";
 
 const states = [
   "Johor",
@@ -44,6 +45,7 @@ const emptyAddress: AccountAddress = {
 };
 
 export default function AddressSettingsPage() {
+  const t = useT();
   const [addresses, setAddresses] = useState<AccountAddress[]>([]);
   const [editing, setEditing] = useState<AccountAddress | null>(null);
   const [form, setForm] = useState<AccountAddress>(emptyAddress);
@@ -83,7 +85,7 @@ export default function AddressSettingsPage() {
         setError(
           caught instanceof Error
             ? caught.message
-            : "Unable to load your addresses."
+            : t("account.addresses.loadError")
         );
       } finally {
         if (active) setLoading(false);
@@ -142,12 +144,12 @@ export default function AddressSettingsPage() {
       setEditing(saved);
       if (saved) setForm(saved);
       setMakeDefault(Boolean(saved?.is_default));
-      setMessage("Address saved to your MIVO account.");
+      setMessage(t("account.addresses.saved"));
     } catch (caught) {
       setError(
         caught instanceof Error
           ? caught.message
-          : "Unable to save this address."
+          : t("account.addresses.saveError")
       );
     } finally {
       setBusy(false);
@@ -162,12 +164,12 @@ export default function AddressSettingsPage() {
     try {
       await setDefaultAccountAddress(id);
       await refreshAddresses();
-      setMessage("Default delivery address updated.");
+      setMessage(t("account.addresses.defaultUpdated"));
     } catch (caught) {
       setError(
         caught instanceof Error
           ? caught.message
-          : "Unable to update default address."
+          : t("account.addresses.defaultError")
       );
     } finally {
       setBusy(false);
@@ -189,12 +191,12 @@ export default function AddressSettingsPage() {
       }
 
       if (remaining.length === 0) setMakeDefault(true);
-      setMessage("Address removed.");
+      setMessage(t("account.addresses.removed"));
     } catch (caught) {
       setError(
         caught instanceof Error
           ? caught.message
-          : "Unable to remove this address."
+          : t("account.addresses.removeError")
       );
     } finally {
       setBusy(false);
@@ -206,36 +208,35 @@ export default function AddressSettingsPage() {
       <div className="container">
         <div className="accountDataHeader">
           <div>
-            <span>MIVO account</span>
-            <h1>Delivery Addresses</h1>
+            <span>{t("account.common.mivoAccount")}</span>
+            <h1>{t("account.addresses.title")}</h1>
             <p>
-              Save your delivery details once and MIVO will fill them in at
-              checkout.
+              {t("account.addresses.subtitle")}
             </p>
           </div>
 
-          <Link href="/account">← ACCOUNT</Link>
+          <Link href="/account">← {t("account.common.backAccount")}</Link>
         </div>
 
         <div className="addressSettingsLayout">
           <section className="addressBookPanel">
             <div className="addressBookHead">
               <div>
-                <span>Saved addresses</span>
+                <span>{t("account.addresses.savedAddresses")}</span>
                 <strong>{addresses.length}</strong>
               </div>
 
               <button type="button" onClick={startNew}>
-                + ADD ADDRESS
+                + {t("account.addresses.add")}
               </button>
             </div>
 
             {loading ? (
-              <p className="accountDataNotice">Loading addresses...</p>
+              <p className="accountDataNotice">{t("account.addresses.loading")}</p>
             ) : addresses.length === 0 ? (
               <div className="addressEmpty">
-                <strong>No saved address yet.</strong>
-                <p>Add your first delivery address on the right.</p>
+                <strong>{t("account.addresses.emptyTitle")}</strong>
+                <p>{t("account.addresses.emptyText")}</p>
               </div>
             ) : (
               <div className="addressCardList">
@@ -249,11 +250,11 @@ export default function AddressSettingsPage() {
                   >
                     <div className="addressCardTop">
                       <div>
-                        <span>{address.label || "Address"}</span>
-                        {address.is_default ? <b>Default</b> : null}
+                        <span>{address.label || t("account.addresses.address")}</span>
+                        {address.is_default ? <b>{t("account.addresses.default")}</b> : null}
                       </div>
                       <button type="button" onClick={() => startEdit(address)}>
-                        Edit
+                        {t("account.addresses.edit")}
                       </button>
                     </div>
 
@@ -276,7 +277,7 @@ export default function AddressSettingsPage() {
                           onClick={() => makeAddressDefault(address.id!)}
                           disabled={busy}
                         >
-                          Set as default
+                          {t("account.addresses.setDefault")}
                         </button>
                       ) : null}
 
@@ -287,7 +288,7 @@ export default function AddressSettingsPage() {
                           onClick={() => removeAddress(address.id!)}
                           disabled={busy}
                         >
-                          Delete
+                          {t("account.addresses.delete")}
                         </button>
                       ) : null}
                     </div>
@@ -299,37 +300,37 @@ export default function AddressSettingsPage() {
 
           <section className="addressEditorPanel">
             <div className="addressEditorHead">
-              <span>{editing ? "EDIT ADDRESS" : "NEW ADDRESS"}</span>
-              <h2>{editing ? "Update delivery details." : "Add delivery details."}</h2>
+              <span>{editing ? t("account.addresses.editAddress") : t("account.addresses.newAddress")}</span>
+              <h2>{editing ? t("account.addresses.updateDetails") : t("account.addresses.addDetails")}</h2>
             </div>
 
             <form className="addressEditorForm" onSubmit={submit}>
               <div className="addressFormGrid">
                 <label>
-                  <span>Label</span>
+                  <span>{t("account.addresses.label")}</span>
                   <input
                     value={form.label || ""}
                     onChange={(event) =>
                       updateField("label", event.target.value)
                     }
-                    placeholder="Home / Office"
+                    placeholder={t("account.addresses.labelPlaceholder")}
                   />
                 </label>
 
                 <label>
-                  <span>FULL NAME *</span>
+                  <span>{t("account.login.fullName")} *</span>
                   <input
                     required
                     value={form.full_name}
                     onChange={(event) =>
                       updateField("full_name", event.target.value)
                     }
-                    placeholder="Recipient name"
+                    placeholder={t("account.addresses.recipientPlaceholder")}
                   />
                 </label>
 
                 <label className="full">
-                  <span>PHONE NUMBER *</span>
+                  <span>{t("account.addresses.phone")} *</span>
                   <input
                     required
                     value={form.phone}
@@ -341,30 +342,30 @@ export default function AddressSettingsPage() {
                 </label>
 
                 <label className="full">
-                  <span>ADDRESS LINE 1 *</span>
+                  <span>{t("account.addresses.line1")} *</span>
                   <input
                     required
                     value={form.address_line_1}
                     onChange={(event) =>
                       updateField("address_line_1", event.target.value)
                     }
-                    placeholder="House / unit number and street"
+                    placeholder={t("account.addresses.line1Placeholder")}
                   />
                 </label>
 
                 <label className="full">
-                  <span>Address line 2</span>
+                  <span>{t("account.addresses.line2")}</span>
                   <input
                     value={form.address_line_2 || ""}
                     onChange={(event) =>
                       updateField("address_line_2", event.target.value)
                     }
-                    placeholder="Building, area or landmark"
+                    placeholder={t("account.addresses.line2Placeholder")}
                   />
                 </label>
 
                 <label>
-                  <span>POSTCODE *</span>
+                  <span>{t("account.addresses.postcode")} *</span>
                   <input
                     required
                     value={form.postcode}
@@ -376,19 +377,19 @@ export default function AddressSettingsPage() {
                 </label>
 
                 <label>
-                  <span>CITY *</span>
+                  <span>{t("account.addresses.city")} *</span>
                   <input
                     required
                     value={form.city}
                     onChange={(event) =>
                       updateField("city", event.target.value)
                     }
-                    placeholder="City"
+                    placeholder={t("account.addresses.city")}
                   />
                 </label>
 
                 <label className="full">
-                  <span>STATE *</span>
+                  <span>{t("account.addresses.state")} *</span>
                   <select
                     required
                     value={form.state}
@@ -397,7 +398,7 @@ export default function AddressSettingsPage() {
                     }
                   >
                     <option value="" disabled>
-                      Choose state
+                      {t("account.addresses.chooseState")}
                     </option>
                     {states.map((state) => (
                       <option key={state}>{state}</option>
@@ -413,8 +414,8 @@ export default function AddressSettingsPage() {
                   onChange={(event) => setMakeDefault(event.target.checked)}
                 />
                 <span>
-                  <strong>Use as default address</strong>
-                  <small>Checkout will load this address automatically.</small>
+                  <strong>{t("account.addresses.useDefault")}</strong>
+                  <small>{t("account.addresses.useDefaultHint")}</small>
                 </span>
               </label>
 
@@ -429,8 +430,9 @@ export default function AddressSettingsPage() {
                 disabled={busy}
               >
                 <span>
-                  <small>MIVO account</small>
-                  {busy ? "SAVING..." : "SAVE ADDRESS"}
+                  <small>{t("account.common.mivoAccount")}</small>
+                  {busy ? t("account.review.saving") : t("account.addresses.save")}
+
                 </span>
                 <b></b>
               </button>

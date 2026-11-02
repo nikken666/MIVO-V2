@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useT } from "@/components/LanguageProvider";
+import type { Key, Translate } from "@/lib/i18n";
 
 type ClaimRow = {
   id: string;
@@ -38,12 +40,17 @@ function dateLabel(value: string) {
   });
 }
 
-function statusLabel(value: string) {
-  return value.replaceAll("_", " ").toUpperCase();
+function statusLabel(value: string, t: Translate, group = "status") {
+  const key = ("account." + group + "." + value) as Key;
+  const label = t(key);
+  if (label !== key) return label;
+  const text = value.replaceAll("_", " ");
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 export default function MyWarrantyClaimsPage() {
   const router = useRouter();
+  const t = useT();
   const [claims, setClaims] = useState<ClaimRow[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [loading, setLoading] = useState(true);
@@ -156,7 +163,7 @@ export default function MyWarrantyClaimsPage() {
         setError(
           caught instanceof Error
             ? caught.message
-            : "Unable to load warranty claims."
+            : t("account.claims.loadError")
         );
       } finally {
         if (active) setLoading(false);
@@ -179,7 +186,7 @@ export default function MyWarrantyClaimsPage() {
     return (
       <main className="accountDataPage">
         <div className="container">
-          <p className="accountDataNotice">Loading claims...</p>
+          <p className="accountDataNotice">{t("account.claims.loading")}</p>
         </div>
       </main>
     );
@@ -190,24 +197,23 @@ export default function MyWarrantyClaimsPage() {
       <div className="container">
         <div className="accountDataHeader">
           <div>
-            <span>MIVO account</span>
-            <h1>My Warranty Claims</h1>
-            <p>Track warranty requests and MIVO review updates.</p>
+            <span>{t("account.common.mivoAccount")}</span>
+            <h1>{t("account.claims.title")}</h1>
+            <p>{t("account.claims.subtitle")}</p>
           </div>
 
-          <Link href="/account">← ACCOUNT</Link>
+          <Link href="/account">← {t("account.common.backAccount")}</Link>
         </div>
 
         {error ? <p className="checkoutError">{error}</p> : null}
 
         {claims.length === 0 ? (
           <div className="ordersEmpty">
-            <strong>No warranty claims yet.</strong>
+            <strong>{t("account.claims.emptyTitle")}</strong>
             <p>
-              Active warranty items can be claimed from the order warranty
-              page.
+              {t("account.claims.emptyText")}
             </p>
-            <Link href="/orders">View my orders</Link>
+            <Link href="/orders">{t("account.claims.viewOrders")}</Link>
           </div>
         ) : (
           <div className="myClaimsLayout">
@@ -228,7 +234,7 @@ export default function MyWarrantyClaimsPage() {
                     <small>{dateLabel(claim.created_at)}</small>
                   </div>
                   <b className={"claimStatus status-" + claim.status}>
-                    {statusLabel(claim.status)}
+                    {statusLabel(claim.status, t)}
                   </b>
                 </button>
               ))}
@@ -238,44 +244,44 @@ export default function MyWarrantyClaimsPage() {
               <section className="myClaimDetail">
                 <div className="myClaimDetailHead">
                   <div>
-                    <span>CLAIM {selected.claim_number}</span>
+                    <span>{t("account.claims.claimNo", { n: selected.claim_number })}</span>
                     <h2>{selected.product_name}</h2>
                     {selected.variant_name ? (
                       <p>{selected.variant_name}</p>
                     ) : null}
                   </div>
                   <b className={"claimStatus status-" + selected.status}>
-                    {statusLabel(selected.status)}
+                    {statusLabel(selected.status, t)}
                   </b>
                 </div>
 
                 <div className="myClaimSummary">
                   <div>
-                    <span>Order</span>
+                    <span>{t("account.orders.order")}</span>
                     <strong>{selected.order_number}</strong>
                   </div>
                   <div>
-                    <span>Issue</span>
-                    <strong>{statusLabel(selected.issue_type)}</strong>
+                    <span>{t("account.claims.issue")}</span>
+                    <strong>{statusLabel(selected.issue_type, t, "issue")}</strong>
                   </div>
                   <div>
-                    <span>Submitted</span>
+                    <span>{t("account.claims.submittedOn")}</span>
                     <strong>{dateLabel(selected.created_at)}</strong>
                   </div>
                   <div>
-                    <span>Warranty expires</span>
+                    <span>{t("account.claims.expires")}</span>
                     <strong>{dateLabel(selected.warranty_expires_at)}</strong>
                   </div>
                 </div>
 
                 <div className="myClaimDescription">
-                  <span>Your description</span>
+                  <span>{t("account.claims.description")}</span>
                   <p>{selected.description}</p>
                 </div>
 
                 {(selected.display_image_urls || []).length > 0 ? (
                   <div className="myClaimEvidence">
-                    <span>Your photos</span>
+                    <span>{t("account.claims.photos")}</span>
                     <div>
                       {(selected.display_image_urls || []).map((url) => (
                         <a
@@ -284,7 +290,7 @@ export default function MyWarrantyClaimsPage() {
                           rel="noreferrer"
                           key={url}
                         >
-                          <img src={url} alt="Warranty claim evidence" />
+                          <img src={url} alt={t("account.claim.evidenceAlt")} />
                         </a>
                       ))}
                     </div>
@@ -293,14 +299,14 @@ export default function MyWarrantyClaimsPage() {
 
                 {selected.admin_note ? (
                   <div className="myClaimUpdate">
-                    <span>MIVO update</span>
+                    <span>{t("account.claims.update")}</span>
                     <p>{selected.admin_note}</p>
                   </div>
                 ) : null}
 
                 {selected.resolution_note ? (
                   <div className="myClaimResolution">
-                    <span>Resolution</span>
+                    <span>{t("account.claims.resolution")}</span>
                     <p>{selected.resolution_note}</p>
                   </div>
                 ) : null}
@@ -314,7 +320,7 @@ export default function MyWarrantyClaimsPage() {
                     }
                     className="orderGhostButton"
                   >
-                    View warranty
+                    {t("account.detail.viewWarranty")}
                   </Link>
                   <Link
                     href={
@@ -323,7 +329,8 @@ export default function MyWarrantyClaimsPage() {
                     }
                     className="orderGhostButton"
                   >
-                    View order
+                    {t("account.orders.viewOrder")}
+
                   </Link>
                 </div>
               </section>

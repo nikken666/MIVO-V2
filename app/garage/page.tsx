@@ -9,8 +9,10 @@ import {
   saveAccountVehicle,
   type AccountVehicle,
 } from "@/lib/customerData";
+import { useT } from "@/components/LanguageProvider";
 
 export default function GaragePage() {
+  const t = useT();
   const [vehicle, setVehicle] = useState<AccountVehicle | null>(null);
   const [loading, setLoading] = useState(true);
   const [removing, setRemoving] = useState(false);
@@ -117,7 +119,7 @@ export default function GaragePage() {
       } catch {}
     } catch (caught) {
       setRemoveError(
-        caught instanceof Error ? caught.message : "Could not remove vehicle."
+        caught instanceof Error ? caught.message : t("account.garage.removeError")
       );
     } finally {
       setRemoving(false);
@@ -141,15 +143,14 @@ export default function GaragePage() {
     <main className="garagePage">
       <section className="garageHero">
         <div className="container">
-          <span className="sectionEyebrow">MIVO Garage</span>
+          <span className="sectionEyebrow">{t("account.garage.eyebrow")}</span>
           <h1>
-            Your vehicle.
+            {t("account.garage.heroLine1")}
             <br />
-            Ready when you are.
+            {t("account.garage.heroLine2")}
           </h1>
           <p>
-            Save your vehicle once. When you are signed in, MIVO keeps it
-            synced to your account across devices.
+            {t("account.garage.heroText")}
           </p>
         </div>
       </section>
@@ -158,59 +159,59 @@ export default function GaragePage() {
         {loading && !vehicle ? (
           <div className="garageEmpty">
             <span className="garageEmptyMark">·</span>
-            <h2>Loading your garage.</h2>
-            <p>Checking your saved MIVO vehicle.</p>
+            <h2>{t("account.garage.loadingTitle")}</h2>
+            <p>{t("account.garage.loadingText")}</p>
           </div>
         ) : vehicle ? (
           <div className="savedVehicleCard">
             <div className="savedVehicleTop">
               <div>
-                <span className="vehicleStatus">Active vehicle</span>
+                <span className="vehicleStatus">{t("account.garage.active")}</span>
                 <h2>{vehicle.label}</h2>
               </div>
               <div className="vehicleBadge">
-                {vehicle.id ? "✓ ACCOUNT SYNCED" : "✓ SAVED"}
+                {vehicle.id ? "✓ " + t("account.garage.synced") : "✓ " + t("account.garage.saved")}
               </div>
             </div>
 
             <div className="vehicleFacts">
               <div>
-                <small>Make</small>
+                <small>{t("account.garage.make")}</small>
                 <strong>{vehicle.make}</strong>
               </div>
               <div>
-                <small>Model</small>
+                <small>{t("account.garage.model")}</small>
                 <strong>{vehicle.model || details?.model || "—"}</strong>
               </div>
               <div>
-                <small>Generation</small>
+                <small>{t("account.garage.generation")}</small>
                 <strong>
                   {vehicle.generation || details?.generation || "—"}
                 </strong>
               </div>
               <div>
-                <small>Year</small>
+                <small>{t("account.garage.year")}</small>
                 <strong>{vehicle.year}</strong>
               </div>
               <div>
-                <small>Engine / variant</small>
+                <small>{t("account.garage.variant")}</small>
                 <strong>{vehicle.variant}</strong>
               </div>
               <div>
-                <small>Transmission</small>
+                <small>{t("account.garage.transmission")}</small>
                 <strong>{vehicle.transmission || "—"}</strong>
               </div>
             </div>
 
             <div className="savedVehicleActions">
               <Link className="btn btnDark" href={"/products?" + query}>
-                SHOP PARTS FOR THIS VEHICLE <span>→</span>
+                {t("account.garage.shopParts")} <span>→</span>
               </Link>
               <Link
                 className="garageSecondary"
                 href="/?addVehicle=1#fitment"
               >
-                + ADD ANOTHER VEHICLE
+                + {t("account.garage.addAnother")}
               </Link>
               <button
                 className="garageRemove"
@@ -218,7 +219,7 @@ export default function GaragePage() {
                 onClick={removeVehicle}
                 disabled={removing}
               >
-                {removing ? "REMOVING..." : "REMOVE"}
+                {removing ? t("account.garage.removing") : t("account.garage.remove")}
               </button>
             </div>
             {removeError && <p role="alert">{removeError}</p>}
@@ -226,13 +227,12 @@ export default function GaragePage() {
         ) : (
           <div className="garageEmpty">
             <span className="garageEmptyMark">+</span>
-            <h2>No vehicle saved yet.</h2>
+            <h2>{t("account.garage.emptyTitle")}</h2>
             <p>
-              Select your car on the MIVO homepage. If you are signed in,
-              it will be saved to your account automatically.
+              {t("account.garage.emptyText")}
             </p>
             <Link className="btn btnDark" href="/#fitment">
-              SELECT MY VEHICLE <span>→</span>
+              {t("account.garage.selectVehicle")} <span>→</span>
             </Link>
           </div>
         )}
@@ -240,27 +240,25 @@ export default function GaragePage() {
         <div className="garageBenefits">
           <article>
             <span>01</span>
-            <h3>Faster shopping</h3>
+            <h3>{t("account.garage.benefit1Title")}</h3>
             <p>
-              Return to a vehicle-specific shopping flow without entering the
-              same details again.
+              {t("account.garage.benefit1Text")}
             </p>
           </article>
           <article>
             <span>02</span>
-            <h3>Account synced</h3>
+            <h3>{t("account.garage.benefit2Title")}</h3>
             <p>
-              Signed-in customers can access the saved vehicle again on another
-              phone or computer.
+              {t("account.garage.benefit2Text")}
             </p>
           </article>
           <article>
             <span>03</span>
-            <h3>Clearer fitment</h3>
+            <h3>{t("account.garage.benefit3Title")}</h3>
             <p>
-              Your selected make, model, year, variant and transmission stay
-              available while you browse.
+              {t("account.garage.benefit3Text")}
             </p>
+
           </article>
         </div>
       </section>
