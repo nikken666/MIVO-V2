@@ -1235,6 +1235,7 @@ export default function AdminProductsPage() {
             <a href="/admin/store-health"><span>09</span>Store Health</a>
             <a href="/admin/shops"><span>10</span>Shops</a>
             <a href="/admin/products/import"><span>11</span>Import from Shopee</a>
+            <a href="/admin/products/fitment-suggestions"><span>12</span>Fitment suggestions</a>
             <a href="/admin/products/new"><span>07</span>Add Product</a>
             <a href="/admin/shipping"><span>08</span>Shipping</a>
           </nav>
