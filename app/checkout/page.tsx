@@ -18,6 +18,8 @@ import {
 } from "@/lib/customerData";
 import { useT } from "@/components/LanguageProvider";
 import type { Translate } from "@/lib/i18n";
+import { intlTag } from "@/lib/i18n/format";
+import { friendlyError } from "@/lib/i18n/errors";
 
 type Buyer = {
   email: string;
@@ -80,7 +82,7 @@ function voucherScopeLabel(t: Translate, scope: VoucherOption["scope_type"]) {
 }
 
 function voucherValidLabel(value: string) {
-  return new Date(value).toLocaleDateString("en-MY", {
+  return new Date(value).toLocaleDateString(intlTag(), {
     day: "2-digit",
     month: "short",
   });
@@ -440,9 +442,7 @@ export default function CheckoutPage() {
         if (!active) return;
         setShippingQuotes([]);
         setShippingError(
-          caught instanceof Error
-            ? caught.message
-            : t("buy.co.shippingFailed")
+          friendlyError(caught, t, "buy.co.shippingFailed")
         );
       } finally {
         if (active) setShippingLoading(false);
@@ -502,7 +502,7 @@ export default function CheckoutPage() {
         if (!active) return;
         setVoucherPreview(null);
         setVoucherError(
-          caught instanceof Error ? caught.message : t("buy.co.voucherCannotApply")
+          friendlyError(caught, t, "buy.co.voucherCannotApply")
         );
       } finally {
         if (active) setVoucherLoading(false);
@@ -684,23 +684,9 @@ export default function CheckoutPage() {
           "?created=1&payment=unavailable"
       );
     } catch (caught) {
-      const details = caught as {
-        message?: string;
-        details?: string;
-        hint?: string;
-        code?: string;
-      };
-
-      setError(
-        [
-          details?.message,
-          details?.details,
-          details?.hint,
-          details?.code ? t("buy.co.errorCode", { code: details.code }) : "",
-        ]
-          .filter(Boolean)
-          .join(" | ") || t("buy.co.createFailed")
-      );
+      // Shoppers see a plain message; the database detail goes to the console.
+      console.warn("[MIVO] checkout", caught);
+      setError(friendlyError(caught, t, "buy.co.createFailed"));
     } finally {
       setBusy(false);
     }

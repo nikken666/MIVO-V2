@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useT } from "@/components/LanguageProvider";
+import { friendlyError } from "@/lib/i18n/errors";
 
 type OrderRow = {
   id: string;
@@ -211,9 +212,7 @@ export default function OrderReviewPage() {
       } catch (caught) {
         if (!active) return;
         setError(
-          caught instanceof Error
-            ? caught.message
-            : t("account.review.loadError")
+          friendlyError(caught, t, "account.review.loadError")
         );
       } finally {
         if (active) setLoading(false);
@@ -428,9 +427,7 @@ export default function OrderReviewPage() {
       setSubmitted(true);
     } catch (caught) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : t("account.review.saveError")
+        friendlyError(caught, t, "account.review.saveError")
       );
     } finally {
       setBusy(false);

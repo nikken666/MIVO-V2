@@ -10,6 +10,7 @@ import {
   type AccountVehicle,
 } from "@/lib/customerData";
 import { useT } from "@/components/LanguageProvider";
+import { friendlyError } from "@/lib/i18n/errors";
 
 export default function GaragePage() {
   const t = useT();
@@ -119,7 +120,7 @@ export default function GaragePage() {
       } catch {}
     } catch (caught) {
       setRemoveError(
-        caught instanceof Error ? caught.message : t("account.garage.removeError")
+        friendlyError(caught, t, "account.garage.removeError")
       );
     } finally {
       setRemoving(false);

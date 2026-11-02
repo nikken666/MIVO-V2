@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/data/products";
 import type { Translate } from "@/lib/i18n";
+import { intlTag } from "@/lib/i18n/format";
+import { friendlyError } from "@/lib/i18n/errors";
 
 export type ChatMessage = {
   id: string;
@@ -55,10 +57,10 @@ async function loadProducts(ids: string[]) {
 function timeLabel(iso: string) {
   const date = new Date(iso);
   const today = new Date();
-  const time = date.toLocaleTimeString("en-MY", { hour: "2-digit", minute: "2-digit" });
+  const time = date.toLocaleTimeString(intlTag(), { hour: "2-digit", minute: "2-digit" });
   return date.toDateString() === today.toDateString()
     ? time
-    : date.toLocaleDateString("en-MY", { day: "2-digit", month: "short" }) + " " + time;
+    : date.toLocaleDateString(intlTag(), { day: "2-digit", month: "short" }) + " " + time;
 }
 
 /**
@@ -185,7 +187,7 @@ export default function ChatThread({
       setAttachOrder(null);
       onSent?.();
     } catch (caught) {
-      setError((caught as { message?: string })?.message || t("common.error"));
+      setError(friendlyError(caught, t, "common.error"));
     } finally {
       setSending(false);
     }

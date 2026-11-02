@@ -12,6 +12,7 @@ import type { Product } from "@/data/products";
 import { formatPrice } from "@/data/products";
 import { useT } from "./LanguageProvider";
 import type { Translate } from "@/lib/i18n";
+import { friendlyError } from "@/lib/i18n/errors";
 
 type TemplateType =
   | "mega_sale"
@@ -284,7 +285,7 @@ export default function HomePromotions({
       setMessage(t("browse.promo.added", { code: voucher.code }));
     } catch (caught) {
       setMessage(
-        caught instanceof Error ? caught.message : t("browse.promo.claimError")
+        friendlyError(caught, t, "browse.promo.claimError")
       );
     } finally {
       setBusyId("");

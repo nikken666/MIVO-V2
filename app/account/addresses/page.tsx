@@ -11,6 +11,7 @@ import {
   type AccountAddress,
 } from "@/lib/customerData";
 import { useT } from "@/components/LanguageProvider";
+import { friendlyError } from "@/lib/i18n/errors";
 
 const states = [
   "Johor",
@@ -83,9 +84,7 @@ export default function AddressSettingsPage() {
       } catch (caught) {
         if (!active) return;
         setError(
-          caught instanceof Error
-            ? caught.message
-            : t("account.addresses.loadError")
+          friendlyError(caught, t, "account.addresses.loadError")
         );
       } finally {
         if (active) setLoading(false);
@@ -147,9 +146,7 @@ export default function AddressSettingsPage() {
       setMessage(t("account.addresses.saved"));
     } catch (caught) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : t("account.addresses.saveError")
+        friendlyError(caught, t, "account.addresses.saveError")
       );
     } finally {
       setBusy(false);
@@ -167,9 +164,7 @@ export default function AddressSettingsPage() {
       setMessage(t("account.addresses.defaultUpdated"));
     } catch (caught) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : t("account.addresses.defaultError")
+        friendlyError(caught, t, "account.addresses.defaultError")
       );
     } finally {
       setBusy(false);
@@ -194,9 +189,7 @@ export default function AddressSettingsPage() {
       setMessage(t("account.addresses.removed"));
     } catch (caught) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : t("account.addresses.removeError")
+        friendlyError(caught, t, "account.addresses.removeError")
       );
     } finally {
       setBusy(false);

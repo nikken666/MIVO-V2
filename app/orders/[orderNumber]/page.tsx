@@ -11,6 +11,8 @@ import UnpaidCancellationModal from "@/components/UnpaidCancellationModal";
 import StripePayButton from "@/components/StripePayButton";
 import { useT } from "@/components/LanguageProvider";
 import type { Key, Translate } from "@/lib/i18n";
+import { intlTag } from "@/lib/i18n/format";
+import { friendlyError } from "@/lib/i18n/errors";
 
 type OrderRow = {
   id: string;
@@ -329,7 +331,7 @@ export default function OrderDetailsPage() {
       } catch (caught) {
         if (!active) return;
         setError(
-          caught instanceof Error ? caught.message : t("account.detail.openError")
+          friendlyError(caught, t, "account.detail.openError")
         );
       } finally {
         if (active) setLoading(false);
@@ -365,9 +367,7 @@ export default function OrderDetailsPage() {
       await load();
     } catch (caught) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : t("account.orders.confirmError")
+        friendlyError(caught, t, "account.orders.confirmError")
       );
     } finally {
       setBusy(false);
@@ -587,7 +587,7 @@ export default function OrderDetailsPage() {
                           {step.timestamp ? (
                             <time>
                               {new Date(step.timestamp).toLocaleString(
-                                "en-MY",
+                                intlTag(),
                                 {
                                   day: "2-digit",
                                   month: "short",

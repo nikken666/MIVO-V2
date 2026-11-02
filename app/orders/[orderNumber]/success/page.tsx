@@ -6,7 +6,8 @@ import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/data/products";
 import styles from "./Success.module.css";
-import { useT } from "@/components/LanguageProvider";
+import { useLanguage } from "@/components/LanguageProvider";
+import { intlTag } from "@/lib/i18n/format";
 
 type OrderSummary = {
   id: string;
@@ -73,7 +74,7 @@ const burstDots = Array.from({ length: 14 }, (_, i) => i);
 export default function PaymentSuccessPage() {
   const params = useParams();
   const router = useRouter();
-  const t = useT();
+  const { t, locale } = useLanguage();
   const orderNumber = String(params.orderNumber || "");
 
   const [order, setOrder] = useState<OrderSummary | null>(null);
@@ -210,7 +211,7 @@ export default function PaymentSuccessPage() {
               <div>
                 <span>{t("account.receipt.date")}</span>
                 <strong>
-                  {paidAt.toLocaleString("en-MY", {
+                  {paidAt.toLocaleString(intlTag(locale), {
                     day: "2-digit",
                     month: "short",
                     year: "numeric",

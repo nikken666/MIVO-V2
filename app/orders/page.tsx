@@ -10,6 +10,8 @@ import UnpaidCancellationModal from "@/components/UnpaidCancellationModal";
 import StripePayButton from "@/components/StripePayButton";
 import { useT } from "@/components/LanguageProvider";
 import type { Key, Translate } from "@/lib/i18n";
+import { intlTag } from "@/lib/i18n/format";
+import { friendlyError } from "@/lib/i18n/errors";
 
 type OrderItemPreview = {
   id: string;
@@ -292,7 +294,7 @@ export default function OrdersPage() {
       } catch (caught) {
         if (!active) return;
         setError(
-          caught instanceof Error ? caught.message : t("account.orders.loadError")
+          friendlyError(caught, t, "account.orders.loadError")
         );
       } finally {
         if (active) setLoading(false);
@@ -347,9 +349,7 @@ export default function OrdersPage() {
       setActiveTab("completed");
     } catch (caught) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : t("account.orders.confirmError")
+        friendlyError(caught, t, "account.orders.confirmError")
       );
     } finally {
       setBusyOrder("");
@@ -414,7 +414,7 @@ export default function OrdersPage() {
                         <span>{t("account.orders.order")}</span>
                         <strong>{order.order_number}</strong>
                         <small>
-                          {date.toLocaleDateString("en-MY", {
+                          {date.toLocaleDateString(intlTag(), {
                             day: "2-digit",
                             month: "short",
                             year: "numeric",

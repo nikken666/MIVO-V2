@@ -7,6 +7,8 @@ import { useLanguage } from "@/components/LanguageProvider";
 import { openChat } from "@/components/chat/ChatWidget";
 import { localeNames, locales, type Locale } from "@/lib/i18n";
 import styles from "./Me.module.css";
+import { intlTag } from "@/lib/i18n/format";
+import { friendlyError } from "@/lib/i18n/errors";
 
 type Profile = {
   fullName: string;
@@ -119,7 +121,7 @@ export default function MePage() {
       const url = supabase.storage.from("avatars").getPublicUrl(path).data.publicUrl;
       setDraft({ ...draft, avatarUrl: url });
     } catch (caught) {
-      setError((caught as { message?: string })?.message || t("common.error"));
+      setError(friendlyError(caught, t, "common.error"));
     }
   }
 
@@ -142,7 +144,7 @@ export default function MePage() {
       setNotice(t("me.saved"));
       setTimeout(() => setNotice(""), 2500);
     } catch (caught) {
-      setError((caught as { message?: string })?.message || t("common.error"));
+      setError(friendlyError(caught, t, "common.error"));
     } finally {
       setSaving(false);
     }
@@ -164,7 +166,7 @@ export default function MePage() {
   }
 
   const initial = (profile.fullName || profile.email || "M").slice(0, 1).toUpperCase();
-  const memberSince = new Date(profile.createdAt).toLocaleDateString("en-MY", { month: "short", year: "numeric" });
+  const memberSince = new Date(profile.createdAt).toLocaleDateString(intlTag(), { month: "short", year: "numeric" });
   const shown = editing && draft ? draft : profile;
 
   const purchases: Array<{ key: keyof Counts; label: string; href: string; icon: string }> = [

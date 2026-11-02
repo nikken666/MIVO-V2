@@ -5,6 +5,8 @@ import { FormEvent, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useT } from "@/components/LanguageProvider";
+import { intlTag } from "@/lib/i18n/format";
+import { friendlyError } from "@/lib/i18n/errors";
 
 type ClaimOrder = {
   id: string;
@@ -57,7 +59,7 @@ function dateLabel(value: Date | string | null) {
   if (!value) return "—";
   const date = value instanceof Date ? value : new Date(value);
 
-  return date.toLocaleDateString("en-MY", {
+  return date.toLocaleDateString(intlTag(), {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -213,9 +215,7 @@ export default function WarrantyClaimPage() {
       } catch (caught) {
         if (!active) return;
         setError(
-          caught instanceof Error
-            ? caught.message
-            : t("account.claim.prepareError")
+          friendlyError(caught, t, "account.claim.prepareError")
         );
       } finally {
         if (active) setLoading(false);
@@ -344,9 +344,7 @@ export default function WarrantyClaimPage() {
       setClaim(data as ClaimResult);
     } catch (caught) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : t("account.claim.submitError")
+        friendlyError(caught, t, "account.claim.submitError")
       );
     } finally {
       setBusy(false);

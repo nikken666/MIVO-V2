@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/data/products";
 import { useT } from "@/components/LanguageProvider";
 import type { Key, Translate } from "@/lib/i18n";
+import { intlTag } from "@/lib/i18n/format";
+import { friendlyError } from "@/lib/i18n/errors";
 
 type ReceiptOrder = {
   id: string;
@@ -49,7 +51,7 @@ type ShipmentInfo = {
 function formatDate(value: string | null) {
   if (!value) return "—";
 
-  return new Date(value).toLocaleString("en-MY", {
+  return new Date(value).toLocaleString(intlTag(), {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -158,7 +160,7 @@ export default function OrderReceiptPage() {
       } catch (caught) {
         if (!active) return;
         setError(
-          caught instanceof Error ? caught.message : t("account.receipt.openError")
+          friendlyError(caught, t, "account.receipt.openError")
         );
       } finally {
         if (active) setLoading(false);

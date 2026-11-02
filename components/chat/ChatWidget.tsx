@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useT } from "../LanguageProvider";
 import ChatThread from "./ChatThread";
+import { friendlyError } from "@/lib/i18n/errors";
 
 export const OPEN_CHAT_EVENT = "mivo:open-chat";
 
@@ -106,7 +107,7 @@ export default function ChatWidget() {
         p_seller_id: detail.sellerId,
       });
       if (startError) {
-        setError(/chat_start/.test(startError.message) ? t("chat.setupNeeded") : startError.message);
+        setError(/chat_start/.test(startError.message) ? t("chat.setupNeeded") : friendlyError(startError, t));
         return;
       }
       setPending({ productId: detail.productId, orderNumber: detail.orderNumber });

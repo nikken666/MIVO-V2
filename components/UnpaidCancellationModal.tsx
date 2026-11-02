@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useT } from "@/components/LanguageProvider";
+import { friendlyError } from "@/lib/i18n/errors";
 
 export default function UnpaidCancellationModal({
   orderNumber,
@@ -34,9 +35,7 @@ export default function UnpaidCancellationModal({
       onClose();
     } catch (caught) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : t("account.cancel.error")
+        friendlyError(caught, t, "account.cancel.error")
       );
     } finally {
       setBusy(false);

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useT } from "@/components/LanguageProvider";
+import { friendlyError, ShownError } from "@/lib/i18n/errors";
 
 export default function StripePayButton({
   orderNumber,
@@ -33,13 +34,13 @@ export default function StripePayButton({
       };
 
       if (!response.ok || !data.url) {
-        throw new Error(data.error || t("buy.pay.unable"));
+        throw new ShownError(friendlyError(data.error, t, "buy.pay.unable"));
       }
 
       window.location.assign(data.url);
     } catch (caught) {
       setError(
-        caught instanceof Error ? caught.message : t("buy.pay.unable")
+        friendlyError(caught, t, "buy.pay.unable")
       );
       setBusy(false);
     }

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/data/products";
 import { useT } from "@/components/LanguageProvider";
 import type { Translate } from "@/lib/i18n";
+import { friendlyError } from "@/lib/i18n/errors";
 
 type Voucher = {
   id: string;
@@ -143,7 +144,7 @@ export default function CartVoucherStrip() {
       setMessage(t("buy.voucher.claimedMsg", { code: voucher.code }));
     } catch (caught) {
       setMessage(
-        caught instanceof Error ? caught.message : t("buy.voucher.claimFailed")
+        friendlyError(caught, t, "buy.voucher.claimFailed")
       );
     } finally {
       setBusyId("");

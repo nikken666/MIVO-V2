@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/data/products";
 import { useT } from "@/components/LanguageProvider";
 import type { Translate } from "@/lib/i18n";
+import { intlTag } from "@/lib/i18n/format";
+import { friendlyError } from "@/lib/i18n/errors";
 
 type Voucher = {
   id: string;
@@ -27,7 +29,7 @@ type ClaimedVoucher = Voucher & {
 };
 
 function dateLabel(value: string) {
-  return new Date(value).toLocaleDateString("en-MY", {
+  return new Date(value).toLocaleDateString(intlTag(), {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -141,7 +143,7 @@ export default function MyVouchersPage() {
       } catch (caught) {
         if (!active) return;
         setError(
-          caught instanceof Error ? caught.message : t("account.vouchers.loadError")
+          friendlyError(caught, t, "account.vouchers.loadError")
         );
       } finally {
         if (active) setLoading(false);

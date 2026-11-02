@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useT } from "@/components/LanguageProvider";
 import type { Key, Translate } from "@/lib/i18n";
+import { intlTag } from "@/lib/i18n/format";
+import { friendlyError } from "@/lib/i18n/errors";
 
 type ClaimRow = {
   id: string;
@@ -31,7 +33,7 @@ type ClaimRow = {
 };
 
 function dateLabel(value: string) {
-  return new Date(value).toLocaleString("en-MY", {
+  return new Date(value).toLocaleString(intlTag(), {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -161,9 +163,7 @@ export default function MyWarrantyClaimsPage() {
       } catch (caught) {
         if (!active) return;
         setError(
-          caught instanceof Error
-            ? caught.message
-            : t("account.claims.loadError")
+          friendlyError(caught, t, "account.claims.loadError")
         );
       } finally {
         if (active) setLoading(false);

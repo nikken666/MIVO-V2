@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/data/products";
 import { useT } from "@/components/LanguageProvider";
+import { friendlyError, ShownError } from "@/lib/i18n/errors";
 
 type CancellationPreview = {
   order_number: string;
@@ -53,9 +54,7 @@ export default function PaidCancellationModal({
       } catch (caught) {
         if (!active) return;
         setError(
-          caught instanceof Error
-            ? caught.message
-            : t("account.paidCancel.previewError")
+          friendlyError(caught, t, "account.paidCancel.previewError")
         );
       } finally {
         if (active) setLoading(false);
@@ -92,15 +91,15 @@ export default function PaidCancellationModal({
 
       if (!response.ok) {
         if (data.refundPending) {
-          throw new Error(
-            (data.error || t("account.paidCancel.refundFailed")) +
+          throw new ShownError(
+            friendlyError(data.error, t, "account.paidCancel.refundFailed") +
               " " +
               t("account.paidCancel.refundPending")
           );
         }
 
-        throw new Error(
-          data.error || t("account.paidCancel.refundError")
+        throw new ShownError(
+          friendlyError(data.error, t, "account.paidCancel.refundError")
         );
       }
 
@@ -108,9 +107,7 @@ export default function PaidCancellationModal({
       onClose();
     } catch (caught) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : t("account.cancel.error")
+        friendlyError(caught, t, "account.cancel.error")
       );
     } finally {
       setBusy(false);

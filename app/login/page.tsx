@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Logo from "@/components/Logo";
 import { useT } from "@/components/LanguageProvider";
+import { friendlyError } from "@/lib/i18n/errors";
 
 type Mode = "login" | "register";
 
@@ -61,7 +62,7 @@ export default function LoginPage() {
       router.refresh();
     } catch (caught) {
       setError(
-        caught instanceof Error ? caught.message : t("account.login.failed")
+        friendlyError(caught, t, "account.login.failed")
       );
     } finally {
       setBusy(false);

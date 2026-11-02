@@ -9,7 +9,8 @@ import type {
   ProductVariant,
 } from "@/data/products";
 import { isFitmentVerifiedShop, type FitmentStatus } from "@/data/fitments";
-import { useT } from "./LanguageProvider";
+import { useLanguage } from "./LanguageProvider";
+import { intlTag } from "@/lib/i18n/format";
 import type { Translate } from "@/lib/i18n";
 import { openChat } from "./chat/ChatWidget";
 import { formatPrice } from "@/data/products";
@@ -47,7 +48,7 @@ export default function ProductDetailClient({
   variantFitmentStatuses?: Record<string, FitmentStatus>;
   selectedVehicleLabel?: string;
 }) {
-  const t = useT();
+  const { t, locale } = useLanguage();
   const router = useRouter();
   const { addToCart, startBuyNow, cartReady } = useMarketplace();
 
@@ -924,7 +925,7 @@ export default function ProductDetailClient({
                     <div className="productReviewMeta">
                       <span>
                         {new Date(review.createdAt).toLocaleDateString(
-                          "en-MY",
+                          intlTag(locale),
                           {
                             day: "2-digit",
                             month: "short",
