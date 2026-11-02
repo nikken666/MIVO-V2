@@ -146,6 +146,7 @@ const core = {
 
   // Errors (lib/i18n/errors.ts)
   "errors.lang": "en",
+  "errors.notReady": "This feature is still being switched on. Please try again a little later.",
   "errors.network": "Can't connect right now. Check your internet and try again.",
   "errors.badLogin": "Wrong email or password.",
   "errors.emailNotConfirmed": "Please confirm your email first — check your inbox for the link.",
@@ -323,6 +324,7 @@ const msCore: Dict = {
   "shop.products": "Produk",
   "shop.chat": "Sembang",
   "errors.lang": "ms",
+  "errors.notReady": "Ciri ini sedang diaktifkan. Sila cuba lagi sebentar lagi.",
   "errors.network": "Tiada sambungan sekarang. Semak internet anda dan cuba lagi.",
   "errors.badLogin": "E-mel atau kata laluan salah.",
   "errors.emailNotConfirmed": "Sila sahkan e-mel anda dahulu — semak peti masuk untuk pautan.",
@@ -489,6 +491,7 @@ const zhCore: Dict = {
   "shop.products": "商品",
   "shop.chat": "聊聊",
   "errors.lang": "zh",
+  "errors.notReady": "此功能正在开通中，请稍后再试。",
   "errors.network": "暂时无法连接，请检查网络后再试。",
   "errors.badLogin": "电邮或密码错误。",
   "errors.emailNotConfirmed": "请先确认你的电邮，链接已发送到你的邮箱。",

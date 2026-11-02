@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useT } from "@/components/LanguageProvider";
-import { friendlyError } from "@/lib/i18n/errors";
+import { errorText, friendlyError } from "@/lib/i18n/errors";
 import styles from "@/app/account/returns/Returns.module.css";
 
 type Shop = { id: string; shop_name: string; status: string };
@@ -19,6 +19,7 @@ export default function SellOnMivoPage() {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
+  const [detail, setDetail] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -47,6 +48,8 @@ export default function SellOnMivoPage() {
       setDone(true);
     } catch (caught) {
       setError(friendlyError(caught, t, "common.error"));
+      // The exact reason, small, so it can be reported to MIVO.
+      setDetail(errorText(caught));
     } finally {
       setBusy(false);
     }
@@ -101,6 +104,7 @@ export default function SellOnMivoPage() {
               </div>
               <textarea className={styles.textarea} rows={3} placeholder={t("sell.note")} value={note} onChange={(e) => setNote(e.target.value)} style={{ marginTop: 10 }} />
               {error ? <p className={styles.error}>{error}</p> : null}
+              {detail ? <p className={styles.hint}>{detail}</p> : null}
               <div className={styles.actions}>
                 <button type="button" className={styles.primary} disabled={busy || name.trim().length < 2 || phone.trim().length < 6} onClick={() => void apply()}>
                   {t("sell.submit")}

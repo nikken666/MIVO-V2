@@ -47,7 +47,14 @@ grant execute on function public.mivo_can_manage_shop(uuid) to authenticated;
 -- ---------------------------------------------------------------------
 create or replace function public.seller_apply(p_shop_name text, p_phone text, p_note text)
 returns uuid language plpgsql security definer set search_path = public as $$
-declare v_id uuid; v_slug text;
+declare
+  v_id uuid;
+  v_slug text;
+  v_email text;
+  v_phone text := nullif(btrim(coalesce(p_phone, '')), '');
+  v_cols text := 'owner_id, shop_name, slug, status, tier, description';
+  v_vals text := '$1, $2, $3, ''pending'', ''standard'', $4';
+  c record;
 begin
   if auth.uid() is null then raise exception 'Please sign in'; end if;
   if coalesce(btrim(p_shop_name), '') = '' then raise exception 'Shop name is required'; end if;
@@ -58,18 +65,44 @@ begin
   if exists (select 1 from public.sellers where lower(slug) = v_slug) then
     v_slug := v_slug || '-' || substr(md5(gen_random_uuid()::text), 1, 4);
   end if;
-  insert into public.sellers (owner_id, shop_name, slug, status, tier, description)
-  values (auth.uid(), btrim(p_shop_name), v_slug, 'pending', 'standard',
-          nullif(btrim(coalesce(p_note, '')), ''))
-  returning id into v_id;
-  -- Phone for MIVO to contact the applicant (column may differ per setup).
+  select email into v_email from auth.users where id = auth.uid();
+
+  -- Older setups may have extra required columns (contact, bank, business
+  -- details). Fill them with the applicant's phone/email or a blank value;
+  -- MIVO completes them when approving.
+  for c in
+    select column_name, data_type
+      from information_schema.columns
+     where table_schema = 'public' and table_name = 'sellers'
+       and is_nullable = 'NO' and column_default is null and is_generated = 'NEVER' and identity_generation is null
+       and column_name not in ('id', 'owner_id', 'shop_name', 'slug', 'status', 'tier', 'description')
+  loop
+    v_cols := v_cols || ', ' || quote_ident(c.column_name);
+    v_vals := v_vals || ', ' || case
+      when c.column_name ~* 'email' then quote_literal(coalesce(v_email, ''))
+      when c.column_name ~* 'phone|mobile|contact' then quote_literal(coalesce(v_phone, ''))
+      when c.column_name ~* 'name' then quote_literal(btrim(p_shop_name))
+      when c.data_type in ('text', 'character varying', 'character') then quote_literal('')
+      when c.data_type in ('integer', 'bigint', 'smallint', 'numeric', 'real', 'double precision') then '0'
+      when c.data_type = 'boolean' then 'false'
+      when c.data_type like 'timestamp%' or c.data_type = 'date' then 'now()'
+      when c.data_type = 'jsonb' then quote_literal('{}') || '::jsonb'
+      when c.data_type = 'ARRAY' then quote_literal('{}')
+      else 'null' end;
+  end loop;
+
+  execute format('insert into public.sellers (%s) values (%s) returning id', v_cols, v_vals)
+    into v_id using auth.uid(), btrim(p_shop_name), v_slug, nullif(btrim(coalesce(p_note, '')), '');
+
+  -- Phone on the shop record, when the column exists.
   begin
-    execute 'update public.sellers set phone = $1 where id = $2' using nullif(btrim(coalesce(p_phone, '')), ''), v_id;
+    execute 'update public.sellers set phone = coalesce(nullif(phone, ''''), $1) where id = $2' using v_phone, v_id;
   exception when undefined_column then null;
   end;
   return v_id;
 end;
 $$;
+
 revoke all on function public.seller_apply(text, text, text) from public, anon;
 grant execute on function public.seller_apply(text, text, text) to authenticated;
 

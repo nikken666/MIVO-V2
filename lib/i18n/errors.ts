@@ -4,6 +4,7 @@ import type { Key, Translate } from "./index";
 // the shopper's language. Technical database text is never shown as is.
 
 const patterns: Array<[RegExp, Key]> = [
+  [/could not find the function|schema cache|function .* does not exist|relation .* does not exist/i, "errors.notReady"],
   [/failed to fetch|networkerror|load failed|network request failed|err_internet/i, "errors.network"],
   [/invalid login credentials|invalid email or password/i, "errors.badLogin"],
   [/email not confirmed/i, "errors.emailNotConfirmed"],
