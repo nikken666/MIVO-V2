@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import PickupAddressEditor from "@/components/admin/PickupAddressEditor";
 import { createClient } from "@/lib/supabase/client";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import styles from "@/app/admin/Admin.module.css";
@@ -105,6 +106,7 @@ export default function SellerShopSettingsPage() {
               <label className={styles.adminField}><span>Address (shown to customers on approved returns)</span><textarea rows={2} {...field("return_address")} /></label>
               <button type="submit" className={styles.adminAction} disabled={busy || !shopId}>{busy ? "Saving…" : "Save"}</button>
             </form>
+            {shopId ? <PickupAddressEditor key={shopId} sellerId={shopId} /> : null}
           </section>
         </section>
       </div>

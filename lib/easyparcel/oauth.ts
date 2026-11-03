@@ -95,6 +95,16 @@ export async function getEasyParcelToken(): Promise<string> {
   return token.access_token;
 }
 
+/** Force a refresh (after a 401). */
+export async function refreshEasyParcelToken(): Promise<string> {
+  const admin = createAdminClient();
+  const { data } = await admin.from("easyparcel_connection").select("refresh_token").eq("id", 1).maybeSingle();
+  if (!data?.refresh_token) throw new Error("EasyParcel connection expired. Please connect it again.");
+  const token = await requestToken({ grant_type: "refresh_token", refresh_token: data.refresh_token });
+  await saveTokens(token);
+  return token.access_token;
+}
+
 /** Whether EasyParcel is connected (for the settings page). */
 export async function easyParcelStatus() {
   const admin = createAdminClient();

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import EasyParcelArrange from "@/components/admin/EasyParcelArrange";
+import { COURIERS } from "@/lib/couriers";
 import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
@@ -516,10 +518,10 @@ export default function AdminOrdersPage() {
     nextStatus: "processing" | "packed" | "shipped" | "delivered"
   ) {
     const parcelCourierValue = (
-      parcel.buyerCourier ||
-      (parcelCourier[parcel.id] ??
+      parcelCourier[parcel.id] ??
       parcel.shipment?.courier_name ??
-      "")
+      parcel.buyerCourier ??
+      ""
     ).trim();
     const parcelTrackingValue = (
       parcelTracking[parcel.id] ??
@@ -618,8 +620,7 @@ export default function AdminOrdersPage() {
           const status = parcelStatus(parcel, order);
           const isBusy = busy === parcel.id;
           const courierValue =
-            parcel.buyerCourier ||
-            (parcelCourier[parcel.id] ?? parcel.shipment?.courier_name ?? "");
+            parcelCourier[parcel.id] ?? parcel.shipment?.courier_name ?? parcel.buyerCourier ?? "";
           const trackingValue =
             parcelTracking[parcel.id] ??
             parcel.shipment?.tracking_number ??
@@ -662,14 +663,14 @@ export default function AdminOrdersPage() {
               ) : null}
 
               {["paid", "processing", "packed"].includes(status) ? (
+                <EasyParcelArrange sellerOrderId={parcel.id} onDone={() => void loadOrders()} />
+              ) : null}
+
+              {["paid", "processing", "packed"].includes(status) ? (
                 <div className={styles.adminShipForm}>
                   <label>
                     <span>Courier *</span>
-                    {parcel.buyerCourier ? (
-                      <strong title="The buyer chose and paid for this courier">
-                        {parcel.buyerCourier} · chosen by buyer
-                      </strong>
-                    ) : (
+                    {(
                       <select
                         value={courierValue}
                         onChange={(event) =>
@@ -680,8 +681,7 @@ export default function AdminOrdersPage() {
                         }
                       >
                         <option value="">Select courier</option>
-                        <option value="SPX Express">SPX Express</option>
-                        <option value="J&T Express">J&T Express</option>
+{COURIERS.map((name) => (<option key={name} value={name}>{name}</option>))}
                       </select>
                     )}
                   </label>
@@ -1041,14 +1041,13 @@ export default function AdminOrdersPage() {
                                   </button>
                                 ) : null}
 
+                                {order.parcels[0]?.id ? (
+                                  <EasyParcelArrange sellerOrderId={order.parcels[0].id} onDone={() => void loadOrders()} />
+                                ) : null}
                                 <div className={styles.adminShipForm}>
                                     <label>
                                       <span>Courier *</span>
-                                      {order.parcels[0]?.buyerCourier ? (
-                                        <strong title="The buyer chose and paid for this courier">
-                                          {order.parcels[0].buyerCourier} · chosen by buyer
-                                        </strong>
-                                      ) : (
+                                      {(
                                         <select
                                           value={courier}
                                           onChange={(event) =>
@@ -1056,12 +1055,7 @@ export default function AdminOrdersPage() {
                                           }
                                         >
                                           <option value="">Select courier</option>
-                                          <option value="SPX Express">
-                                            SPX Express
-                                          </option>
-                                          <option value="J&T Express">
-                                            J&T Express
-                                          </option>
+{COURIERS.map((name) => (<option key={name} value={name}>{name}</option>))}
                                         </select>
                                       )}
                                     </label>

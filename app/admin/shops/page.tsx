@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import PickupAddressEditor from "@/components/admin/PickupAddressEditor";
 import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
@@ -245,6 +246,8 @@ export default function AdminShopsPage() {
               <button type="submit" disabled={saving}>{saving ? "Saving…" : form.id ? "Update shop" : "Add shop"}</button>
               {form.id ? <button type="button" onClick={() => setForm(emptyForm)}>Cancel</button> : null}
             </form>
+
+            {form.id ? <PickupAddressEditor key={form.id} sellerId={form.id} /> : null}
 
             {loading ? (
               <p>Loading shops…</p>

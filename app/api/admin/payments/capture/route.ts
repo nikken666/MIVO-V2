@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { captureOrderPayment } from "@/lib/stripe/holds";
+import { captureIfLastParcel } from "@/lib/stripe/captureIfLast";
 
 /** Admin: charge a held card payment, called just before an order ships. */
 export async function POST(request: NextRequest) {
@@ -35,21 +35,7 @@ export async function POST(request: NextRequest) {
       if (!mine?.length) return NextResponse.json({ error: "Not allowed." }, { status: 403 });
     }
 
-    // Multi-shop orders: charge once, when the last shop parcel ships. Other
-    // parcels still waiting keep the hold (the daily cron charges it before it expires).
-    if (parcelId) {
-      const { data: parcels } = await admin
-        .from("seller_orders")
-        .select("id, status")
-        .eq("order_id", order.id);
-      const waiting = (parcels || []).filter(
-        (p) => p.id !== parcelId && !["shipped", "delivered", "completed", "cancelled", "refunded"].includes(p.status)
-      );
-      if (waiting.length) return NextResponse.json({ result: "waiting", waiting: waiting.length });
-    }
-
-    const result = await captureOrderPayment(order.id);
-    return NextResponse.json({ result });
+    return NextResponse.json(await captureIfLastParcel(order.id, parcelId));
   } catch (caught) {
     return NextResponse.json(
       { error: caught instanceof Error ? caught.message : "Unable to charge the card." },

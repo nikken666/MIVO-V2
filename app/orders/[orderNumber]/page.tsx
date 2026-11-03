@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import OrderJourney from "@/components/orders/OrderJourney";
+import ParcelTracker from "@/components/orders/ParcelTracker";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import ChatNowButton from "@/components/chat/ChatNowButton";
@@ -491,6 +492,17 @@ export default function OrderDetailsPage() {
             </span>
           </section>
         )}
+
+        {["shipped", "delivered", "completed"].includes(order.status) || shipments.some((row) => row.tracking_number) ? (
+          <ParcelTracker
+            orderNumber={order.order_number}
+            shopNames={Object.fromEntries(
+              shipments
+                .filter((row) => row.seller_order_id)
+                .map((row) => [row.seller_order_id as string, row.shop_name || ""])
+            )}
+          />
+        ) : null}
 
         <div className="orderDetailLayout">
           <div className="orderDetailMainColumn">

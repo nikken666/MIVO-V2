@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { captureOrderPayment } from "@/lib/stripe/holds";
 import { payReturnRefund } from "@/lib/returns/payRefund";
+import { completePendingBooking, refreshTracking } from "@/lib/easyparcel/shipping";
 
 // Daily (vercel.json): charge card holds that would expire within a day,
 // and run return-request housekeeping.
@@ -55,11 +56,29 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // EasyParcel: finish bookings still waiting for an AWB, refresh tracking.
+  let easyparcel: unknown = null;
+  try {
+    const { data: pending } = await admin
+      .from("shipments")
+      .select("id, seller_order_id, tracking_number")
+      .eq("provider", "easyparcel")
+      .neq("status", "delivered")
+      .limit(200);
+    for (const row of (pending as Array<{ id: string; seller_order_id: string; tracking_number: string | null }> | null) || []) {
+      if (!row.tracking_number) await completePendingBooking(row.seller_order_id).catch(() => undefined);
+    }
+    await refreshTracking(((pending as Array<{ id: string }> | null) || []).map((row) => row.id), true);
+    easyparcel = { checked: pending?.length || 0 };
+  } catch (caught) {
+    easyparcel = caught instanceof Error ? caught.message : String(caught);
+  }
+
   // Commission: apply scheduled changes, revert finished temporary ones.
   const commission = await admin.rpc("mivo_apply_commission_changes").then(
     (r) => r.data ?? r.error?.message,
     () => null
   );
 
-  return NextResponse.json({ captured: results.filter((r) => r.ok).length, results, returns, refunds, commission });
+  return NextResponse.json({ captured: results.filter((r) => r.ok).length, results, returns, refunds, easyparcel, commission });
 }

@@ -544,6 +544,22 @@ const rows = {
   "wc.ev.replacement_shipped": ["MIVO sent your part", "MIVO menghantar alat ganti anda", "MIVO 已寄出零件"],
   "wc.ev.received": ["You confirmed you received it", "Anda mengesahkan penerimaan", "你已确认收货"],
   "wc.ev.refunded": ["Refunded", "Dikembalikan", "已退款"],
+  "trk.parcel": ["Parcel {n}", "Bungkusan {n}", "包裹 {n}"],
+  "trk.courier": ["Courier", "Kurier", "快递"],
+  "trk.copy": ["Tap to copy", "Tekan untuk salin", "点击复制"],
+  "trk.copied": ["Copied", "Disalin", "已复制"],
+  "trk.returned": ["Returned to the shop", "Dipulangkan ke kedai", "已退回店铺"],
+  "trk.waiting": ["Waiting for the courier's first scan", "Menunggu imbasan pertama kurier", "等待快递首次扫描"],
+  "trk.noScans": ["Courier updates will appear here as your parcel moves.", "Kemas kini kurier akan dipaparkan di sini semasa bungkusan bergerak.", "包裹移动时，快递动态会显示在这里。"],
+  "trk.courierSite": ["Open on the courier's site", "Buka di laman kurier", "在快递官网查看"],
+  "trk.stop.shipped": ["Waiting for the courier", "Menunggu kurier", "等待快递揽收"],
+  "trk.stop.collected": ["Picked up by the courier", "Diambil oleh kurier", "快递已揽收"],
+  "trk.stop.transit": ["On the way to you", "Dalam perjalanan kepada anda", "运输中，正在派送给你"],
+  "trk.stop.delivered": ["Delivered", "Sudah sampai", "已签收"],
+  "trk.short.shipped": ["Shipped", "Dihantar", "已发货"],
+  "trk.short.collected": ["Collected", "Diambil", "已揽收"],
+  "trk.short.transit": ["In transit", "Dalam perjalanan", "运输中"],
+  "trk.short.delivered": ["Delivered", "Sampai", "已签收"],
 };
 
 type AccountKey = keyof typeof rows;

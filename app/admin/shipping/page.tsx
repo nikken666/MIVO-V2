@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import EasyParcelStatus from "@/components/admin/EasyParcelStatus";
 import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
@@ -201,6 +202,7 @@ export default function AdminShippingPage() {
               </p>
             </div>
           </header>
+          <EasyParcelStatus />
 
           <section className={styles.shippingFormulaCard}>
             <span>How MIVO calculates shipping</span>

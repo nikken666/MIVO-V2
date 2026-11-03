@@ -199,32 +199,12 @@ commit;
 -- Make new functions available to the website immediately.
 notify pgrst, 'reload schema';
 
--- Ship with the courier the buyer chose (and paid for). Applies to every
--- path that records a shipment: Seller Centre, MIVO admin, bulk arrange.
+-- Couriers are not shown to buyers: the shop (or EasyParcel) picks one when
+-- the order is arranged. buyer_courier_* only records what shipping was priced at.
+-- Remove the earlier courier lock if it was installed.
 begin;
-
-create or replace function public.mivo_lock_buyer_courier()
-returns trigger language plpgsql security definer set search_path = public as $$
-declare v_courier text;
-begin
-  -- Paused while per-shop fulfilment restores shipments around a whole-order update.
-  if coalesce(current_setting('mivo.skip_courier_lock', true), '') = 'on' then return new; end if;
-  select buyer_courier_name into v_courier from public.seller_orders where id = new.seller_order_id;
-  if v_courier is null then return new; end if;
-  if new.courier_name is null or btrim(new.courier_name) = '' then
-    new.courier_name := v_courier;
-  elsif lower(btrim(new.courier_name)) <> lower(v_courier) then
-    raise exception 'This parcel must be shipped with % (the courier the buyer chose and paid for)', v_courier;
-  end if;
-  return new;
-end;
-$$;
-
 drop trigger if exists mivo_lock_buyer_courier on public.shipments;
-create trigger mivo_lock_buyer_courier
-before insert or update of courier_name on public.shipments
-for each row execute function public.mivo_lock_buyer_courier();
-
+drop function if exists public.mivo_lock_buyer_courier();
 commit;
 
 notify pgrst, 'reload schema';

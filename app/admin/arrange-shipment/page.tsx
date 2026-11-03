@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { COURIERS } from "@/lib/couriers";
 import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
@@ -511,10 +512,10 @@ export default function ArrangeShipmentPage() {
   async function markShipped(order: OrderView) {
     const orderNumber = order.key;
     const courier = (
-      order.buyerCourier ||
-      (courierInputs[orderNumber] ??
+      courierInputs[orderNumber] ??
       order.shipment?.courier_name ??
-      "")
+      order.buyerCourier ??
+      ""
     ).trim();
     const tracking = (
       trackingInputs[orderNumber] ??
@@ -779,13 +780,11 @@ export default function ArrangeShipmentPage() {
                           <label>
                             <span>Courier *</span>
                             <select
-                              disabled={Boolean(order.buyerCourier)}
-                              title={order.buyerCourier ? "Chosen by the buyer" : undefined}
                               value={
-                                order.buyerCourier ||
-                                (courierInputs[order.key] ??
+                                courierInputs[order.key] ??
                                 order.shipment?.courier_name ??
-                                "")
+                                order.buyerCourier ??
+                                ""
                               }
                               onChange={(event) =>
                                 setCourierInputs((current) => ({
@@ -795,11 +794,7 @@ export default function ArrangeShipmentPage() {
                               }
                             >
                               <option value="">Select courier</option>
-                              {order.buyerCourier && !["SPX Express", "J&T Express"].includes(order.buyerCourier) ? (
-                                <option value={order.buyerCourier}>{order.buyerCourier}</option>
-                              ) : null}
-                              <option value="SPX Express">SPX Express</option>
-                              <option value="J&T Express">J&T Express</option>
+{COURIERS.map((name) => (<option key={name} value={name}>{name}</option>))}
                             </select>
                           </label>
 
@@ -933,8 +928,6 @@ export default function ArrangeShipmentPage() {
                   }
                 >
                   <option value="">Use each order's courier</option>
-                  <option value="SPX Express">SPX Express</option>
-                  <option value="J&T Express">J&T Express</option>
                 </select>
               </label>
 

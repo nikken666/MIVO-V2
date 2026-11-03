@@ -463,8 +463,8 @@ export default function CheckoutPage() {
           setShopCourier((current) => {
             const next: Record<string, string> = {};
             for (const shop of shops) {
-              const kept = shop.options.some((o) => o.courier_code === current[shop.seller_id]);
-              next[shop.seller_id] = kept ? current[shop.seller_id] : shop.options[0]?.courier_code || "";
+              // Couriers aren't shown to buyers: price each parcel at the cheapest option.
+              next[shop.seller_id] = shop.options[0]?.courier_code || "";
             }
             return next;
           });
@@ -1011,7 +1011,7 @@ export default function CheckoutPage() {
                       : shopQuotes
                         ? t("buy.co.perShop")
                         : shippingQuotes.length
-                          ? t("buy.co.chooseCourier")
+                          ? t("buy.co.standardDelivery")
                           : t("buy.co.unavailable")}
                   </strong>
                 </div>
@@ -1040,86 +1040,37 @@ export default function CheckoutPage() {
                             ))}
                           </ul>
                           {shop.options.length ? (
-                            <div className="checkoutCourierOptions">
-                              {shop.options.map((quote) => (
-                                <button
-                                  type="button"
-                                  key={quote.courier_code}
-                                  className={
-                                    "checkoutCourierOption" +
-                                    (chosen?.courier_code === quote.courier_code ? " selected" : "")
-                                  }
-                                  onClick={() =>
-                                    setShopCourier((current) => ({
-                                      ...current,
-                                      [shop.seller_id]: quote.courier_code,
-                                    }))
-                                  }
-                                >
-                                  <span>
-                                    <strong>{quote.courier_name}</strong>
-                                    <small>
-                                      {quote.zone_name} · {Number(quote.chargeable_weight_kg).toFixed(2)} kg
-                                    </small>
-                                  </span>
-                                  <b>
-                                    {Number(quote.shipping_amount) === 0
-                                      ? t("buy.co.free")
-                                      : formatPrice(Number(quote.shipping_amount))}
-                                  </b>
-                                </button>
-                              ))}
+                            <div className="checkoutStandardDelivery">
+                              <span>
+                                <strong>{t("buy.co.standardDelivery")}</strong>
+                                <small>{t("buy.co.standardDeliveryHint")}</small>
+                              </span>
+                              <b>
+                                {chosen
+                                  ? Number(chosen.shipping_amount) === 0
+                                    ? t("buy.co.free")
+                                    : formatPrice(Number(chosen.shipping_amount))
+                                  : "—"}
+                              </b>
                             </div>
                           ) : (
                             <small>{t("buy.co.unavailable")}</small>
                           )}
-                          <footer>
-                            <span>{t("buy.co.shopShipping")}</span>
-                            <b>
-                              {chosen
-                                ? Number(chosen.shipping_amount) === 0
-                                  ? t("buy.co.free")
-                                  : formatPrice(Number(chosen.shipping_amount))
-                                : "—"}
-                            </b>
-                          </footer>
                         </section>
                       );
                     })}
                   </div>
-                ) : shippingQuotes.length > 0 ? (
-                  <div className="checkoutCourierOptions">
-                    {shippingQuotes.map((quote) => (
-                      <button
-                        type="button"
-                        key={quote.courier_code}
-                        className={
-                          "checkoutCourierOption" +
-                          (selectedCourier === quote.courier_code
-                            ? " selected"
-                            : "")
-                        }
-                        onClick={() =>
-                          setSelectedCourier(quote.courier_code)
-                        }
-                      >
-                        <span>
-                          <strong>{quote.courier_name}</strong>
-                          <small>
-                            {quote.zone_name} ·{" "}
-                            {Number(
-                              quote.chargeable_weight_kg
-                            ).toFixed(2)}{" "}
-                            kg
-                          </small>
-                        </span>
-                        <b>
-                          {quote.shipping_amount === 0
-                            ? t("buy.co.free")
-                            : formatPrice(quote.shipping_amount)}
-                        </b>
-                      </button>
-                    ))}
+                ) : shippingQuote ? (
+                  <div className="checkoutStandardDelivery">
+                    <span>
+                      <strong>{t("buy.co.standardDelivery")}</strong>
+                      <small>{t("buy.co.standardDeliveryHint")}</small>
+                    </span>
+                    <b>
+                      {shippingQuote.shipping_amount === 0
+                        ? t("buy.co.free")
+                        : formatPrice(shippingQuote.shipping_amount)}
+                    </b>
                   </div>
                 ) : shippingError ? (
                   <small>{shippingError}</small>
