@@ -111,9 +111,13 @@ export async function POST(request: NextRequest) {
           variant_image_url: v.variant_image_url,
           is_active: true,
         }));
-      let { error: variantError } = await admin.from("product_variants").insert(rows(""));
-      // The same SKU on two Shopee listings: keep the second listing with "-B".
-      if (isUnique(variantError)) ({ error: variantError } = await admin.from("product_variants").insert(rows("-B")));
+      // A SKU the shop already has (another listing, or an earlier import):
+      // keep this one as -B, -C… instead of failing.
+      let variantError: { code?: string; message?: string } | null = null;
+      for (const suffix of ["", "-B", "-C", "-D", "-E", "-F", "-G", "-H"]) {
+        ({ error: variantError } = await admin.from("product_variants").insert(rows(suffix)));
+        if (!isUnique(variantError)) break;
+      }
       if (variantError) throw variantError;
 
       if (images.length) {

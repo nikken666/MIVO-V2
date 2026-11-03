@@ -65,8 +65,9 @@ export default function ShopeeImportPage() {
   const [shopeeCat, setShopeeCat] = useState("");
   const [onlyInStock, setOnlyInStock] = useState(true);
   const [maxStock, setMaxStock] = useState("");
-  // Products already in the shop can't be imported again: hide them by default.
-  const [hideExisting, setHideExisting] = useState(true);
+  // Off: import everything, even SKUs the shop already has (they get -B, -C…).
+  // On: leave out SKUs already in the shop.
+  const [skipExisting, setSkipExisting] = useState(false);
 
   const [shopId, setShopId] = useState("");
   const [status, setStatus] = useState<"draft" | "active">("draft");
@@ -207,7 +208,7 @@ export default function ShopeeImportPage() {
   const plan = useMemo(
     () =>
       products.map((product) => {
-        const notInShop = product.variants.filter((v) => !existingSkus.has(v.sku));
+        const notInShop = skipExisting ? product.variants.filter((v) => !existingSkus.has(v.sku)) : product.variants;
         // Options with no stock aren't listed (stock not given counts as in stock).
         const newVariants = onlyInStock ? notInShop.filter((v) => v.stock == null || v.stock > 0) : notInShop;
         const brandId = guessBrandId(product, brands);
@@ -217,7 +218,7 @@ export default function ShopeeImportPage() {
         const outOfStock = !skip && notInShop.length > 0 && newVariants.length === 0;
         return { product, brandId, categoryId, skip, outOfStock, newVariants };
       }),
-    [products, existingSkus, brands, categories, defaultCategoryId, categoryOverride, onlyInStock]
+    [products, existingSkus, brands, categories, defaultCategoryId, categoryOverride, onlyInStock, skipExisting]
   );
 
   const shopeeCategories = useMemo(() => {
@@ -233,7 +234,7 @@ export default function ShopeeImportPage() {
     const words = search.toLowerCase().split(/\s+/).filter(Boolean);
     const cap = Number(maxStock);
     return plan.filter(({ product, skip }) => {
-      if (hideExisting && skip) return false;
+      if (skip) return false;
       const leaf = (product.shopeeCategory.split("/").pop() || "").trim() || "(none)";
       if (shopeeCat && leaf !== shopeeCat) return false;
       if (Number.isFinite(cap) && maxStock !== "" && product.variants.every((v) => (v.stock ?? 0) > cap)) return false;
@@ -241,7 +242,7 @@ export default function ShopeeImportPage() {
       const hay = (product.name + " " + product.parentSku + " " + product.variants.map((v) => v.sku).join(" ")).toLowerCase();
       return words.every((w) => hay.includes(w));
     });
-  }, [plan, search, shopeeCat, maxStock, hideExisting]);
+  }, [plan, search, shopeeCat, maxStock]);
 
   const importable = plan.filter(
     (row) => !row.skip && !row.outOfStock && !row.product.errors.length && row.categoryId && !unticked.has(row.product.key)
@@ -457,8 +458,8 @@ export default function ShopeeImportPage() {
                       Skip options with 0 stock
                     </label>
                     <label className={styles.importCheck}>
-                      <input type="checkbox" checked={hideExisting} onChange={(e) => setHideExisting(e.target.checked)} disabled={running} />
-                      Hide products already in this shop ({summary.skipped})
+                      <input type="checkbox" checked={skipExisting} onChange={(e) => setSkipExisting(e.target.checked)} disabled={running} />
+                      Skip SKUs already in this shop{skipExisting ? " (" + summary.skipped + " hidden)" : " (off: repeats are imported as -B, -C…)"}
                     </label>
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8, margin: "0 0 10px" }}>
