@@ -152,6 +152,15 @@ const guidance = /mandatory|optional|required|please (enter|fill|select)|charact
 
 type RowRecord = Partial<Record<Exclude<Field, "image">, string>> & { images: string[] };
 
+// Only sheets with SKU / price / variation columns describe variations; others
+// (e.g. listing or republish reports with a Stock column) only add product info.
+function hasVariantColumns(table: Table): boolean {
+  const header = detectHeader(table.rows);
+  if (!header) return false;
+  const fields = new Set(header.columns.values());
+  return ["sku", "price", "variationId", "var1Option", "variationName"].some((f) => fields.has(f as Field));
+}
+
 function readRows(table: Table): RowRecord[] {
   const header = detectHeader(table.rows);
   if (!header) return [];
@@ -199,6 +208,7 @@ export function parseShopeeTables(tables: Table[]): {
       return;
     }
     recognisedFiles.push(table.name);
+    const variantSheet = hasVariantColumns(table);
 
     let lastGroupKey = "";
     for (const r of rows) {
@@ -248,7 +258,7 @@ export function parseShopeeTables(tables: Table[]): {
         value2 = b || null;
       }
       const hasVariantData =
-        r.sku || r.variationId || r.price || r.stock || value1;
+        variantSheet && (r.sku || r.variationId || r.price || r.stock || value1);
       if (!hasVariantData) continue;
 
       const variantKey =
@@ -313,8 +323,19 @@ export function parseShopeeTables(tables: Table[]): {
     if (!product.images.length) product.warnings.push("No images");
     if (product.variants.some((v) => v.skuGenerated)) product.warnings.push("SKU generated");
     if (product.variants.some((v) => v.stock === null)) product.warnings.push("Stock missing (set to 0)");
-    const skus = product.variants.map((v) => v.sku);
-    if (new Set(skus).size !== skus.length) product.errors.push("Duplicate SKU inside product");
+    // Shopee allows the same SKU on two options of one listing; MIVO needs
+    // each option's SKU to be unique, so repeats get -2, -3…
+    const seen = new Map<string, number>();
+    let renamed = false;
+    for (const variant of product.variants) {
+      const n = (seen.get(variant.sku) || 0) + 1;
+      seen.set(variant.sku, n);
+      if (n > 1) {
+        variant.sku = variant.sku + "-" + n;
+        renamed = true;
+      }
+    }
+    if (renamed) product.warnings.push("Repeated SKU renamed (-2, -3…)");
   }
 
   return {
