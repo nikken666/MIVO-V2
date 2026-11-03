@@ -18,6 +18,7 @@ type VariantInput = {
 
 type Body = {
   shopId?: string;
+  skipExisting?: boolean;
   product?: {
     category_id: string | null;
     brand_id: string | null;
@@ -65,9 +66,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "You can only import into your own shop." }, { status: 403 });
     }
 
-    // One SKU appears once per shop (other shops may sell the same SKU and
-    // share its stock). Options whose SKU this shop already has are left out.
-    const wanted = variants.map((v) => String(v.sku).trim()).filter(Boolean);
+    // SKUs are kept exactly as in Shopee; the same SKU may appear in several
+    // listings and shops (they share stock). Only when asked, options whose
+    // SKU this shop already has are left out.
+    const wanted = body.skipExisting ? variants.map((v) => String(v.sku).trim()).filter(Boolean) : [];
     const taken = new Set<string>();
     for (let i = 0; i < wanted.length; i += 200) {
       const { data: rows } = await admin
@@ -129,7 +131,11 @@ export async function POST(request: NextRequest) {
           is_active: true,
         }));
       const { error: variantError } = await admin.from("product_variants").insert(rows());
-      if (isUnique(variantError)) throw new Error("This SKU is already in this shop (" + (variantError?.message || "") + ")");
+      if (isUnique(variantError)) {
+        throw new Error(
+          "The database only allows one of each SKU per shop. Run supabase/RUN-NEW.sql to allow repeated SKUs. (" + (variantError?.message || "") + ")"
+        );
+      }
       if (variantError) throw variantError;
 
       if (images.length) {

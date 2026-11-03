@@ -325,19 +325,10 @@ export function parseShopeeTables(tables: Table[]): {
     if (!product.images.length) product.warnings.push("No images");
     if (product.variants.some((v) => v.skuGenerated)) product.warnings.push("SKU generated");
     if (product.variants.some((v) => v.stock === null)) product.warnings.push("Stock missing (set to 0)");
-    // Shopee allows the same SKU on two options of one listing; MIVO needs
-    // each option's SKU to be unique, so repeats get -2, -3…
-    const seen = new Map<string, number>();
-    let renamed = false;
-    for (const variant of product.variants) {
-      const n = (seen.get(variant.sku) || 0) + 1;
-      seen.set(variant.sku, n);
-      if (n > 1) {
-        variant.sku = variant.sku + "-" + n;
-        renamed = true;
-      }
-    }
-    if (renamed) product.warnings.push("Repeated SKU renamed (-2, -3…)");
+    // Shopee allows the same SKU on two options of one listing (e.g. one part
+    // for two car models). Kept as-is: they share one stock.
+    const skus = product.variants.map((v) => v.sku);
+    if (new Set(skus).size !== skus.length) product.warnings.push("Same SKU on several options (shared stock)");
   }
 
   // A file counts as recognised when any of its sheets is (Shopee adds helper

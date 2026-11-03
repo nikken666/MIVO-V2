@@ -65,9 +65,10 @@ export default function ShopeeImportPage() {
   const [shopeeCat, setShopeeCat] = useState("");
   const [onlyInStock, setOnlyInStock] = useState(true);
   const [maxStock, setMaxStock] = useState("");
-  // One SKU per shop: SKUs this shop already has are left out (other shops may
-  // sell the same SKU; they share its stock).
-  const [skipExisting, setSkipExisting] = useState(true);
+  // Off (default): import every ticked product with its SKUs exactly as in
+  // Shopee, even if the shop already has them (same SKU = shared stock).
+  // On: leave out SKUs the shop already has.
+  const [skipExisting, setSkipExisting] = useState(false);
 
   const [shopId, setShopId] = useState("");
   const [status, setStatus] = useState<"draft" | "active">("draft");
@@ -297,6 +298,7 @@ export default function ShopeeImportPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             shopId,
+            skipExisting,
             product: {
               category_id: categoryId,
               brand_id: brandId,
@@ -464,7 +466,7 @@ export default function ShopeeImportPage() {
                     </label>
                     <label className={styles.importCheck}>
                       <input type="checkbox" checked={skipExisting} onChange={(e) => setSkipExisting(e.target.checked)} disabled={running} />
-                      Hide products already in this shop ({summary.skipped})
+                      Skip SKUs already in this shop{skipExisting ? " (" + summary.skipped + " hidden)" : ""}
                     </label>
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8, margin: "0 0 10px" }}>
