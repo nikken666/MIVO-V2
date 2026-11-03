@@ -59,6 +59,12 @@ export default function ShopeeImportPage() {
   const [unrecognised, setUnrecognised] = useState<string[]>([]);
   const [existingSkus, setExistingSkus] = useState<Set<string>>(new Set());
   const [categoryOverride, setCategoryOverride] = useState<Record<string, string>>({});
+  // Pick what to import: unticked products, a search, a Shopee category, stock.
+  const [unticked, setUnticked] = useState<Set<string>>(new Set());
+  const [search, setSearch] = useState("");
+  const [shopeeCat, setShopeeCat] = useState("");
+  const [onlyInStock, setOnlyInStock] = useState(true);
+  const [maxStock, setMaxStock] = useState("");
 
   const [shopId, setShopId] = useState("");
   const [status, setStatus] = useState<"draft" | "active">("draft");
@@ -68,6 +74,7 @@ export default function ShopeeImportPage() {
 
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(0);
+  const [total, setTotal] = useState(0);
   const [log, setLog] = useState<LogLine[]>([]);
   const stopRef = useRef(false);
 
@@ -169,6 +176,9 @@ export default function ShopeeImportPage() {
       setFiles(Array.from(list).map((f) => f.name));
       setProducts(parsed.products);
       setCategoryOverride({});
+      setUnticked(new Set());
+      setSearch("");
+      setShopeeCat("");
       setUnrecognised(parsed.unrecognisedFiles);
       // Copying thousands of images from the browser is slow; keep Shopee's image links for big imports.
       if (parsed.products.length > 300) setCopyImages(false);
@@ -195,23 +205,52 @@ export default function ShopeeImportPage() {
   const plan = useMemo(
     () =>
       products.map((product) => {
-        const newVariants = product.variants.filter((v) => !existingSkus.has(v.sku));
+        const notInShop = product.variants.filter((v) => !existingSkus.has(v.sku));
+        // Options with no stock aren't listed (stock not given counts as in stock).
+        const newVariants = onlyInStock ? notInShop.filter((v) => v.stock == null || v.stock > 0) : notInShop;
         const brandId = guessBrandId(product, brands);
         const categoryId =
           categoryOverride[product.key] || guessCategoryId(product, categories) || defaultCategoryId;
-        const skip = product.variants.length > 0 && newVariants.length === 0;
-        return { product, brandId, categoryId, skip, newVariants };
+        const skip = product.variants.length > 0 && notInShop.length === 0;
+        const outOfStock = !skip && notInShop.length > 0 && newVariants.length === 0;
+        return { product, brandId, categoryId, skip, outOfStock, newVariants };
       }),
-    [products, existingSkus, brands, categories, defaultCategoryId, categoryOverride]
+    [products, existingSkus, brands, categories, defaultCategoryId, categoryOverride, onlyInStock]
   );
 
-  const importable = plan.filter((row) => !row.skip && !row.product.errors.length && row.categoryId);
+  const shopeeCategories = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const p of products) {
+      const leaf = (p.shopeeCategory.split("/").pop() || "").trim() || "(none)";
+      counts.set(leaf, (counts.get(leaf) || 0) + 1);
+    }
+    return Array.from(counts).sort((a, b) => b[1] - a[1]);
+  }, [products]);
+
+  const shown = useMemo(() => {
+    const words = search.toLowerCase().split(/\s+/).filter(Boolean);
+    const cap = Number(maxStock);
+    return plan.filter(({ product }) => {
+      const leaf = (product.shopeeCategory.split("/").pop() || "").trim() || "(none)";
+      if (shopeeCat && leaf !== shopeeCat) return false;
+      if (Number.isFinite(cap) && maxStock !== "" && product.variants.every((v) => (v.stock ?? 0) > cap)) return false;
+      if (!words.length) return true;
+      const hay = (product.name + " " + product.parentSku + " " + product.variants.map((v) => v.sku).join(" ")).toLowerCase();
+      return words.every((w) => hay.includes(w));
+    });
+  }, [plan, search, shopeeCat, maxStock]);
+
+  const importable = plan.filter(
+    (row) => !row.skip && !row.outOfStock && !row.product.errors.length && row.categoryId && !unticked.has(row.product.key)
+  );
   const summary = {
     products: products.length,
     variants: products.reduce((n, p) => n + p.variants.length, 0),
     errors: plan.filter((row) => row.product.errors.length).length,
     skipped: plan.filter((row) => row.skip).length,
     noCategory: plan.filter((row) => !row.categoryId).length,
+    outOfStock: plan.filter((row) => row.outOfStock).length,
+    unticked: plan.filter((row) => unticked.has(row.product.key)).length,
   };
 
   async function copyImage(url: string): Promise<string> {
@@ -238,6 +277,7 @@ export default function ShopeeImportPage() {
     setRunning(true);
     stopRef.current = false;
     setDone(0);
+    setTotal(importable.length);
     setLog([]);
     const client = createClient();
 
@@ -428,15 +468,64 @@ export default function ShopeeImportPage() {
                     <div className={ui.card}><small>Already in shop</small><strong>{summary.skipped}</strong><span>Skipped (same SKU)</span></div>
                     <div className={ui.card}><small>Need attention</small><strong>{summary.errors + summary.noCategory}</strong><span>Errors or no category</span></div>
                   </div>
+                  <div className={ui.toolbar} style={{ flexWrap: "wrap", alignItems: "end", margin: "12px 0" }}>
+                    <label className={styles.adminField}><span>Search name or SKU</span>
+                      <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="e.g. Vios brake" disabled={running} />
+                    </label>
+                    <label className={styles.adminField}><span>Shopee category</span>
+                      <select value={shopeeCat} onChange={(e) => setShopeeCat(e.target.value)} disabled={running}>
+                        <option value="">All ({products.length})</option>
+                        {shopeeCategories.map(([name, n]) => <option key={name} value={name}>{name} ({n})</option>)}
+                      </select>
+                    </label>
+                    <label className={styles.adminField}><span>Hide stock above</span>
+                      <input type="number" min="0" value={maxStock} onChange={(e) => setMaxStock(e.target.value)} placeholder="e.g. 9999" disabled={running} />
+                    </label>
+                    <label className={styles.importCheck}>
+                      <input type="checkbox" checked={onlyInStock} onChange={(e) => setOnlyInStock(e.target.checked)} disabled={running} />
+                      Skip options with 0 stock
+                    </label>
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, margin: "0 0 10px" }}>
+                    <button type="button" disabled={running} onClick={() => setUnticked((c) => { const n = new Set(c); shown.forEach((r) => n.delete(r.product.key)); return n; })}>
+                      Tick all shown ({shown.length})
+                    </button>
+                    <button type="button" disabled={running} onClick={() => setUnticked((c) => { const n = new Set(c); shown.forEach((r) => n.add(r.product.key)); return n; })}>
+                      Untick all shown
+                    </button>
+                    <button type="button" disabled={running} onClick={() => setUnticked(new Set(plan.map((r) => r.product.key)))}>
+                      Untick everything
+                    </button>
+                    <small className={ui.timestamp} style={{ alignSelf: "center" }}>
+                      {summary.unticked} unticked · {summary.outOfStock} out of stock
+                    </small>
+                  </div>
                   <div className={ui.tableWrap}>
                     <table className={ui.table}>
-                      <thead><tr><th>Product</th><th>SKUS</th><th>Price</th><th>Brand</th><th>Category</th><th>Status</th></tr></thead>
+                      <thead><tr><th></th><th>Product</th><th>SKUS</th><th>Price</th><th>Stock</th><th>Brand</th><th>Category</th><th>Status</th></tr></thead>
                       <tbody>
-                        {plan.slice(0, 300).map(({ product, brandId, categoryId, skip }) => (
-                          <tr key={product.key}>
+                        {shown.slice(0, 300).map(({ product, brandId, categoryId, skip, outOfStock }) => (
+                          <tr key={product.key} style={unticked.has(product.key) ? { opacity: 0.5 } : undefined}>
+                            <td>
+                              <input
+                                type="checkbox"
+                                aria-label={"Import " + product.name}
+                                disabled={running || skip}
+                                checked={!skip && !unticked.has(product.key)}
+                                onChange={(e) =>
+                                  setUnticked((c) => {
+                                    const n = new Set(c);
+                                    if (e.target.checked) n.delete(product.key);
+                                    else n.add(product.key);
+                                    return n;
+                                  })
+                                }
+                              />
+                            </td>
                             <td>{product.name || "—"}</td>
                             <td>{product.variants.map((v) => v.sku).join(", ")}</td>
                             <td>{product.variants.map((v) => v.price ?? "?").join(" / ")}</td>
+                            <td>{product.variants.map((v) => v.stock ?? "?").join(" / ")}</td>
                             <td>{brands.find((b) => b.id === brandId)?.name || "—"}</td>
                             <td>
                               <select
@@ -456,6 +545,8 @@ export default function ShopeeImportPage() {
                                 ? "❌ " + product.errors.join("; ")
                                 : skip
                                   ? "↷ Already in shop"
+                                  : outOfStock
+                                    ? "⊘ Out of stock (skipped)"
                                   : !categoryId
                                     ? "⚠ No category"
                                     : product.warnings.length
@@ -466,7 +557,7 @@ export default function ShopeeImportPage() {
                         ))}
                       </tbody>
                     </table>
-                    {plan.length > 300 ? <p className={ui.timestamp}>Showing first 300 of {plan.length}.</p> : null}
+                    {shown.length > 300 ? <p className={ui.timestamp}>Showing first 300 of {shown.length}. Use search or category to narrow it down.</p> : null}
                   </div>
                 </section>
               ) : null}
@@ -476,7 +567,7 @@ export default function ShopeeImportPage() {
                   <h2 className={styles.importStepTitle}>4 · Import</h2>
                   <div className={styles.importActions}>
                     <button type="button" className={styles.importPrimary} disabled={running || !importable.length} onClick={() => void runImport()}>
-                      {running ? "Importing…" : "Import " + importable.length + " products"}
+                      {running ? "Importing…" : "Import " + importable.length + " ticked products"}
                     </button>
                     {running ? <button type="button" onClick={() => { stopRef.current = true; }}>Stop</button> : null}
                     {log.length ? <button type="button" onClick={downloadLog}>Download log</button> : null}
@@ -492,8 +583,8 @@ export default function ShopeeImportPage() {
                   ) : null}
                   {running || log.length ? (
                     <>
-                      <div className={styles.importProgress}><i style={{ width: (importable.length ? (done / Math.max(1, importable.length)) * 100 : 0) + "%" }} /></div>
-                      <p className={ui.timestamp}>{done} / {importable.length} processed · {log.length - failed} imported · {failed} failed</p>
+                      <div className={styles.importProgress}><i style={{ width: (total ? (done / Math.max(1, total)) * 100 : 0) + "%" }} /></div>
+                      <p className={ui.timestamp}>{done} / {total} processed · {log.length - failed} imported · {failed} failed</p>
                       {failed ? (
                         <ul className={styles.importErrors}>
                           {log.filter((l) => !l.ok).slice(0, 50).map((l, i) => <li key={i}><b>{l.name}</b> — {l.detail}</li>)}
