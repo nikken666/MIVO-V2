@@ -77,3 +77,9 @@
 .agree{display:flex;gap:8px;align-items:flex-start;font-size:14px;line-height:1.5;margin:14px 0}
 .agree input{margin-top:3px}
 @media(max-width:600px){.formGrid{grid-template-columns:1fr}.docRow{flex-wrap:wrap}}
+
+/* Return policy: shown when the customer starts a return, not at checkout. */
+.policy{margin:0 0 16px;padding:12px 16px;border:1px solid #e6e8ea;border-radius:12px;background:#fafbfc}
+.policy summary{cursor:pointer;font-weight:600;font-size:14px}
+.policy p{margin:8px 0 0;font-size:13px;line-height:1.55;color:#555}
+.policy a{color:var(--accent)}

@@ -1,6 +1,13 @@
 // Returns & refunds (customer side). Rows: [English, Malay, Chinese].
 
 const rows = {
+  "ret.policyTitle": ["Before you return", "Sebelum anda memulangkan", "退货前请了解"],
+  "ret.policyText": [
+    "Request within 7 days of delivery. Wrong, damaged, faulty or missing parts: full refund and MIVO covers the return postage. Change of mind or no reason: you send it back at your own cost, the original delivery fee isn't refunded and the card processing fee is deducted.",
+    "Mohon dalam masa 7 hari selepas penghantaran. Alat ganti salah, rosak, tidak berfungsi atau tidak lengkap: bayaran balik penuh dan MIVO tanggung pos pulangan. Tukar fikiran atau tiada sebab: anda hantar balik atas kos sendiri, caj penghantaran asal tidak dipulangkan dan caj pemprosesan bayaran ditolak.",
+    "收货后 7 天内可申请。配件发错、损坏、有问题或缺件：全额退款，退货运费由 MIVO 承担。改变主意或无理由退货：寄回运费由你自付，原运费不退，并扣除付款手续费。"
+  ],
+  "ret.policyLink": ["Full return policy", "Polisi pulangan penuh", "完整退货政策"],
   "ret.title": ["Return / Refund", "Pulangan / Bayaran Balik", "退货 / 退款"],
   "ret.request": ["Request return / refund", "Mohon pulangan / bayaran balik", "申请退货 / 退款"],
   "ret.myReturns": ["My returns & refunds", "Pulangan & bayaran balik saya", "我的退货退款"],

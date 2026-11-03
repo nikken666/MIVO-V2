@@ -1036,19 +1036,6 @@ export default function CheckoutPage() {
                 />
               </label>
 
-            <label className="checkoutCancellationPolicy">
-              <input
-                type="checkbox"
-                name="cancellation_policy_accepted"
-                required
-              />
-              <span>
-                <strong>{t("buy.co.policyTitle")}</strong>
-                <small>
-                  {t("buy.co.policy")}
-                </small>
-              </span>
-            </label>
 
             {shippingState ? (
               <div
