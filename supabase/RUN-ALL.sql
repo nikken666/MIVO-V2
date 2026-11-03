@@ -28,6 +28,7 @@
 --   commission-now.sql
 --   combined-shipping.sql
 --   own-shops.sql
+--   sku-repeat.sql
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
@@ -459,14 +460,10 @@ begin
   end loop;
 end $$;
 
--- Still one SKU per shop. Skipped (with a notice) if a shop already has duplicates.
-do $$
-begin
-  create unique index if not exists product_variants_seller_sku_unique_idx
-    on public.product_variants (seller_id, upper(btrim(sku)));
-exception when unique_violation then
-  raise notice 'Some shops already list the same SKU twice; per-shop SKU rule not added. Check: select seller_id, upper(sku), count(*) from product_variants group by 1, 2 having count(*) > 1;';
-end $$;
+-- Repeated SKUs are allowed, also within one shop (same part in several
+-- listings shares one stock). See sku-repeat.sql.
+create index if not exists product_variants_seller_sku_idx
+  on public.product_variants (seller_id, upper(btrim(sku)));
 
 commit;
 
@@ -4391,6 +4388,30 @@ end;
 $$;
 revoke all on function public.platform_set_setting(text, jsonb) from public, anon;
 grant execute on function public.platform_set_setting(text, jsonb) to authenticated;
+
+commit;
+
+notify pgrst, 'reload schema';
+
+
+-- ---------------------------------------------------------------------
+-- sku-repeat.sql
+-- ---------------------------------------------------------------------
+-- =====================================================================
+-- MIVO: the same SKU may be listed more than once, in one shop or several.
+-- Run once in Supabase → SQL Editor. Safe to re-run.
+--
+-- Shopee shops often list one part in several listings (and several
+-- shops). MIVO keeps their SKUs exactly as in Shopee; variants with the same
+-- SKU share one stock (stock_group, see multi-shop-linked-stock.sql).
+-- This removes the "one SKU per shop" rule if a database has it.
+-- =====================================================================
+
+begin;
+
+drop index if exists public.product_variants_seller_sku_unique_idx;
+create index if not exists product_variants_seller_sku_idx
+  on public.product_variants (seller_id, upper(btrim(sku)));
 
 commit;
 

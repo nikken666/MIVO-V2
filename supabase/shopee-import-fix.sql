@@ -42,14 +42,10 @@ begin
   end loop;
 end $$;
 
--- Still one SKU per shop. Skipped (with a notice) if a shop already has duplicates.
-do $$
-begin
-  create unique index if not exists product_variants_seller_sku_unique_idx
-    on public.product_variants (seller_id, upper(btrim(sku)));
-exception when unique_violation then
-  raise notice 'Some shops already list the same SKU twice; per-shop SKU rule not added. Check: select seller_id, upper(sku), count(*) from product_variants group by 1, 2 having count(*) > 1;';
-end $$;
+-- Repeated SKUs are allowed, also within one shop (same part in several
+-- listings shares one stock). See sku-repeat.sql.
+create index if not exists product_variants_seller_sku_idx
+  on public.product_variants (seller_id, upper(btrim(sku)));
 
 commit;
 
