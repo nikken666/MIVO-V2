@@ -170,6 +170,8 @@ export default function ShopeeImportPage() {
       setProducts(parsed.products);
       setCategoryOverride({});
       setUnrecognised(parsed.unrecognisedFiles);
+      // Copying thousands of images from the browser is slow; keep Shopee's image links for big imports.
+      if (parsed.products.length > 300) setCopyImages(false);
       if (!parsed.products.length) {
         // Show what the file's first rows contain, so the problem is visible.
         const sample = tables
@@ -272,7 +274,7 @@ export default function ShopeeImportPage() {
         if (productError) throw productError;
         productId = created.id;
 
-        const { error: variantError } = await client.from("product_variants").insert(
+        const variantRows = (suffix: string) =>
           newVariants.map((variant, index) => ({
             product_id: created.id,
             seller_id: shopId,
@@ -280,7 +282,7 @@ export default function ShopeeImportPage() {
             title: [variant.value1, variant.value2].filter(Boolean).join(" / ") || "Default",
             variation_1_value: variant.value1,
             variation_2_value: variant.value2,
-            sku: variant.sku,
+            sku: variant.sku + suffix,
             price: variant.price ?? 0,
             compare_at_price: null,
             stock_on_hand: Math.max(0, Math.round(variant.stock ?? 0)),
@@ -292,8 +294,12 @@ export default function ShopeeImportPage() {
             height_cm: variant.height ?? 0,
             variant_image_url: variant.image,
             is_active: true,
-          }))
-        );
+          }));
+        let { error: variantError } = await client.from("product_variants").insert(variantRows(""));
+        // The same SKU on two Shopee listings: keep the second listing with "-B".
+        if (variantError && (variantError.code === "23505" || /duplicate key|unique/i.test(variantError.message))) {
+          ({ error: variantError } = await client.from("product_variants").insert(variantRows("-B")));
+        }
         if (variantError) throw variantError;
 
         if (images.length) {
