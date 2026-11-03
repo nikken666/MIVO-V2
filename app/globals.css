@@ -11174,3 +11174,11 @@ button.shopChip{font:inherit;cursor:pointer}
 .checkoutStandardDelivery b{font-size:16px;white-space:nowrap}
 .checkoutFreeShipping strong,.checkoutFreeShipping span{color:#1f9d4c!important}
 .checkoutFreeShippingNudge{margin:8px 0 0;padding:8px 12px;border-radius:10px;background:#eefaf1;color:#1f7a3c;font-size:13px}
+
+/* Pay button wrapper: the button is blue; the wrapper and its error line are not. */
+.stripePayAction,.stripePayAction:hover{
+  display:flex!important;flex-direction:column;gap:8px;width:100%;
+  background:transparent!important;color:inherit!important;border-radius:0!important;
+  translate:none!important;scale:none!important;box-shadow:none!important;filter:none!important
+}
+.stripePayAction .stripePayError{display:block;color:#b42318;font-size:13px;line-height:1.4;text-align:center}
