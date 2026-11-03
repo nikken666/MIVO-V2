@@ -38,6 +38,14 @@ export async function GET() {
   });
 
   // Supabase
+  const publicOk = has("NEXT_PUBLIC_SUPABASE_URL") && has("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
+  add({
+    group: "Supabase",
+    name: "NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+    ok: publicOk,
+    detail: publicOk ? (process.env.NEXT_PUBLIC_SUPABASE_URL || "") : "Missing",
+    fix: "Copy them from Supabase → Project Settings → API.",
+  });
   let adminOk = false;
   try {
     const admin = createAdminClient();
