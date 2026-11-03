@@ -9,9 +9,15 @@ import { captureOrderPayment } from "@/lib/stripe/holds";
 export async function captureIfLastParcel(orderId: string, parcelId?: string | null) {
   if (parcelId) {
     const admin = createAdminClient();
-    const { data: parcels } = await admin.from("seller_orders").select("id, status").eq("order_id", orderId);
-    const waiting = (parcels || []).filter(
-      (p) => p.id !== parcelId && !["shipped", "delivered", "completed", "cancelled", "refunded"].includes(p.status)
+    const { data: parcels } = await admin.from("seller_orders").select("*").eq("order_id", orderId);
+    const rows = (parcels || []) as Array<{ id: string; status: string; shipping_group?: string | null }>;
+    // Parcels in the same shipping group ship together with this one.
+    const group = rows.find((p) => p.id === parcelId)?.shipping_group || null;
+    const waiting = rows.filter(
+      (p) =>
+        p.id !== parcelId &&
+        !(group && p.shipping_group === group) &&
+        !["shipped", "delivered", "completed", "cancelled", "refunded"].includes(String(p.status))
     );
     if (waiting.length) return { result: "waiting" as const, waiting: waiting.length };
   }

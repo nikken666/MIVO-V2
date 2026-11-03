@@ -48,6 +48,8 @@ type ShippingQuote = {
 // One parcel per shop (supabase/checkout-per-shop.sql).
 type ShopQuote = {
   seller_id: string;
+  // Shops shipping from the same address are one parcel.
+  seller_ids?: string[];
   shop_name: string;
   tier: string | null;
   options: ShippingQuote[];
@@ -460,12 +462,13 @@ export default function CheckoutPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ items, state: shippingState, postcode: shippingPostcode }),
         })
-          .then(async (response) => (response.ok ? ((await response.json()) as { quoteId: string; shops: Array<{ seller_id: string; shop_name: string; tier: string | null; amount: number }> }) : null))
+          .then(async (response) => (response.ok ? ((await response.json()) as { quoteId: string; shops: Array<{ seller_id: string; seller_ids?: string[]; shop_name: string; tier: string | null; amount: number }> }) : null))
           .catch(() => null);
         if (!active) return;
         if (live?.quoteId) {
           const shops: ShopQuote[] = live.shops.map((shop) => ({
             seller_id: shop.seller_id,
+            seller_ids: shop.seller_ids,
             shop_name: shop.shop_name,
             tier: shop.tier,
             options: [
@@ -1060,8 +1063,9 @@ export default function CheckoutPage() {
                 {shopQuotes ? (
                   <div className="checkoutShopParcels">
                     {shopQuotes.map((shop, index) => {
-                      const lines = selectedCart.filter(
-                        (line) => line.product.sellerId === shop.seller_id
+                      const members = shop.seller_ids?.length ? shop.seller_ids : [shop.seller_id];
+                      const lines = selectedCart.filter((line) =>
+                        members.includes(String(line.product.sellerId))
                       );
                       const chosen = shopChoices[index];
                       return (
