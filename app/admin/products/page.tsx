@@ -205,12 +205,27 @@ export default function AdminProductsPage() {
           return;
         }
 
-        const { data, error: productError } = await supabase
-          .from("products")
-          .select(
-            "id, seller_id, name, slug, status, short_description, description, primary_image_url, created_at, brands(name), product_images(id, image_url, sort_order), product_variants(id, sort_order, title, variation_1_value, variation_2_value, sku, price, stock_on_hand, stock_reserved, low_stock_threshold, weight_kg, length_cm, width_cm, height_cm)"
-          )
-          .order("created_at", { ascending: false });
+        // Supabase returns at most 1000 rows per request: page through them,
+        // otherwise big catalogues (e.g. a Shopee import) look incomplete.
+        const all: unknown[] = [];
+        let productError: { message: string } | null = null;
+        for (let from = 0; from < 50000; from += 1000) {
+          const page = await supabase
+            .from("products")
+            .select(
+              "id, seller_id, name, slug, status, short_description, description, primary_image_url, created_at, brands(name), product_images(id, image_url, sort_order), product_variants(id, sort_order, title, variation_1_value, variation_2_value, sku, price, stock_on_hand, stock_reserved, low_stock_threshold, weight_kg, length_cm, width_cm, height_cm)"
+            )
+            .order("created_at", { ascending: false })
+            .order("id")
+            .range(from, from + 999);
+          if (page.error) {
+            productError = page.error;
+            break;
+          }
+          all.push(...(page.data || []));
+          if (!page.data || page.data.length < 1000) break;
+        }
+        const data = all;
 
         if (productError) throw productError;
 

@@ -91,17 +91,20 @@ export async function getLiveFitmentStatuses(
   try {
     const supabase = await createClient();
 
-    const { data: universalRows, error: universalError } = await supabase
-      .from("products")
-      .select("id")
-      .in("id", productIds)
-      .eq("is_universal_fitment", true);
+    // Long id lists are split so the request URL stays short.
+    const chunks: string[][] = [];
+    for (let i = 0; i < productIds.length; i += 300) chunks.push(productIds.slice(i, i + 300));
 
-    if (universalError) throw universalError;
-
-    const universalIds = new Set(
-      (universalRows || []).map((row) => row.id as string)
-    );
+    const universalIds = new Set<string>();
+    for (const chunk of chunks) {
+      const { data: universalRows, error: universalError } = await supabase
+        .from("products")
+        .select("id")
+        .in("id", chunk)
+        .eq("is_universal_fitment", true);
+      if (universalError) throw universalError;
+      for (const row of universalRows || []) universalIds.add(row.id as string);
+    }
 
     const { ids, selectedYear } =
       await matchingVehicleIds(selected);
@@ -112,21 +115,23 @@ export async function getLiveFitmentStatuses(
     const pageSize = 1000;
     const rows: FitmentRow[] = [];
 
-    for (let from = 0; ; from += pageSize) {
-      const { data: fitmentRows, error: fitmentError } =
-        await supabase
-          .from("product_vehicle_fitments")
-          .select(
-            "product_id, variant_id, vehicle_id, year_from, year_to"
-          )
-          .in("product_id", productIds)
-          .order("id")
-          .range(from, from + pageSize - 1);
+    for (const chunk of chunks) {
+      for (let from = 0; ; from += pageSize) {
+        const { data: fitmentRows, error: fitmentError } =
+          await supabase
+            .from("product_vehicle_fitments")
+            .select(
+              "product_id, variant_id, vehicle_id, year_from, year_to"
+            )
+            .in("product_id", chunk)
+            .order("id")
+            .range(from, from + pageSize - 1);
 
-      if (fitmentError) throw fitmentError;
+        if (fitmentError) throw fitmentError;
 
-      rows.push(...((fitmentRows || []) as FitmentRow[]));
-      if (!fitmentRows || fitmentRows.length < pageSize) break;
+        rows.push(...((fitmentRows || []) as FitmentRow[]));
+        if (!fitmentRows || fitmentRows.length < pageSize) break;
+      }
     }
 
     const result: Record<string, FitmentStatus> = {};

@@ -15,9 +15,14 @@ export async function attachFitmentLevels(products: Product[]): Promise<Product[
   try {
     const supabase = await createClient();
     // fitment_verified exists once supabase/fitment-verification.sql has run.
-    const { data: flags } = await supabase.from("products").select("id, fitment_verified").in("id", ids);
-    for (const row of (flags || []) as Array<{ id: string; fitment_verified: boolean | null }>) {
-      if (row.fitment_verified) verified.add(row.id);
+    for (let i = 0; i < ids.length; i += 300) {
+      const { data: flags } = await supabase
+        .from("products")
+        .select("id, fitment_verified")
+        .in("id", ids.slice(i, i + 300));
+      for (const row of (flags || []) as Array<{ id: string; fitment_verified: boolean | null }>) {
+        if (row.fitment_verified) verified.add(row.id);
+      }
     }
     for (let i = 0; i < ids.length; i += 300) {
       const chunk = ids.slice(i, i + 300);
