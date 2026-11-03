@@ -50,6 +50,12 @@ async function inflate(data: Uint8Array): Promise<Uint8Array> {
   return new Uint8Array(await new Response(stream).arrayBuffer());
 }
 
+// Some writers (e.g. .NET Open XML SDK, BigSeller-style exports) prefix every
+// tag, as in <x:sheet> or <x:row>. Drop tag prefixes so one parser fits all.
+function stripTagPrefixes(xml: string): string {
+  return xml.replace(/<(\/?)[A-Za-z_][\w.-]*:(?=[A-Za-z_])/g, "<$1");
+}
+
 async function readEntry(bytes: Uint8Array, entry: ZipEntry): Promise<string> {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const nameLength = view.getUint16(entry.offset + 26, true);
@@ -60,7 +66,7 @@ async function readEntry(bytes: Uint8Array, entry: ZipEntry): Promise<string> {
   if (entry.method === 0) data = raw;
   else if (entry.method === 8) data = await inflate(raw);
   else throw new Error("Unsupported compression in this .xlsx file.");
-  return new TextDecoder().decode(data);
+  return stripTagPrefixes(new TextDecoder().decode(data));
 }
 
 function decodeXml(value: string): string {
@@ -148,8 +154,9 @@ function resolveTarget(target: string): string {
 export async function readXlsx(input: ArrayBuffer | Uint8Array): Promise<XlsxSheet[]> {
   const bytes = input instanceof Uint8Array ? input : new Uint8Array(input);
   const entries = readZipEntries(bytes);
+  const lower = new Map(Array.from(entries, ([name, entry]) => [name.toLowerCase(), entry]));
   const read = async (path: string) => {
-    const entry = entries.get(path);
+    const entry = entries.get(path) || lower.get(path.toLowerCase());
     return entry ? readEntry(bytes, entry) : null;
   };
 
@@ -181,10 +188,20 @@ export async function readXlsx(input: ArrayBuffer | Uint8Array): Promise<XlsxShe
   while ((sheet = sheetRe.exec(workbook))) {
     index += 1;
     const name = attr(sheet[1], "name") || "Sheet" + index;
-    const relId = attr(sheet[1], "r:id");
+    const relId = attr(sheet[1], "r:id") || /\s[\w.-]+:id\s*=\s*["']([^"']+)["']/.exec(sheet[1])?.[1] || null;
     const path = (relId && targets.get(relId)) || "xl/worksheets/sheet" + index + ".xml";
     const xml = await read(path);
     if (xml) sheets.push({ name, rows: parseSheet(xml, shared) });
+  }
+  // Workbook didn't point to readable sheets: read every worksheet in the zip.
+  if (!sheets.length) {
+    const paths = Array.from(entries.keys())
+      .filter((n) => /^xl\/worksheets\/[^/]+\.xml$/i.test(n))
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    for (const path of paths) {
+      const xml = await read(path);
+      if (xml) sheets.push({ name: path.split("/").pop()!.replace(/\.xml$/i, ""), rows: parseSheet(xml, shared) });
+    }
   }
   return sheets;
 }

@@ -162,13 +162,28 @@ export default function ShopeeImportPage() {
           throw new Error(file.name + ": " + (caught instanceof Error ? caught.message : String(caught)));
         }
       }
+      if (!tables.length) {
+        throw new Error("Couldn't find any sheet in this file. Open it in Excel and Save As → Excel Workbook (.xlsx), or export CSV, then try again.");
+      }
       const parsed = parseShopeeTables(tables);
       setFiles(Array.from(list).map((f) => f.name));
       setProducts(parsed.products);
       setCategoryOverride({});
       setUnrecognised(parsed.unrecognisedFiles);
       if (!parsed.products.length) {
-        setError("No products found. Upload the product file exported from Shopee Seller Centre (Mass Update / Mass Upload).");
+        // Show what the file's first rows contain, so the problem is visible.
+        const sample = tables
+          .map((table) => {
+            const row = table.rows.slice(0, 10).find((r) => r.filter((c) => String(c ?? "").trim()).length >= 2) || [];
+            const cells = row.map((c) => String(c ?? "").trim()).filter(Boolean).slice(0, 12);
+            return table.name + ": " + (cells.length ? cells.join(" | ") : "(empty)");
+          })
+          .slice(0, 4)
+          .join("\n");
+        setError(
+          "No products found. MIVO needs columns like Product Name, SKU, Price and Stock (Shopee Mass Update / Mass Upload file).\n\nWhat this file starts with:\n" +
+            sample
+        );
       }
     } catch (caught) {
       setError(describeError(caught) || "Unable to read the file.");
@@ -342,7 +357,7 @@ export default function ShopeeImportPage() {
             <a className={styles.adminAction} href="/admin/products">All products</a>
           </header>
 
-          {error ? <p role="alert" className={ui.timestamp}>{error}</p> : null}
+          {error ? <p role="alert" className={ui.timestamp} style={{ whiteSpace: "pre-wrap" }}>{error}</p> : null}
           {!ready && !error ? <p>Loading…</p> : null}
 
           {ready ? (
