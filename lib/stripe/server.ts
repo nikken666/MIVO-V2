@@ -11,11 +11,7 @@ export function getStripeSecretKey() {
   if (!key) {
     // Say which deployment is missing it, so it's clear where to add it in Vercel.
     const env = process.env.VERCEL_ENV || "local";
-    const host = process.env.VERCEL_URL || "";
-    throw new Error(
-      "Stripe is not configured yet: STRIPE_SECRET_KEY is missing in this " + env + " deployment" +
-        (host ? " (" + host + ")" : "") + ". Add it in Vercel with " + env + " ticked, then redeploy."
-    );
+    throw new Error("Stripe is not configured yet: STRIPE_SECRET_KEY is missing in this " + env + " deployment.");
   }
   return key;
 }

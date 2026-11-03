@@ -11182,3 +11182,4 @@ button.shopChip{font:inherit;cursor:pointer}
   translate:none!important;scale:none!important;box-shadow:none!important;filter:none!important
 }
 .stripePayAction .stripePayError{display:block;color:#b42318;font-size:13px;line-height:1.4;text-align:center}
+.stripePayAction .stripePayDetail{display:block;color:#6b7075;font-size:12px;line-height:1.4;text-align:center;overflow-wrap:anywhere}

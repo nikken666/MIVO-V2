@@ -16,10 +16,12 @@ export default function StripePayButton({
   const t = useT();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [detail, setDetail] = useState("");
 
   async function pay() {
     setBusy(true);
     setError("");
+    setDetail("");
 
     try {
       const response = await fetch("/api/payments/stripe/checkout", {
@@ -34,6 +36,9 @@ export default function StripePayButton({
       };
 
       if (!response.ok || !data.url) {
+        // Keep the reason visible (small) so a failed payment can be diagnosed.
+        const friendly = friendlyError(data.error, t, "buy.pay.unable");
+        if (data.error && data.error !== friendly) setDetail(data.error.slice(0, 240));
         throw new ShownError(friendlyError(data.error, t, "buy.pay.unable"));
       }
 
@@ -57,6 +62,7 @@ export default function StripePayButton({
         {busy ? t("buy.pay.opening") : children ?? t("buy.pay.payNow")}
       </button>
       {error ? <small className="stripePayError">{error}</small> : null}
+      {detail ? <small className="stripePayDetail">{detail}</small> : null}
     </span>
   );
 }

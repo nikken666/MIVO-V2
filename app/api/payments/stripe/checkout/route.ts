@@ -273,15 +273,34 @@ export async function POST(request: NextRequest) {
       .digest("hex")
       .slice(0, 16);
 
-    const session = await stripeRequest<StripeCheckoutSession>(
-      "/checkout/sessions",
-      {
-        method: "POST",
-        body: params,
-        idempotencyKey:
-          "mivo-checkout-" + order.id + "-" + requestFingerprint,
-      }
-    );
+    let session: StripeCheckoutSession;
+    try {
+      session = await stripeRequest<StripeCheckoutSession>(
+        "/checkout/sessions",
+        {
+          method: "POST",
+          body: params,
+          idempotencyKey:
+            "mivo-checkout-" + order.id + "-" + requestFingerprint,
+        }
+      );
+    } catch (methodError) {
+      // FPX / GrabPay not activated on this Stripe account: fall back to card only.
+      const text = methodError instanceof Error ? methodError.message : "";
+      if (!/payment method type|payment_method_types|fpx|grabpay/i.test(text)) throw methodError;
+      console.warn("MIVO Stripe checkout: FPX/GrabPay unavailable, using card only:", text);
+      params.delete("payment_method_types[]");
+      params.append("payment_method_types[]", "card");
+      session = await stripeRequest<StripeCheckoutSession>(
+        "/checkout/sessions",
+        {
+          method: "POST",
+          body: params,
+          idempotencyKey:
+            "mivo-checkout-card-" + order.id + "-" + requestFingerprint,
+        }
+      );
+    }
 
     if (!session.url) {
       throw new Error("Stripe did not return a checkout URL.");
