@@ -24,6 +24,22 @@ returns boolean language sql stable security definer set search_path = public as
 $$;
 grant execute on function public.mivo_can_manage_shop(uuid) to authenticated;
 
+-- Status columns may be text or Postgres enums (e.g. order_status) depending
+-- on the project. These helpers convert text to whatever type the column
+-- really has, so the functions below work either way.
+create or replace function public.mivo_as_order_status(p_status text)
+returns public.orders.status%type language sql stable as $$
+  select (jsonb_populate_record(null::public.orders, jsonb_build_object('status', p_status))).status;
+$$;
+create or replace function public.mivo_as_parcel_status(p_status text)
+returns public.seller_orders.status%type language sql stable as $$
+  select (jsonb_populate_record(null::public.seller_orders, jsonb_build_object('status', p_status))).status;
+$$;
+create or replace function public.mivo_as_history_status(p_status text)
+returns public.order_status_history.new_status%type language sql stable as $$
+  select (jsonb_populate_record(null::public.order_status_history, jsonb_build_object('new_status', p_status))).new_status;
+$$;
+
 create or replace function public.mivo_fulfilment_rank(p_status text)
 returns integer
 language sql
@@ -37,6 +53,12 @@ as $$
     when 'delivered' then 5
     else 0
   end;
+$$;
+
+-- Same rank for enum status columns.
+create or replace function public.mivo_fulfilment_rank(p_status anyenum)
+returns integer language sql immutable as $$
+  select public.mivo_fulfilment_rank(p_status::text);
 $$;
 
 create or replace function public.mivo_fulfilment_status(p_rank integer)
@@ -126,7 +148,7 @@ begin
 
   -- 1. Move this shop's parcel.
   update public.seller_orders
-     set status = p_status,
+     set status = public.mivo_as_parcel_status(p_status),
          updated_at = now()
    where id = v_seller_order.id;
 
@@ -168,10 +190,11 @@ begin
   -- parent order directly and record each step in its history.
   if v_min_rank > v_parent_rank and not public.is_admin() then
     for v_step in (v_parent_rank + 1)..v_min_rank loop
-      update public.orders set status = public.mivo_fulfilment_status(v_step), updated_at = now()
+      update public.orders set status = public.mivo_as_order_status(public.mivo_fulfilment_status(v_step)), updated_at = now()
        where id = v_order.id;
       insert into public.order_status_history (order_id, old_status, new_status, note, changed_by)
-      values (v_order.id, public.mivo_fulfilment_status(v_step - 1), public.mivo_fulfilment_status(v_step),
+      values (v_order.id, public.mivo_as_history_status(public.mivo_fulfilment_status(v_step - 1)),
+              public.mivo_as_history_status(public.mivo_fulfilment_status(v_step)),
               'All shops reached this step', auth.uid());
     end loop;
   elsif v_min_rank > v_parent_rank then
@@ -213,10 +236,10 @@ begin
 
     -- Restore per-shop state.
     update public.seller_orders so
-       set status = snap.status
+       set status = public.mivo_as_parcel_status(snap.status)
       from jsonb_to_recordset(v_seller_snapshot) as snap(id uuid, status text)
      where so.id = snap.id
-       and so.status is distinct from snap.status;
+       and so.status::text is distinct from snap.status;
 
     -- Shipments: put back exactly the rows that existed before the call.
     delete from public.shipments sh

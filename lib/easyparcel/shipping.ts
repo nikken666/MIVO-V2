@@ -225,7 +225,8 @@ export async function completePendingBooking(sellerOrderId: string) {
   if (!shipment?.ep_shipment_number) throw new ep.EasyParcelError("Not booked with EasyParcel.", 404);
   const d = await ep.details(shipment.ep_shipment_number);
   if (!d.awbNumber) return { pending: true };
-  if (!shipment.tracking_number) {
+  const { data: parcel } = await admin.from("seller_orders").select("status").eq("id", sellerOrderId).maybeSingle();
+  if (!["shipped", "delivered", "completed"].includes(String(parcel?.status))) {
     await markShipped(sellerOrderId, d.courier || shipment.courier_name || "Courier", d.awbNumber, d.trackingUrl);
   }
   await admin

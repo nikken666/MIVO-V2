@@ -316,7 +316,7 @@ returns table (
   parcel_status text, subtotal numeric, shipping_address jsonb, customer_note text, created_at timestamptz,
   paid_at timestamptz, courier_name text, tracking_number text, buyer_courier_name text)
 language sql stable security definer set search_path = public as $$
-  select so.id, so.seller_id, o.order_number, o.status, o.payment_status,
+  select so.id, so.seller_id, o.order_number, o.status::text, o.payment_status::text,
          greatest_status.status, so.subtotal, so.shipping_address, so.customer_note, o.created_at,
          o.paid_at, sh.courier_name, sh.tracking_number,
          coalesce(so.buyer_courier_name, o.shipping_address ->> 'shipping_courier_name', o.shipping_address ->> 'courier_name')
@@ -324,8 +324,8 @@ language sql stable security definer set search_path = public as $$
     join public.orders o on o.id = so.order_id
     cross join lateral (
       select case
-        when public.mivo_fulfilment_rank(so.status) >= public.mivo_fulfilment_rank(o.status) then so.status
-        else o.status end as status
+        when public.mivo_fulfilment_rank(so.status::text) >= public.mivo_fulfilment_rank(o.status::text) then so.status::text
+        else o.status::text end as status
     ) greatest_status
     left join lateral (
       select courier_name, tracking_number from public.shipments s

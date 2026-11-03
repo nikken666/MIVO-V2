@@ -39,7 +39,29 @@ export default function EasyParcelArrange({ sellerOrderId, onDone }: { sellerOrd
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
+  // Already booked (e.g. the label was paid but shipping didn't finish): offer to finish.
+  const [checked, setChecked] = useState(false);
   useEffect(() => {
+    void post({ action: "label", sellerOrderId })
+      .then((data) => {
+        const shipment = (data as { shipment?: { ep_shipment_number?: string | null; courier_name?: string | null; tracking_number?: string | null; awb_url?: string | null } | null }).shipment;
+        if (shipment?.ep_shipment_number) {
+          setDone({
+            courier: shipment.courier_name || "EasyParcel",
+            service: shipment.ep_shipment_number,
+            price: 0,
+            awbNumber: shipment.tracking_number || null,
+            labelUrl: shipment.awb_url || null,
+            pending: true,
+          });
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => setChecked(true));
+  }, [sellerOrderId]);
+
+  useEffect(() => {
+    if (!checked || done) return;
     let active = true;
     setPreview(null);
     setError("");
@@ -55,7 +77,7 @@ export default function EasyParcelArrange({ sellerOrderId, onDone }: { sellerOrd
     };
     // weight is applied when "Update price" is pressed
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sellerOrderId, method]);
+  }, [sellerOrderId, method, checked]);
 
   async function refreshPrice() {
     setBusy(true);
@@ -102,13 +124,14 @@ export default function EasyParcelArrange({ sellerOrderId, onDone }: { sellerOrd
   if (done) {
     return (
       <div className={styles.adminNotice}>
-        <strong>Booked with {done.courier}</strong> · {done.service} · RM {Number(done.price).toFixed(2)}
+        <strong>Booked with {done.courier}</strong> · {done.service}
+        {done.price ? " · RM " + Number(done.price).toFixed(2) : ""}
         <br />
         {done.pending ? (
           <>
-            Waiting for the courier&apos;s tracking number…{" "}
+            Not marked shipped yet.{" "}
             <button type="button" className={styles.adminSecondaryAction} disabled={busy} onClick={() => void refreshAwb()}>
-              Refresh
+              {busy ? "Checking…" : "Finish shipping"}
             </button>
           </>
         ) : (

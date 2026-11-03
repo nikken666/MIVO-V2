@@ -52,6 +52,22 @@ returns boolean language sql stable security definer set search_path = public as
 $$;
 grant execute on function public.mivo_can_manage_shop(uuid) to authenticated;
 
+-- Status columns may be text or Postgres enums (e.g. order_status) depending
+-- on the project. These helpers convert text to whatever type the column
+-- really has, so the functions below work either way.
+create or replace function public.mivo_as_order_status(p_status text)
+returns public.orders.status%type language sql stable as $$
+  select (jsonb_populate_record(null::public.orders, jsonb_build_object('status', p_status))).status;
+$$;
+create or replace function public.mivo_as_parcel_status(p_status text)
+returns public.seller_orders.status%type language sql stable as $$
+  select (jsonb_populate_record(null::public.seller_orders, jsonb_build_object('status', p_status))).status;
+$$;
+create or replace function public.mivo_as_history_status(p_status text)
+returns public.order_status_history.new_status%type language sql stable as $$
+  select (jsonb_populate_record(null::public.order_status_history, jsonb_build_object('new_status', p_status))).new_status;
+$$;
+
 create or replace function public.mivo_fulfilment_rank(p_status text)
 returns integer
 language sql
@@ -65,6 +81,12 @@ as $$
     when 'delivered' then 5
     else 0
   end;
+$$;
+
+-- Same rank for enum status columns.
+create or replace function public.mivo_fulfilment_rank(p_status anyenum)
+returns integer language sql immutable as $$
+  select public.mivo_fulfilment_rank(p_status::text);
 $$;
 
 create or replace function public.mivo_fulfilment_status(p_rank integer)
@@ -154,7 +176,7 @@ begin
 
   -- 1. Move this shop's parcel.
   update public.seller_orders
-     set status = p_status,
+     set status = public.mivo_as_parcel_status(p_status),
          updated_at = now()
    where id = v_seller_order.id;
 
@@ -196,10 +218,11 @@ begin
   -- parent order directly and record each step in its history.
   if v_min_rank > v_parent_rank and not public.is_admin() then
     for v_step in (v_parent_rank + 1)..v_min_rank loop
-      update public.orders set status = public.mivo_fulfilment_status(v_step), updated_at = now()
+      update public.orders set status = public.mivo_as_order_status(public.mivo_fulfilment_status(v_step)), updated_at = now()
        where id = v_order.id;
       insert into public.order_status_history (order_id, old_status, new_status, note, changed_by)
-      values (v_order.id, public.mivo_fulfilment_status(v_step - 1), public.mivo_fulfilment_status(v_step),
+      values (v_order.id, public.mivo_as_history_status(public.mivo_fulfilment_status(v_step - 1)),
+              public.mivo_as_history_status(public.mivo_fulfilment_status(v_step)),
               'All shops reached this step', auth.uid());
     end loop;
   elsif v_min_rank > v_parent_rank then
@@ -241,10 +264,10 @@ begin
 
     -- Restore per-shop state.
     update public.seller_orders so
-       set status = snap.status
+       set status = public.mivo_as_parcel_status(snap.status)
       from jsonb_to_recordset(v_seller_snapshot) as snap(id uuid, status text)
      where so.id = snap.id
-       and so.status is distinct from snap.status;
+       and so.status::text is distinct from snap.status;
 
     -- Shipments: put back exactly the rows that existed before the call.
     delete from public.shipments sh
@@ -1495,7 +1518,7 @@ begin
   -- details). Fill them with the applicant's phone/email or a blank value;
   -- MIVO completes them when approving.
   for c in
-    select column_name, data_type
+    select column_name, data_type, udt_schema, udt_name
       from information_schema.columns
      where table_schema = 'public' and table_name = 'sellers'
        and is_nullable = 'NO' and column_default is null and is_generated = 'NEVER' and identity_generation is null
@@ -1512,6 +1535,7 @@ begin
       when c.data_type like 'timestamp%' or c.data_type = 'date' then 'now()'
       when c.data_type = 'jsonb' then quote_literal('{}') || '::jsonb'
       when c.data_type = 'ARRAY' then quote_literal('{}')
+      when c.data_type = 'USER-DEFINED' then format('(enum_range(null::%I.%I))[1]', c.udt_schema, c.udt_name)
       else 'null' end;
   end loop;
 
@@ -1530,6 +1554,12 @@ $$;
 revoke all on function public.seller_apply(text, text, text) from public, anon;
 grant execute on function public.seller_apply(text, text, text) to authenticated;
 
+-- sellers.status may be text or an enum: convert text to the column's type.
+create or replace function public.mivo_as_shop_status(p_status text)
+returns public.sellers.status%type language sql stable as $$
+  select (jsonb_populate_record(null::public.sellers, jsonb_build_object('status', p_status))).status;
+$$;
+
 -- MIVO: approve / suspend a shop.
 create or replace function public.admin_set_shop_status(p_id uuid, p_status text)
 returns void language plpgsql security definer set search_path = public as $$
@@ -1537,7 +1567,7 @@ begin
   if not public.is_admin() then raise exception 'Only MIVO can change a shop''s status'; end if;
   if p_status not in ('approved', 'pending', 'suspended', 'rejected') then raise exception 'Unknown status'; end if;
   update public.sellers
-     set status = p_status,
+     set status = public.mivo_as_shop_status(p_status),
          approved_at = case when p_status = 'approved' then coalesce(approved_at, now()) else approved_at end,
          updated_at = now()
    where id = p_id;
@@ -1616,15 +1646,15 @@ returns table (
   parcel_status text, subtotal numeric, shipping_address jsonb, customer_note text, created_at timestamptz,
   paid_at timestamptz, courier_name text, tracking_number text)
 language sql stable security definer set search_path = public as $$
-  select so.id, so.seller_id, o.order_number, o.status, o.payment_status,
+  select so.id, so.seller_id, o.order_number, o.status::text, o.payment_status::text,
          greatest_status.status, so.subtotal, so.shipping_address, so.customer_note, o.created_at,
          o.paid_at, sh.courier_name, sh.tracking_number
     from public.seller_orders so
     join public.orders o on o.id = so.order_id
     cross join lateral (
       select case
-        when public.mivo_fulfilment_rank(so.status) >= public.mivo_fulfilment_rank(o.status) then so.status
-        else o.status end as status
+        when public.mivo_fulfilment_rank(so.status::text) >= public.mivo_fulfilment_rank(o.status::text) then so.status::text
+        else o.status::text end as status
     ) greatest_status
     left join lateral (
       select courier_name, tracking_number from public.shipments s
@@ -2240,7 +2270,7 @@ returns table (
   parcel_status text, subtotal numeric, shipping_address jsonb, customer_note text, created_at timestamptz,
   paid_at timestamptz, courier_name text, tracking_number text, buyer_courier_name text)
 language sql stable security definer set search_path = public as $$
-  select so.id, so.seller_id, o.order_number, o.status, o.payment_status,
+  select so.id, so.seller_id, o.order_number, o.status::text, o.payment_status::text,
          greatest_status.status, so.subtotal, so.shipping_address, so.customer_note, o.created_at,
          o.paid_at, sh.courier_name, sh.tracking_number,
          coalesce(so.buyer_courier_name, o.shipping_address ->> 'shipping_courier_name', o.shipping_address ->> 'courier_name')
@@ -2248,8 +2278,8 @@ language sql stable security definer set search_path = public as $$
     join public.orders o on o.id = so.order_id
     cross join lateral (
       select case
-        when public.mivo_fulfilment_rank(so.status) >= public.mivo_fulfilment_rank(o.status) then so.status
-        else o.status end as status
+        when public.mivo_fulfilment_rank(so.status::text) >= public.mivo_fulfilment_rank(o.status::text) then so.status::text
+        else o.status::text end as status
     ) greatest_status
     left join lateral (
       select courier_name, tracking_number from public.shipments s
