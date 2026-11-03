@@ -216,13 +216,14 @@ async function withShopFallback(
 ): Promise<QueryResult> {
   if (shopColumnsAvailable) {
     const result = await run(selectQuery);
+    if (!result.error) return result;
     const missingColumn =
-      result.error &&
-      (result.error.code === "42703" ||
-        result.error.code === "42501" ||
-        /column|permission/i.test(result.error.message || ""));
-    if (!missingColumn) return result;
-    shopColumnsAvailable = false;
+      result.error.code === "42703" || /column .* does not exist/i.test(result.error.message || "");
+    const denied = result.error.code === "42501" || /permission/i.test(result.error.message || "");
+    if (!missingColumn && !denied) return result;
+    // Only a missing column is permanent; a permission error is retried next
+    // time, so one bad request can't hide shop names and "Chat now" for good.
+    if (missingColumn) shopColumnsAvailable = false;
   }
   return run(legacySelectQuery);
 }

@@ -69,15 +69,25 @@ export default function ChatWidget() {
     return rows;
   }, [t]);
 
-  // Who is signed in; keep the unread badge live.
+  // Who is signed in (kept in sync after signing in or out without a page
+  // reload, so "Chat now" never asks to sign in twice); keep the unread badge live.
   useEffect(() => {
     const supabase = createClient();
     let channel: ReturnType<typeof supabase.channel> | null = null;
+    let current: string | null | undefined;
 
-    supabase.auth.getUser().then(({ data }) => {
-      const id = data.user?.id || null;
+    function signedIn(id: string | null) {
+      if (id === current) return;
+      current = id;
       setUserId(id);
-      if (!id) return;
+      if (channel) {
+        void supabase.removeChannel(channel);
+        channel = null;
+      }
+      if (!id) {
+        setConversations([]);
+        return;
+      }
       void loadConversations();
       channel = supabase
         .channel("chat-list:" + id)
@@ -87,9 +97,16 @@ export default function ChatWidget() {
           () => void loadConversations()
         )
         .subscribe();
+    }
+
+    supabase.auth.getUser().then(({ data }) => signedIn(data.user?.id || null));
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "INITIAL_SESSION") return;
+      signedIn(session?.user?.id || null);
     });
 
     return () => {
+      sub.subscription.unsubscribe();
       if (channel) void supabase.removeChannel(channel);
     };
   }, [loadConversations]);
@@ -103,7 +120,13 @@ export default function ChatWidget() {
       if (!detail.sellerId) return;
       const supabase = createClient();
       const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return;
+      if (!user.user) {
+        // Signing in first: reopen this chat when they come back.
+        try {
+          window.sessionStorage.setItem("mivo:pendingChat", JSON.stringify(detail));
+        } catch {}
+        return;
+      }
       const { data: id, error: startError } = await supabase.rpc("chat_start", {
         p_seller_id: detail.sellerId,
       });
@@ -118,6 +141,17 @@ export default function ChatWidget() {
     window.addEventListener(OPEN_CHAT_EVENT, handle);
     return () => window.removeEventListener(OPEN_CHAT_EVENT, handle);
   }, [loadConversations, t]);
+
+  // Back from signing in: continue the chat they asked for.
+  useEffect(() => {
+    if (!userId) return;
+    let saved: OpenChatDetail | null = null;
+    try {
+      saved = JSON.parse(window.sessionStorage.getItem("mivo:pendingChat") || "null");
+      window.sessionStorage.removeItem("mivo:pendingChat");
+    } catch {}
+    if (saved?.sellerId) openChat(saved);
+  }, [userId]);
 
   const unread = conversations.reduce((sum, c) => sum + (c.customer_unread || 0), 0);
   // No floating button while paying: it covered the order total. Chat still opens from "Chat now".

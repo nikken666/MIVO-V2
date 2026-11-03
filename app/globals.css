@@ -11208,3 +11208,24 @@ button.shopChip{font:inherit;cursor:pointer}
   .carRecRow{grid-auto-columns:minmax(160px,46%)}
   .carRecPrompt{flex-wrap:wrap}
 }
+
+/* ---------- Chat: photos, tools, seller quick replies ---------- */
+.chatComposer .chatTool{flex:0 0 auto;width:38px;height:38px;display:grid;place-items:center;border:1px solid #e1e4e7;border-radius:50%;
+  background:#fff;color:#4a5056;cursor:pointer;padding:0}
+.chatComposer .chatTool svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round}
+.chatComposer .chatTool.active,.chatComposer .chatTool:hover{border-color:var(--accent);color:var(--accent)}
+.chatPhoto{display:block;margin:2px 0 4px}
+.chatPhoto img{display:block;max-width:220px;max-height:260px;border-radius:12px;object-fit:cover}
+.chatReplyBank{margin:0 12px 8px;border:1px solid #e6e8ea;border-radius:12px;background:#fff;max-height:240px;overflow:auto}
+.chatReplyBankHead{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid #eef0f1;
+  position:sticky;top:0;background:#fff}
+.chatReplyBankHead strong{font-size:13px}
+.chatReplyBankHead button{border:0;background:none;color:var(--accent);font-size:13px;cursor:pointer}
+.chatReplyBank ul{list-style:none;margin:0;padding:4px}
+.chatReplyBank li{display:flex;align-items:center;gap:4px}
+.chatReplyBank li>button:first-child{flex:1;text-align:left;border:0;background:none;padding:8px 10px;border-radius:8px;font-size:13px;cursor:pointer;color:#22272b}
+.chatReplyBank li>button:first-child:hover:not(:disabled){background:#f2f6fd}
+.chatReplyRemove{border:0;background:none;color:#b42318;font-size:16px;cursor:pointer;padding:0 8px}
+.chatReplyAdd{display:flex;gap:6px;padding:8px}
+.chatReplyAdd input{flex:1;border:1px solid #dfe3e6;border-radius:8px;padding:7px 10px;font-size:13px}
+.chatReplyAdd button{border:0;border-radius:8px;background:var(--accent);color:#fff;width:34px;cursor:pointer}
