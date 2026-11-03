@@ -381,6 +381,31 @@ export async function getProductPublicReviews(
   }
 }
 
+/** Reviewer names (masked when anonymous) from supabase/review-names.sql. */
+async function attachReviewerNames(reviews: ProductPublicReview[]): Promise<ProductPublicReview[]> {
+  if (!reviews.length) return reviews;
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("product_review_names", {
+      p_ids: reviews.map((review) => review.id),
+    });
+    if (error || !data) return reviews;
+    const names = new Map(
+      (data as Array<{ id: string; display_name: string | null }>).map((row) => [row.id, row.display_name])
+    );
+    return reviews.map((review) => ({ ...review, reviewerName: names.get(review.id) || null }));
+  } catch {
+    return reviews;
+  }
+}
+
+export async function getProductPublicReviewsWithNames(
+  productId: string
+): Promise<ProductPublicReview[]> {
+  return attachReviewerNames(await getProductPublicReviews(productId));
+}
+
+
 
 export async function getRelatedProducts(
   product: Product,

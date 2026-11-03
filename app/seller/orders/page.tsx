@@ -22,6 +22,8 @@ type Parcel = {
   paid_at: string | null;
   courier_name: string | null;
   tracking_number: string | null;
+  // Courier the buyer chose and paid for (supabase/checkout-per-shop.sql).
+  buyer_courier_name?: string | null;
 };
 type Item = { seller_order_id: string; product_name: string; variant_name: string | null; sku: string; quantity: number };
 
@@ -90,7 +92,7 @@ export default function SellerOrdersPage() {
     setError("");
     setMessage("");
     try {
-      const c = (courier[parcel.seller_order_id] ?? parcel.courier_name ?? "").trim();
+      const c = (parcel.buyer_courier_name || courier[parcel.seller_order_id] || parcel.courier_name || "").trim();
       const tr = (tracking[parcel.seller_order_id] ?? parcel.tracking_number ?? "").trim();
       if (next === "shipped") {
         if (!c || !tr) throw new Error("Courier and tracking number are required.");
@@ -204,15 +206,21 @@ export default function SellerOrdersPage() {
                           ) : null}
                           {p.payment_status === "paid" && ["paid", "processing", "packed"].includes(p.parcel_status) ? (
                             <div className={styles.sellerShip}>
-                              <select
-                                value={courier[id] ?? p.courier_name ?? ""}
-                                onChange={(e) => setCourier((c) => ({ ...c, [id]: e.target.value }))}
-                              >
-                                <option value="">Courier</option>
-                                <option value="Pos Laju">Pos Laju</option>
-                                <option value="SPX Express">SPX Express</option>
-                                <option value="J&T Express">J&T Express</option>
-                              </select>
+                              {p.buyer_courier_name ? (
+                                <strong title="The buyer chose and paid for this courier. Please ship with it.">
+                                  {p.buyer_courier_name} · chosen by buyer
+                                </strong>
+                              ) : (
+                                <select
+                                  value={courier[id] ?? p.courier_name ?? ""}
+                                  onChange={(e) => setCourier((c) => ({ ...c, [id]: e.target.value }))}
+                                >
+                                  <option value="">Courier</option>
+                                  <option value="Pos Laju">Pos Laju</option>
+                                  <option value="SPX Express">SPX Express</option>
+                                  <option value="J&T Express">J&T Express</option>
+                                </select>
+                              )}
                               <input
                                 placeholder="Tracking no."
                                 value={tracking[id] ?? p.tracking_number ?? ""}

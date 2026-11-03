@@ -34,6 +34,7 @@ type Req = {
   dispute_note: string | null;
   mivo_note: string | null;
   respond_by: string | null;
+  inspect_by?: string | null;
   created_at: string;
 };
 type Ev = { id: string; actor: string; action: string; note: string | null; amount: number | string | null; created_at: string };
@@ -55,7 +56,7 @@ const statusLabel: Record<string, string> = {
   mivo_review: "MIVO review",
   approved_return: "Awaiting return",
   returning: "Item on the way",
-  received: "Received",
+  received: "Inspecting (3 days)",
   refunding: "To refund",
   refunded: "Refunded",
   rejected: "Rejected",
@@ -67,7 +68,7 @@ const tabs: Array<{ key: string; label: string; match: string[] }> = [
   { key: "respond", label: "To respond", match: ["requested"] },
   { key: "review", label: "MIVO review", match: ["mivo_review"] },
   { key: "offer", label: "Offer sent", match: ["seller_offer"] },
-  { key: "receive", label: "To receive", match: ["approved_return", "returning"] },
+  { key: "receive", label: "To receive", match: ["approved_return", "returning", "received"] },
   { key: "refund", label: "To refund", match: ["refunding"] },
   { key: "done", label: "Refunded", match: ["refunded"] },
   { key: "closed", label: "Closed", match: ["rejected", "cancelled", "closed"] },
@@ -229,6 +230,39 @@ export default function AdminReturnsPage() {
   const rpc = (name: string, args: Record<string, unknown>) => () => createClient().rpc(name, args);
   const amt = Number(amount);
 
+  // Seller confirms the returned item is fine: approve and pay the refund straight away.
+  async function receivedOk() {
+    if (!current) return;
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      const { error: rpcError } = await createClient().rpc("return_request_seller_received", {
+        p_id: current.id,
+        p_ok: true,
+        p_amount: null,
+        p_note: note || null,
+      });
+      if (rpcError) throw new Error(rpcError.message);
+      const response = await fetch("/api/admin/returns/refund", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: current.id }),
+      });
+      const data = (await response.json()) as { error?: string; amount?: number };
+      setMessage(
+        response.ok
+          ? "Refunded " + money(data.amount) + " to the customer."
+          : "Approved. The refund will go out automatically (" + (data.error || "payment not sent yet") + ")."
+      );
+      await load();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Action failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function refund() {
     if (!current) return;
     setBusy(true);
@@ -380,11 +414,27 @@ export default function AdminReturnsPage() {
                     </div>
                   ) : null}
 
-                  {current.status === "approved_return" || current.status === "returning" ? (
+                  {current.status === "approved_return" || current.status === "returning" || current.status === "received" ? (
                     <div className={styles.returnsActions}>
                       <h3>Returned item</h3>
-                      <button type="button" className={styles.adminAction} disabled={busy} onClick={() => void run(rpc("return_request_seller_received", { p_id: current.id, p_ok: true, p_amount: null, p_note: note || null }), "Marked received. Ready to refund.")}>
-                        Received in good order · refund {money(current.requested_amount)}
+                      {current.status === "received" && current.inspect_by ? (
+                        <p className={styles.adminNotice}>
+                          Parcel arrived. You have until {when(current.inspect_by)} to check it. If you don&apos;t
+                          report a problem by then, {money(current.requested_amount)} is refunded to the customer automatically.
+                        </p>
+                      ) : (
+                        <>
+                          <p className={styles.adminNotice}>
+                            When the parcel arrives, mark it below. You then have 3 days to unpack and check it before the
+                            refund goes out automatically. If you don&apos;t mark it, it counts as arrived 7 days after the customer sent it.
+                          </p>
+                          <button type="button" className={styles.adminSecondaryAction} disabled={busy} onClick={() => void run(rpc("return_request_seller_arrived", { p_id: current.id }), "Parcel arrived. You have 3 days to check it.")}>
+                            Parcel arrived · start 3-day check
+                          </button>
+                        </>
+                      )}
+                      <button type="button" className={styles.adminAction} disabled={busy} onClick={() => void receivedOk()}>
+                        Item is fine · refund {money(current.requested_amount)} now
                       </button>
                       <label><span>Problem with the returned item? Amount you think is fair</span><input type="number" min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} /></label>
                       <label><span>What is wrong (MIVO will verify)</span><textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} /></label>
@@ -414,7 +464,7 @@ export default function AdminReturnsPage() {
                   ) : null}
 
                   {current.status === "refunding" && !isAdmin ? (
-                    <p className={styles.adminNotice}>Approved. MIVO will send the refund to the customer.</p>
+                    <p className={styles.adminNotice}>Approved. The refund goes out to the customer automatically.</p>
                   ) : null}
                   {current.status === "refunding" && isAdmin ? (
                     <div className={styles.returnsActions}>

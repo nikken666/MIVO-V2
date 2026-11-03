@@ -8,7 +8,7 @@ import SavedVehicleProductsBootstrap from "@/components/SavedVehicleProductsBoot
 import { htmlToPlainText } from "@/lib/plainText";
 import {
   getActiveProductBySlug as fetchActiveProductBySlug,
-  getProductPublicReviews,
+  getProductPublicReviewsWithNames,
   getRelatedProducts,
 } from "@/lib/catalog";
 
@@ -116,7 +116,7 @@ export default async function ProductPage({
         )
       : Promise.resolve(null),
     product.id
-      ? getProductPublicReviews(product.id)
+      ? getProductPublicReviewsWithNames(product.id)
       : Promise.resolve([]),
     getRelatedProducts(product),
   ]);

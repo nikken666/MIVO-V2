@@ -36,6 +36,7 @@ type Request = {
   mivo_note: string | null;
   respond_by: string | null;
   ship_back_by: string | null;
+  inspect_by?: string | null;
   created_at: string;
 };
 type Event = { id: string; actor: string; action: string; note: string | null; amount: number | string | null; created_at: string };
@@ -147,6 +148,8 @@ export default function ReturnDetailPage() {
           <strong>{t(("ret.st." + req.status) as Key)}</strong>
           {req.status === "requested" && req.respond_by ? <p>{t("ret.respondBy", { date: when(req.respond_by) })}</p> : null}
           {req.status === "approved_return" && req.ship_back_by ? <p>{t("ret.shipBy", { date: when(req.ship_back_by) })}</p> : null}
+          {req.status === "returning" ? <p>{t("ret.returningNote")}</p> : null}
+          {req.status === "received" && req.inspect_by ? <p>{t("ret.inspectBy", { date: when(req.inspect_by) })}</p> : null}
           {req.status === "refunded" || req.status === "refunding" ? <p>{t("ret.refundTime")}</p> : null}
         </section>
 

@@ -25,6 +25,8 @@ export type ProductPublicReview = {
   createdAt: string;
   variantName: string | null;
   verifiedPurchase: boolean;
+  // Masked ("A****r") when the customer reviewed anonymously, else their name.
+  reviewerName?: string | null;
 };
 
 export type Product = {

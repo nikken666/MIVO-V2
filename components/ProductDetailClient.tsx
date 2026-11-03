@@ -910,9 +910,11 @@ export default function ProductDetailClient({
               {filteredReviews.map((review) => (
                 <article className="productReviewItem" key={review.id}>
                   <div className="productReviewBuyer">
-                    <div className="productReviewAvatar">M</div>
+                    <div className="productReviewAvatar">
+                      {(review.reviewerName || t("buy.pd.customer")).slice(0, 1).toUpperCase()}
+                    </div>
                     <div>
-                      <strong>{t("buy.pd.customer")}</strong>
+                      <strong>{review.reviewerName || t("buy.pd.customer")}</strong>
                       <span>
                         {review.verifiedPurchase
                           ? t("buy.pd.verifiedPurchase")

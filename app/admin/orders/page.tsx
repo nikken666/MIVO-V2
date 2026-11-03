@@ -51,6 +51,8 @@ type Parcel = {
   status: string;
   items: OrderItemRow[];
   shipment?: ShipmentRow;
+  // Courier the buyer chose and paid for (supabase/checkout-per-shop.sql).
+  buyerCourier?: string | null;
 };
 
 type OrderRow = {
@@ -288,6 +290,20 @@ export default function AdminOrdersPage() {
 
     if (shipmentResult.error) throw shipmentResult.error;
 
+    // Buyer's courier per parcel; absent until checkout-per-shop.sql has run.
+    const buyerCouriers = new Map<string, string>();
+    if (sellerOrderIds.length) {
+      const { data: chosen, error: chosenError } = await supabase
+        .from("seller_orders")
+        .select("id, buyer_courier_name")
+        .in("id", sellerOrderIds);
+      if (!chosenError) {
+        for (const row of (chosen as Array<{ id: string; buyer_courier_name: string | null }> | null) || []) {
+          if (row.buyer_courier_name) buyerCouriers.set(row.id, row.buyer_courier_name);
+        }
+      }
+    }
+
     const shopNames = new Map(
       (
         (shopResult.data as Array<{ id: string; shop_name: string }> | null) ||
@@ -334,6 +350,11 @@ export default function AdminOrdersPage() {
           status: row.status,
           items: items.filter((item) => item.seller_order_id === row.id),
           shipment: shipmentBySellerOrder.get(row.id),
+          buyerCourier:
+            buyerCouriers.get(row.id) ||
+            order.shipping_address?.shipping_courier_name ||
+            order.shipping_address?.courier_name ||
+            null,
         })
       );
 
@@ -437,7 +458,7 @@ export default function AdminOrdersPage() {
 
   useEffect(() => {
     if (!selectedOrder) return;
-    setCourier(selectedOrder.shipment?.courier_name || "");
+    setCourier(selectedOrder.parcels[0]?.buyerCourier || selectedOrder.shipment?.courier_name || "");
     setTracking(selectedOrder.shipment?.tracking_number || "");
     setTrackingUrl(selectedOrder.shipment?.tracking_url || "");
   }, [selectedOrder?.order_number]);
@@ -495,9 +516,10 @@ export default function AdminOrdersPage() {
     nextStatus: "processing" | "packed" | "shipped" | "delivered"
   ) {
     const parcelCourierValue = (
-      parcelCourier[parcel.id] ??
+      parcel.buyerCourier ||
+      (parcelCourier[parcel.id] ??
       parcel.shipment?.courier_name ??
-      ""
+      "")
     ).trim();
     const parcelTrackingValue = (
       parcelTracking[parcel.id] ??
@@ -596,7 +618,8 @@ export default function AdminOrdersPage() {
           const status = parcelStatus(parcel, order);
           const isBusy = busy === parcel.id;
           const courierValue =
-            parcelCourier[parcel.id] ?? parcel.shipment?.courier_name ?? "";
+            parcel.buyerCourier ||
+            (parcelCourier[parcel.id] ?? parcel.shipment?.courier_name ?? "");
           const trackingValue =
             parcelTracking[parcel.id] ??
             parcel.shipment?.tracking_number ??
@@ -638,23 +661,29 @@ export default function AdminOrdersPage() {
                 </button>
               ) : null}
 
-              {status === "packed" ? (
+              {["paid", "processing", "packed"].includes(status) ? (
                 <div className={styles.adminShipForm}>
                   <label>
                     <span>Courier *</span>
-                    <select
-                      value={courierValue}
-                      onChange={(event) =>
-                        setParcelCourier((current) => ({
-                          ...current,
-                          [parcel.id]: event.target.value,
-                        }))
-                      }
-                    >
-                      <option value="">Select courier</option>
-                      <option value="SPX Express">SPX Express</option>
-                      <option value="J&T Express">J&T Express</option>
-                    </select>
+                    {parcel.buyerCourier ? (
+                      <strong title="The buyer chose and paid for this courier">
+                        {parcel.buyerCourier} · chosen by buyer
+                      </strong>
+                    ) : (
+                      <select
+                        value={courierValue}
+                        onChange={(event) =>
+                          setParcelCourier((current) => ({
+                            ...current,
+                            [parcel.id]: event.target.value,
+                          }))
+                        }
+                      >
+                        <option value="">Select courier</option>
+                        <option value="SPX Express">SPX Express</option>
+                        <option value="J&T Express">J&T Express</option>
+                      </select>
+                    )}
                   </label>
                   <label>
                     <span>Tracking number *</span>
@@ -1012,24 +1041,29 @@ export default function AdminOrdersPage() {
                                   </button>
                                 ) : null}
 
-                                {order.status === "packed" ? (
-                                  <div className={styles.adminShipForm}>
+                                <div className={styles.adminShipForm}>
                                     <label>
                                       <span>Courier *</span>
-                                      <select
-                                        value={courier}
-                                        onChange={(event) =>
-                                          setCourier(event.target.value)
-                                        }
-                                      >
-                                        <option value="">Select courier</option>
-                                        <option value="SPX Express">
-                                          SPX Express
-                                        </option>
-                                        <option value="J&T Express">
-                                          J&T Express
-                                        </option>
-                                      </select>
+                                      {order.parcels[0]?.buyerCourier ? (
+                                        <strong title="The buyer chose and paid for this courier">
+                                          {order.parcels[0].buyerCourier} · chosen by buyer
+                                        </strong>
+                                      ) : (
+                                        <select
+                                          value={courier}
+                                          onChange={(event) =>
+                                            setCourier(event.target.value)
+                                          }
+                                        >
+                                          <option value="">Select courier</option>
+                                          <option value="SPX Express">
+                                            SPX Express
+                                          </option>
+                                          <option value="J&T Express">
+                                            J&T Express
+                                          </option>
+                                        </select>
+                                      )}
                                     </label>
                                     <label>
                                       <span>Tracking number *</span>
@@ -1057,7 +1091,6 @@ export default function AdminOrdersPage() {
                                       Mark shipped
                                     </button>
                                   </div>
-                                ) : null}
                               </>
                             ) : null}
 

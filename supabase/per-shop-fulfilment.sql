@@ -175,6 +175,10 @@ begin
               'All shops reached this step', auth.uid());
     end loop;
   elsif v_min_rank > v_parent_rank then
+    -- The whole-order call below may rewrite other shops' shipments; they are
+    -- restored afterwards, so the buyer-courier lock (checkout-per-shop.sql)
+    -- is paused for this step only.
+    perform set_config('mivo.skip_courier_lock', 'on', true);
     -- Snapshot per-shop state; the order-level function may overwrite it.
     select coalesce(jsonb_agg(jsonb_build_object('id', id, 'status', status)), '[]'::jsonb)
       into v_seller_snapshot
@@ -247,6 +251,7 @@ begin
         where not exists (select 1 from public.shipments sh where sh.id = snap.id)',
       v_columns
     ) using v_shipment_snapshot;
+    perform set_config('mivo.skip_courier_lock', 'off', true);
   end if;
 
   select status into v_order.status from public.orders where id = v_order.id;

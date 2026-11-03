@@ -11130,3 +11130,41 @@ button.shopChip{font:inherit;cursor:pointer}
 @media(max-width:700px){
   body:has(.mobileCheckoutBar) .chatLauncher{bottom:96px}
 }
+
+/* Checkout: one parcel per shop (Shopee-style) */
+.checkoutShopParcels{display:grid;gap:12px;margin-top:12px}
+.checkoutShopParcel{padding:14px 16px;border:1px solid var(--line,#e5e5ea);border-radius:16px;background:#fff}
+.checkoutShopParcel header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.checkoutShopParcel header strong{font-size:15px}
+.checkoutShopParcel header small{margin-left:auto;color:var(--grey,#6e6e73);font-size:13px}
+.checkoutShopDot{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:13px;font-weight:700}
+.checkoutShopParcel ul{margin:0 0 10px;padding:0;list-style:none;display:grid;gap:4px}
+.checkoutShopParcel li{display:flex;justify-content:space-between;gap:10px;font-size:14px;color:#424245}
+.checkoutShopParcel li small{color:var(--grey,#6e6e73);font-size:13px;white-space:nowrap}
+.checkoutShopParcel footer{display:flex;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line,#e5e5ea);font-size:14px}
+.checkoutShopParcel footer b{font-size:15px}
+.checkoutShippingQuote>.checkoutShopParcels{display:grid;grid-template-columns:1fr;gap:12px}
+.checkoutShopParcel span,.checkoutShopParcel strong,.checkoutShopParcel small{letter-spacing:normal;text-transform:none}
+.checkoutShopParcel .checkoutShopDot{display:grid!important;color:#fff;font-size:13px;line-height:1}
+.checkoutShopParcel header>strong{display:inline!important;color:var(--ink,#1d1d1f)}
+.checkoutShopParcel li span{display:inline!important;font-size:14px;font-weight:500;color:#424245}
+.checkoutShopParcel li small{display:inline!important;margin:0}
+.checkoutShopParcel footer span{display:inline!important;font-size:14px;font-weight:500;color:#424245}
+.checkoutShopParcel .checkoutCourierOption strong{font-size:14px;color:#1d1d1f}
+.checkoutShopParcel .checkoutCourierOption small{font-size:12px}
+.checkoutShopParcel .checkoutCourierOption>b{font-size:14px}
+.checkoutShopParcel .shopBadge{display:inline-flex!important}
+.checkoutShopParcel .shopBadgeDirect{color:#fff}
+.checkoutShopParcel .shopBadgePreferred{color:#1d1d1f}
+/* Warranty claim progress (customer) */
+.warrantyProgress p{margin:6px 0 0}
+.warrantyProgressForm{display:grid;gap:8px;margin-top:10px}
+.warrantyProgressForm input{height:42px;padding:0 12px;border:1px solid var(--line,#d2d2d7);border-radius:10px;font-size:15px}
+.warrantyProgress .orderPrimaryButton{margin-top:10px;min-height:42px;width:100%}
+.warrantyProgressEvents{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:6px;font-size:14px}
+.warrantyProgressEvents time{display:block;color:var(--grey,#6e6e73);font-size:12px}
+/* Review: anonymous or public */
+.reviewAnonymous{display:flex;gap:10px;align-items:flex-start;margin:16px 0 4px;padding:14px 16px;border-radius:14px;background:#fff;box-shadow:var(--shadow);cursor:pointer}
+.reviewAnonymous input{width:18px;height:18px;margin-top:2px;accent-color:var(--accent)}
+.reviewAnonymous strong{display:block;font-size:15px}
+.reviewAnonymous small{display:block;margin-top:2px;color:var(--grey,#6e6e73);font-size:13px}

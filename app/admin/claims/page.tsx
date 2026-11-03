@@ -5,6 +5,7 @@ import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import WarrantyResolution from "@/components/admin/WarrantyResolution";
 
 type ClaimStatus =
   | "new"
@@ -526,6 +527,12 @@ export default function AdminClaimsPage() {
                         </button>
                       </div>
                     </div>
+
+                    <WarrantyResolution
+                      key={selected.id}
+                      claimId={selected.id}
+                      onChanged={() => void loadClaims()}
+                    />
                   </div>
                 ) : null}
               </div>

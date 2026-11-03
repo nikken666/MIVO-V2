@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { captureOrderPayment } from "@/lib/stripe/holds";
+import { payReturnRefund } from "@/lib/returns/payRefund";
 
 // Daily (vercel.json): charge card holds that would expire within a day,
 // and run return-request housekeeping.
@@ -36,11 +37,29 @@ export async function GET(request: NextRequest) {
     () => null
   );
 
+  // Returns: refund requests that are approved (including those whose 3-day
+  // seller inspection ended without a dispute).
+  const refunds: Array<{ id: string; ok: boolean; error?: string }> = [];
+  const { data: toRefund } = await admin
+    .from("return_requests")
+    .select("id")
+    .eq("status", "refunding")
+    .is("stripe_refund_id", null)
+    .limit(100);
+  for (const row of (toRefund as Array<{ id: string }> | null) || []) {
+    try {
+      await payReturnRefund(row.id);
+      refunds.push({ id: row.id, ok: true });
+    } catch (caught) {
+      refunds.push({ id: row.id, ok: false, error: caught instanceof Error ? caught.message : String(caught) });
+    }
+  }
+
   // Commission: apply scheduled changes, revert finished temporary ones.
   const commission = await admin.rpc("mivo_apply_commission_changes").then(
     (r) => r.data ?? r.error?.message,
     () => null
   );
 
-  return NextResponse.json({ captured: results.filter((r) => r.ok).length, results, returns, commission });
+  return NextResponse.json({ captured: results.filter((r) => r.ok).length, results, returns, refunds, commission });
 }

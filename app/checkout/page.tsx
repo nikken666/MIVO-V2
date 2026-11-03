@@ -17,6 +17,7 @@ import {
   type AccountAddress,
 } from "@/lib/customerData";
 import { useT } from "@/components/LanguageProvider";
+import ShopBadge from "@/components/ShopBadge";
 import type { Translate } from "@/lib/i18n";
 import { intlTag } from "@/lib/i18n/format";
 import { friendlyError } from "@/lib/i18n/errors";
@@ -42,6 +43,14 @@ type ShippingQuote = {
   subtotal: number;
   shipping_amount: number;
   total_amount: number;
+};
+
+// One parcel per shop (supabase/checkout-per-shop.sql).
+type ShopQuote = {
+  seller_id: string;
+  shop_name: string;
+  tier: string | null;
+  options: ShippingQuote[];
 };
 
 type VoucherOption = {
@@ -143,6 +152,9 @@ export default function CheckoutPage() {
   const [shippingPostcode, setShippingPostcode] = useState("");
   const [shippingQuotes, setShippingQuotes] = useState<ShippingQuote[]>([]);
   const [selectedCourier, setSelectedCourier] = useState("");
+  // Per-shop shipping when available; null = single courier for the order (older database).
+  const [shopQuotes, setShopQuotes] = useState<ShopQuote[] | null>(null);
+  const [shopCourier, setShopCourier] = useState<Record<string, string>>({});
   const [shippingLoading, setShippingLoading] = useState(false);
   const [shippingError, setShippingError] = useState("");
   const [vouchers, setVouchers] = useState<VoucherOption[]>([]);
@@ -283,12 +295,30 @@ export default function CheckoutPage() {
     return sum + price * line.quantity;
   }, 0);
 
-  const shippingQuote =
-    shippingQuotes.find(
-      (quote) => quote.courier_code === selectedCourier
-    ) ||
-    shippingQuotes[0] ||
-    null;
+  // Per shop: the chosen option of every shop; the order pays the sum.
+  const shopChoices = shopQuotes
+    ? shopQuotes.map(
+        (shop) =>
+          shop.options.find((option) => option.courier_code === shopCourier[shop.seller_id]) ||
+          shop.options[0] ||
+          null
+      )
+    : [];
+  const shippingQuote: ShippingQuote | null = shopQuotes
+    ? shopChoices.length && shopChoices.every(Boolean)
+      ? {
+          ...(shopChoices[0] as ShippingQuote),
+          shipping_amount: shopChoices.reduce(
+            (sum, option) => sum + Number(option?.shipping_amount || 0),
+            0
+          ),
+        }
+      : null
+    : shippingQuotes.find(
+        (quote) => quote.courier_code === selectedCourier
+      ) ||
+      shippingQuotes[0] ||
+      null;
 
   const checkoutItems = selectedCart
     .map((line) =>
@@ -410,6 +440,41 @@ export default function CheckoutPage() {
 
       try {
         const supabase = createClient();
+
+        // Per-shop quotes first; fall back to one courier for the whole order.
+        const { data: byShop, error: byShopError } = await supabase.rpc(
+          "quote_shipping_by_shop",
+          {
+            p_items: items,
+            p_state: shippingState,
+            p_postcode: shippingPostcode,
+          }
+        );
+        if (!byShopError && Array.isArray(byShop)) {
+          if (!active) return;
+          const shops = (byShop as ShopQuote[]).map((shop) => ({
+            ...shop,
+            options: (shop.options || [])
+              .slice()
+              .sort((a, b) => Number(a.shipping_amount) - Number(b.shipping_amount)),
+          }));
+          setShopQuotes(shops);
+          setShippingQuotes([]);
+          setShopCourier((current) => {
+            const next: Record<string, string> = {};
+            for (const shop of shops) {
+              const kept = shop.options.some((o) => o.courier_code === current[shop.seller_id]);
+              next[shop.seller_id] = kept ? current[shop.seller_id] : shop.options[0]?.courier_code || "";
+            }
+            return next;
+          });
+          if (shops.some((shop) => shop.options.length === 0)) {
+            setShippingError(t("buy.co.unavailable"));
+          }
+          return;
+        }
+        setShopQuotes(null);
+
         const { data, error: quoteError } = await supabase.rpc(
           "quote_shipping_options",
           {
@@ -615,7 +680,7 @@ export default function CheckoutPage() {
         state: String(form.get("state") || "").trim(),
         postcode: String(form.get("postcode") || "").trim(),
         country_code: "MY",
-        courier_code: selectedCourier,
+        courier_code: shopQuotes ? shippingQuote?.courier_code || "" : selectedCourier,
       };
 
       try {
@@ -626,17 +691,23 @@ export default function CheckoutPage() {
         if (saved) setSavedAddress(saved);
       } catch {}
 
-      const { data, error: checkoutError } = await supabase.rpc(
-        "create_pending_order",
-        {
-          p_items: items,
-          p_shipping_address: shippingAddress,
-          p_customer_note:
-            String(form.get("customer_note") || "").trim() ||
-            null,
-          p_voucher_id: selectedVoucherId || null,
-        }
-      );
+      const orderNote = String(form.get("customer_note") || "").trim() || null;
+      const { data, error: checkoutError } = shopQuotes
+        ? await supabase.rpc("create_pending_order_by_shop", {
+            p_items: items,
+            p_shipping_address: shippingAddress,
+            p_customer_note: orderNote,
+            p_voucher_id: selectedVoucherId || null,
+            p_couriers: Object.fromEntries(
+              shopQuotes.map((shop, index) => [shop.seller_id, shopChoices[index]?.courier_code || ""])
+            ),
+          })
+        : await supabase.rpc("create_pending_order", {
+            p_items: items,
+            p_shipping_address: shippingAddress,
+            p_customer_note: orderNote,
+            p_voucher_id: selectedVoucherId || null,
+          });
 
       if (checkoutError) throw checkoutError;
 
@@ -937,13 +1008,86 @@ export default function CheckoutPage() {
                   <strong>
                     {shippingLoading
                       ? t("buy.co.calculating")
-                      : shippingQuotes.length
-                        ? t("buy.co.chooseCourier")
-                        : t("buy.co.unavailable")}
+                      : shopQuotes
+                        ? t("buy.co.perShop")
+                        : shippingQuotes.length
+                          ? t("buy.co.chooseCourier")
+                          : t("buy.co.unavailable")}
                   </strong>
                 </div>
 
-                {shippingQuotes.length > 0 ? (
+                {shopQuotes ? (
+                  <div className="checkoutShopParcels">
+                    {shopQuotes.map((shop, index) => {
+                      const lines = selectedCart.filter(
+                        (line) => line.product.sellerId === shop.seller_id
+                      );
+                      const chosen = shopChoices[index];
+                      return (
+                        <section className="checkoutShopParcel" key={shop.seller_id}>
+                          <header>
+                            <span className="checkoutShopDot">{shop.shop_name.slice(0, 1)}</span>
+                            <strong>{shop.shop_name}</strong>
+                            <ShopBadge tier={shop.tier as "direct" | "preferred" | "standard" | null} />
+                            <small>{t("buy.co.parcelN", { n: index + 1 })}</small>
+                          </header>
+                          <ul>
+                            {lines.map((line) => (
+                              <li key={line.lineId}>
+                                <span>{line.product.name}</span>
+                                <small>× {line.quantity}</small>
+                              </li>
+                            ))}
+                          </ul>
+                          {shop.options.length ? (
+                            <div className="checkoutCourierOptions">
+                              {shop.options.map((quote) => (
+                                <button
+                                  type="button"
+                                  key={quote.courier_code}
+                                  className={
+                                    "checkoutCourierOption" +
+                                    (chosen?.courier_code === quote.courier_code ? " selected" : "")
+                                  }
+                                  onClick={() =>
+                                    setShopCourier((current) => ({
+                                      ...current,
+                                      [shop.seller_id]: quote.courier_code,
+                                    }))
+                                  }
+                                >
+                                  <span>
+                                    <strong>{quote.courier_name}</strong>
+                                    <small>
+                                      {quote.zone_name} · {Number(quote.chargeable_weight_kg).toFixed(2)} kg
+                                    </small>
+                                  </span>
+                                  <b>
+                                    {Number(quote.shipping_amount) === 0
+                                      ? t("buy.co.free")
+                                      : formatPrice(Number(quote.shipping_amount))}
+                                  </b>
+                                </button>
+                              ))}
+                            </div>
+                          ) : (
+                            <small>{t("buy.co.unavailable")}</small>
+                          )}
+                          <footer>
+                            <span>{t("buy.co.shopShipping")}</span>
+                            <b>
+                              {chosen
+                                ? Number(chosen.shipping_amount) === 0
+                                  ? t("buy.co.free")
+                                  : formatPrice(Number(chosen.shipping_amount))
+                                : "—"}
+                            </b>
+                          </footer>
+                        </section>
+                      );
+                    })}
+                  </div>
+                ) : shippingQuotes.length > 0 ? (
                   <div className="checkoutCourierOptions">
                     {shippingQuotes.map((quote) => (
                       <button

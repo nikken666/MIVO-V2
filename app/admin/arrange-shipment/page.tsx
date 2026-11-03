@@ -60,6 +60,8 @@ type OrderView = OrderRow & {
   // One row per order, or per shop parcel when an order spans several shops.
   key: string;
   parcelId?: string;
+  // Courier the buyer chose and paid for (supabase/checkout-per-shop.sql).
+  buyerCourier?: string | null;
   shopName?: string;
   parcelIndex?: number;
 };
@@ -106,6 +108,7 @@ function isArranged(order: OrderView) {
 
 function courierName(order: OrderView) {
   return (
+    order.buyerCourier ||
     order.shipment?.courier_name ||
     order.shipping_address?.shipping_courier_name ||
     "Courier from checkout"
@@ -251,6 +254,20 @@ export default function ArrangeShipmentPage() {
       (sellerOrderResult.data as SellerOrderRow[] | null) || [];
     const sellerOrderIds = sellerOrders.map((row) => row.id);
 
+    // Buyer's courier per parcel; absent until checkout-per-shop.sql has run.
+    const buyerCouriers = new Map<string, string>();
+    if (sellerOrderIds.length) {
+      const { data: chosen, error: chosenError } = await supabase
+        .from("seller_orders")
+        .select("id, buyer_courier_name")
+        .in("id", sellerOrderIds);
+      if (!chosenError) {
+        for (const row of (chosen as Array<{ id: string; buyer_courier_name: string | null }> | null) || []) {
+          if (row.buyer_courier_name) buyerCouriers.set(row.id, row.buyer_courier_name);
+        }
+      }
+    }
+
     const shipmentResult = sellerOrderIds.length
       ? await supabase
           .from("shipments")
@@ -320,6 +337,7 @@ export default function ArrangeShipmentPage() {
           ...base,
           key: "parcel:" + parcel.id,
           parcelId: parcel.id,
+          buyerCourier: buyerCouriers.get(parcel.id) || null,
           parcelIndex: index + 1,
           shopName: (parcel.seller_id && shopNames.get(parcel.seller_id)) || "MIVO shop",
           items: items.filter((item) => item.seller_order_id === parcel.id),
@@ -493,9 +511,10 @@ export default function ArrangeShipmentPage() {
   async function markShipped(order: OrderView) {
     const orderNumber = order.key;
     const courier = (
-      courierInputs[orderNumber] ??
+      order.buyerCourier ||
+      (courierInputs[orderNumber] ??
       order.shipment?.courier_name ??
-      ""
+      "")
     ).trim();
     const tracking = (
       trackingInputs[orderNumber] ??
@@ -760,10 +779,13 @@ export default function ArrangeShipmentPage() {
                           <label>
                             <span>Courier *</span>
                             <select
+                              disabled={Boolean(order.buyerCourier)}
+                              title={order.buyerCourier ? "Chosen by the buyer" : undefined}
                               value={
-                                courierInputs[order.key] ??
+                                order.buyerCourier ||
+                                (courierInputs[order.key] ??
                                 order.shipment?.courier_name ??
-                                ""
+                                "")
                               }
                               onChange={(event) =>
                                 setCourierInputs((current) => ({
@@ -773,6 +795,9 @@ export default function ArrangeShipmentPage() {
                               }
                             >
                               <option value="">Select courier</option>
+                              {order.buyerCourier && !["SPX Express", "J&T Express"].includes(order.buyerCourier) ? (
+                                <option value={order.buyerCourier}>{order.buyerCourier}</option>
+                              ) : null}
                               <option value="SPX Express">SPX Express</option>
                               <option value="J&T Express">J&T Express</option>
                             </select>

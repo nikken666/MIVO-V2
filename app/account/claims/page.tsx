@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import WarrantyProgress from "@/components/orders/WarrantyProgress";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -303,6 +304,8 @@ export default function MyWarrantyClaimsPage() {
                     <p>{selected.admin_note}</p>
                   </div>
                 ) : null}
+
+                <WarrantyProgress key={selected.id} claimId={selected.id} />
 
                 {selected.resolution_note ? (
                   <div className="myClaimResolution">

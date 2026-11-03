@@ -41,6 +41,14 @@ type ReviewPhotoDraft = {
   preview: string;
 };
 
+// Same masking as supabase/review-names.sql: "Ali Buyer" → "A****r".
+function maskName(name: string) {
+  const value = name.trim();
+  if (!value) return "M****r";
+  if (value.length <= 2) return value.slice(0, 1) + "*";
+  return value.slice(0, 1) + "*".repeat(Math.min(value.length - 2, 4)) + value.slice(-1);
+}
+
 export default function OrderReviewPage() {
   const params = useParams();
   const router = useRouter();
@@ -58,6 +66,9 @@ export default function OrderReviewPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  // Show a masked name ("A****r") instead of the customer's name.
+  const [anonymous, setAnonymous] = useState(true);
+  const [customerName, setCustomerName] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -77,6 +88,18 @@ export default function OrderReviewPage() {
           );
           return;
         }
+
+        void supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", user.id)
+          .maybeSingle()
+          .then(({ data: profile }) =>
+            setCustomerName(
+              (profile as { full_name?: string | null } | null)?.full_name ||
+                (user.email || "").split("@")[0]
+            )
+          );
 
         const { data: orderData, error: orderError } = await supabase
           .from("orders")
@@ -401,9 +424,18 @@ export default function OrderReviewPage() {
         updated_at: new Date().toISOString(),
       }));
 
-      const { error: reviewError } = await supabase
+      let { error: reviewError } = await supabase
         .from("product_reviews")
-        .upsert(payload, { onConflict: "order_item_id" });
+        .upsert(
+          payload.map((row) => ({ ...row, is_anonymous: anonymous })),
+          { onConflict: "order_item_id" }
+        );
+      // Before supabase/review-names.sql runs there is no is_anonymous column.
+      if (reviewError && /is_anonymous/.test(reviewError.message)) {
+        ({ error: reviewError } = await supabase
+          .from("product_reviews")
+          .upsert(payload, { onConflict: "order_item_id" }));
+      }
 
       if (reviewError) throw reviewError;
 
@@ -671,6 +703,22 @@ export default function OrderReviewPage() {
             <p className="accountDataSuccess">{message}</p>
           ) : null}
           {error ? <p className="accountDataError">{error}</p> : null}
+
+          <label className="reviewAnonymous">
+            <input
+              type="checkbox"
+              checked={anonymous}
+              onChange={(event) => setAnonymous(event.target.checked)}
+            />
+            <span>
+              <strong>{t("account.review.anonymous")}</strong>
+              <small>
+                {anonymous
+                  ? t("account.review.anonymousOn", { name: maskName(customerName) })
+                  : t("account.review.anonymousOff", { name: customerName || t("buy.pd.customer") })}
+              </small>
+            </span>
+          </label>
 
           <div className="reviewOrderActions">
             <Link href="/orders" className="orderGhostButton">
