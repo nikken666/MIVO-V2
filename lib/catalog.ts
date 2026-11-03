@@ -293,17 +293,25 @@ async function attachReviewStats(
 export async function getActiveProducts(): Promise<Product[]> {
   try {
     const supabase = await createClient();
-    const { data, error } = await withShopFallback((select) =>
-      supabase
-        .from("products")
-        .select(select)
-        .eq("status", "active")
-        .order("created_at", { ascending: false })
-    );
+    // At most 1000 rows come back per request: page through big catalogues.
+    const data: unknown[] = [];
+    for (let from = 0; from < 20000; from += 1000) {
+      const page = await withShopFallback((select) =>
+        supabase
+          .from("products")
+          .select(select)
+          .eq("status", "active")
+          .order("created_at", { ascending: false })
+          .order("id")
+          .range(from, from + 999)
+      );
+      if (page.error) throw page.error;
+      const rows = (page.data || []) as unknown[];
+      data.push(...rows);
+      if (rows.length < 1000) break;
+    }
 
-    if (error) throw error;
-
-    const live = ((data || []) as unknown as ProductRow[])
+    const live = (data as unknown as ProductRow[])
       .map(mapProduct)
       .filter((product): product is Product => Boolean(product));
 

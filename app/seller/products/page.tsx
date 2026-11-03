@@ -21,20 +21,26 @@ export default function SellerProductsPage() {
     if (!ids.length) return;
     (async () => {
       const supabase = createClient();
-      const { data } = await supabase
-        .from("products")
-        .select("id, name, slug, status, seller_id, primary_image_url")
-        .in("seller_id", ids)
-        .order("created_at", { ascending: false })
-        .limit(2000);
-      const list = (data || []) as Row[];
+      const list: Row[] = [];
+      for (let from = 0; from < 50000; from += 1000) {
+        const { data } = await supabase
+          .from("products")
+          .select("id, name, slug, status, seller_id, primary_image_url")
+          .in("seller_id", ids)
+          .order("created_at", { ascending: false })
+          .order("id")
+          .range(from, from + 999);
+        list.push(...((data || []) as Row[]));
+        if (!data || data.length < 1000) break;
+      }
       setRows(list);
       const map = new Map<string, Variant[]>();
       for (let i = 0; i < list.length; i += 300) {
         const { data: v } = await supabase
           .from("product_variants")
           .select("product_id, price, stock_on_hand, stock_reserved")
-          .in("product_id", list.slice(i, i + 300).map((r) => r.id));
+          .in("product_id", list.slice(i, i + 300).map((r) => r.id))
+          .limit(5000);
         ((v || []) as Variant[]).forEach((x) => map.set(x.product_id, [...(map.get(x.product_id) || []), x]));
       }
       setVariants(map);
