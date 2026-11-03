@@ -59,11 +59,11 @@ const matchers: Array<[Field, RegExp]> = [
   ["variationId", /variationid|modelid/],
   ["productId", /^(ps|et)?(product|item)id$|^productid/],
   ["parentSku", /parentsku|skuparent|productsku/],
-  ["name", /productname|itemname/],
+  ["name", /productname|itemname|producttitle|^title$/],
   ["description", /description/],
   ["category", /^(ps)?category/],
   ["variationName", /variationname|^variation$|modelname|optionname/],
-  ["cover", /coverimage|mainimage|itemcoverimage/],
+  ["cover", /coverimage|mainimage|itemcoverimage|imageurl1$|^image1url$/],
   ["image", /(item|product)image\d+|^image\d+$|itemimage/],
   ["sku", /sku/],
   ["price", /price/],
@@ -74,7 +74,31 @@ const matchers: Array<[Field, RegExp]> = [
   ["height", /height/],
 ];
 
+// Chinese headers (BigSeller / Shopee CN-language exports).
+const zhMatchers: Array<[Field, RegExp]> = [
+  ["variationImage", /(规格|变种|变体|SKU).*(图片|图)/i],
+  ["productId", /^(产品|商品)\s*(ID|编号)$/i],
+  ["parentSku", /(父|主)\s*SKU/i],
+  ["name", /(产品|商品)(名称|标题)|^标题$/],
+  ["description", /描述|详情/],
+  ["category", /类目|分类/],
+  ["variationName", /(变种|规格|变体)(名称|属性|值)?$/],
+  ["cover", /主图|封面/],
+  ["image", /^(图片|附图|产品图片|商品图片)\s*\d*$/],
+  ["sku", /SKU/i],
+  ["price", /价格|售价|单价/],
+  ["stock", /库存|数量/],
+  ["weight", /重量/],
+  ["length", /长度/],
+  ["width", /宽度/],
+  ["height", /高度/],
+];
+
 function fieldFor(header: Cell): Field | null {
+  const raw = String(header ?? "").trim();
+  if (/[\u4e00-\u9fff]/.test(raw) && raw.length <= 30) {
+    for (const [field, re] of zhMatchers) if (re.test(raw)) return field;
+  }
   // Technical keys look like "et_title_product_id"; drop the prefix.
   const h = norm(header).replace(/^ettitle/, "");
   if (!h || h.length > 60) return null;
