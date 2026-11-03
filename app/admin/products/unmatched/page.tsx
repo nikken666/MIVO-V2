@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../../Admin.module.css";
 import ui from "./Unmatched.module.css";
@@ -30,7 +31,7 @@ export default function UnmatchedSkuPage() {
       if (!user) { window.location.href = "/login?next=/admin/products/unmatched"; return; }
       const { data: admin, error: adminError } = await supabase.rpc("is_admin");
       if (adminError) throw adminError;
-      if (!admin) { window.location.href = "/admin"; return; }
+      if (!admin) { leaveBackOffice(); return; }
 
       async function allPages<T>(table: string, columns: string) {
         const result: T[] = [];

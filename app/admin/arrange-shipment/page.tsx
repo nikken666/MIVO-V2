@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
 import { chargeBeforeShipping } from "@/lib/adminPayments";
@@ -175,7 +176,7 @@ export default function ArrangeShipmentPage() {
     if (adminError) throw adminError;
 
     if (!isAdmin) {
-      window.location.href = "/";
+      leaveBackOffice();
       return;
     }
 

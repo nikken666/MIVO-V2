@@ -13,7 +13,7 @@
   .mivoMobileAddressInfo{display:flex;flex-direction:column;gap:4px;min-width:0;line-height:1.35}
   .mivoMobileAddressInfo strong{font-size:13px}
   .mivoMobileAddressInfo span{font-size:12px;font-weight:600}
-  .mivoMobileAddressInfo small{font-size:11px;color:#697386;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .mivoMobileAddressInfo small{font-size:12px;color:#697386;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .mivoMobileAddressCard button,.mivoMobileVoucherToggle button{flex-shrink:0;border:0;background:none;color:#d34136;font-size:12px;font-weight:750;padding:8px 0}
   .mivoAddressEditor.collapsed{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important}
   .checkoutFields{gap:10px!important}
@@ -26,9 +26,9 @@
   .checkoutCourierOptions{display:flex!important;flex-direction:column!important;gap:7px!important}
   .checkoutCourierOption{display:flex!important;width:100%!important;max-width:100%;min-width:0!important;padding:11px 12px!important;box-sizing:border-box;border-radius:9px!important}
   .checkoutCourierOption strong{font-size:13px!important}
-  .checkoutCourierOption small{font-size:11px!important}
+  .checkoutCourierOption small{font-size:12px!important}
   .checkoutCancellationPolicy{padding:10px!important;margin:10px 0!important;gap:8px!important}
-  .checkoutCancellationPolicy small{font-size:10px!important;line-height:1.45!important}
+  .checkoutCancellationPolicy small{font-size:12px!important;line-height:1.45!important}
   .checkoutSummaryHead{margin-bottom:8px!important}
   .checkoutItems{gap:6px!important}
   .checkoutItem{padding:8px 0!important;gap:9px!important;min-width:0!important}

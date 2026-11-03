@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../../Admin.module.css";
 import AdminSidebar from "@/components/admin/AdminSidebar";
@@ -313,7 +314,7 @@ export default function MarketingCampaignsPage() {
 
     if (adminError) throw adminError;
     if (!isAdmin) {
-      window.location.href = "/";
+      leaveBackOffice();
       return;
     }
 

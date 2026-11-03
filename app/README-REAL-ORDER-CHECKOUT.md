@@ -16,7 +16,7 @@ Payment is not charged yet. The order remains `pending_payment`.
 
 ## Install
 
-1. Run `supabase/create-pending-order.sql` in Supabase SQL Editor.
+1. ~~Run `supabase/create-pending-order.sql`~~ — obsolete. The old 3-argument `create_pending_order` was removed from the repo; checkout now uses the 4-argument version (with `p_voucher_id`) that is already in the database. Running the old file would create a second, conflicting version.
 2. Upload this ZIP into the MIVO-V2 project root.
 3. Run:
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import { suggestFitment, type FitmentSuggestion, type Generation } from "@/lib/fitmentSuggest";
 import styles from "../../Admin.module.css";
@@ -37,7 +38,7 @@ export default function FitmentSuggestionsPage() {
         }
         const { data: isAdmin } = await client.rpc("is_admin");
         if (!isAdmin) {
-          window.location.assign("/admin");
+          leaveBackOffice();
           return;
         }
 

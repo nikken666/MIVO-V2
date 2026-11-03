@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
 import ui from "../store-health/StoreHealth.module.css";
@@ -68,7 +69,7 @@ export default function AdminShopsPage() {
       const { data: isAdmin, error: adminError } = await client.rpc("is_admin");
       if (adminError) throw adminError;
       if (!isAdmin) {
-        window.location.assign("/admin");
+        leaveBackOffice();
         return;
       }
 

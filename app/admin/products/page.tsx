@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useMemo, useState } from "react";
+import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
@@ -200,7 +201,7 @@ export default function AdminProductsPage() {
         if (adminError) throw adminError;
 
         if (!isAdmin) {
-          window.location.href = "/";
+          leaveBackOffice();
           return;
         }
 

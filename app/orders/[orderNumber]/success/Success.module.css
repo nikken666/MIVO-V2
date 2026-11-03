@@ -177,7 +177,7 @@
 }
 .meta span,
 .meta strong{display:block}
-.meta span{color:var(--grey);font-size:11px}
+.meta span{color:var(--grey);font-size:12px}
 .meta strong{margin-top:3px;font-size:13px;font-weight:600;word-break:break-all}
 .rule{
   margin:16px 0;
@@ -199,7 +199,7 @@
   line-height:1.4;
 }
 .items li b{color:var(--grey);font-weight:600}
-.items li small{display:block;color:var(--grey);font-size:11px}
+.items li small{display:block;color:var(--grey);font-size:12px}
 .items li strong{white-space:nowrap;font-weight:600}
 .sums{
   margin:0;
@@ -234,7 +234,7 @@
   transform:rotate(-6deg);
 }
 .stamp span{font-size:16px;font-weight:800;letter-spacing:.14em}
-.stamp small{font-size:9px;font-weight:700;letter-spacing:.1em}
+.stamp small{font-size:12px;font-weight:700;letter-spacing:.1em}
 .paper>.stamp{display:flex;flex-direction:column;align-items:center;width:max-content;margin-left:auto;margin-right:auto}
 .done .paper>.stamp{animation:stamp .4s cubic-bezier(.2,1.6,.4,1) forwards;animation-delay:calc(.9s + var(--row, 0) * .07s)}
 .zigzag{

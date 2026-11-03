@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
 import ui from "./StoreHealth.module.css";
@@ -29,7 +30,7 @@ export default function StoreHealth(){
    if(!user){window.location.assign("/login?next=/admin/store-health");return;}
    const {data:isAdmin,error:adminError}=await client.rpc("is_admin");
    if(adminError)throw adminError;
-   if(!isAdmin){window.location.assign("/admin");return;}
+   if(!isAdmin){leaveBackOffice();return;}
    async function pages<T>(table:string,cols:string):Promise<T[]>{
     const arr:T[]=[];
     for(let from=0;;from+=BATCH){

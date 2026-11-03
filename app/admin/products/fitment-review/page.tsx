@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import styles from "../../Admin.module.css";
@@ -91,7 +92,7 @@ export default function FitmentReviewPage() {
       }
       const { data: isAdmin } = await supabase.rpc("is_admin");
       if (!isAdmin) {
-        window.location.href = "/";
+        leaveBackOffice();
         return;
       }
       await load();
