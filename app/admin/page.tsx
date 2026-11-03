@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import styles from "./Admin.module.css";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import AdminTodo from "@/components/admin/AdminTodo";
 
 type OrderRow = {
   id: string;
@@ -178,14 +179,6 @@ export default function AdminPage() {
     void load();
   }, []);
 
-  const alertCount = useMemo(
-    () =>
-      stats.pendingPayment +
-      stats.toShip +
-      stats.lowStock +
-      stats.openClaims,
-    [stats]
-  );
 
   return (
     <main className={styles.adminShell}>
@@ -195,16 +188,12 @@ export default function AdminPage() {
         <section className={styles.adminContent}>
           <header className={styles.adminHeader}>
             <div>
-              <span className={styles.adminEyebrow}>MIVO store control center</span>
+              <span className={styles.adminEyebrow}>MIVO control centre</span>
               <h1>Dashboard</h1>
-              <p>Orders, sales and stock that need attention today.</p>
+              <p>What needs you first, then today&rsquo;s sales.</p>
             </div>
 
             <div className={styles.adminHeaderActions}>
-              <div className={styles.adminAttention}>
-                <span>Needs attention</span>
-                <strong>{loading ? "—" : alertCount}</strong>
-              </div>
               <a href="/admin/products/new" className={styles.adminAction}>
                 + Add product
               </a>
@@ -212,6 +201,8 @@ export default function AdminPage() {
           </header>
 
           {error ? <p className={styles.adminError}>{error}</p> : null}
+
+          <AdminTodo />
 
           <div className={styles.dashboardStats}>
             <a href="/admin/orders?tab=all" className={styles.dashboardStatPrimary}>
@@ -232,11 +223,6 @@ export default function AdminPage() {
               <small>Auto-cancel after 24h · View</small>
             </a>
 
-            <a href="/admin/arrange-shipment" className={styles.dashboardStat}>
-              <span>To arrange</span>
-              <strong>{loading ? "—" : stats.toShip}</strong>
-              <small>Paid orders ready for fulfilment · View</small>
-            </a>
 
             <a href="/admin/products?stock=low" className={styles.dashboardStat}>
               <span>Low stock</span>
@@ -244,11 +230,6 @@ export default function AdminPage() {
               <small>At or below threshold · View</small>
             </a>
 
-            <a href="/admin/claims" className={styles.dashboardStat}>
-              <span>Open claims</span>
-              <strong>{loading ? "—" : stats.openClaims}</strong>
-              <small>Warranty cases needing attention · View</small>
-            </a>
 
             <a href="/admin/products?status=active" className={styles.dashboardStat}>
               <span>Active products</span>
@@ -257,7 +238,7 @@ export default function AdminPage() {
             </a>
           </div>
 
-          <div className={styles.adminDashboardGrid}>
+          <div>
             <section className={styles.adminPanel}>
               <div className={styles.adminPanelHead}>
                 <div>
@@ -318,35 +299,6 @@ export default function AdminPage() {
               )}
             </section>
 
-            <aside className={styles.operationsPanel}>
-              <span className={styles.adminPanelKicker}>Quick actions</span>
-              <h2>Store Operations</h2>
-
-              <a href="/admin/orders">
-                <span>Orders</span>
-                <strong>Open order centre</strong>
-              </a>
-              <a href="/admin/arrange-shipment">
-                <span>Fulfilment</span>
-                <strong>Arrange paid orders</strong>
-              </a>
-              <a href="/admin/claims">
-                <span>After-sales</span>
-                <strong>Review warranty claims</strong>
-              </a>
-              <a href="/admin/marketing">
-                <span>Marketing centre</span>
-                <strong>Campaigns, vouchers & discounts</strong>
-              </a>
-              <a href="/admin/products">
-                <span>Catalogue</span>
-                <strong>Open products</strong>
-              </a>
-              <a href="/admin/products/new">
-                <span>New listing</span>
-                <strong>Add product</strong>
-              </a>
-            </aside>
           </div>
         </section>
       </div>

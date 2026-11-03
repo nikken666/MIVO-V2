@@ -5,64 +5,55 @@ import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import styles from "@/app/admin/Admin.module.css";
 
-type NavItem = { href: string; label: string; badge?: "toShip" | "chat" | "returns" | "notices" };
+type Badge = "toShip" | "chat" | "returns" | "notices" | "apps" | "claims";
+type NavItem = { href: string; label: string; badge?: Badge; superadminOnly?: boolean };
 type NavGroup = { title: string; items: NavItem[] };
+
+// MIVO back office. Platform tools come first (what only MIVO can do), then
+// MIVO Direct's own shop, then settings. Kept short on purpose: pages that
+// are reached from another page (vouchers, discounts, fitment review, store
+// health) aren't repeated here.
+const platformGroup: NavGroup = {
+  title: "Platform",
+  items: [
+    { href: "/admin/shops/applications", label: "Seller applications", badge: "apps" },
+    { href: "/admin/shops", label: "Shops" },
+    { href: "/admin/platform/campaigns", label: "Campaigns", superadminOnly: true },
+    { href: "/admin/platform/free-shipping", label: "Free shipping", superadminOnly: true },
+    { href: "/admin/platform/commission", label: "Commission", superadminOnly: true },
+    { href: "/admin/platform/notices", label: "Notices to sellers", superadminOnly: true },
+  ],
+};
 
 const groups: NavGroup[] = [
   {
     title: "Orders",
     items: [
-      { href: "/admin/orders", label: "My orders", badge: "toShip" },
+      { href: "/admin/orders", label: "Orders", badge: "toShip" },
       { href: "/admin/arrange-shipment", label: "Arrange shipment" },
       { href: "/admin/returns", label: "Returns & refunds", badge: "returns" },
-      { href: "/admin/claims", label: "Warranty claims" },
+      { href: "/admin/claims", label: "Warranty claims", badge: "claims" },
+      { href: "/admin/chat", label: "Chat", badge: "chat" },
     ],
   },
   {
-    title: "Products",
+    title: "MIVO Direct products",
     items: [
-      { href: "/admin/products", label: "My products" },
-      { href: "/admin/products/new", label: "Add new product" },
+      { href: "/admin/products", label: "Products" },
+      { href: "/admin/products/new", label: "Add product" },
       { href: "/admin/products/import", label: "Import from Shopee" },
       { href: "/admin/products/fitment-suggestions", label: "Vehicle fitment" },
-      { href: "/admin/products/fitment-review", label: "Fitment review" },
+      { href: "/admin/marketing", label: "Marketing" },
     ],
   },
   {
-    title: "Marketing",
+    title: "Settings",
     items: [
-      { href: "/admin/marketing", label: "Marketing centre" },
-      { href: "/admin/marketing/vouchers", label: "Vouchers" },
-      { href: "/admin/marketing/discounts", label: "Discounts" },
-      { href: "/admin/marketing/campaigns", label: "Campaigns" },
-    ],
-  },
-  {
-    title: "Customer service",
-    items: [{ href: "/admin/chat", label: "Chat", badge: "chat" }],
-  },
-  {
-    title: "Shop",
-    items: [
-      { href: "/admin/shops", label: "My shops" },
-      { href: "/admin/shops/applications", label: "Seller applications" },
-      { href: "/admin/shipping", label: "Shipping settings" },
-      { href: "/admin/store-health", label: "Store health" },
+      { href: "/admin/shipping", label: "Shipping & EasyParcel" },
       { href: "/admin/system-check", label: "System check" },
     ],
   },
 ];
-
-// Superadmin-only platform tools.
-const platformGroup: NavGroup = {
-  title: "Platform",
-  items: [
-    { href: "/admin/platform/campaigns", label: "Platform campaigns" },
-    { href: "/admin/platform/free-shipping", label: "Free shipping" },
-    { href: "/admin/platform/commission", label: "Commission" },
-    { href: "/admin/platform/notices", label: "Notices to sellers" },
-  ],
-};
 
 // Sellers (shop owners who are not MIVO admins) see only their own shops.
 const sellerGroups: NavGroup[] = [
@@ -119,11 +110,13 @@ export default function AdminSidebar() {
     email: "",
     superadmin: false,
   });
-  const [badges, setBadges] = useState<{ toShip: number; chat: number; returns: number; notices: number }>({
+  const [badges, setBadges] = useState<Record<Badge, number>>({
     toShip: 0,
     chat: 0,
     returns: 0,
     notices: 0,
+    apps: 0,
+    claims: 0,
   });
   const [role, setRole] = useState<"admin" | "seller" | null>(null);
   const [open, setOpen] = useState(false);
@@ -138,7 +131,7 @@ export default function AdminSidebar() {
       } = await supabase.auth.getUser();
       if (!user || !active) return;
 
-      const [{ data: profile }, toShip, chats, returns, superadmin, adminCheck, notices] = await Promise.all([
+      const [{ data: profile }, toShip, chats, returns, superadmin, adminCheck, notices, apps, claims] = await Promise.all([
         supabase.from("profiles").select("full_name, avatar_url").eq("id", user.id).maybeSingle(),
         supabase
           .from("orders")
@@ -153,6 +146,16 @@ export default function AdminSidebar() {
         supabase.rpc("is_superadmin").then((r) => r, () => ({ data: false })),
         supabase.rpc("is_admin"),
         supabase.rpc("seller_unread_notices").then((r) => r, () => ({ data: 0 })),
+        supabase
+          .from("seller_applications")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "submitted")
+          .then((r) => r, () => ({ count: 0 })),
+        supabase
+          .from("warranty_claims")
+          .select("id", { count: "exact", head: true })
+          .in("status", ["new", "reviewing"])
+          .then((r) => r, () => ({ count: 0 })),
       ]);
       if (!active) return;
 
@@ -168,6 +171,8 @@ export default function AdminSidebar() {
         notices: Number((notices as { data?: unknown }).data || 0),
         toShip: toShip.count || 0,
         returns: returns.count || 0,
+        apps: Number((apps as { count?: number | null }).count || 0),
+        claims: Number((claims as { count?: number | null }).count || 0),
         chat: ((chats.data || []) as Array<{ seller_unread: number }>).reduce(
           (sum, row) => sum + (row.seller_unread || 0),
           0
@@ -185,8 +190,11 @@ export default function AdminSidebar() {
 
   useEffect(() => setOpen(false), [pathname]);
 
-  const navGroups =
-    role === "seller" ? sellerGroups : me.superadmin ? [...groups, platformGroup] : role === "admin" ? groups : [];
+  const adminPlatform: NavGroup = {
+    ...platformGroup,
+    items: platformGroup.items.filter((item) => me.superadmin || !item.superadminOnly),
+  };
+  const navGroups = role === "seller" ? sellerGroups : role === "admin" ? [adminPlatform, ...groups] : [];
   const home = role === "seller" ? "/seller" : "/admin";
   const allHrefs = navGroups.flatMap((g) => g.items.map((i) => i.href));
 
