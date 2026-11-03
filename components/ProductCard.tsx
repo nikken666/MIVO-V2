@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import type { Product } from "@/data/products";
 import { formatPrice } from "@/data/products";
-import { isFitmentVerifiedShop, type FitmentStatus } from "@/data/fitments";
+import type { FitmentStatus } from "@/data/fitments";
 import { useMarketplace } from "./MarketplaceProvider";
 import { ShopLine } from "./ShopBadge";
 import { useT } from "./LanguageProvider";
@@ -100,17 +100,11 @@ export default function ProductCard({
         : 99;
 
   const detailHref = "/products/" + product.slug + hrefSuffix;
-  // Other shops' parts: listed, but fitment is the shop's own claim.
-  const fitment = !fitmentStatus
-    ? null
-    : fitmentStatus === "unverified" && !isFitmentVerifiedShop(product)
-      ? {
-          pill: t("fit.check"),
-          text: t("browse.card.shopClaimText"),
-        }
-      : fitmentCopy(t)[fitmentStatus];
+  // Only good news (or a confirmed mismatch) is shown: unknown fitment stays quiet.
+  const shownStatus = fitmentStatus === "unverified" ? undefined : fitmentStatus;
+  const fitment = shownStatus ? fitmentCopy(t)[shownStatus] : null;
   const visualFitmentStatus =
-    fitmentStatus === "universal" ? "fits" : fitmentStatus === "seller-fits" ? "unverified" : fitmentStatus;
+    shownStatus === "universal" || shownStatus === "seller-fits" ? "fits" : shownStatus;
   const cardClass =
     (compact
       ? "productCard premiumProductCard"

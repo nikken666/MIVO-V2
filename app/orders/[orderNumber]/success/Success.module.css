@@ -328,3 +328,7 @@
   }
   .done .burst i{display:none}
 }
+
+/* "Your car may also need": appears after the receipt has printed. */
+.recommendations{margin-top:36px;text-align:left;opacity:0}
+.done .recommendations{animation:rowIn .5s 2.3s ease-out forwards}

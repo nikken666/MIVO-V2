@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import CarRecommendations from "@/components/CarRecommendations";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -25,6 +26,7 @@ type OrderSummary = {
 
 type ReceiptItem = {
   id: string;
+  product_id?: string | null;
   product_name: string;
   variant_name: string | null;
   quantity: number;
@@ -128,7 +130,7 @@ export default function PaymentSuccessPage() {
           itemsLoaded.current = true;
           const { data: itemData } = await supabase
             .from("order_items")
-            .select("id, product_name, variant_name, quantity, line_subtotal")
+            .select("id, product_id, product_name, variant_name, quantity, line_subtotal")
             .eq("order_id", summary.id)
             .order("created_at");
           if (active) setItems((itemData as ReceiptItem[] | null) || []);
@@ -303,6 +305,16 @@ export default function PaymentSuccessPage() {
             {t("account.common.continueShopping")} ›
           </Link>
         </div>
+
+        {!loading ? (
+          <div className={styles.recommendations}>
+            <CarRecommendations
+              title="mayNeed"
+              exclude={items.map((item) => item.product_id || "").filter(Boolean)}
+              limit={4}
+            />
+          </div>
+        ) : null}
 
         {loading ? <span className={styles.srOnly}>{t("account.detail.loading")}</span>
  : null}

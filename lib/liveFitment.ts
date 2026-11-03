@@ -15,7 +15,7 @@ export type LiveProductFitmentDetail = {
   confirmedVariantIds: string[];
 };
 
-async function matchingVehicleIds(
+export async function matchingVehicleIds(
   selected: SelectedVehicle
 ): Promise<{ ids: string[]; selectedYear?: number }> {
   const supabase = await createClient();
@@ -292,4 +292,46 @@ export async function getLiveProductFitmentDetail(
   } catch {
     return null;
   }
+}
+
+/**
+ * Products with fitment data that matches the selected car (plus universal
+ * parts), for "recommended for your car". Queried by vehicle, not by product,
+ * so it scales with the catalogue.
+ */
+export async function getFittingProductIds(
+  selected: SelectedVehicle
+): Promise<{ fits: Set<string>; universal: Set<string> }> {
+  const fits = new Set<string>();
+  const universal = new Set<string>();
+  if (!selected?.vehicleId) return { fits, universal };
+
+  try {
+    const supabase = await createClient();
+    const [{ ids, selectedYear }, { data: universalRows }] = await Promise.all([
+      matchingVehicleIds(selected),
+      supabase.from("products").select("id").eq("status", "active").eq("is_universal_fitment", true).limit(200),
+    ]);
+    for (const row of universalRows || []) universal.add(row.id as string);
+    if (!ids.length) return { fits, universal };
+
+    const matched = new Set(ids);
+    const pageSize = 1000;
+    for (let from = 0; from < 10000; from += pageSize) {
+      const { data, error } = await supabase
+        .from("product_vehicle_fitments")
+        .select("product_id, variant_id, vehicle_id, year_from, year_to")
+        .in("vehicle_id", ids.slice(0, 200))
+        .order("id")
+        .range(from, from + pageSize - 1);
+      if (error) throw error;
+      for (const row of (data || []) as FitmentRow[]) {
+        if (rowMatches(row, matched, selectedYear)) fits.add(row.product_id);
+      }
+      if (!data || data.length < pageSize) break;
+    }
+  } catch {
+    // Recommendations are optional: fail quietly.
+  }
+  return { fits, universal };
 }

@@ -7,6 +7,7 @@ import HomeBannerCarousel from "@/components/HomeBannerCarousel";
 import FlashSale from "@/components/FlashSale";
 import VehiclePickerButton from "@/components/VehiclePickerButton";
 import FitsMyCarChip from "@/components/FitsMyCarChip";
+import CarRecommendations from "@/components/CarRecommendations";
 import { products } from "@/data/products";
 import { getT } from "@/lib/i18n/server";
 import type { Key } from "@/lib/i18n";
@@ -140,6 +141,10 @@ export default async function HomePage() {
       <HomePromotions products={catalogue} only="vouchers" />
 
       <FlashSale products={catalogue} />
+
+      <div className="container">
+        <CarRecommendations promptWhenNoCar />
+      </div>
 
       {/* Daily discover */}
       <section className="container shopSection" id="discover">

@@ -8,7 +8,8 @@ import type {
   ProductPublicReview,
   ProductVariant,
 } from "@/data/products";
-import { isFitmentVerifiedShop, type FitmentStatus } from "@/data/fitments";
+import type { FitmentStatus } from "@/data/fitments";
+import CarRecommendations from "@/components/CarRecommendations";
 import { useLanguage } from "./LanguageProvider";
 import { intlTag } from "@/lib/i18n/format";
 import type { Translate } from "@/lib/i18n";
@@ -508,9 +509,9 @@ export default function ProductDetailClient({
             <div
               className={
                 "productFitmentCompact" +
-                (selectedVariantFitmentStatus
+                (selectedVehicleLabel && selectedVariantFitmentStatus && selectedVariantFitmentStatus !== "unverified"
                   ? " fitment-" +
-                    (selectedVariantFitmentStatus === "universal"
+                    (selectedVariantFitmentStatus === "universal" || selectedVariantFitmentStatus === "seller-fits"
                       ? "fits"
                       : selectedVariantFitmentStatus)
                   : "")
@@ -518,38 +519,32 @@ export default function ProductDetailClient({
             >
               <div>
                 <span>{t("buy.pd.vehicleFitment")}</span>
+                {/* Only good news or a confirmed mismatch; unknown fitment stays quiet. */}
                 <strong>
-                  {selectedVariantFitmentStatus === "fits"
-                    ? t("buy.pd.fitsYourVehicle")
-                    : selectedVariantFitmentStatus === "not-fit"
-                      ? t("buy.pd.notCompatible")
-                      : selectedVariantFitmentStatus === "universal"
-                        ? t("buy.pd.fitsYourVehicle")
-                        : selectedVariantFitmentStatus === "seller-fits"
-                          ? t("fit.sellerSays")
-                        : selectedVariantFitmentStatus === "unverified"
-                          ? isFitmentVerifiedShop(product)
-                            ? t("buy.pd.fitmentNotVerified")
-                            : t("buy.pd.notVerifiedByMivo")
-                          : t("buy.v.selectYourVehicle")}
+                  {!selectedVehicleLabel
+                    ? t("buy.pd.pickCarPrompt")
+                    : selectedVariantFitmentStatus === "fits" || selectedVariantFitmentStatus === "universal"
+                      ? t("buy.pd.fitsYourVehicle")
+                      : selectedVariantFitmentStatus === "seller-fits"
+                        ? t("fit.sellerSays")
+                        : selectedVariantFitmentStatus === "not-fit"
+                          ? t("buy.pd.notCompatible")
+                          : selectedVehicleLabel}
                 </strong>
-                {!isFitmentVerifiedShop(product) ? (
-                  <small className="productFitmentShopNote">
-                    {t("buy.pd.shopNote", {
-                      shop: product.seller || t("buy.pd.anotherShop"),
-                    })}
-                  </small>
-                ) : null}
                 {selectedVehicleLabel ? (
                   <>
-                    <small>{selectedVehicleLabel}</small>
-                    {confirmedFitmentCount > 0 ? (
+                    {selectedVariantFitmentStatus && selectedVariantFitmentStatus !== "unverified" ? (
+                      <small>{selectedVehicleLabel}</small>
+                    ) : null}
+                    {selectedVariantFitmentStatus === "not-fit" && confirmedFitmentCount > 0 ? (
                       <small>
                         {t("buy.pd.compatibleOptions", { n: confirmedFitmentCount })}
                       </small>
                     ) : null}
                   </>
-                ) : null}
+                ) : (
+                  <small>{t("buy.pd.pickCarHint")}</small>
+                )}
               </div>
               <button
                 type="button"
@@ -973,6 +968,12 @@ export default function ProductDetailClient({
             </div>
           )}
         </section>
+
+        <CarRecommendations
+          title="alsoFits"
+          category={product.category}
+          exclude={[product.id || product.slug]}
+        />
 
         {relatedProducts.length > 0 ? (
           <section className="relatedProductsSection">

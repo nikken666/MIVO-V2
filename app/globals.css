@@ -11183,3 +11183,28 @@ button.shopChip{font:inherit;cursor:pointer}
 }
 .stripePayAction .stripePayError{display:block;color:#b42318;font-size:13px;line-height:1.4;text-align:center}
 .stripePayAction .stripePayDetail{display:block;color:#6b7075;font-size:12px;line-height:1.4;text-align:center;overflow-wrap:anywhere}
+
+/* ---------- Recommended for your car ---------- */
+.carRec{margin:28px 0;padding:22px;border:1px solid #e6e8ea;border-radius:18px;background:#fff;
+  animation:carRecIn .45s var(--ease,ease) both}
+.carRecHead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.carRecHead h2{margin:0;font-size:20px;letter-spacing:-.01em}
+.carRecHead h2::before{content:"✓";display:inline-grid;place-items:center;width:22px;height:22px;margin-right:8px;border-radius:50%;
+  background:#e7f6ec;color:#067647;font-size:12px;vertical-align:2px}
+.carRecHead a{font-size:13px;color:var(--accent);text-decoration:none;white-space:nowrap}
+.carRecRow{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(190px,220px);gap:14px;overflow-x:auto;
+  scroll-snap-type:x mandatory;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+.carRecItem{scroll-snap-align:start;min-width:0}
+.carRecItem .productCard{height:100%}
+.carRecPrompt{display:flex;align-items:center;gap:12px;margin:24px 0;padding:14px 18px;border:1px dashed #cfd6dc;
+  border-radius:14px;background:#fafbfc;color:#4a5056}
+.carRecPrompt>span{font-size:22px}
+.carRecPrompt p{margin:0;flex:1;font-size:14px}
+.carRecPromptButton{border:0;border-radius:980px;background:var(--accent);color:#fff;padding:8px 16px;font-size:13px;font-weight:500;cursor:pointer}
+@keyframes carRecIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(max-width:560px){
+  .carRec{padding:16px;margin:20px 0;border-radius:14px}
+  .carRecHead h2{font-size:17px}
+  .carRecRow{grid-auto-columns:minmax(160px,46%)}
+  .carRecPrompt{flex-wrap:wrap}
+}
