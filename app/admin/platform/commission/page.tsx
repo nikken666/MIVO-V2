@@ -25,7 +25,8 @@ export default function PlatformCommissionPage() {
   const [all, setAll] = useState(true);
   const [chosen, setChosen] = useState<string[]>([]);
   const [rate, setRate] = useState("6");
-  const [startsAt, setStartsAt] = useState(toLocalInput(new Date(Date.now() + 7 * 864e5)));
+  const [startsAt, setStartsAt] = useState(toLocalInput(new Date()));
+  const [edit, setEdit] = useState<Record<string, string>>({});
   const [temporary, setTemporary] = useState(false);
   const [endsAt, setEndsAt] = useState(toLocalInput(new Date(Date.now() + 14 * 864e5)));
   const [reason, setReason] = useState("");
@@ -71,7 +72,7 @@ export default function PlatformCommissionPage() {
             <div>
               <span className={styles.adminEyebrow}>Platform</span>
               <h1>Commission</h1>
-              <p>Every change sends a notice to the shops it affects. Changes apply automatically at the start time (daily run) and temporary ones go back to the previous rate when they end. MIVO Direct is never changed.</p>
+              <p>Every change sends a notice to the shops it affects. To change a shop right away (including MIVO Direct or your own shop), type the new % in the table and press Set now. Scheduled changes below apply at their start time and temporary ones go back to the previous rate when they end; they never touch MIVO Direct.</p>
             </div>
             <button type="button" className={styles.adminSecondaryAction} disabled={busy} onClick={() => void run(() => supabase.rpc("mivo_apply_commission_changes"), "Due changes applied.")}>
               Apply due changes now
@@ -83,10 +84,42 @@ export default function PlatformCommissionPage() {
           <section className={styles.adminPanel}>
             <h2 className={styles.importStepTitle}>Current rates</h2>
             <table className={styles.sellerTable}>
-              <thead><tr><th>Shop</th><th>Status</th><th>Commission</th></tr></thead>
+              <thead><tr><th>Shop</th><th>Status</th><th>Commission</th><th>Change now</th></tr></thead>
               <tbody>
                 {shops.map((s) => (
-                  <tr key={s.id}><td>{s.shop_name}{s.tier === "direct" ? " (MIVO Direct)" : ""}</td><td>{s.status}</td><td><strong>{Number(s.commission_rate ?? 0)}%</strong></td></tr>
+                  <tr key={s.id}>
+                    <td>{s.shop_name}{s.tier === "direct" ? " (MIVO Direct)" : ""}</td>
+                    <td>{s.status}</td>
+                    <td><strong>{Number(s.commission_rate ?? 0)}%</strong></td>
+                    <td>
+                      <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+                        <input
+                          type="number"
+                          min="0"
+                          max="50"
+                          step="0.1"
+                          aria-label={"New commission for " + s.shop_name}
+                          style={{ width: 80, padding: "6px 8px", border: "1px solid #d9dcde", borderRadius: 8 }}
+                          value={edit[s.id] ?? ""}
+                          placeholder={String(Number(s.commission_rate ?? 0))}
+                          onChange={(e) => setEdit({ ...edit, [s.id]: e.target.value })}
+                        />
+                        <button
+                          type="button"
+                          className={styles.adminSecondaryAction}
+                          disabled={busy || edit[s.id] == null || edit[s.id] === ""}
+                          onClick={() =>
+                            void run(
+                              () => supabase.rpc("platform_set_shop_commission", { p_seller_id: s.id, p_rate: Number(edit[s.id]), p_notify: true }),
+                              s.shop_name + " is now " + Number(edit[s.id]) + "%."
+                            ).then(() => setEdit((current) => ({ ...current, [s.id]: "" })))
+                          }
+                        >
+                          Set now
+                        </button>
+                      </span>
+                    </td>
+                  </tr>
                 ))}
               </tbody>
             </table>
