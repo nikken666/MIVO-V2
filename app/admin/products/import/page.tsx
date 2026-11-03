@@ -65,6 +65,8 @@ export default function ShopeeImportPage() {
   const [shopeeCat, setShopeeCat] = useState("");
   const [onlyInStock, setOnlyInStock] = useState(true);
   const [maxStock, setMaxStock] = useState("");
+  // Products already in the shop can't be imported again: hide them by default.
+  const [hideExisting, setHideExisting] = useState(true);
 
   const [shopId, setShopId] = useState("");
   const [status, setStatus] = useState<"draft" | "active">("draft");
@@ -230,7 +232,8 @@ export default function ShopeeImportPage() {
   const shown = useMemo(() => {
     const words = search.toLowerCase().split(/\s+/).filter(Boolean);
     const cap = Number(maxStock);
-    return plan.filter(({ product }) => {
+    return plan.filter(({ product, skip }) => {
+      if (hideExisting && skip) return false;
       const leaf = (product.shopeeCategory.split("/").pop() || "").trim() || "(none)";
       if (shopeeCat && leaf !== shopeeCat) return false;
       if (Number.isFinite(cap) && maxStock !== "" && product.variants.every((v) => (v.stock ?? 0) > cap)) return false;
@@ -238,7 +241,7 @@ export default function ShopeeImportPage() {
       const hay = (product.name + " " + product.parentSku + " " + product.variants.map((v) => v.sku).join(" ")).toLowerCase();
       return words.every((w) => hay.includes(w));
     });
-  }, [plan, search, shopeeCat, maxStock]);
+  }, [plan, search, shopeeCat, maxStock, hideExisting]);
 
   const importable = plan.filter(
     (row) => !row.skip && !row.outOfStock && !row.product.errors.length && row.categoryId && !unticked.has(row.product.key)
@@ -453,6 +456,10 @@ export default function ShopeeImportPage() {
                       <input type="checkbox" checked={onlyInStock} onChange={(e) => setOnlyInStock(e.target.checked)} disabled={running} />
                       Skip options with 0 stock
                     </label>
+                    <label className={styles.importCheck}>
+                      <input type="checkbox" checked={hideExisting} onChange={(e) => setHideExisting(e.target.checked)} disabled={running} />
+                      Hide products already in this shop ({summary.skipped})
+                    </label>
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8, margin: "0 0 10px" }}>
                     <button type="button" disabled={running} onClick={() => setUnticked((c) => { const n = new Set(c); shown.forEach((r) => n.delete(r.product.key)); return n; })}>
@@ -475,10 +482,13 @@ export default function ShopeeImportPage() {
                         {shown.slice(0, 300).map(({ product, brandId, categoryId, skip, outOfStock }) => (
                           <tr key={product.key} style={unticked.has(product.key) ? { opacity: 0.5 } : undefined}>
                             <td>
+                              {skip ? (
+                                <small style={{ color: "#8a9095", whiteSpace: "nowrap" }}>In shop ✓</small>
+                              ) : (
                               <input
                                 type="checkbox"
                                 aria-label={"Import " + product.name}
-                                disabled={running || skip}
+                                disabled={running}
                                 checked={!skip && !unticked.has(product.key)}
                                 onChange={(e) =>
                                   setUnticked((c) => {
@@ -489,6 +499,7 @@ export default function ShopeeImportPage() {
                                   })
                                 }
                               />
+                              )}
                             </td>
                             <td>{product.name || "—"}</td>
                             <td>{product.variants.map((v) => v.sku).join(", ")}</td>
