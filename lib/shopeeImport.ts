@@ -182,6 +182,8 @@ function readRows(table: Table): RowRecord[] {
     });
     const identity = record.name || record.sku || record.productId || record.parentSku;
     if (!identity) continue;
+    // Shopee's hidden template row ("basic_info", "sales_info", …) under the keys.
+    if (record.productId && !/^\d+$/.test(record.productId)) continue;
     const probe = [record.name, record.sku, record.price, record.stock].filter(Boolean).join(" ");
     if (guidance.test(probe)) continue;
     // A header repeated inside the data (some exports have two header rows).
@@ -338,10 +340,14 @@ export function parseShopeeTables(tables: Table[]): {
     if (renamed) product.warnings.push("Repeated SKU renamed (-2, -3…)");
   }
 
+  // A file counts as recognised when any of its sheets is (Shopee adds helper
+  // sheets such as "HiddenSizeSelect"); only report files with nothing usable.
+  const fileOf = (name: string) => name.split(" › ")[0];
+  const usableFiles = new Set(recognisedFiles.map(fileOf));
   return {
     products: [...products.values()],
     recognisedFiles,
-    unrecognisedFiles,
+    unrecognisedFiles: unrecognisedFiles.filter((name) => !usableFiles.has(fileOf(name))),
   };
 }
 
