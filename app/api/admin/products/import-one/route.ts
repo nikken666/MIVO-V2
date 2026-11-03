@@ -65,6 +65,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "You can only import into your own shop." }, { status: 403 });
     }
 
+    // One SKU appears once per shop (other shops may sell the same SKU and
+    // share its stock). Options whose SKU this shop already has are left out.
+    const wanted = variants.map((v) => String(v.sku).trim()).filter(Boolean);
+    const taken = new Set<string>();
+    for (let i = 0; i < wanted.length; i += 200) {
+      const { data: rows } = await admin
+        .from("product_variants")
+        .select("sku")
+        .eq("seller_id", shopId)
+        .in("sku", wanted.slice(i, i + 200));
+      for (const r of rows || []) taken.add(String(r.sku).trim().toUpperCase());
+    }
+    const fresh = variants.filter((v) => !taken.has(String(v.sku).trim().toUpperCase()));
+    if (!fresh.length) {
+      return NextResponse.json({ skipped: true, reason: "All SKUs are already in this shop." });
+    }
+
     const { data: created, error: productError } = await admin
       .from("products")
       .insert({
@@ -90,15 +107,15 @@ export async function POST(request: NextRequest) {
     if (productError || !created) throw productError || new Error("Product not created.");
 
     try {
-      const rows = (suffix: string) =>
-        variants.map((v, index) => ({
+      const rows = () =>
+        fresh.map((v, index) => ({
           product_id: created.id,
           seller_id: shopId,
           sort_order: index,
           title: v.title || "Default",
           variation_1_value: v.variation_1_value,
           variation_2_value: v.variation_2_value,
-          sku: String(v.sku).slice(0, 120) + suffix,
+          sku: String(v.sku).trim().slice(0, 120),
           price: Math.max(0, Number(v.price) || 0),
           compare_at_price: null,
           stock_on_hand: Math.max(0, Math.round(Number(v.stock_on_hand) || 0)),
@@ -111,13 +128,8 @@ export async function POST(request: NextRequest) {
           variant_image_url: v.variant_image_url,
           is_active: true,
         }));
-      // A SKU the shop already has (another listing, or an earlier import):
-      // keep this one as -B, -C… instead of failing.
-      let variantError: { code?: string; message?: string } | null = null;
-      for (const suffix of ["", "-B", "-C", "-D", "-E", "-F", "-G", "-H"]) {
-        ({ error: variantError } = await admin.from("product_variants").insert(rows(suffix)));
-        if (!isUnique(variantError)) break;
-      }
+      const { error: variantError } = await admin.from("product_variants").insert(rows());
+      if (isUnique(variantError)) throw new Error("This SKU is already in this shop (" + (variantError?.message || "") + ")");
       if (variantError) throw variantError;
 
       if (images.length) {
@@ -137,7 +149,7 @@ export async function POST(request: NextRequest) {
       throw inner;
     }
 
-    return NextResponse.json({ id: created.id });
+    return NextResponse.json({ id: created.id, imported: fresh.length, leftOut: variants.length - fresh.length });
   } catch (caught) {
     const e = caught as { message?: string; code?: string; details?: string };
     return NextResponse.json(

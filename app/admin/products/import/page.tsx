@@ -65,9 +65,9 @@ export default function ShopeeImportPage() {
   const [shopeeCat, setShopeeCat] = useState("");
   const [onlyInStock, setOnlyInStock] = useState(true);
   const [maxStock, setMaxStock] = useState("");
-  // Off: import everything, even SKUs the shop already has (they get -B, -C…).
-  // On: leave out SKUs already in the shop.
-  const [skipExisting, setSkipExisting] = useState(false);
+  // One SKU per shop: SKUs this shop already has are left out (other shops may
+  // sell the same SKU; they share its stock).
+  const [skipExisting, setSkipExisting] = useState(true);
 
   const [shopId, setShopId] = useState("");
   const [status, setStatus] = useState<"draft" | "active">("draft");
@@ -325,7 +325,12 @@ export default function ShopeeImportPage() {
             images,
           }),
         });
-        const result = (await response.json().catch(() => ({}))) as { id?: string; error?: string };
+        const result = (await response.json().catch(() => ({}))) as { id?: string; error?: string; skipped?: boolean; reason?: string; leftOut?: number };
+        if (response.ok && result.skipped) {
+          setLog((current) => [...current, { name: product.name, ok: true, detail: "Skipped: " + (result.reason || "already in this shop") }]);
+          setDone((n) => n + 1);
+          continue;
+        }
         if (!response.ok || !result.id) throw new Error(result.error || "Import failed (" + response.status + ").");
 
         setLog((current) => [
@@ -459,7 +464,7 @@ export default function ShopeeImportPage() {
                     </label>
                     <label className={styles.importCheck}>
                       <input type="checkbox" checked={skipExisting} onChange={(e) => setSkipExisting(e.target.checked)} disabled={running} />
-                      Skip SKUs already in this shop{skipExisting ? " (" + summary.skipped + " hidden)" : " (off: repeats are imported as -B, -C…)"}
+                      Hide products already in this shop ({summary.skipped})
                     </label>
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8, margin: "0 0 10px" }}>
