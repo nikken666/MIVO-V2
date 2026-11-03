@@ -155,6 +155,8 @@ export default function CheckoutPage() {
   // Per-shop shipping when available; null = single courier for the order (older database).
   const [shopQuotes, setShopQuotes] = useState<ShopQuote[] | null>(null);
   const [shopCourier, setShopCourier] = useState<Record<string, string>>({});
+  // Live EasyParcel shipping quote (saved server-side); "" = MIVO's own rules.
+  const [liveQuoteId, setLiveQuoteId] = useState("");
   const [shippingLoading, setShippingLoading] = useState(false);
   const [shippingError, setShippingError] = useState("");
   const [vouchers, setVouchers] = useState<VoucherOption[]>([]);
@@ -441,7 +443,45 @@ export default function CheckoutPage() {
       try {
         const supabase = createClient();
 
-        // Per-shop quotes first; fall back to one courier for the whole order.
+        // Live EasyParcel prices per shop first.
+        const live = await fetch("/api/shipping/quote", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ items, state: shippingState, postcode: shippingPostcode }),
+        })
+          .then(async (response) => (response.ok ? ((await response.json()) as { quoteId: string; shops: Array<{ seller_id: string; shop_name: string; tier: string | null; amount: number }> }) : null))
+          .catch(() => null);
+        if (!active) return;
+        if (live?.quoteId) {
+          const shops: ShopQuote[] = live.shops.map((shop) => ({
+            seller_id: shop.seller_id,
+            shop_name: shop.shop_name,
+            tier: shop.tier,
+            options: [
+              {
+                courier_code: "easyparcel",
+                courier_name: "",
+                courier_cost: shop.amount,
+                handling_markup: 0,
+                zone_code: "",
+                zone_name: "",
+                state: shippingState,
+                chargeable_weight_kg: 0,
+                subtotal: 0,
+                shipping_amount: shop.amount,
+                total_amount: 0,
+              },
+            ],
+          }));
+          setLiveQuoteId(live.quoteId);
+          setShopQuotes(shops);
+          setShippingQuotes([]);
+          setShopCourier(Object.fromEntries(shops.map((shop) => [shop.seller_id, "easyparcel"])));
+          return;
+        }
+        setLiveQuoteId("");
+
+        // MIVO's shipping rules: per-shop quotes, else one courier for the whole order.
         const { data: byShop, error: byShopError } = await supabase.rpc(
           "quote_shipping_by_shop",
           {
@@ -698,9 +738,12 @@ export default function CheckoutPage() {
             p_shipping_address: shippingAddress,
             p_customer_note: orderNote,
             p_voucher_id: selectedVoucherId || null,
-            p_couriers: Object.fromEntries(
-              shopQuotes.map((shop, index) => [shop.seller_id, shopChoices[index]?.courier_code || ""])
-            ),
+            p_couriers: liveQuoteId
+              ? {}
+              : Object.fromEntries(
+                  shopQuotes.map((shop, index) => [shop.seller_id, shopChoices[index]?.courier_code || ""])
+                ),
+            p_quote_id: liveQuoteId || null,
           })
         : await supabase.rpc("create_pending_order", {
             p_items: items,
@@ -1415,7 +1458,7 @@ export default function CheckoutPage() {
                 <span>{t("buy.co.total")}</span>
                 <small>
                   {shippingQuote
-                    ? shippingQuote.zone_name
+                    ? shippingQuote.zone_name || shippingState
                     : !shippingState
                       ? t("buy.co.awaitingState")
                       : t("buy.co.awaitingPostcode")}

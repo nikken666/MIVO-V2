@@ -123,6 +123,16 @@ $$;
 revoke all on function public.mivo_system_ship_parcel(uuid, text, text, text) from public, anon, authenticated;
 grant execute on function public.mivo_system_ship_parcel(uuid, text, text, text) to service_role;
 
+-- Short-lived cache of EasyParcel rates (same route, weight and size) so
+-- checkout stays within EasyParcel's quotation limits. Server only.
+create table if not exists public.easyparcel_rate_cache (
+  cache_key text primary key,
+  quotes jsonb not null,
+  expires_at timestamptz not null
+);
+alter table public.easyparcel_rate_cache enable row level security;
+revoke all on public.easyparcel_rate_cache from anon, authenticated;
+
 commit;
 
 notify pgrst, 'reload schema';

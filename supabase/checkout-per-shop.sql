@@ -1,6 +1,8 @@
 -- =====================================================================
 -- MIVO checkout per shop (marketplace style)
 -- Run once in Supabase → SQL Editor, AFTER seller-centre.sql. Safe to re-run.
+-- With EasyParcel connected, shipping is priced live from EasyParcel instead
+-- (see /api/shipping/quote); MIVO's shipping rules are the fallback.
 --
 -- Each shop packs and ships its own parcel, so the buyer chooses a courier
 -- per shop and pays each shop's shipping. This builds on the existing
@@ -67,13 +69,38 @@ begin
 end;
 $$;
 
--- Create the order with a courier per shop. p_couriers: {"<seller_id>": "<courier_code>", ...}
+-- Shipping prices quoted live from EasyParcel at checkout (server-side, see
+-- /api/shipping/quote). Valid 30 minutes; the order uses them as-is.
+create table if not exists public.checkout_shipping_quotes (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  items_key text not null,               -- sorted "variant:qty" list the quote is for
+  postcode text not null,
+  state text not null,
+  shops jsonb not null,                  -- [{seller_id, amount, courier, service_id}]
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null default now() + interval '30 minutes'
+);
+alter table public.checkout_shipping_quotes enable row level security;
+revoke all on public.checkout_shipping_quotes from anon, authenticated;
+
+create or replace function public.mivo_items_key(p_items jsonb)
+returns text language sql immutable as $$
+  select coalesce(string_agg((i ->> 'variant_id') || ':' || (i ->> 'quantity'), ',' order by i ->> 'variant_id'), '')
+    from jsonb_array_elements(coalesce(p_items, '[]'::jsonb)) i;
+$$;
+
+-- Create the order with shipping per shop: from a live EasyParcel quote
+-- (p_quote_id) or, without one, from MIVO's shipping rules (p_couriers:
+-- {"<seller_id>": "<courier_code>"}).
+drop function if exists public.create_pending_order_by_shop(jsonb, jsonb, text, uuid, jsonb);
 create or replace function public.create_pending_order_by_shop(
   p_items jsonb,
   p_shipping_address jsonb,
   p_customer_note text default null,
   p_voucher_id uuid default null,
-  p_couriers jsonb default '{}'::jsonb
+  p_couriers jsonb default '{}'::jsonb,
+  p_quote_id uuid default null
 )
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare
@@ -87,24 +114,55 @@ declare
   v_order public.orders%rowtype;
   v_discount numeric;
   v_voucher record;
+  v_live public.checkout_shipping_quotes%rowtype;
+  v_fees jsonb := '[]'::jsonb;   -- [{seller_id, fee, courier_code, courier_name}]
 begin
   if auth.uid() is null then raise exception 'Please sign in'; end if;
 
   v_quotes := public.quote_shipping_by_shop(p_items, p_shipping_address ->> 'state', p_shipping_address ->> 'postcode');
   if jsonb_array_length(v_quotes) = 0 then raise exception 'Your cart is empty'; end if;
 
-  -- Validate one courier per shop and add up shipping.
-  for v_shop in select * from jsonb_array_elements(v_quotes) loop
-    v_code := p_couriers ->> (v_shop ->> 'seller_id');
-    v_choice := null;
-    select o into v_choice from jsonb_array_elements(v_shop -> 'options') o
-     where o ->> 'courier_code' = v_code limit 1;
-    if v_choice is null then
-      raise exception 'Choose a courier for %', v_shop ->> 'shop_name';
+  if p_quote_id is not null then
+    -- Live EasyParcel prices quoted for this cart and address.
+    select * into v_live from public.checkout_shipping_quotes
+     where id = p_quote_id and user_id = auth.uid();
+    if not found or v_live.expires_at < now() then
+      raise exception 'Shipping price expired. Please refresh the checkout page.';
     end if;
-    v_first_code := coalesce(v_first_code, v_code);
-    v_shipping := v_shipping + coalesce((v_choice ->> 'shipping_amount')::numeric, 0);
-  end loop;
+    if v_live.items_key <> public.mivo_items_key(p_items)
+       or v_live.postcode <> coalesce(p_shipping_address ->> 'postcode', '')
+       or v_live.state <> coalesce(p_shipping_address ->> 'state', '') then
+      raise exception 'Your cart or address changed. Please refresh the checkout page.';
+    end if;
+    for v_shop in select * from jsonb_array_elements(v_quotes) loop
+      select q into v_choice from jsonb_array_elements(v_live.shops) q
+       where q ->> 'seller_id' = v_shop ->> 'seller_id' limit 1;
+      if v_choice is null then raise exception 'Shipping price missing for %', v_shop ->> 'shop_name'; end if;
+      v_shipping := v_shipping + coalesce((v_choice ->> 'amount')::numeric, 0);
+      v_fees := v_fees || jsonb_build_array(jsonb_build_object(
+        'seller_id', v_shop ->> 'seller_id', 'fee', (v_choice ->> 'amount')::numeric,
+        'courier_code', v_choice ->> 'service_id', 'courier_name', v_choice ->> 'courier'));
+      -- create_pending_order still needs one of MIVO's courier codes.
+      v_first_code := coalesce(v_first_code, v_shop -> 'options' -> 0 ->> 'courier_code');
+      v_choice := null;
+    end loop;
+  else
+    -- MIVO's own shipping rules: one courier per shop.
+    for v_shop in select * from jsonb_array_elements(v_quotes) loop
+      v_code := p_couriers ->> (v_shop ->> 'seller_id');
+      v_choice := null;
+      select o into v_choice from jsonb_array_elements(v_shop -> 'options') o
+       where o ->> 'courier_code' = v_code limit 1;
+      if v_choice is null then
+        raise exception 'Choose a courier for %', v_shop ->> 'shop_name';
+      end if;
+      v_first_code := coalesce(v_first_code, v_code);
+      v_shipping := v_shipping + coalesce((v_choice ->> 'shipping_amount')::numeric, 0);
+      v_fees := v_fees || jsonb_build_array(jsonb_build_object(
+        'seller_id', v_shop ->> 'seller_id', 'fee', (v_choice ->> 'shipping_amount')::numeric,
+        'courier_code', v_code, 'courier_name', v_choice ->> 'courier_name'));
+    end loop;
+  end if;
 
   -- The existing checkout does stock, prices, vouchers and the order itself.
   v_result := public.create_pending_order(
@@ -136,18 +194,18 @@ begin
          updated_at = now()
    where id = v_order.id;
 
-  -- Remember each shop's courier and shipping fee on its parcel.
-  for v_shop in select * from jsonb_array_elements(v_quotes) loop
-    v_code := p_couriers ->> (v_shop ->> 'seller_id');
-    v_choice := null;
-    select o into v_choice from jsonb_array_elements(v_shop -> 'options') o
-     where o ->> 'courier_code' = v_code limit 1;
+  -- Each shop's shipping fee (and what it was priced at) on its parcel.
+  for v_shop in select * from jsonb_array_elements(v_fees) loop
     update public.seller_orders
-       set buyer_courier_code = v_code,
-           buyer_courier_name = v_choice ->> 'courier_name',
-           buyer_shipping_fee = (v_choice ->> 'shipping_amount')::numeric
+       set buyer_courier_code = v_shop ->> 'courier_code',
+           buyer_courier_name = v_shop ->> 'courier_name',
+           buyer_shipping_fee = (v_shop ->> 'fee')::numeric
      where order_id = v_order.id and seller_id = (v_shop ->> 'seller_id')::uuid;
   end loop;
+
+  if p_quote_id is not null then
+    delete from public.checkout_shipping_quotes where id = p_quote_id or expires_at < now() - interval '1 day';
+  end if;
 
   return v_result || jsonb_build_object(
     'shipping_amount', v_shipping,
@@ -159,10 +217,10 @@ $$;
 
 revoke all on function public.mivo_quote_options(jsonb, text, text) from public, anon;
 revoke all on function public.quote_shipping_by_shop(jsonb, text, text) from public;
-revoke all on function public.create_pending_order_by_shop(jsonb, jsonb, text, uuid, jsonb) from public, anon;
+revoke all on function public.create_pending_order_by_shop(jsonb, jsonb, text, uuid, jsonb, uuid) from public, anon;
 grant execute on function public.mivo_quote_options(jsonb, text, text) to authenticated;
 grant execute on function public.quote_shipping_by_shop(jsonb, text, text) to anon, authenticated;
-grant execute on function public.create_pending_order_by_shop(jsonb, jsonb, text, uuid, jsonb) to authenticated;
+grant execute on function public.create_pending_order_by_shop(jsonb, jsonb, text, uuid, jsonb, uuid) to authenticated;
 
 -- Seller Centre: include the courier the buyer chose for each parcel.
 drop function if exists public.seller_parcels(uuid);
