@@ -33,8 +33,9 @@ language sql stable security definer set search_path = public as $$
     from public.product_reviews r
     left join public.profiles p on p.id = r.user_id
     left join auth.users u on u.id = r.user_id
-   where r.id = any(coalesce(p_ids, '{}'))
-     and coalesce(r.is_hidden, false) = false;
+   where r.id = any(coalesce(p_ids, '{}'));
+  -- Only maps the ids the product page already got from get_product_public_reviews,
+  -- which decides which reviews are visible.
 $$;
 
 revoke all on function public.product_review_names(uuid[]) from public;
