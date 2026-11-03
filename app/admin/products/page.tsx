@@ -22,6 +22,10 @@ type ProductVariantRow = {
   length_cm: number | string | null;
   width_cm: number | string | null;
   height_cm: number | string | null;
+  discount_enabled?: boolean | null;
+  discount_percent?: number | string | null;
+  discount_starts_at?: string | null;
+  discount_ends_at?: string | null;
 };
 
 type ProductImageRow = {
@@ -86,6 +90,25 @@ function relationName(
   return row?.name || row?.shop_name || "—";
 }
 
+type CatalogTab = "live" | "soldout" | "draft" | "delisted";
+
+/** Which status tab a product belongs to (BigSeller-style: on sale / sold out / draft / delisted). */
+function tabOf(product: { status: string; product_variants: ProductVariantRow[] | null }): CatalogTab {
+  if (product.status === "active") {
+    const stock = (product.product_variants || []).reduce((sum, v) => sum + availableStock(v), 0);
+    return stock > 0 ? "live" : "soldout";
+  }
+  return product.status === "draft" ? "draft" : "delisted";
+}
+
+function onPromotion(variant: ProductVariantRow) {
+  if (!variant.discount_enabled || !Number(variant.discount_percent)) return false;
+  const now = Date.now();
+  if (variant.discount_starts_at && new Date(variant.discount_starts_at).getTime() > now) return false;
+  if (variant.discount_ends_at && new Date(variant.discount_ends_at).getTime() < now) return false;
+  return true;
+}
+
 function availableStock(variant: ProductVariantRow) {
   return Math.max(
     0,
@@ -135,7 +158,14 @@ function storagePathFromUrl(url: string) {
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [query, setQuery] = useState("");
-  const [catalogTab, setCatalogTab] = useState<"live" | "unpublished">("live");
+  const [catalogTab, setCatalogTab] = useState<CatalogTab>("live");
+  // BigSeller-style filters.
+  const [searchField, setSearchField] = useState<"all" | "name" | "sku">("all");
+  const [dateRange, setDateRange] = useState<"all" | "today" | "yesterday" | "7" | "30">("all");
+  const [priceMin, setPriceMin] = useState("");
+  const [priceMax, setPriceMax] = useState("");
+  const [promoFilter, setPromoFilter] = useState<"all" | "yes" | "no">("all");
+  const [sortBy, setSortBy] = useState<"new" | "old" | "priceAsc" | "priceDesc" | "stockAsc" | "stockDesc" | "name">("new");
   // MIVO's own shops only (sellers' products live in their Seller Centre).
   const [myShops, setMyShops] = useState<Array<{ id: string; name: string; tier: string | null }>>([]);
   const [shopFilter, setShopFilter] = useState("all");
@@ -173,8 +203,10 @@ export default function AdminProductsPage() {
     const requestedStatus = params.get("status");
     const requestedStock = params.get("stock");
 
-    if (requestedStatus && requestedStatus !== "active") {
-      setCatalogTab("unpublished");
+    if (requestedStatus === "draft") {
+      setCatalogTab("draft");
+    } else if (requestedStatus && requestedStatus !== "active") {
+      setCatalogTab("delisted");
     } else if (requestedStatus === "active") {
       setCatalogTab("live");
     }
@@ -235,7 +267,7 @@ export default function AdminProductsPage() {
           const page = await supabase
             .from("products")
             .select(
-              "id, seller_id, name, slug, status, short_description, description, primary_image_url, created_at, brands(name), product_images(id, image_url, sort_order), product_variants(id, sort_order, title, variation_1_value, variation_2_value, sku, price, stock_on_hand, stock_reserved, low_stock_threshold, weight_kg, length_cm, width_cm, height_cm)"
+              "id, seller_id, name, slug, status, short_description, description, primary_image_url, created_at, brands(name), product_images(id, image_url, sort_order), product_variants(id, sort_order, title, variation_1_value, variation_2_value, sku, price, stock_on_hand, stock_reserved, low_stock_threshold, weight_kg, length_cm, width_cm, height_cm, discount_enabled, discount_percent, discount_starts_at, discount_ends_at)"
             )
             .in("seller_id", shopIds)
             .order("created_at", { ascending: false })
@@ -293,16 +325,6 @@ export default function AdminProductsPage() {
     void load();
   }, []);
 
-  const liveCount = useMemo(
-    () => products.filter((product) => product.status === "active").length,
-    [products]
-  );
-
-  const unpublishedCount = useMemo(
-    () => products.filter((product) => product.status !== "active").length,
-    [products]
-  );
-
   const restockCount = useMemo(
     () =>
       products.filter((product) => {
@@ -317,11 +339,19 @@ export default function AdminProductsPage() {
     [products]
   );
 
+  const tabCounts = useMemo(() => {
+    const counts: Record<CatalogTab, number> = { live: 0, soldout: 0, draft: 0, delisted: 0 };
+    for (const product of products) {
+      if (shopFilter !== "all" && product.seller_id !== shopFilter) continue;
+      counts[tabOf(product)] += 1;
+    }
+    return counts;
+  }, [products, shopFilter]);
+
   const shopCounts = useMemo(() => {
     const counts = new Map<string, number>();
     for (const product of products) {
-      const inTab = catalogTab === "live" ? product.status === "active" : product.status !== "active";
-      if (inTab) counts.set(product.seller_id, (counts.get(product.seller_id) || 0) + 1);
+      if (tabOf(product) === catalogTab) counts.set(product.seller_id, (counts.get(product.seller_id) || 0) + 1);
     }
     return counts;
   }, [products, catalogTab]);
@@ -330,27 +360,40 @@ export default function AdminProductsPage() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
 
-    return products.filter((product) => {
+    const dayStart = new Date();
+    dayStart.setHours(0, 0, 0, 0);
+    const from =
+      dateRange === "today"
+        ? dayStart.getTime()
+        : dateRange === "yesterday"
+          ? dayStart.getTime() - 86400000
+          : dateRange === "7"
+            ? Date.now() - 7 * 86400000
+            : dateRange === "30"
+              ? Date.now() - 30 * 86400000
+              : 0;
+    const to = dateRange === "yesterday" ? dayStart.getTime() : Infinity;
+    const min = priceMin === "" ? -Infinity : Number(priceMin);
+    const max = priceMax === "" ? Infinity : Number(priceMax);
+
+    const list = products.filter((product) => {
       if (shopFilter !== "all" && product.seller_id !== shopFilter) return false;
       const variants = product.product_variants || [];
-      const matchesQuery =
-        !q ||
-        [
-          product.name,
-          relationName(product.brands),
-          ...variants.flatMap((variant) => [
-            variant.sku,
-            variantLabel(variant),
-          ]),
-        ]
-          .join(" ")
-          .toLowerCase()
-          .includes(q);
+      const created = new Date(product.created_at).getTime();
+      if (created < from || created >= to) return false;
+      if ((priceMin !== "" || priceMax !== "") && !variants.some((v) => Number(v.price) >= min && Number(v.price) <= max)) return false;
+      const promo = variants.some(onPromotion);
+      if (promoFilter === "yes" && !promo) return false;
+      if (promoFilter === "no" && promo) return false;
+      const haystack =
+        searchField === "name"
+          ? [product.name]
+          : searchField === "sku"
+            ? variants.map((variant) => variant.sku)
+            : [product.name, relationName(product.brands), ...variants.flatMap((variant) => [variant.sku, variantLabel(variant)])];
+      const matchesQuery = !q || haystack.join(" ").toLowerCase().includes(q);
 
-      const matchesMainTab =
-        catalogTab === "live"
-          ? product.status === "active"
-          : product.status !== "active";
+      const matchesMainTab = tabOf(product) === catalogTab;
 
       const matchesLiveTab =
         catalogTab !== "live" ||
@@ -363,7 +406,18 @@ export default function AdminProductsPage() {
 
       return matchesQuery && matchesMainTab && matchesLiveTab;
     });
-  }, [products, query, catalogTab, liveTab, shopFilter]);
+
+    const minPrice = (p: ProductRow) => Math.min(...(p.product_variants || []).map((v) => Number(v.price) || 0), Infinity);
+    const totalStock = (p: ProductRow) => (p.product_variants || []).reduce((sum, v) => sum + availableStock(v), 0);
+    const sorted = list.slice();
+    if (sortBy === "old") sorted.sort((a, b) => a.created_at.localeCompare(b.created_at));
+    else if (sortBy === "priceAsc") sorted.sort((a, b) => minPrice(a) - minPrice(b));
+    else if (sortBy === "priceDesc") sorted.sort((a, b) => minPrice(b) - minPrice(a));
+    else if (sortBy === "stockAsc") sorted.sort((a, b) => totalStock(a) - totalStock(b));
+    else if (sortBy === "stockDesc") sorted.sort((a, b) => totalStock(b) - totalStock(a));
+    else if (sortBy === "name") sorted.sort((a, b) => a.name.localeCompare(b.name));
+    return sorted;
+  }, [products, query, catalogTab, liveTab, shopFilter, searchField, dateRange, priceMin, priceMax, promoFilter, sortBy]);
 
   // Publish / delist many at once (the server checks the shops are yours).
   async function bulkSetStatus(nextStatus: "active" | "inactive") {
@@ -1335,74 +1389,121 @@ export default function AdminProductsPage() {
               </div>
             </div>
 
-            <div className={styles.productStatusTabs}>
-              <button
-                type="button"
-                className={catalogTab === "live" ? styles.active : ""}
-                onClick={() => {
-                  setCatalogTab("live");
-                  setLiveTab("all");
-                }}
-              >
-                <span>Live</span>
-                <b>({liveCount})</b>
-              </button>
-              <button
-                type="button"
-                className={catalogTab === "unpublished" ? styles.active : ""}
-                onClick={() => setCatalogTab("unpublished")}
-              >
-                <span>Unpublished</span>
-                <b>({unpublishedCount})</b>
-              </button>
+            <div className={styles.bsFilter}>
+              {myShops.length > 1 ? (
+                <div className={styles.bsRow}>
+                  <span className={styles.bsLabel}>Shop</span>
+                  <div className={styles.bsChips}>
+                    <button type="button" className={shopFilter === "all" ? styles.bsOn : ""} onClick={() => setShopFilter("all")}>
+                      All ({Array.from(shopCounts.values()).reduce((x, y) => x + y, 0)})
+                    </button>
+                    {myShops.map((shop) => (
+                      <button
+                        type="button"
+                        key={shop.id}
+                        className={shopFilter === shop.id ? styles.bsOn : ""}
+                        onClick={() => setShopFilter(shop.id)}
+                      >
+                        {shop.name} ({shopCounts.get(shop.id) || 0})
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+              <div className={styles.bsRow}>
+                <span className={styles.bsLabel}>Search</span>
+                <div className={styles.bsSearch}>
+                  <select value={searchField} onChange={(e) => setSearchField(e.target.value as typeof searchField)}>
+                    <option value="all">All fields</option>
+                    <option value="name">Product name</option>
+                    <option value="sku">SKU</option>
+                  </select>
+                  <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search…" />
+                </div>
+              </div>
+              <div className={styles.bsRow}>
+                <span className={styles.bsLabel}>Created</span>
+                <div className={styles.bsChips}>
+                  {(
+                    [
+                      ["all", "All"],
+                      ["today", "Today"],
+                      ["yesterday", "Yesterday"],
+                      ["7", "7 days"],
+                      ["30", "30 days"],
+                    ] as Array<[typeof dateRange, string]>
+                  ).map(([key, label]) => (
+                    <button type="button" key={key} className={dateRange === key ? styles.bsOn : ""} onClick={() => setDateRange(key)}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className={styles.bsRow}>
+                <span className={styles.bsLabel}>Other</span>
+                <div className={styles.bsChips}>
+                  <span className={styles.bsRange}>
+                    <input type="number" min="0" placeholder="Price from" value={priceMin} onChange={(e) => setPriceMin(e.target.value)} />
+                    –
+                    <input type="number" min="0" placeholder="to" value={priceMax} onChange={(e) => setPriceMax(e.target.value)} />
+                  </span>
+                  <select className={styles.bsSelect} value={promoFilter} onChange={(e) => setPromoFilter(e.target.value as typeof promoFilter)}>
+                    <option value="all">Promotion: all</option>
+                    <option value="yes">On promotion</option>
+                    <option value="no">No promotion</option>
+                  </select>
+                  {catalogTab === "live" ? (
+                    <button type="button" className={liveTab === "restock" ? styles.bsOn : ""} onClick={() => setLiveTab(liveTab === "restock" ? "all" : "restock")}>
+                      Low stock ({restockCount})
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+              <div className={styles.bsRow}>
+                <span className={styles.bsLabel}>Sort</span>
+                <div className={styles.bsChips}>
+                  {(
+                    [
+                      ["new", "Newest"],
+                      ["old", "Oldest"],
+                      ["priceAsc", "Price ↑"],
+                      ["priceDesc", "Price ↓"],
+                      ["stockAsc", "Stock ↑"],
+                      ["stockDesc", "Stock ↓"],
+                      ["name", "Name A–Z"],
+                    ] as Array<[typeof sortBy, string]>
+                  ).map(([key, label]) => (
+                    <button type="button" key={key} className={sortBy === key ? styles.bsOn : ""} onClick={() => setSortBy(key)}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
-            {catalogTab === "live" ? (
-              <div className={styles.productLiveSubTabs}>
+            <div className={styles.productStatusTabs}>
+              {(
+                [
+                  ["live", "On sale"],
+                  ["soldout", "Sold out"],
+                  ["draft", "Draft"],
+                  ["delisted", "Delisted"],
+                ] as Array<[CatalogTab, string]>
+              ).map(([key, label]) => (
                 <button
                   type="button"
-                  className={liveTab === "all" ? styles.active : ""}
-                  onClick={() => setLiveTab("all")}
+                  key={key}
+                  className={catalogTab === key ? styles.active : ""}
+                  onClick={() => {
+                    setCatalogTab(key);
+                    setLiveTab("all");
+                    setSelectedProductIds(new Set());
+                  }}
                 >
-                  All
+                  <span>{label}</span>
+                  <b>({tabCounts[key]})</b>
                 </button>
-                <button
-                  type="button"
-                  className={liveTab === "restock" ? styles.active : ""}
-                  onClick={() => setLiveTab("restock")}
-                >
-                  Restock ({restockCount})
-                </button>
-              </div>
-            ) : null}
-
-            {myShops.length > 1 ? (
-              <div className={styles.productLiveSubTabs} style={{ flexWrap: "wrap" }}>
-                <button type="button" className={shopFilter === "all" ? styles.active : ""} onClick={() => setShopFilter("all")}>
-                  All my shops ({Array.from(shopCounts.values()).reduce((a, b) => a + b, 0)})
-                </button>
-                {myShops.map((shop) => (
-                  <button
-                    type="button"
-                    key={shop.id}
-                    className={shopFilter === shop.id ? styles.active : ""}
-                    onClick={() => setShopFilter(shop.id)}
-                  >
-                    {shop.name} ({shopCounts.get(shop.id) || 0})
-                  </button>
-                ))}
-              </div>
-            ) : null}
-
-            <div className={styles.productCatalogueSearch}>
-              <label className={styles.adminField}>
-                <span>Search</span>
-                <input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Product name, SKU, variation or brand"
-                />
-              </label>
+              ))}
             </div>
 
             <div className={styles.productBulkToolbar}>
@@ -1424,7 +1525,7 @@ export default function AdminProductsPage() {
                 {selectedProductIds.size === 1 ? "" : "S"} SELECTED
               </span>
 
-              {catalogTab === "unpublished" ? (
+              {catalogTab === "draft" || catalogTab === "delisted" ? (
                 <button
                   type="button"
                   className={styles.productBulkPrimary}
