@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import styles from "@/app/admin/Admin.module.css";
 
-type Badge = "toShip" | "chat" | "returns" | "notices" | "apps" | "claims";
+type Badge = "toShip" | "chat" | "returns" | "notices" | "apps" | "claims" | "preferred";
 type NavItem = { href: string; label: string; badge?: Badge; superadminOnly?: boolean };
 type NavGroup = { title: string; items: NavItem[] };
 
@@ -18,6 +18,7 @@ const platformGroup: NavGroup = {
   items: [
     { href: "/admin/shops/applications", label: "Seller applications", badge: "apps" },
     { href: "/admin/shops", label: "Shops" },
+    { href: "/admin/platform/preferred", label: "Preferred sellers", badge: "preferred", superadminOnly: true },
     { href: "/admin/platform/campaigns", label: "Campaigns", superadminOnly: true },
     { href: "/admin/platform/free-shipping", label: "Free shipping", superadminOnly: true },
     { href: "/admin/platform/commission", label: "Commission", superadminOnly: true },
@@ -117,6 +118,7 @@ export default function AdminSidebar() {
     notices: 0,
     apps: 0,
     claims: 0,
+    preferred: 0,
   });
   const [role, setRole] = useState<"admin" | "seller" | null>(null);
   const [open, setOpen] = useState(false);
@@ -157,6 +159,10 @@ export default function AdminSidebar() {
           .in("status", ["new", "reviewing"])
           .then((r) => r, () => ({ count: 0 })),
       ]);
+      const isSuper = Boolean((superadmin as { data?: unknown }).data);
+      const tierRequests = isSuper
+        ? await supabase.rpc("platform_tier_requests").then((r) => r, () => ({ data: [] }))
+        : { data: [] };
       if (!active) return;
 
       const p = (profile || {}) as { full_name?: string | null; avatar_url?: string | null };
@@ -173,6 +179,9 @@ export default function AdminSidebar() {
         returns: returns.count || 0,
         apps: Number((apps as { count?: number | null }).count || 0),
         claims: Number((claims as { count?: number | null }).count || 0),
+        preferred: (((tierRequests as { data?: unknown }).data as Array<{ status: string }> | null) || []).filter(
+          (r) => r.status === "pending"
+        ).length,
         chat: ((chats.data || []) as Array<{ seller_unread: number }>).reduce(
           (sum, row) => sum + (row.seller_unread || 0),
           0

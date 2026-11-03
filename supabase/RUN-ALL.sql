@@ -24,6 +24,7 @@
 --   storage-policy-fix.sql
 --   chat-images.sql
 --   seller-marketing.sql
+--   seller-rules.sql
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
@@ -3704,6 +3705,266 @@ grant execute on function public.seller_set_discount(uuid, uuid[], numeric, time
 grant execute on function public.seller_clear_discount(uuid, uuid[]) to authenticated;
 grant execute on function public.seller_campaigns(uuid) to authenticated;
 grant execute on function public.shop_vouchers(uuid) to anon, authenticated;
+
+commit;
+
+notify pgrst, 'reload schema';
+
+
+-- ---------------------------------------------------------------------
+-- seller-rules.sql
+-- ---------------------------------------------------------------------
+-- =====================================================================
+-- MIVO seller rules. Run after seller-onboarding.sql. Safe to re-run.
+--
+-- 1) One shop per account (like Shopee). MIVO admins are exempt, since
+--    MIVO runs MIVO Direct.
+-- 2) Approving an application copies what the seller already filled in
+--    (pickup address, phone, email, legal name, SSM, address, bank) onto the
+--    shop, so nobody has to type it again. Already-approved shops with
+--    blanks are filled in now.
+-- 3) Preferred Seller: a shop can apply; the superadmin approves or rejects.
+-- =====================================================================
+
+begin;
+
+-- --------------------------------------------------- 1) one shop per account
+create or replace function public.mivo_one_shop_per_owner()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.owner_id is not null
+     and exists (select 1 from public.sellers s where s.owner_id = new.owner_id and s.id is distinct from new.id)
+     and not exists (select 1 from public.platform_roles r where r.user_id = new.owner_id)
+     and not coalesce((select p.role::text = 'admin' from public.profiles p where p.id = new.owner_id), false) then
+    raise exception 'One MIVO account can have one shop. Manage your shop in Seller Centre.';
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists sellers_one_per_owner on public.sellers;
+create trigger sellers_one_per_owner before insert or update of owner_id on public.sellers
+  for each row execute function public.mivo_one_shop_per_owner();
+revoke all on function public.mivo_one_shop_per_owner() from public, anon, authenticated;
+
+-- ------------------------------------- 2) application details onto the shop
+create or replace function public.mivo_application_to_shop(p_application_id uuid)
+returns void language plpgsql security definer set search_path = public as $$
+declare
+  a public.seller_applications%rowtype;
+  m record;
+begin
+  select * into a from public.seller_applications where id = p_application_id;
+  if not found then return; end if;
+
+  -- column on sellers → value from the application. Only blank columns are filled.
+  for m in
+    select * from (values
+      ('pickup_address',       to_jsonb(a.pickup_address)),
+      ('phone',                to_jsonb(a.phone)),
+      ('contact_phone',        to_jsonb(a.phone)),
+      ('email',                to_jsonb(a.email)),
+      ('contact_email',        to_jsonb(a.email)),
+      ('legal_name',           to_jsonb(a.legal_name)),
+      ('company_name',         to_jsonb(a.legal_name)),
+      ('business_name',        to_jsonb(a.legal_name)),
+      ('registration_number',  to_jsonb(coalesce(a.business_reg_no, a.ic_number))),
+      ('business_reg_no',      to_jsonb(a.business_reg_no)),
+      ('ssm_no',               to_jsonb(a.business_reg_no)),
+      ('address',              to_jsonb(a.business_address)),
+      ('business_address',     to_jsonb(a.business_address)),
+      ('bank_name',            to_jsonb(a.bank_name)),
+      ('bank_account_name',    to_jsonb(a.bank_account_name)),
+      ('bank_account_number',  to_jsonb(a.bank_account_no)),
+      ('bank_account_no',      to_jsonb(a.bank_account_no)),
+      ('tin',                  to_jsonb(a.tin)),
+      ('sst_no',               to_jsonb(a.sst_no))
+    ) v(col, val)
+  loop
+    if m.val is null or m.val = 'null'::jsonb then continue; end if;
+    if not exists (select 1 from information_schema.columns
+                    where table_schema = 'public' and table_name = 'sellers' and column_name = m.col) then
+      continue;
+    end if;
+    begin
+      execute format(
+        'update public.sellers s
+            set %1$I = (jsonb_populate_record(null::public.sellers, jsonb_build_object(%2$L, $1))).%1$I
+          where s.id = $2
+            and (s.%1$I is null or btrim(s.%1$I::text) in ('''', ''{}'', ''""''))',
+        m.col, m.col)
+      using m.val, a.seller_id;
+    exception when others then
+      null; -- a column with an unexpected type: leave it for MIVO to fill.
+    end;
+  end loop;
+end;
+$$;
+revoke all on function public.mivo_application_to_shop(uuid) from public, anon, authenticated;
+
+create or replace function public.mivo_application_approved()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.status::text = 'approved' and old.status::text is distinct from 'approved' then
+    perform public.mivo_application_to_shop(new.id);
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists seller_applications_to_shop on public.seller_applications;
+create trigger seller_applications_to_shop after update of status on public.seller_applications
+  for each row execute function public.mivo_application_approved();
+revoke all on function public.mivo_application_approved() from public, anon, authenticated;
+
+-- Fill shops approved before this file existed.
+do $$
+declare a record;
+begin
+  for a in select id from public.seller_applications where status::text = 'approved' loop
+    perform public.mivo_application_to_shop(a.id);
+  end loop;
+end;
+$$;
+
+-- --------------------------------------------------- 3) Preferred Seller
+create table if not exists public.seller_tier_requests (
+  id uuid primary key default gen_random_uuid(),
+  seller_id uuid not null references public.sellers(id) on delete cascade,
+  requested_tier text not null default 'preferred' check (requested_tier in ('preferred')),
+  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  seller_note text,
+  admin_note text,
+  requested_by uuid references auth.users(id) on delete set null,
+  reviewed_by uuid references auth.users(id) on delete set null,
+  reviewed_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create unique index if not exists seller_tier_requests_one_pending
+  on public.seller_tier_requests (seller_id) where status = 'pending';
+alter table public.seller_tier_requests enable row level security;
+revoke all on public.seller_tier_requests from anon, authenticated;
+
+-- Numbers MIVO looks at (also shown to the seller).
+create or replace function public.mivo_shop_scorecard(p_seller_id uuid)
+returns jsonb language sql stable security definer set search_path = public as $$
+  select jsonb_build_object(
+    'tier', (select tier from public.sellers where id = p_seller_id),
+    'open_since', (select coalesce(approved_at, created_at) from public.sellers where id = p_seller_id),
+    'orders_completed', (select count(*) from public.seller_orders so
+                          where so.seller_id = p_seller_id and so.status::text in ('delivered', 'completed')),
+    'orders_cancelled', (select count(*) from public.seller_orders so
+                          where so.seller_id = p_seller_id and so.status::text in ('cancelled', 'refunded')),
+    'orders_total', (select count(*) from public.seller_orders so join public.orders o on o.id = so.order_id
+                      where so.seller_id = p_seller_id and o.payment_status::text in ('paid', 'partially_refunded', 'refunded')),
+    'rating', (select round(avg(r.rating)::numeric, 2) from public.product_reviews r join public.products p on p.id = r.product_id
+                where p.seller_id = p_seller_id),
+    'reviews', (select count(*) from public.product_reviews r join public.products p on p.id = r.product_id
+                 where p.seller_id = p_seller_id),
+    'products', (select count(*) from public.products p where p.seller_id = p_seller_id and p.status::text = 'active'),
+    'returns', (select count(*) from public.return_requests rr where rr.seller_id = p_seller_id)
+  );
+$$;
+
+create or replace function public.seller_tier_status(p_seller_id uuid)
+returns jsonb language plpgsql stable security definer set search_path = public as $$
+begin
+  if not exists (select 1 from public.sellers where id = p_seller_id and owner_id = auth.uid()) and not public.is_admin() then
+    raise exception 'Not your shop';
+  end if;
+  return public.mivo_shop_scorecard(p_seller_id) || jsonb_build_object(
+    'request', (select to_jsonb(r) - 'requested_by' - 'reviewed_by'
+                  from public.seller_tier_requests r where r.seller_id = p_seller_id
+                 order by r.created_at desc limit 1));
+end;
+$$;
+
+create or replace function public.seller_request_preferred(p_seller_id uuid, p_note text)
+returns uuid language plpgsql security definer set search_path = public as $$
+declare v_id uuid; v_tier text;
+begin
+  select tier into v_tier from public.sellers where id = p_seller_id and owner_id = auth.uid() and status = 'approved';
+  if not found then raise exception 'Not your shop'; end if;
+  if v_tier in ('preferred', 'direct') then raise exception 'Your shop is already %', v_tier; end if;
+  if exists (select 1 from public.seller_tier_requests where seller_id = p_seller_id and status = 'pending') then
+    raise exception 'Your application is already with MIVO';
+  end if;
+  if exists (select 1 from public.seller_tier_requests where seller_id = p_seller_id and status = 'rejected'
+              and reviewed_at > now() - interval '14 days') then
+    raise exception 'You can apply again 14 days after the last decision';
+  end if;
+  insert into public.seller_tier_requests (seller_id, seller_note, requested_by)
+  values (p_seller_id, nullif(btrim(coalesce(p_note, '')), ''), auth.uid())
+  returning id into v_id;
+  return v_id;
+end;
+$$;
+
+-- Superadmin: requests with each shop's numbers.
+create or replace function public.platform_tier_requests()
+returns table (id uuid, seller_id uuid, shop_name text, slug text, status text, seller_note text, admin_note text,
+               created_at timestamptz, reviewed_at timestamptz, scorecard jsonb)
+language plpgsql stable security definer set search_path = public as $$
+begin
+  perform public.mivo_require_superadmin();
+  return query
+  select r.id, r.seller_id, s.shop_name, s.slug, r.status, r.seller_note, r.admin_note, r.created_at, r.reviewed_at,
+         public.mivo_shop_scorecard(r.seller_id)
+    from public.seller_tier_requests r join public.sellers s on s.id = r.seller_id
+   order by (r.status = 'pending') desc, r.created_at desc
+   limit 200;
+end;
+$$;
+
+create or replace function public.platform_review_tier_request(p_id uuid, p_approve boolean, p_note text)
+returns void language plpgsql security definer set search_path = public as $$
+declare r public.seller_tier_requests%rowtype;
+begin
+  perform public.mivo_require_superadmin();
+  select * into r from public.seller_tier_requests where id = p_id for update;
+  if not found then raise exception 'Request not found'; end if;
+  if r.status <> 'pending' then raise exception 'Already %', r.status; end if;
+  if not p_approve and coalesce(btrim(p_note), '') = '' then raise exception 'Tell the seller why (they will see it)'; end if;
+
+  update public.seller_tier_requests
+     set status = case when p_approve then 'approved' else 'rejected' end,
+         admin_note = nullif(btrim(coalesce(p_note, '')), ''), reviewed_by = auth.uid(), reviewed_at = now()
+   where id = r.id;
+
+  if p_approve then
+    update public.sellers set tier = 'preferred', updated_at = now() where id = r.seller_id;
+  end if;
+
+  perform public.platform_send_notice(
+    case when p_approve then 'You are now a Preferred Seller' else 'Preferred Seller application' end,
+    case when p_approve
+      then 'Congratulations! Your shop now shows the Preferred badge to buyers.' || coalesce(E'\n\n' || nullif(btrim(coalesce(p_note, '')), ''), '')
+      else 'MIVO couldn''t approve your application this time: ' || btrim(p_note)
+    end,
+    array[r.seller_id], 'info', null);
+end;
+$$;
+
+-- Superadmin: set a shop's tier directly (e.g. take Preferred away).
+create or replace function public.platform_set_shop_tier(p_seller_id uuid, p_tier text)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  perform public.mivo_require_superadmin();
+  if p_tier not in ('preferred', 'standard') then raise exception 'Choose Preferred or Standard'; end if;
+  update public.sellers set tier = p_tier, updated_at = now() where id = p_seller_id and tier <> 'direct';
+  if not found then raise exception 'Shop not found (MIVO Direct can''t be changed)'; end if;
+end;
+$$;
+
+revoke all on function public.mivo_shop_scorecard(uuid) from public, anon, authenticated;
+revoke all on function public.seller_tier_status(uuid) from public, anon;
+revoke all on function public.seller_request_preferred(uuid, text) from public, anon;
+revoke all on function public.platform_tier_requests() from public, anon;
+revoke all on function public.platform_review_tier_request(uuid, boolean, text) from public, anon;
+revoke all on function public.platform_set_shop_tier(uuid, text) from public, anon;
+grant execute on function public.seller_tier_status(uuid) to authenticated;
+grant execute on function public.seller_request_preferred(uuid, text) to authenticated;
+grant execute on function public.platform_tier_requests() to authenticated;
+grant execute on function public.platform_review_tier_request(uuid, boolean, text) to authenticated;
+grant execute on function public.platform_set_shop_tier(uuid, text) to authenticated;
 
 commit;
 

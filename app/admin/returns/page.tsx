@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { sellerCustomerInfo } from "@/lib/sellerCustomers";
 import AdminSidebar from "@/components/admin/AdminSidebar";
@@ -66,7 +66,7 @@ const statusLabel: Record<string, string> = {
 const tabs: Array<{ key: string; label: string; match: string[] }> = [
   { key: "all", label: "All", match: [] },
   { key: "respond", label: "To respond", match: ["requested"] },
-  { key: "review", label: "MIVO review", match: ["mivo_review"] },
+  { key: "review", label: "Disputes · MIVO decides", match: ["mivo_review"] },
   { key: "offer", label: "Offer sent", match: ["seller_offer"] },
   { key: "receive", label: "To receive", match: ["approved_return", "returning", "received"] },
   { key: "refund", label: "To refund", match: ["refunding"] },
@@ -84,6 +84,7 @@ export default function AdminReturnsPage() {
   const [people, setPeople] = useState<Map<string, string>>(new Map());
   const [shops, setShops] = useState<Map<string, string>>(new Map());
   const [tab, setTab] = useState("respond");
+  const initialTabSet = useRef(false);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
   const [detail, setDetail] = useState<{ items: Map<string, string>; events: Ev[]; photos: string[] } | null>(null);
@@ -109,6 +110,13 @@ export default function AdminReturnsPage() {
     }
     const list = (data || []) as Req[];
     setRows(list);
+    // MIVO opens on disputes first: they wait on nobody else.
+    if (!initialTabSet.current) {
+      initialTabSet.current = true;
+      const fromUrl = new URLSearchParams(window.location.search).get("tab");
+      if (fromUrl && tabs.some((x) => x.key === fromUrl)) setTab(fromUrl);
+      else if (list.some((r) => r.status === "mivo_review")) setTab("review");
+    }
     const orderIds = Array.from(new Set(list.map((r) => r.order_id)));
     const customerIds = Array.from(new Set(list.map((r) => r.customer_id)));
     const sellerIds = Array.from(new Set(list.map((r) => r.seller_id).filter((v): v is string => Boolean(v))));

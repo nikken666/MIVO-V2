@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import PickupAddressEditor from "@/components/admin/PickupAddressEditor";
+import PreferredSellerCard from "@/components/admin/PreferredSellerCard";
 import { createClient } from "@/lib/supabase/client";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import styles from "@/app/admin/Admin.module.css";
@@ -108,6 +109,7 @@ export default function SellerShopSettingsPage() {
             </form>
             {shopId ? <PickupAddressEditor key={shopId} sellerId={shopId} /> : null}
           </section>
+          {shopId ? <PreferredSellerCard key={"tier-" + shopId} sellerId={shopId} /> : null}
         </section>
       </div>
     </main>

@@ -16,7 +16,7 @@ export default function AdminTodo() {
       const supabase = createClient();
       const count = (q: PromiseLike<{ count: number | null }>) =>
         Promise.resolve(q).then((r) => r.count || 0, () => 0);
-      const [apps, returns, claims, toShip, chats] = await Promise.all([
+      const [apps, returns, claims, toShip, chats, preferred] = await Promise.all([
         count(supabase.from("seller_applications").select("id", { count: "exact", head: true }).eq("status", "submitted")),
         count(supabase.from("return_requests").select("id", { count: "exact", head: true }).eq("status", "mivo_review")),
         count(supabase.from("warranty_claims").select("id", { count: "exact", head: true }).in("status", ["new", "reviewing"])),
@@ -31,14 +31,23 @@ export default function AdminTodo() {
           (r) => ((r.data || []) as Array<{ seller_unread: number }>).length,
           () => 0
         ),
+        Promise.resolve(supabase.rpc("is_superadmin")).then(async (sa) => {
+          if (!sa.data) return -1;
+          const r = await supabase.rpc("platform_tier_requests");
+          return r.error ? -1 : ((r.data || []) as Array<{ status: string }>).filter((x) => x.status === "pending").length;
+        }, () => -1),
       ]);
       if (!active) return;
       setTodos([
         { key: "apps", label: "Seller applications", hint: "Shops waiting for approval", href: "/admin/shops/applications", count: apps },
-        { key: "returns", label: "Return disputes", hint: "Waiting for MIVO's decision", href: "/admin/returns", count: returns },
+        { key: "returns", label: "Return disputes", hint: "Waiting for MIVO's decision", href: "/admin/returns?tab=review", count: returns },
         { key: "claims", label: "Warranty claims", hint: "New or in review", href: "/admin/claims", count: claims },
         { key: "ship", label: "To ship", hint: "Paid orders not shipped yet", href: "/admin/arrange-shipment", count: toShip },
         { key: "chat", label: "Unread chats", hint: "Customers waiting for a reply", href: "/admin/chat", count: chats },
+        // Superadmin only (others can't read the requests).
+        ...(preferred >= 0
+          ? [{ key: "preferred", label: "Preferred requests", hint: "Shops asking for the badge", href: "/admin/platform/preferred", count: preferred }]
+          : []),
       ]);
     })();
     return () => {
