@@ -202,6 +202,13 @@ export default function ReturnRequestPage() {
         </Link>
         <h1 className={styles.title}>{t("ret.request")}</h1>
         <p className={styles.sub}>{t("ret.window")}</p>
+        <details className={styles.policy}>
+          <summary>{t("ret.policyTitle")}</summary>
+          <p>
+            {t("ret.policyText")}{" "}
+            <Link href="/returns-policy">{t("ret.policyLink")} ›</Link>
+          </p>
+        </details>
 
         {loading ? <div className={styles.card}>{t("common.loading")}</div> : null}
         {error ? <p className={styles.error}>{error}</p> : null}

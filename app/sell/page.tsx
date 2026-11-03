@@ -138,16 +138,25 @@ export default function SellOnMivoPage() {
     }
     setUploading(docSlot);
     setError("");
+    setDetail("");
     const ext = (file.name.split(".").pop() || "jpg").toLowerCase().slice(0, 5);
-    const path = userId + "/" + docSlot + "-" + crypto.randomUUID() + "." + ext;
-    const { error: uploadError } = await createClient()
-      .storage.from("seller-documents")
-      .upload(path, file, { contentType: file.type });
-    if (uploadError) {
-      setError(friendlyError(uploadError, t, "common.error"));
-      setDetail(errorText(uploadError));
-    } else {
-      setDocs((d) => ({ ...d, [docSlot]: path }));
+    try {
+      // The server hands out a one-time upload link for the applicant's own folder.
+      const response = await fetch("/api/seller/document-upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slot: docSlot, ext }),
+      });
+      const signed = (await response.json()) as { path?: string; token?: string; error?: string };
+      if (!response.ok || !signed.path || !signed.token) throw new Error(signed.error || "Upload failed.");
+      const { error: uploadError } = await createClient()
+        .storage.from("seller-documents")
+        .uploadToSignedUrl(signed.path, signed.token, file, { contentType: file.type });
+      if (uploadError) throw uploadError;
+      setDocs((d) => ({ ...d, [docSlot]: signed.path! }));
+    } catch (caught) {
+      setError(friendlyError(caught, t, "common.error"));
+      setDetail(errorText(caught));
     }
     setUploading("");
   }

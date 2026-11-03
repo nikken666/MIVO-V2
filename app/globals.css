@@ -11183,3 +11183,63 @@ button.shopChip{font:inherit;cursor:pointer}
 }
 .stripePayAction .stripePayError{display:block;color:#b42318;font-size:13px;line-height:1.4;text-align:center}
 .stripePayAction .stripePayDetail{display:block;color:#6b7075;font-size:12px;line-height:1.4;text-align:center;overflow-wrap:anywhere}
+
+/* ---------- Recommended for your car ---------- */
+.carRec{margin:28px 0;padding:22px;border:1px solid #e6e8ea;border-radius:18px;background:#fff;
+  animation:carRecIn .45s var(--ease,ease) both}
+.carRecHead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.carRecHead h2{margin:0;font-size:20px;letter-spacing:-.01em}
+.carRecHead h2::before{content:"✓";display:inline-grid;place-items:center;width:22px;height:22px;margin-right:8px;border-radius:50%;
+  background:#e7f6ec;color:#067647;font-size:12px;vertical-align:2px}
+.carRecHead a{font-size:13px;color:var(--accent);text-decoration:none;white-space:nowrap}
+.carRecRow{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(190px,220px);gap:14px;overflow-x:auto;
+  scroll-snap-type:x mandatory;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+.carRecItem{scroll-snap-align:start;min-width:0}
+.carRecItem .productCard{height:100%}
+.carRecPrompt{display:flex;align-items:center;gap:12px;margin:24px 0;padding:14px 18px;border:1px dashed #cfd6dc;
+  border-radius:14px;background:#fafbfc;color:#4a5056}
+.carRecPrompt>span{font-size:22px}
+.carRecPrompt p{margin:0;flex:1;font-size:14px}
+.carRecPromptButton{border:0;border-radius:980px;background:var(--accent);color:#fff;padding:8px 16px;font-size:13px;font-weight:500;cursor:pointer}
+@keyframes carRecIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(max-width:560px){
+  .carRec{padding:16px;margin:20px 0;border-radius:14px}
+  .carRecHead h2{font-size:17px}
+  .carRecRow{grid-auto-columns:minmax(160px,46%)}
+  .carRecPrompt{flex-wrap:wrap}
+}
+
+/* ---------- Chat: photos, tools, seller quick replies ---------- */
+.chatComposer .chatTool{flex:0 0 auto;width:38px;height:38px;display:grid;place-items:center;border:1px solid #e1e4e7;border-radius:50%;
+  background:#fff;color:#4a5056;cursor:pointer;padding:0}
+.chatComposer .chatTool svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round}
+.chatComposer .chatTool.active,.chatComposer .chatTool:hover{border-color:var(--accent);color:var(--accent)}
+.chatPhoto{display:block;margin:2px 0 4px}
+.chatPhoto img{display:block;max-width:220px;max-height:260px;border-radius:12px;object-fit:cover}
+.chatReplyBank{margin:0 12px 8px;border:1px solid #e6e8ea;border-radius:12px;background:#fff;max-height:240px;overflow:auto}
+.chatReplyBankHead{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid #eef0f1;
+  position:sticky;top:0;background:#fff}
+.chatReplyBankHead strong{font-size:13px}
+.chatReplyBankHead button{border:0;background:none;color:var(--accent);font-size:13px;cursor:pointer}
+.chatReplyBank ul{list-style:none;margin:0;padding:4px}
+.chatReplyBank li{display:flex;align-items:center;gap:4px}
+.chatReplyBank li>button:first-child{flex:1;text-align:left;border:0;background:none;padding:8px 10px;border-radius:8px;font-size:13px;cursor:pointer;color:#22272b}
+.chatReplyBank li>button:first-child:hover:not(:disabled){background:#f2f6fd}
+.chatReplyRemove{border:0;background:none;color:#b42318;font-size:16px;cursor:pointer;padding:0 8px}
+.chatReplyAdd{display:flex;gap:6px;padding:8px}
+.chatReplyAdd input{flex:1;border:1px solid #dfe3e6;border-radius:8px;padding:7px 10px;font-size:13px}
+.chatReplyAdd button{border:0;border-radius:8px;background:var(--accent);color:#fff;width:34px;cursor:pointer}
+
+/* ---------- Shop vouchers (shop + product page) ---------- */
+.shopVouchers{margin-top:12px}
+.shopVouchersTitle{display:block;margin-bottom:8px;font-size:13px;color:#5f656a}
+.shopVouchersRow{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.shopVoucherTicket{flex:0 0 auto;display:flex;align-items:center;gap:12px;padding:8px 10px 8px 12px;border:1px solid #f3c9bd;border-left:3px solid #ee4d2d;
+  border-radius:8px;background:#fff7f4}
+.shopVoucherTicket div{display:flex;flex-direction:column}
+.shopVoucherTicket b{color:#ee4d2d;font-size:14px}
+.shopVoucherTicket small{color:#8a6a60;font-size:12px}
+.shopVoucherTicket button{border:0;border-radius:6px;background:#ee4d2d;color:#fff;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer}
+.shopVoucherTicket button:disabled{background:#f3c9bd;color:#fff;cursor:default}
+.shopVouchers.compact{margin:10px 0 0}
+.shopVouchersMsg{display:block;margin-top:6px;font-size:12px;color:#067647}

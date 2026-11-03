@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import type { Metadata } from "next";
+import ShopVouchers from "@/components/ShopVouchers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ChatNowButton from "@/components/chat/ChatNowButton";
@@ -73,6 +74,7 @@ export default async function ShopPage({
             <div className="shopPageActions">
               <ChatNowButton sellerId={shop.id} />
             </div>
+            <ShopVouchers sellerId={shop.id} />
           </div>
           <form className="shopPageSearch" action={base}>
             <input name="q" defaultValue={q} placeholder={t("browse.shop.searchIn", { shop: shop.name })} />

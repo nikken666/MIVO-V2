@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import CarRecommendations from "@/components/CarRecommendations";
 import { Fragment, useEffect } from "react";
 import { formatPrice } from "@/data/products";
 import { useMarketplace } from "@/components/MarketplaceProvider";
@@ -208,6 +209,11 @@ export default function CartPage() {
             </div>
           </aside>
         </div>
+        <CarRecommendations
+          title="mayNeed"
+          exclude={cart.map((line) => line.product.id || line.product.slug)}
+          limit={6}
+        />
       </div>
       <div className="mobileCheckoutBar cartMobileSelectionBar">
         {allCheckbox(t("buy.cart.all"))}

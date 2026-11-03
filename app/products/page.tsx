@@ -276,10 +276,6 @@ export default async function ProductsPage({
               <span>{t("fit.sellerSays")}</span>
             </div>
           ) : null}
-          <div>
-            <strong>{fitmentCounts.unverified}</strong>
-            <span>{t("browse.products.notVerified")}</span>
-          </div>
           {fitmentCounts["not-fit"] > 0 ? (
             <a
               href={catalogHref({ showAll: showAll ? null : "1" })}
