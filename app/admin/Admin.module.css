@@ -7390,3 +7390,23 @@ span.adminPanelKicker{font-size:12px!important;letter-spacing:normal!important}
 .todoHot{background:#fff7f4;border-color:#f6c9bc}
 .todoHot strong{color:#ee4d2d}
 .todoHot span{color:#22272b}
+
+/* ---------- Products: BigSeller-style filter panel ---------- */
+.bsFilter{margin:4px 0 14px;padding:6px 16px;border:1px solid #e6e8ea;border-radius:14px;background:#fbfbfc}
+.bsRow{display:flex;gap:14px;align-items:flex-start;padding:10px 0;border-bottom:1px dashed #e9ebed}
+.bsRow:last-child{border-bottom:0}
+.bsLabel{flex:0 0 72px;padding-top:6px;font-size:12px;font-weight:600;color:#6b7075}
+.bsChips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;flex:1;min-width:0}
+.bsChips>button{border:1px solid transparent;background:transparent;border-radius:8px;padding:5px 10px;font-size:13px;color:#30353a;cursor:pointer}
+.bsChips>button:hover{background:#f0f2f4}
+.bsChips>button.bsOn{background:#eef0ff;border-color:#c9cdfc;color:#3b3fd6;font-weight:600}
+.bsSearch{display:flex;flex:1;max-width:640px;border:1px solid #d9dcde;border-radius:10px;overflow:hidden;background:#fff}
+.bsSearch select{border:0;border-right:1px solid #e5e7e8;background:#f7f8f9;padding:8px 10px;font-size:13px}
+.bsSearch input{flex:1;border:0;padding:8px 12px;font-size:13px;outline:none;min-width:0}
+.bsRange{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#8a9095}
+.bsRange input{width:110px;border:1px solid #d9dcde;border-radius:8px;padding:6px 8px;font-size:13px}
+.bsSelect{border:1px solid #d9dcde;border-radius:8px;padding:6px 8px;font-size:13px;background:#fff}
+@media(max-width:640px){
+  .bsRow{flex-direction:column;gap:6px}
+  .bsLabel{flex:none;padding-top:0}
+}
