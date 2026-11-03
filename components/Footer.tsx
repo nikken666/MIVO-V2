@@ -1,11 +1,23 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import Logo from "./Logo";
 import { useT } from "./LanguageProvider";
 
 export default function Footer() {
   const t = useT();
+  // "Sell on MIVO" shows only when the superadmin turns seller sign-up on.
+  const [showSell, setShowSell] = useState(false);
+  useEffect(() => {
+    void createClient()
+      .from("platform_settings")
+      .select("value")
+      .eq("key", "show_sell_link")
+      .maybeSingle()
+      .then(({ data }) => setShowSell(data?.value === true));
+  }, []);
   return (
     <footer className="siteFooter">
       <div className="container footerTop">
@@ -31,7 +43,7 @@ export default function Footer() {
           <h4>{t("footer.about")}</h4>
           <Link href="/#fitment">{t("footer.vehicleMatch")}</Link>
           <Link href="/#standard">{t("footer.standard")}</Link>
-          <Link href="/sell">{t("footer.sell")}</Link>
+          {showSell ? <Link href="/sell">{t("footer.sell")}</Link> : null}
         </div>
       </div>
       <div className="container footerBottom">

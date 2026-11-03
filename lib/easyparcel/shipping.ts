@@ -21,17 +21,35 @@ const DEFAULT_DIMS = { length: 30, width: 20, height: 15 };
 
 async function loadParcel(sellerOrderId: string, overrides: Overrides = {}): Promise<ParcelContext> {
   const admin = createAdminClient();
-  const { data: so } = await admin
+  const { data: soRow } = await admin
     .from("seller_orders")
-    .select("id, order_id, seller_id, status")
+    .select("*")
     .eq("id", sellerOrderId)
     .maybeSingle();
+  const so = soRow as { id: string; order_id: string; seller_id: string; status: string; shipping_group?: string | null } | null;
   if (!so) throw new ep.EasyParcelError("Shop parcel not found.", 404);
+
+  // Shops shipping from the same place go in one box: book one parcel for all
+  // of them (the others ship with it, see supabase/combined-shipping.sql).
+  let parcelIds = [so.id];
+  if (so.shipping_group) {
+    const { data: siblings } = await admin
+      .from("seller_orders")
+      .select("*")
+      .eq("order_id", so.order_id)
+      .eq("shipping_group", so.shipping_group);
+    parcelIds = [
+      so.id,
+      ...((siblings || []) as Array<{ id: string; status: string }>)
+        .filter((p) => p.id !== so.id && !["shipped", "delivered", "completed", "cancelled", "refunded"].includes(String(p.status)))
+        .map((p) => p.id),
+    ];
+  }
 
   const [{ data: order }, { data: shop }, { data: items }, { data: existing }] = await Promise.all([
     admin.from("orders").select("id, order_number, status, payment_status, shipping_address, user_id").eq("id", so.order_id).maybeSingle(),
     admin.from("sellers").select("shop_name, pickup_address").eq("id", so.seller_id).maybeSingle(),
-    admin.from("order_items").select("variant_id, product_name, quantity, line_subtotal").eq("seller_order_id", so.id),
+    admin.from("order_items").select("variant_id, product_name, quantity, line_subtotal").in("seller_order_id", parcelIds),
     admin.from("shipments").select("id, ep_shipment_number, tracking_number").eq("seller_order_id", so.id).limit(1),
   ]);
   if (!order) throw new ep.EasyParcelError("Order not found.", 404);

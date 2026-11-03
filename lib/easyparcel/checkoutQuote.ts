@@ -57,7 +57,23 @@ export async function quoteCheckout(userId: string, items: CartItem[], address: 
   if (byId.size !== new Set(items.map((i) => i.variant_id)).size) throw new Error("Unknown item in cart.");
 
   const sellerIds = Array.from(new Set((variants || []).map((v) => v.seller_id)));
-  const { data: shops } = await admin.from("sellers").select("id, shop_name, tier, pickup_address").in("id", sellerIds);
+  const { data: shopRows } = await admin.from("sellers").select("id, shop_name, tier, owner_id, pickup_address").in("id", sellerIds);
+
+  // Shops of one owner shipping from the same address travel as one parcel
+  // (same rule as mivo_pickup_group in supabase/combined-shipping.sql).
+  const groupKey = (shop: { id: string; owner_id: string | null; pickup_address: unknown }) => {
+    const p = (shop.pickup_address || {}) as Record<string, string>;
+    if (!p.postcode || !p.line) return "shop:" + shop.id;
+    return (shop.owner_id || "none") + "|" + p.postcode + "|" + p.line.toLowerCase().replace(/[^a-z0-9]/g, "");
+  };
+  const ordered = (shopRows || [])
+    .slice()
+    .sort((a, b) => Number(b.tier === "direct") - Number(a.tier === "direct") || a.shop_name.localeCompare(b.shop_name));
+  const groups = new Map<string, typeof ordered>();
+  for (const shop of ordered) {
+    const key = groupKey(shop);
+    groups.set(key, [...(groups.get(key) || []), shop]);
+  }
 
   // MIVO's own price list (Shipping settings), per shop: what the buyer pays,
   // unless EasyParcel's real cost is higher (then the cost, so MIVO never loses).
@@ -73,9 +89,21 @@ export async function quoteCheckout(userId: string, items: CartItem[], address: 
   }
 
   const receiver: ep.Address = { name: "Buyer", phone: "0", line1: "-", postcode: address.postcode, city: "-", state: address.state };
-  const results: Array<{ seller_id: string; shop_name: string; tier: string | null; amount: number; cost: number; courier: string; service_id: string }> = [];
+  const results: Array<{
+    seller_id: string;
+    seller_ids: string[];
+    group: string;
+    shop_name: string;
+    tier: string | null;
+    amount: number;
+    cost: number;
+    courier: string;
+    service_id: string;
+  }> = [];
 
-  for (const shop of shops || []) {
+  for (const [key, members] of groups) {
+    const shop = members[0];
+    const memberIds = new Set(members.map((m) => m.id));
     const pickup = (shop.pickup_address || {}) as Record<string, string>;
     if (!pickup.postcode || !pickup.state) throw new Error("Shop " + shop.shop_name + " has no pickup address.");
     let weight = 0;
@@ -85,7 +113,7 @@ export async function quoteCheckout(userId: string, items: CartItem[], address: 
     let value = 0;
     for (const item of items) {
       const v = byId.get(item.variant_id) as Record<string, unknown> | undefined;
-      if (!v || v.seller_id !== shop.id) continue;
+      if (!v || !memberIds.has(String(v.seller_id))) continue;
       const qty = Number(item.quantity || 1);
       weight += Number(v.weight_kg || 0.5) * qty;
       length = Math.max(length, Number(v.length_cm || 0));
@@ -106,8 +134,11 @@ export async function quoteCheckout(userId: string, items: CartItem[], address: 
     if (!best) throw new Error("No EasyParcel service for " + shop.shop_name + ".");
     results.push({
       seller_id: shop.id,
-      shop_name: shop.shop_name,
+      seller_ids: members.map((m) => m.id),
+      group: key,
+      shop_name: members.map((m) => m.shop_name).join(" · "),
       tier: shop.tier,
+      // MIVO's price list is per parcel too (quote_shipping_by_shop groups the same way).
       amount: Math.round(Math.max(priceList.get(shop.id) ?? 0, best.price + handlingFee()) * 100) / 100,
       cost: best.price,
       courier: best.courierName,
@@ -129,6 +160,6 @@ export async function quoteCheckout(userId: string, items: CartItem[], address: 
 
   return {
     quoteId: saved.id as string,
-    shops: results.map(({ seller_id, shop_name, tier, amount }) => ({ seller_id, shop_name, tier, amount })),
+    shops: results.map(({ seller_id, seller_ids, shop_name, tier, amount }) => ({ seller_id, seller_ids, shop_name, tier, amount })),
   };
 }

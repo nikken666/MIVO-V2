@@ -18,6 +18,23 @@ export default function PickupAddressEditor({ sellerId }: { sellerId: string }) 
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [superadmin, setSuperadmin] = useState(false);
+
+  useEffect(() => {
+    void createClient()
+      .rpc("is_superadmin")
+      .then(({ data }) => setSuperadmin(Boolean(data)));
+  }, []);
+
+  async function applyToAll() {
+    setBusy(true);
+    setError("");
+    setMessage("");
+    const { data, error: rpcError } = await createClient().rpc("platform_apply_pickup_to_my_shops", { p_address: form });
+    setBusy(false);
+    if (rpcError) setError(/platform_apply_pickup_to_my_shops/.test(rpcError.message) ? "Run supabase/RUN-NEW.sql first." : rpcError.message);
+    else setMessage("Saved for all " + Number(data || 0) + " of your shops. Shops with the same address ship as one parcel.");
+  }
 
   useEffect(() => {
     void createClient()
@@ -65,9 +82,16 @@ export default function PickupAddressEditor({ sellerId }: { sellerId: string }) 
       </div>
       {error ? <p role="alert">{error}</p> : null}
       {message ? <p>{message}</p> : null}
-      <button type="button" className={styles.adminAction} disabled={busy} onClick={() => void save()}>
-        {busy ? "Saving…" : "Save pickup address"}
-      </button>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+        <button type="button" className={styles.adminAction} disabled={busy} onClick={() => void save()}>
+          {busy ? "Saving…" : "Save pickup address"}
+        </button>
+        {superadmin ? (
+          <button type="button" className={styles.adminSecondaryAction} disabled={busy} onClick={() => void applyToAll()}>
+            Use this address for all my shops
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }

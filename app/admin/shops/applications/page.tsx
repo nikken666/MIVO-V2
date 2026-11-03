@@ -5,6 +5,7 @@ import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../../Admin.module.css";
 import ui from "../../store-health/StoreHealth.module.css";
+import SellLinkToggle from "@/components/admin/SellLinkToggle";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 
 type Application = {
@@ -165,6 +166,7 @@ export default function SellerApplicationsPage() {
             </div>
             <a className={styles.adminAction} href="/admin/shops">All shops</a>
           </header>
+          <SellLinkToggle />
 
           <section className={styles.adminPanel}>
             <div className={ui.cards}>
