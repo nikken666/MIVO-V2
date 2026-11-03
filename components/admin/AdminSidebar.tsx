@@ -48,6 +48,7 @@ const groups: NavGroup[] = [
       { href: "/admin/shops/applications", label: "Seller applications" },
       { href: "/admin/shipping", label: "Shipping settings" },
       { href: "/admin/store-health", label: "Store health" },
+      { href: "/admin/system-check", label: "System check" },
     ],
   },
 ];
