@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { sellerCustomerInfo } from "@/lib/sellerCustomers";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { getStaffAccess } from "@/lib/staff";
 import ChatThread from "@/components/chat/ChatThread";
@@ -76,6 +77,12 @@ export default function AdminChatPage() {
         .select("id, full_name, email")
         .in("id", customerIds);
       profiles = (fallback || []) as Person[];
+    }
+    // Sellers can't read profiles directly: fill the gaps for their own customers.
+    const missing = customerIds.filter((id) => !profiles.some((p) => p.id === id));
+    if (missing.length) {
+      const extra = await sellerCustomerInfo(supabase, missing, []);
+      profiles = [...profiles, ...extra.people.map((x) => ({ ...x, email: null }) as Person)];
     }
     setPeople(new Map(profiles.map((p) => [p.id, p])));
     setShops(new Map(((shopRes.data || []) as Shop[]).map((s) => [s.id, s])));

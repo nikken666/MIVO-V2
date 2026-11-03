@@ -94,7 +94,7 @@ export default function SellerOrdersPage() {
       const tr = (tracking[parcel.seller_order_id] ?? parcel.tracking_number ?? "").trim();
       if (next === "shipped") {
         if (!c || !tr) throw new Error("Courier and tracking number are required.");
-        await chargeBeforeShipping(parcel.order_number);
+        await chargeBeforeShipping(parcel.order_number, parcel.seller_order_id);
       }
       const { error: rpcError } = await createClient().rpc("admin_update_shop_fulfilment", {
         p_seller_order_id: parcel.seller_order_id,
@@ -122,7 +122,7 @@ export default function SellerOrdersPage() {
             <div>
               <span className={styles.adminEyebrow}>Seller Centre · Orders</span>
               <h1>My orders</h1>
-              <p>Pack and ship your parcels. Card payments are charged when you mark a parcel shipped.</p>
+              <p>Pack and ship your parcels. A held card is charged when the last parcel of the order ships.</p>
             </div>
           </header>
           <nav className={styles.adminOrderTabs}>

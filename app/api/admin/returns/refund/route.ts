@@ -86,6 +86,7 @@ export async function POST(request: NextRequest) {
       .from("orders")
       .update({
         payment_status: totalRefunded >= Number(order.total_amount) - 0.005 ? "refunded" : "partially_refunded",
+        refund_status: totalRefunded >= Number(order.total_amount) - 0.005 ? "refunded" : "partially_refunded",
         updated_at: now,
       })
       .eq("id", order.id);

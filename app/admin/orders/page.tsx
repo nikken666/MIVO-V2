@@ -510,8 +510,8 @@ export default function AdminOrdersPage() {
 
     try {
       const shipping = nextStatus === "shipped";
-      // Held card payments are charged when the first parcel ships.
-      if (shipping) await chargeBeforeShipping(order.order_number);
+      // Held card payments are charged when the last parcel ships.
+      if (shipping) await chargeBeforeShipping(order.order_number, parcel.id);
       const supabase = createClient();
       const { error: updateError } = await supabase.rpc(
         "admin_update_shop_fulfilment",

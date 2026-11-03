@@ -206,7 +206,7 @@ export default function AdminShopsPage() {
             <div>
               <span className={styles.adminEyebrow}>MIVO store control · Marketplace</span>
               <h1>Shops</h1>
-              <p>All shops ship from the MIVO warehouse. Listings with the same SKU share one stock.</p>
+              <p>Each shop packs and ships its own parcels. Listings with the same SKU in your own shops share one stock.</p>
             </div>
             <a className={styles.adminAction} href="/shops" target="_blank" rel="noreferrer">View shops ↗</a>
           </header>

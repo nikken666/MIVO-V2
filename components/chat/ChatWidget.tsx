@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useT } from "../LanguageProvider";
 import ChatThread from "./ChatThread";
@@ -119,13 +120,16 @@ export default function ChatWidget() {
   }, [loadConversations, t]);
 
   const unread = conversations.reduce((sum, c) => sum + (c.customer_unread || 0), 0);
+  // No floating button while paying: it covered the order total. Chat still opens from "Chat now".
+  const pathname = usePathname() || "";
+  const hideLauncher = !open && (pathname === "/checkout" || pathname === "/cart" || pathname.includes("/success"));
   const active = conversations.find((c) => c.id === activeId) || null;
 
   return (
     <>
       <button
         type="button"
-        className="chatLauncher"
+        className={"chatLauncher" + (hideLauncher ? " chatLauncherHidden" : "")}
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
       >

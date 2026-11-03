@@ -78,6 +78,8 @@ export default function PaymentSuccessPage() {
   const orderNumber = String(params.orderNumber || "");
 
   const [order, setOrder] = useState<OrderSummary | null>(null);
+  // Card held until shipping (supabase/payment-holds.sql): nothing charged yet.
+  const [held, setHeld] = useState(false);
   const [items, setItems] = useState<ReceiptItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [timedOut, setTimedOut] = useState(false);
@@ -132,6 +134,12 @@ export default function PaymentSuccessPage() {
           if (active) setItems((itemData as ReceiptItem[] | null) || []);
         }
         setOrder(summary);
+        const { data: capture } = await supabase
+          .from("orders")
+          .select("payment_capture_status")
+          .eq("id", summary.id)
+          .maybeSingle();
+        if (active) setHeld((capture as { payment_capture_status?: string } | null)?.payment_capture_status === "authorized");
         if (isPaid(summary) && timer) clearInterval(timer);
       }
 
@@ -185,11 +193,11 @@ export default function PaymentSuccessPage() {
 
         <p className={styles.kicker}>{t("account.success.kicker")}</p>
         <h1 className={styles.title}>
-          {confirmed ? t("account.success.title") : t("account.success.confirming")}
+          {confirmed ? t(held ? "account.success.titleHeld" : "account.success.title") : t("account.success.confirming")}
         </h1>
         <p className={styles.lead}>
           {confirmed
-            ? t("account.success.lead")
+            ? t(held ? "account.success.leadHeld" : "account.success.lead")
             : timedOut
               ? t("account.success.slow")
               : t("account.success.wait")}
@@ -260,13 +268,13 @@ export default function PaymentSuccessPage() {
                 </div>
               ) : null}
               <div style={nextRow()} className={styles.total}>
-                <dt>{t("account.receipt.totalPaid")}</dt>
+                <dt>{t(held ? "account.success.totalHeld" : "account.receipt.totalPaid")}</dt>
                 <dd>{formatPrice(confirmed ? shown : total)}</dd>
               </div>
             </dl>
 
             <div className={styles.stamp} style={nextRow()}>
-              <span>{t("account.success.stamp")}</span>
+              <span>{t(held ? "account.success.stampHeld" : "account.success.stamp")}</span>
               <small>
                 {order?.stripe_payment_method
                   ? order.stripe_payment_method.toUpperCase()

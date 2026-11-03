@@ -68,7 +68,7 @@ export default async function ShopPage({
             <div className="shopPageStats">
               <span><b>{all.length}</b> {t("browse.shop.products")}</span>
               <span><b>{categories.length}</b> {t("browse.shop.categories")}</span>
-              <span>{t("browse.shop.shipsFrom")}</span>
+              <span>{shop.tier === "direct" ? t("browse.shop.shipsFrom") : t("browse.shop.shipsOwn")}</span>
             </div>
             <div className="shopPageActions">
               <ChatNowButton sellerId={shop.id} />

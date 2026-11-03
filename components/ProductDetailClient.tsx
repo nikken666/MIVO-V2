@@ -703,11 +703,15 @@ export default function ProductDetailClient({
               <div>
                 <span>✓</span>
                 <p>
-                  <strong>{t("buy.pd.shipsFromWarehouse")}</strong>
+                  <strong>
+                    {product.sellerTier === "direct"
+                      ? t("buy.pd.shipsFromWarehouse")
+                      : t("buy.pd.shipsFromShop")}
+                  </strong>
                   <small>
                     {product.sellerTier === "direct"
                       ? t("buy.pd.soldByMivo")
-                      : t("buy.pd.soldBy", { shop: product.seller || "MIVO" })}
+                      : t("buy.pd.shipsFromShopHint", { shop: product.seller || "MIVO" })}
                   </small>
                 </p>
               </div>

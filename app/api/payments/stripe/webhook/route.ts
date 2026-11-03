@@ -201,9 +201,31 @@ async function applyRefundEvent(refund: Record<string, any>) {
 
   if (!paymentIntentId) return;
 
+  // Full or partial? Compare what has been refunded with what was charged.
+  let fullyRefunded = false;
+  if (refund.status === "succeeded") {
+    try {
+      const params = new URLSearchParams();
+      params.append("expand[]", "latest_charge");
+      const intent = await stripeRequest<Record<string, any>>(
+        "/payment_intents/" + encodeURIComponent(paymentIntentId) + "?" + params.toString()
+      );
+      const charge = intent.latest_charge && typeof intent.latest_charge === "object" ? intent.latest_charge : null;
+      if (typeof charge?.amount_refunded === "number" && typeof charge?.amount_captured === "number") {
+        fullyRefunded = charge.amount_refunded >= charge.amount_captured;
+      } else if (typeof intent.amount_received === "number") {
+        fullyRefunded = Number(refund.amount || 0) >= intent.amount_received;
+      }
+    } catch {
+      fullyRefunded = false;
+    }
+  }
+
   const status =
     refund.status === "succeeded"
-      ? "refunded"
+      ? fullyRefunded
+        ? "refunded"
+        : "partially_refunded"
       : refund.status === "failed"
         ? "failed"
         : "processing";
@@ -213,8 +235,8 @@ async function applyRefundEvent(refund: Record<string, any>) {
     updated_at: new Date().toISOString(),
   };
 
-  if (status === "refunded") {
-    update.payment_status = "partially_refunded";
+  if (refund.status === "succeeded") {
+    update.payment_status = fullyRefunded ? "refunded" : "partially_refunded";
   }
 
   await admin

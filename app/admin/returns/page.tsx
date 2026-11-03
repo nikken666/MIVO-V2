@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { sellerCustomerInfo } from "@/lib/sellerCustomers";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { getStaffAccess } from "@/lib/staff";
 import { formatPrice } from "@/data/products";
@@ -115,15 +116,23 @@ export default function AdminReturnsPage() {
       customerIds.length ? supabase.from("profiles").select("id, full_name, email").in("id", customerIds) : Promise.resolve({ data: [] }),
       sellerIds.length ? supabase.from("sellers").select("id, shop_name").in("id", sellerIds) : Promise.resolve({ data: [] }),
     ]);
-    setOrders(new Map(((o.data || []) as Array<{ id: string; order_number: string }>).map((x) => [x.id, x.order_number])));
-    setPeople(
-      new Map(
-        ((p.data || []) as Array<{ id: string; full_name: string | null; email: string | null }>).map((x) => [
-          x.id,
-          x.full_name || x.email || "Customer",
-        ])
-      )
+    const orderMap = new Map(((o.data || []) as Array<{ id: string; order_number: string }>).map((x) => [x.id, x.order_number]));
+    const peopleMap = new Map(
+      ((p.data || []) as Array<{ id: string; full_name: string | null; email: string | null }>).map((x) => [
+        x.id,
+        x.full_name || x.email || "Customer",
+      ])
     );
+    // Sellers can't read profiles/orders directly: fill the gaps for their own customers.
+    const missingPeople = customerIds.filter((id) => !peopleMap.has(id));
+    const missingOrders = orderIds.filter((id) => !orderMap.has(id));
+    if (missingPeople.length || missingOrders.length) {
+      const extra = await sellerCustomerInfo(supabase, missingPeople, missingOrders);
+      extra.people.forEach((x) => peopleMap.set(x.id, x.full_name || "Customer"));
+      extra.orders.forEach((x) => orderMap.set(x.id, x.order_number));
+    }
+    setOrders(orderMap);
+    setPeople(peopleMap);
     setShops(new Map(((s.data || []) as Array<{ id: string; shop_name: string }>).map((x) => [x.id, x.shop_name])));
   }, []);
 

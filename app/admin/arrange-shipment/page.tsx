@@ -516,7 +516,7 @@ export default function ArrangeShipmentPage() {
 
     try {
       // Held card payments are charged at shipping.
-      await chargeBeforeShipping(order.order_number);
+      await chargeBeforeShipping(order.order_number, order.parcelId || null);
       const supabase = createClient();
       const { error: shipError } = order.parcelId
         ? await supabase.rpc("admin_update_shop_fulfilment", {

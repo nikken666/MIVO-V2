@@ -99,8 +99,7 @@ export default function CartPage() {
             {[...cart]
               .sort((a, b) => (a.product.seller || "").localeCompare(b.product.seller || ""))
               .map((line, lineIndex, lines) => {
-              // Lines are grouped visually by shop, Shopee-style; every shop
-              // ships from the same MIVO warehouse.
+              // Lines are grouped by shop, Shopee-style; each shop ships its own parcel.
               const shopName = line.product.seller || "MIVO";
               const newShop =
                 lineIndex === 0 ||
@@ -120,7 +119,7 @@ export default function CartPage() {
                       <span className="cartStoreDot">{shopName.slice(0, 1)}</span>
                       <div>
                         <strong>{shopName} <ShopBadge tier={line.product.sellerTier} /></strong>
-                        <small>{t("buy.pd.shipsFromWarehouse")}</small>
+                        <small>{line.product.sellerTier === "direct" ? t("buy.pd.shipsFromWarehouse") : t("buy.pd.shipsFromShop")}</small>
                       </div>
                     </Link>
                     <span>{t("shop.visit")} ›</span>
