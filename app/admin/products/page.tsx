@@ -136,6 +136,10 @@ export default function AdminProductsPage() {
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [query, setQuery] = useState("");
   const [catalogTab, setCatalogTab] = useState<"live" | "unpublished">("live");
+  // MIVO's own shops only (sellers' products live in their Seller Centre).
+  const [myShops, setMyShops] = useState<Array<{ id: string; name: string; tier: string | null }>>([]);
+  const [shopFilter, setShopFilter] = useState("all");
+  const [bulkStatusBusy, setBulkStatusBusy] = useState(false);
   const [liveTab, setLiveTab] = useState<"all" | "restock">("all");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
@@ -205,16 +209,35 @@ export default function AdminProductsPage() {
           return;
         }
 
+        // MIVO's shops: the ones this account owns, plus MIVO Direct.
+        const [{ data: owned }, { data: direct }] = await Promise.all([
+          supabase.rpc("seller_my_shops"),
+          supabase.from("sellers").select("id, shop_name, tier").eq("tier", "direct"),
+        ]);
+        const shopMap = new Map<string, { id: string; name: string; tier: string | null }>();
+        for (const row of [
+          ...(((direct as Array<{ id: string; shop_name: string; tier: string | null }> | null) || [])),
+          ...(((owned as Array<{ id: string; shop_name: string; tier: string | null }> | null) || [])),
+        ]) {
+          shopMap.set(row.id, { id: row.id, name: row.shop_name, tier: row.tier });
+        }
+        const shopList = Array.from(shopMap.values()).sort(
+          (a, b) => Number(b.tier === "direct") - Number(a.tier === "direct") || a.name.localeCompare(b.name)
+        );
+        setMyShops(shopList);
+        const shopIds = shopList.map((shop) => shop.id);
+
         // Supabase returns at most 1000 rows per request: page through them,
         // otherwise big catalogues (e.g. a Shopee import) look incomplete.
         const all: unknown[] = [];
         let productError: { message: string } | null = null;
-        for (let from = 0; from < 50000; from += 1000) {
+        for (let from = 0; shopIds.length && from < 50000; from += 1000) {
           const page = await supabase
             .from("products")
             .select(
               "id, seller_id, name, slug, status, short_description, description, primary_image_url, created_at, brands(name), product_images(id, image_url, sort_order), product_variants(id, sort_order, title, variation_1_value, variation_2_value, sku, price, stock_on_hand, stock_reserved, low_stock_threshold, weight_kg, length_cm, width_cm, height_cm)"
             )
+            .in("seller_id", shopIds)
             .order("created_at", { ascending: false })
             .order("id")
             .range(from, from + 999);
@@ -294,10 +317,21 @@ export default function AdminProductsPage() {
     [products]
   );
 
+  const shopCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const product of products) {
+      const inTab = catalogTab === "live" ? product.status === "active" : product.status !== "active";
+      if (inTab) counts.set(product.seller_id, (counts.get(product.seller_id) || 0) + 1);
+    }
+    return counts;
+  }, [products, catalogTab]);
+  const shopName = (id: string) => myShops.find((shop) => shop.id === id)?.name || "";
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
 
     return products.filter((product) => {
+      if (shopFilter !== "all" && product.seller_id !== shopFilter) return false;
       const variants = product.product_variants || [];
       const matchesQuery =
         !q ||
@@ -329,7 +363,42 @@ export default function AdminProductsPage() {
 
       return matchesQuery && matchesMainTab && matchesLiveTab;
     });
-  }, [products, query, catalogTab, liveTab]);
+  }, [products, query, catalogTab, liveTab, shopFilter]);
+
+  // Publish / delist many at once (the server checks the shops are yours).
+  async function bulkSetStatus(nextStatus: "active" | "inactive") {
+    const ids = filtered.filter((p) => selectedProductIds.has(p.id)).map((p) => p.id);
+    if (!ids.length) return;
+    if (
+      !window.confirm(
+        nextStatus === "active"
+          ? "Publish " + ids.length + " product(s)? Buyers will see them right away."
+          : "Unpublish " + ids.length + " product(s)? Buyers will no longer see them."
+      )
+    ) return;
+    setBulkStatusBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      const response = await fetch("/api/admin/products/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids, status: nextStatus }),
+      });
+      const result = (await response.json().catch(() => ({}))) as { changed?: number; error?: string };
+      if (!response.ok) throw new Error(result.error || "Could not update products.");
+      const idSet = new Set(ids);
+      setProducts((current) => current.map((item) => (idSet.has(item.id) ? { ...item, status: nextStatus } : item)));
+      setSelectedProductIds(new Set());
+      setMessage(
+        (result.changed ?? ids.length) + " product(s) " + (nextStatus === "active" ? "published." : "unpublished.")
+      );
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not update products.");
+    } finally {
+      setBulkStatusBusy(false);
+    }
+  }
 
   function toggleProductSelection(productId: string) {
     setSelectedProductIds((current) => {
@@ -1069,18 +1138,13 @@ export default function AdminProductsPage() {
     setMessage("");
 
     try {
-      const supabase = createClient();
-      const { error: updateError } = await supabase
-        .from("products")
-        .update({
-          status: nextStatus,
-          ...(nextStatus === "active"
-            ? { published_at: new Date().toISOString() }
-            : {}),
-        })
-        .eq("id", product.id);
-
-      if (updateError) throw updateError;
+      const response = await fetch("/api/admin/products/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [product.id], status: nextStatus }),
+      });
+      const result = (await response.json().catch(() => ({}))) as { error?: string };
+      if (!response.ok) throw new Error(result.error || "Unable to " + verb + " product.");
 
       setProducts((current) =>
         current.map((item) =>
@@ -1114,17 +1178,13 @@ export default function AdminProductsPage() {
     setMessage("");
 
     try {
-      const supabase = createClient();
-      const { error: updateError } = await supabase
-        .from("products")
-        .update({
-          status: "active",
-          published_at: new Date().toISOString(),
-        })
-        .eq("id", product.id)
-        .eq("status", "draft");
-
-      if (updateError) throw updateError;
+      const response = await fetch("/api/admin/products/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [product.id], status: "active" }),
+      });
+      const result = (await response.json().catch(() => ({}))) as { error?: string };
+      if (!response.ok) throw new Error(result.error || "Unable to publish draft product.");
 
       setProducts((current) =>
         current.map((item) =>
@@ -1316,6 +1376,24 @@ export default function AdminProductsPage() {
               </div>
             ) : null}
 
+            {myShops.length > 1 ? (
+              <div className={styles.productLiveSubTabs} style={{ flexWrap: "wrap" }}>
+                <button type="button" className={shopFilter === "all" ? styles.active : ""} onClick={() => setShopFilter("all")}>
+                  All my shops ({Array.from(shopCounts.values()).reduce((a, b) => a + b, 0)})
+                </button>
+                {myShops.map((shop) => (
+                  <button
+                    type="button"
+                    key={shop.id}
+                    className={shopFilter === shop.id ? styles.active : ""}
+                    onClick={() => setShopFilter(shop.id)}
+                  >
+                    {shop.name} ({shopCounts.get(shop.id) || 0})
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
             <div className={styles.productCatalogueSearch}>
               <label className={styles.adminField}>
                 <span>Search</span>
@@ -1345,6 +1423,26 @@ export default function AdminProductsPage() {
                 {selectedProductIds.size} PRODUCT
                 {selectedProductIds.size === 1 ? "" : "S"} SELECTED
               </span>
+
+              {catalogTab === "unpublished" ? (
+                <button
+                  type="button"
+                  className={styles.productBulkPrimary}
+                  disabled={selectedProductIds.size === 0 || bulkStatusBusy}
+                  onClick={() => void bulkSetStatus("active")}
+                >
+                  {bulkStatusBusy ? "Publishing…" : "Publish selected"}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className={styles.productBulkSecondary}
+                  disabled={selectedProductIds.size === 0 || bulkStatusBusy}
+                  onClick={() => void bulkSetStatus("inactive")}
+                >
+                  {bulkStatusBusy ? "Saving…" : "Unpublish selected"}
+                </button>
+              )}
 
               <button
                 type="button"
@@ -1430,6 +1528,11 @@ export default function AdminProductsPage() {
 
                                 <div>
                                   <strong>{product.name}</strong>
+                                  {myShops.length > 1 ? (
+                                    <small style={{ display: "block", color: "#0a6cdf", fontSize: 12, fontWeight: 600 }}>
+                                      {shopName(product.seller_id)}
+                                    </small>
+                                  ) : null}
                                   <button
                                     type="button"
                                     className={styles.variantExpandButton}
