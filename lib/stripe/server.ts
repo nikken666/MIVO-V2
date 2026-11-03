@@ -7,9 +7,15 @@ type StripeRequestOptions = {
 };
 
 export function getStripeSecretKey() {
-  const key = process.env.STRIPE_SECRET_KEY;
+  const key = (process.env.STRIPE_SECRET_KEY || "").trim();
   if (!key) {
-    throw new Error("Stripe is not configured yet.");
+    // Say which deployment is missing it, so it's clear where to add it in Vercel.
+    const env = process.env.VERCEL_ENV || "local";
+    const host = process.env.VERCEL_URL || "";
+    throw new Error(
+      "Stripe is not configured yet: STRIPE_SECRET_KEY is missing in this " + env + " deployment" +
+        (host ? " (" + host + ")" : "") + ". Add it in Vercel with " + env + " ticked, then redeploy."
+    );
   }
   return key;
 }
