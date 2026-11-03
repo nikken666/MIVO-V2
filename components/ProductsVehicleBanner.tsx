@@ -2,23 +2,24 @@
 
 import { useState } from "react";
 import ProductVehicleSelector from "@/components/ProductVehicleSelector";
+import { useT } from "@/components/LanguageProvider";
 
 export default function ProductsVehicleBanner({
   label,
 }: {
   label: string;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
 
   return (
     <>
       <div className="selectedVehicleBanner vehicleMatchBanner">
         <div>
-          <span>Your MIVO vehicle</span>
+          <span>{t("browse.vehicle.yours")}</span>
           <strong>{label}</strong>
           <small>
-            Confirmed matches are shown first. Products without verified fitment
-            data remain clearly marked instead of being guessed.
+            {t("browse.vehicle.note")}
           </small>
         </div>
 
@@ -27,7 +28,7 @@ export default function ProductsVehicleBanner({
           className="vehicleQuickChangeButton"
           onClick={() => setOpen(true)}
         >
-          Change vehicle
+          {t("browse.changeVehicle")}
         </button>
       </div>
 

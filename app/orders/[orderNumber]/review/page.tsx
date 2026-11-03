@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import ReviewCelebration from "@/components/orders/ReviewCelebration";
 import { FormEvent, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useT } from "@/components/LanguageProvider";
+import { friendlyError } from "@/lib/i18n/errors";
 
 type OrderRow = {
   id: string;
@@ -38,9 +41,18 @@ type ReviewPhotoDraft = {
   preview: string;
 };
 
+// Same masking as supabase/review-names.sql: "Ali Buyer" → "A****r".
+function maskName(name: string) {
+  const value = name.trim();
+  if (!value) return "M****r";
+  if (value.length <= 2) return value.slice(0, 1) + "*";
+  return value.slice(0, 1) + "*".repeat(Math.min(value.length - 2, 4)) + value.slice(-1);
+}
+
 export default function OrderReviewPage() {
   const params = useParams();
   const router = useRouter();
+  const t = useT();
   const orderNumber = String(params.orderNumber || "");
 
   const [order, setOrder] = useState<OrderRow | null>(null);
@@ -54,6 +66,9 @@ export default function OrderReviewPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  // Show a masked name ("A****r") instead of the customer's name.
+  const [anonymous, setAnonymous] = useState(true);
+  const [customerName, setCustomerName] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -74,6 +89,18 @@ export default function OrderReviewPage() {
           return;
         }
 
+        void supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", user.id)
+          .maybeSingle()
+          .then(({ data: profile }) =>
+            setCustomerName(
+              (profile as { full_name?: string | null } | null)?.full_name ||
+                (user.email || "").split("@")[0]
+            )
+          );
+
         const { data: orderData, error: orderError } = await supabase
           .from("orders")
           .select("id, order_number, status")
@@ -82,7 +109,7 @@ export default function OrderReviewPage() {
           .maybeSingle();
 
         if (orderError || !orderData) {
-          throw orderError || new Error("Order not found.");
+          throw orderError || new Error(t("account.detail.notFound"));
         }
 
         if (orderData.status !== "delivered") {
@@ -209,9 +236,7 @@ export default function OrderReviewPage() {
       } catch (caught) {
         if (!active) return;
         setError(
-          caught instanceof Error
-            ? caught.message
-            : "Unable to load review page."
+          friendlyError(caught, t, "account.review.loadError")
         );
       } finally {
         if (active) setLoading(false);
@@ -255,7 +280,7 @@ export default function OrderReviewPage() {
     const available = Math.max(0, 5 - currentSaved - currentLocal);
 
     if (available < 1) {
-      setError("You can upload up to 5 photos per product.");
+      setError(t("account.review.maxPhotos"));
       return;
     }
 
@@ -268,12 +293,12 @@ export default function OrderReviewPage() {
 
     for (const file of incoming) {
       if (!allowedTypes.has(file.type)) {
-        setError("Only JPG, PNG and WEBP photos are allowed.");
+        setError(t("account.review.photoType"));
         return;
       }
 
       if (file.size > 5 * 1024 * 1024) {
-        setError("Each photo must be 5MB or smaller.");
+        setError(t("account.review.photoSize"));
         return;
       }
     }
@@ -333,7 +358,7 @@ export default function OrderReviewPage() {
     );
 
     if (unrated) {
-      setError("Please rate every item before submitting.");
+      setError(t("account.review.rateAll"));
       return;
     }
 
@@ -348,7 +373,7 @@ export default function OrderReviewPage() {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) throw new Error("Your session has expired.");
+      if (!user) throw new Error(t("account.review.sessionExpired"));
 
       const uploadedByItem: Record<string, string[]> = {};
 
@@ -379,7 +404,7 @@ export default function OrderReviewPage() {
         };
 
         if (!response.ok) {
-          throw new Error(result.error || "Unable to upload review photos.");
+          throw new Error(result.error || t("account.review.uploadError"));
         }
 
         uploadedByItem[item.id] = result.urls || [];
@@ -399,9 +424,18 @@ export default function OrderReviewPage() {
         updated_at: new Date().toISOString(),
       }));
 
-      const { error: reviewError } = await supabase
+      let { error: reviewError } = await supabase
         .from("product_reviews")
-        .upsert(payload, { onConflict: "order_item_id" });
+        .upsert(
+          payload.map((row) => ({ ...row, is_anonymous: anonymous })),
+          { onConflict: "order_item_id" }
+        );
+      // Before supabase/review-names.sql runs there is no is_anonymous column.
+      if (reviewError && /is_anonymous/.test(reviewError.message)) {
+        ({ error: reviewError } = await supabase
+          .from("product_reviews")
+          .upsert(payload, { onConflict: "order_item_id" }));
+      }
 
       if (reviewError) throw reviewError;
 
@@ -426,9 +460,7 @@ export default function OrderReviewPage() {
       setSubmitted(true);
     } catch (caught) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : "Unable to save your ratings."
+        friendlyError(caught, t, "account.review.saveError")
       );
     } finally {
       setBusy(false);
@@ -439,7 +471,7 @@ export default function OrderReviewPage() {
     return (
       <main className="accountDataPage">
         <div className="container">
-          <p className="accountDataNotice">Loading rating form...</p>
+          <p className="accountDataNotice">{t("account.review.loading")}</p>
         </div>
       </main>
     );
@@ -450,9 +482,9 @@ export default function OrderReviewPage() {
       <main className="accountDataPage">
         <div className="container">
           <div className="ordersEmpty">
-            <strong>Unable to rate this order.</strong>
+            <strong>{t("account.review.cannotRate")}</strong>
             <p>{error}</p>
-            <Link href="/orders">BACK TO MY ORDERS →</Link>
+            <Link href="/orders">{t("account.detail.backToOrders")} →</Link>
           </div>
         </div>
       </main>
@@ -460,20 +492,21 @@ export default function OrderReviewPage() {
   }
 
   if (submitted && order) {
+    const rated = Object.values(drafts).map((draft) => draft.rating).filter((n) => n > 0);
+    const averageStars = rated.length ? Math.round(rated.reduce((a, b) => a + b, 0) / rated.length) : 0;
     return (
       <main className="accountDataPage reviewOrderPage reviewThanksPage">
         <div className="container">
           <section className="reviewThanksCard">
-            <div className="reviewThanksIcon">✓</div>
-            <span>REVIEW SUBMITTED</span>
-            <h1>Thank You for Your Review</h1>
+            <ReviewCelebration stars={averageStars} />
+            <span>{t("account.review.submitted")}</span>
+            <h1>{t("account.review.thanksTitle")}</h1>
             <p>
-              Your feedback has been saved successfully. Thank you for helping
-              other MIVO customers shop with more confidence.
+              {t("account.review.thanksText")}
             </p>
 
             <div className="reviewThanksOrder">
-              <span>ORDER</span>
+              <span>{t("account.orders.order")}</span>
               <strong>{order.order_number}</strong>
             </div>
 
@@ -484,10 +517,10 @@ export default function OrderReviewPage() {
                 }
                 className="orderPrimaryButton"
               >
-                BACK TO ORDER
+                {t("account.receipt.backToOrder")}
               </Link>
               <Link href="/products" className="orderGhostButton">
-                CONTINUE SHOPPING
+                {t("account.common.continueShopping")}
               </Link>
             </div>
           </section>
@@ -501,18 +534,17 @@ export default function OrderReviewPage() {
       <div className="container">
         <div className="accountDataHeader">
           <div>
-            <span>MIVO ACCOUNT</span>
-            <h1>Rate Your Order</h1>
+            <span>{t("account.common.mivoAccount")}</span>
+            <h1>{t("account.review.title")}</h1>
             <p>
-              Order {order?.order_number} · Your feedback helps improve the
-              MIVO shopping experience.
+              {t("account.review.subtitle", { n: order?.order_number ?? "" })}
             </p>
           </div>
 
           <Link
             href={"/orders/" + encodeURIComponent(orderNumber)}
           >
-            ← ORDER DETAILS
+            ← {t("account.receipt.orderDetails")}
           </Link>
         </div>
 
@@ -541,12 +573,12 @@ export default function OrderReviewPage() {
                   </div>
                   <div>
                     <strong>{item.product_name}</strong>
-                    <small>{item.variant_name || "Default"}</small>
+                    <small>{item.variant_name || t("account.common.defaultVariant")}</small>
                   </div>
                 </div>
 
                 <div className="reviewStars">
-                  <span>PRODUCT RATING</span>
+                  <span>{t("account.review.productRating")}</span>
                   <div>
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
@@ -556,7 +588,7 @@ export default function OrderReviewPage() {
                           star <= draft.rating ? "active" : ""
                         }
                         onClick={() => setRating(item.id, star)}
-                        aria-label={star + " star rating"}
+                        aria-label={t("account.review.starLabel", { n: star })}
                       >
                         ★
                       </button>
@@ -564,16 +596,16 @@ export default function OrderReviewPage() {
                   </div>
                   <small>
                     {draft.rating === 5
-                      ? "Excellent"
+                      ? t("account.review.rating5")
                       : draft.rating === 4
-                        ? "Good"
+                        ? t("account.review.rating4")
                         : draft.rating === 3
-                          ? "Okay"
+                          ? t("account.review.rating3")
                           : draft.rating === 2
-                            ? "Could be better"
+                            ? t("account.review.rating2")
                             : draft.rating === 1
-                              ? "Poor"
-                              : "Tap a star to rate"}
+                              ? t("account.review.rating1")
+                              : t("account.review.tapStar")}
                   </small>
                 </div>
 
@@ -581,8 +613,8 @@ export default function OrderReviewPage() {
                   <div className="reviewPhotoUpload">
                     <div className="reviewPhotoUploadHead">
                       <div>
-                        <span>ADD PHOTOS</span>
-                        <small>Show other buyers what you received</small>
+                        <span>{t("account.review.addPhotos")}</span>
+                        <small>{t("account.review.addPhotosHint")}</small>
                       </div>
                       <b>{photoCount} / 5</b>
                     </div>
@@ -592,13 +624,13 @@ export default function OrderReviewPage() {
                         <div className="reviewPhotoGrid">
                           {draft.imageUrls.map((url) => (
                             <div className="reviewPhotoThumb" key={url}>
-                              <img src={url} alt="Review upload" />
+                              <img src={url} alt={t("account.review.photoAlt")} />
                               <button
                                 type="button"
                                 onClick={() =>
                                   removeSavedPhoto(item.id, url)
                                 }
-                                aria-label="Remove saved review photo"
+                                aria-label={t("account.review.removeSaved")}
                               >
                                 ×
                               </button>
@@ -612,14 +644,14 @@ export default function OrderReviewPage() {
                             >
                               <img
                                 src={photo.preview}
-                                alt="Selected review upload"
+                                alt={t("account.review.selectedAlt")}
                               />
                               <button
                                 type="button"
                                 onClick={() =>
                                   removeLocalPhoto(item.id, photoIndex)
                                 }
-                                aria-label="Remove selected review photo"
+                                aria-label={t("account.review.removeSelected")}
                               >
                                 ×
                               </button>
@@ -640,26 +672,26 @@ export default function OrderReviewPage() {
                             }}
                           />
                           <b>＋</b>
-                          <span>ADD PHOTOS</span>
-                          <small>{5 - photoCount} remaining</small>
+                          <span>{t("account.review.addPhotos")}</span>
+                          <small>{t("account.review.remaining", { n: 5 - photoCount })}</small>
                         </label>
                       ) : null}
                     </div>
 
                     <small className="reviewPhotoHint">
-                      JPG, PNG or WEBP · Max 5MB each
+                      {t("account.review.photoHint")}
                     </small>
                   </div>
 
                   <label className="reviewComment">
-                    <span>COMMENTS</span>
+                    <span>{t("account.review.comments")}</span>
                     <textarea
                       rows={4}
                       value={draft.comment}
                       onChange={(event) =>
                         setComment(item.id, event.target.value)
                       }
-                      placeholder="Share more about the product quality, fitment and your experience."
+                      placeholder={t("account.review.commentPlaceholder")}
                     />
                   </label>
                 </div>
@@ -672,9 +704,25 @@ export default function OrderReviewPage() {
           ) : null}
           {error ? <p className="accountDataError">{error}</p> : null}
 
+          <label className="reviewAnonymous">
+            <input
+              type="checkbox"
+              checked={anonymous}
+              onChange={(event) => setAnonymous(event.target.checked)}
+            />
+            <span>
+              <strong>{t("account.review.anonymous")}</strong>
+              <small>
+                {anonymous
+                  ? t("account.review.anonymousOn", { name: maskName(customerName) })
+                  : t("account.review.anonymousOff", { name: customerName || t("buy.pd.customer") })}
+              </small>
+            </span>
+          </label>
+
           <div className="reviewOrderActions">
             <Link href="/orders" className="orderGhostButton">
-              BACK TO ORDERS
+              {t("account.detail.backToOrders")}
             </Link>
 
             <button
@@ -682,7 +730,8 @@ export default function OrderReviewPage() {
               className="orderPrimaryButton"
               disabled={busy || items.length === 0}
             >
-              {busy ? "SAVING..." : "SUBMIT RATING"}
+              {busy ? t("account.review.saving") : t("account.review.submit")}
+
             </button>
           </div>
         </form>

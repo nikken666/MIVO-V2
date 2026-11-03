@@ -3,10 +3,12 @@ export const dynamic = "force-dynamic";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import ChatNowButton from "@/components/chat/ChatNowButton";
 import ProductCard from "@/components/ProductCard";
 import ShopBadge from "@/components/ShopBadge";
 import { getActiveProducts } from "@/lib/catalog";
 import { getShop } from "@/lib/shops";
+import { getT } from "@/lib/i18n/server";
 
 export async function generateMetadata({
   params,
@@ -16,9 +18,10 @@ export async function generateMetadata({
   const { slug } = await params;
   const shop = await getShop(decodeURIComponent(slug));
   if (!shop) return {};
+  const t = await getT();
   return {
     title: shop.name + " | MIVO",
-    description: shop.tagline || shop.description || shop.name + " on MIVO.",
+    description: shop.tagline || shop.description || t("browse.shop.metaDesc", { shop: shop.name }),
   };
 }
 
@@ -31,6 +34,7 @@ export default async function ShopPage({
 }) {
   const { slug } = await params;
   const query = await searchParams;
+  const t = await getT();
   const shop = await getShop(decodeURIComponent(slug));
   if (!shop) notFound();
 
@@ -60,23 +64,26 @@ export default async function ShopPage({
             <h1>
               {shop.name} <ShopBadge tier={shop.tier} size="md" />
             </h1>
-            <p>{shop.tagline || shop.description || "Ships from the MIVO warehouse."}</p>
+            <p>{shop.tagline || shop.description || t("browse.shop.heroFallback")}</p>
             <div className="shopPageStats">
-              <span><b>{all.length}</b> products</span>
-              <span><b>{categories.length}</b> categories</span>
-              <span>Ships from MIVO warehouse</span>
+              <span><b>{all.length}</b> {t("browse.shop.products")}</span>
+              <span><b>{categories.length}</b> {t("browse.shop.categories")}</span>
+              <span>{shop.tier === "direct" ? t("browse.shop.shipsFrom") : t("browse.shop.shipsOwn")}</span>
+            </div>
+            <div className="shopPageActions">
+              <ChatNowButton sellerId={shop.id} />
             </div>
           </div>
           <form className="shopPageSearch" action={base}>
-            <input name="q" defaultValue={q} placeholder={"Search in " + shop.name} />
-            <button type="submit">Search</button>
+            <input name="q" defaultValue={q} placeholder={t("browse.shop.searchIn", { shop: shop.name })} />
+            <button type="submit">{t("browse.search")}</button>
           </form>
         </div>
       </section>
 
       <div className="container shopPageBody">
-        <nav className="shopChips" aria-label="Shop categories">
-          <Link href={base} className={"shopChip" + (!activeCategory ? " active" : "")}>All</Link>
+        <nav className="shopChips" aria-label={t("browse.shop.categoriesAria")}>
+          <Link href={base} className={"shopChip" + (!activeCategory ? " active" : "")}>{t("browse.shop.all")}</Link>
           {categories.map((category) => (
             <Link
               key={category}
@@ -95,7 +102,7 @@ export default async function ShopPage({
             ))}
           </div>
         ) : (
-          <p className="shopsEmpty">No products match in this shop yet.</p>
+          <p className="shopsEmpty">{t("browse.shop.empty")}</p>
         )}
       </div>
     </main>

@@ -1,8 +1,10 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
 import ui from "./StoreHealth.module.css";
+import AdminSidebar from "@/components/admin/AdminSidebar";
 
 type Product={id:string;name:string;status:string;is_universal_fitment:boolean;primary_image_url:string|null;description:string|null;category_id:string|null;brand_id:string|null};
 type Variant={id:string;product_id:string;sku:string;title:string;price:number;stock_on_hand:number;stock_reserved:number;weight_kg:number;length_cm:number;width_cm:number;height_cm:number;variant_image_url:string|null;is_active:boolean};
@@ -28,7 +30,7 @@ export default function StoreHealth(){
    if(!user){window.location.assign("/login?next=/admin/store-health");return;}
    const {data:isAdmin,error:adminError}=await client.rpc("is_admin");
    if(adminError)throw adminError;
-   if(!isAdmin){window.location.assign("/admin");return;}
+   if(!isAdmin){leaveBackOffice();return;}
    async function pages<T>(table:string,cols:string):Promise<T[]>{
     const arr:T[]=[];
     for(let from=0;;from+=BATCH){
@@ -106,15 +108,15 @@ export default function StoreHealth(){
   const a=document.createElement("a");a.href=url;a.download="mivo-store-health.csv";a.click();URL.revokeObjectURL(url);
  }
  return <main className={styles.adminShell}><div className={styles.adminWorkspace}>
-  <aside className={styles.adminSidebar}><a href="/admin" className={styles.adminBrand}><span>MIVO</span><small>STORE CONTROL</small></a><nav className={styles.adminSideNav}><a href="/admin">Dashboard</a><a href="/admin/orders">Orders</a><a href="/admin/products">Products</a><a href="/admin/store-health" className={styles.active}>Store Health</a><a href="/admin/products/unmatched">Unmatched SKU</a></nav></aside>
+  <AdminSidebar />
   <section className={styles.adminContent}>
-   <header className={styles.adminHeader}><div><span className={styles.adminEyebrow}>MIVO STORE CONTROL · CATALOGUE QUALITY</span><h1>Store Health</h1><p>Monitor vehicle matching, missing images, stock and product data.</p></div><a className={styles.adminAction} href="/admin/products">ALL PRODUCTS</a></header>
+   <header className={styles.adminHeader}><div><span className={styles.adminEyebrow}>MIVO store control · Catalogue quality</span><h1>Store Health</h1><p>Monitor vehicle matching, missing images, stock and product data.</p></div><a className={styles.adminAction} href="/admin/products">All products</a></header>
    <section className={styles.adminPanel}>
     <div className={ui.cards}>{categories.map(t=><button type="button" key={t.key} className={ui.card+(tab===t.key?" "+ui.selected:"")} onClick={()=>setTab(tab===t.key?"all":t.key)}><small>{t.title}</small><strong>{loading?"—":issues.filter(x=>x.category===t.key).length}</strong><span>View affected entries</span></button>)}</div>
-    <div className={ui.toolbar}><label className={styles.adminField}><span>SEARCH PRODUCT / SKU</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Product name or SKU"/></label><label className={styles.adminField}><span>STATUS</span><select value={scope} onChange={e=>setScope(e.target.value)}><option value="all">All products</option><option value="active">Live only</option><option value="unpublished">Unpublished only</option></select></label><button type="button" onClick={()=>void refresh()} disabled={loading}>REFRESH</button><button type="button" onClick={csv} disabled={loading||!filtered.length}>EXPORT CSV</button></div>
+    <div className={ui.toolbar}><label className={styles.adminField}><span>Search product / SKU</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Product name or SKU"/></label><label className={styles.adminField}><span>Status</span><select value={scope} onChange={e=>setScope(e.target.value)}><option value="all">All products</option><option value="active">Live only</option><option value="unpublished">Unpublished only</option></select></label><button type="button" onClick={()=>void refresh()} disabled={loading}>Refresh</button><button type="button" onClick={csv} disabled={loading||!filtered.length}>Export CSV</button></div>
     {checkedAt&&<p className={ui.timestamp}>Last checked: {checkedAt} · {filtered.length} entries shown</p>}
     {error&&<p role="alert">{error}</p>}
-    {loading?<p>Checking SKU, products, image URLs and compatibility...</p>:<div className={ui.tableWrap}><table className={ui.table}><thead><tr><th>ISSUE</th><th>PRODUCT</th><th>SKU</th><th>DETAIL</th><th>ACTION</th></tr></thead><tbody>{filtered.map(x=><tr key={x.key}><td>{categories.find(t=>t.key===x.category)?.title}</td><td>{x.product}</td><td>{x.sku}</td><td>{x.reason}</td><td><a href={"/admin/products/"+x.productId+"/edit"+(x.category==="fitment"?"#fitment":"")}>FIX PRODUCT</a></td></tr>)}</tbody></table>{filtered.length===0&&<p className={ui.timestamp}>No matching issues found.</p>}</div>}
+    {loading?<p>Checking SKU, products, image URLs and compatibility...</p>:<div className={ui.tableWrap}><table className={ui.table}><thead><tr><th>Issue</th><th>Product</th><th>SKU</th><th>Detail</th><th>Action</th></tr></thead><tbody>{filtered.map(x=><tr key={x.key}><td>{categories.find(t=>t.key===x.category)?.title}</td><td>{x.product}</td><td>{x.sku}</td><td>{x.reason}</td><td><a href={"/admin/products/"+x.productId+"/edit"+(x.category==="fitment"?"#fitment":"")}>Fix product</a></td></tr>)}</tbody></table>{filtered.length===0&&<p className={ui.timestamp}>No matching issues found.</p>}</div>}
    </section>
   </section>
  </div></main>;

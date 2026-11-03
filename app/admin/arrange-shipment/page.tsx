@@ -1,12 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { COURIERS } from "@/lib/couriers";
+import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
+import { chargeBeforeShipping } from "@/lib/adminPayments";
+import AdminSidebar from "@/components/admin/AdminSidebar";
 
 type OrderItemRow = {
   id: string;
   order_id: string;
+  seller_order_id: string | null;
   product_name: string;
   sku: string;
   quantity: number;
@@ -21,6 +26,8 @@ type ProfileRow = {
 type SellerOrderRow = {
   id: string;
   order_id: string;
+  seller_id: string | null;
+  status: string;
 };
 
 type ShipmentRow = {
@@ -50,7 +57,25 @@ type OrderView = OrderRow & {
   items: OrderItemRow[];
   customer?: ProfileRow;
   shipment?: ShipmentRow;
+  shopCount: number;
+  // One row per order, or per shop parcel when an order spans several shops.
+  key: string;
+  parcelId?: string;
+  // Courier the buyer chose and paid for (supabase/checkout-per-shop.sql).
+  buyerCourier?: string | null;
+  shopName?: string;
+  parcelIndex?: number;
 };
+
+const fulfilmentSteps = ["paid", "processing", "packed", "shipped", "delivered"];
+
+function describeError(caught: unknown, fallback: string) {
+  const text =
+    (caught as { message?: string } | null)?.message || fallback;
+  return /admin_(arrange_shop_shipments|update_shop_fulfilment)/.test(text)
+    ? "Run supabase/per-shop-fulfilment.sql in Supabase to ship multi-shop orders per shop."
+    : text;
+}
 
 type PageTab = "ready" | "arranged";
 
@@ -84,6 +109,7 @@ function isArranged(order: OrderView) {
 
 function courierName(order: OrderView) {
   return (
+    order.buyerCourier ||
     order.shipment?.courier_name ||
     order.shipping_address?.shipping_courier_name ||
     "Courier from checkout"
@@ -154,7 +180,7 @@ export default function ArrangeShipmentPage() {
     if (adminError) throw adminError;
 
     if (!isAdmin) {
-      window.location.href = "/";
+      leaveBackOffice();
       return;
     }
 
@@ -186,15 +212,16 @@ export default function ArrangeShipmentPage() {
         orderIds.length
           ? supabase
               .from("order_items")
-              .select("id, order_id, product_name, sku, quantity")
+              .select("id, order_id, seller_order_id, product_name, sku, quantity")
               .in("order_id", orderIds)
               .order("created_at")
           : Promise.resolve({ data: [], error: null }),
         orderIds.length
           ? supabase
               .from("seller_orders")
-              .select("id, order_id")
+              .select("id, order_id, seller_id, status")
               .in("order_id", orderIds)
+              .order("created_at")
           : Promise.resolve({ data: [], error: null }),
       ]);
 
@@ -228,6 +255,20 @@ export default function ArrangeShipmentPage() {
       (sellerOrderResult.data as SellerOrderRow[] | null) || [];
     const sellerOrderIds = sellerOrders.map((row) => row.id);
 
+    // Buyer's courier per parcel; absent until checkout-per-shop.sql has run.
+    const buyerCouriers = new Map<string, string>();
+    if (sellerOrderIds.length) {
+      const { data: chosen, error: chosenError } = await supabase
+        .from("seller_orders")
+        .select("id, buyer_courier_name")
+        .in("id", sellerOrderIds);
+      if (!chosenError) {
+        for (const row of (chosen as Array<{ id: string; buyer_courier_name: string | null }> | null) || []) {
+          if (row.buyer_courier_name) buyerCouriers.set(row.id, row.buyer_courier_name);
+        }
+      }
+    }
+
     const shipmentResult = sellerOrderIds.length
       ? await supabase
           .from("shipments")
@@ -239,30 +280,74 @@ export default function ArrangeShipmentPage() {
 
     if (shipmentResult.error) throw shipmentResult.error;
 
-    const sellerOrderByOrder = new Map(
-      sellerOrders.map((row) => [row.order_id, row.id])
+    const sellerIds = Array.from(
+      new Set(
+        sellerOrders
+          .map((row) => row.seller_id)
+          .filter((value): value is string => Boolean(value))
+      )
     );
-    const shipmentBySellerOrder = new Map(
-      ((shipmentResult.data as ShipmentRow[] | null) || []).map((row) => [
-        row.seller_order_id,
-        row,
-      ])
+    const shopResult = sellerIds.length
+      ? await supabase.from("sellers").select("id, shop_name").in("id", sellerIds)
+      : { data: [], error: null };
+    const shopNames = new Map(
+      (
+        (shopResult.data as Array<{ id: string; shop_name: string }> | null) ||
+        []
+      ).map((row) => [row.id, row.shop_name])
     );
 
-    setOrders(
-      baseOrders.map((order) => {
-        const sellerOrderId = sellerOrderByOrder.get(order.id);
+    const sellerOrdersByOrder = new Map<string, SellerOrderRow[]>();
+    sellerOrders.forEach((row) => {
+      const rows = sellerOrdersByOrder.get(row.order_id) || [];
+      rows.push(row);
+      sellerOrdersByOrder.set(row.order_id, rows);
+    });
+    const shipmentBySellerOrder = new Map<string, ShipmentRow>();
+    ((shipmentResult.data as ShipmentRow[] | null) || []).forEach((row) => {
+      if (!shipmentBySellerOrder.has(row.seller_order_id)) {
+        shipmentBySellerOrder.set(row.seller_order_id, row);
+      }
+    });
 
-        return {
-          ...order,
-          items: itemsByOrder.get(order.id) || [],
-          customer: profiles.get(order.user_id),
-          shipment: sellerOrderId
-            ? shipmentBySellerOrder.get(sellerOrderId)
-            : undefined,
-        };
-      })
-    );
+    const rows: OrderView[] = [];
+    baseOrders.forEach((order) => {
+      const items = itemsByOrder.get(order.id) || [];
+      const parcels = sellerOrdersByOrder.get(order.id) || [];
+      const base = {
+        ...order,
+        items,
+        customer: profiles.get(order.user_id),
+        shopCount: Math.max(parcels.length, 1),
+      };
+
+      if (parcels.length <= 1) {
+        rows.push({
+          ...base,
+          key: order.order_number,
+          shipment: parcels[0] ? shipmentBySellerOrder.get(parcels[0].id) : undefined,
+        });
+        return;
+      }
+
+      const parentRank = fulfilmentSteps.indexOf(order.status);
+      parcels.forEach((parcel, index) => {
+        // Parcels already shipped are done here.
+        if (Math.max(fulfilmentSteps.indexOf(parcel.status), parentRank) >= 3) return;
+        rows.push({
+          ...base,
+          key: "parcel:" + parcel.id,
+          parcelId: parcel.id,
+          buyerCourier: buyerCouriers.get(parcel.id) || null,
+          parcelIndex: index + 1,
+          shopName: (parcel.seller_id && shopNames.get(parcel.seller_id)) || "MIVO shop",
+          items: items.filter((item) => item.seller_order_id === parcel.id),
+          shipment: shipmentBySellerOrder.get(parcel.id),
+        });
+      });
+    });
+
+    setOrders(rows);
   }
 
   useEffect(() => {
@@ -331,7 +416,7 @@ export default function ArrangeShipmentPage() {
   const selectable = filtered.filter((order) => !isArranged(order));
   const allVisibleSelected =
     selectable.length > 0 &&
-    selectable.every((order) => selected.includes(order.order_number));
+    selectable.every((order) => selected.includes(order.key));
 
   function toggleOrder(orderNumber: string) {
     setSelected((current) =>
@@ -342,7 +427,7 @@ export default function ArrangeShipmentPage() {
   }
 
   function toggleAllVisible() {
-    const visible = selectable.map((order) => order.order_number);
+    const visible = selectable.map((order) => order.key);
 
     setSelected((current) => {
       const allSelected = visible.every((value) => current.includes(value));
@@ -364,24 +449,48 @@ export default function ArrangeShipmentPage() {
 
     try {
       const supabase = createClient();
-      const { data, error: arrangeError } = await supabase.rpc(
-        "admin_mass_arrange_shipments",
-        {
-          p_order_numbers: selected,
-          p_arrangement_method: arrangementMethod,
-          p_pickup_date:
-            arrangementMethod === "pickup" && pickupDate
-              ? pickupDate
-              : null,
-          p_courier_name: courierOverride.trim() || null,
-        }
-      );
+      const pickup =
+        arrangementMethod === "pickup" && pickupDate ? pickupDate : null;
+      const courierName = courierOverride.trim() || null;
+      // Single-shop orders use the order-level arrangement; shop parcels
+      // of multi-shop orders are arranged one by one.
+      const orderNumbers = selected.filter((key) => !key.startsWith("parcel:"));
+      const parcelIds = selected
+        .filter((key) => key.startsWith("parcel:"))
+        .map((key) => key.slice("parcel:".length));
+      let processedCount = 0;
 
-      if (arrangeError) throw arrangeError;
+      if (orderNumbers.length) {
+        const { data, error: arrangeError } = await supabase.rpc(
+          "admin_mass_arrange_shipments",
+          {
+            p_order_numbers: orderNumbers,
+            p_arrangement_method: arrangementMethod,
+            p_pickup_date: pickup,
+            p_courier_name: courierName,
+          }
+        );
+        if (arrangeError) throw arrangeError;
+        processedCount += Number(
+          (data as { processed_count?: number } | null)?.processed_count || 0
+        );
+      }
 
-      const processedCount = Number(
-        (data as { processed_count?: number } | null)?.processed_count || 0
-      );
+      if (parcelIds.length) {
+        const { data, error: arrangeError } = await supabase.rpc(
+          "admin_arrange_shop_shipments",
+          {
+            p_seller_order_ids: parcelIds,
+            p_arrangement_method: arrangementMethod,
+            p_pickup_date: pickup,
+            p_courier_name: courierName,
+          }
+        );
+        if (arrangeError) throw arrangeError;
+        processedCount += Number(
+          (data as { processed_count?: number } | null)?.processed_count || 0
+        );
+      }
 
       await loadOrders();
       setSelected([]);
@@ -389,26 +498,23 @@ export default function ArrangeShipmentPage() {
       setTab("arranged");
       setMessage(
         processedCount +
-          " paid order" +
+          " shipment" +
           (processedCount === 1 ? "" : "s") +
-          " arranged for shipment."
+          " arranged."
       );
     } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : "Unable to arrange selected shipments."
-      );
+      setError(describeError(caught, "Unable to arrange selected shipments."));
     } finally {
       setBusy(false);
     }
   }
 
   async function markShipped(order: OrderView) {
-    const orderNumber = order.order_number;
+    const orderNumber = order.key;
     const courier = (
       courierInputs[orderNumber] ??
       order.shipment?.courier_name ??
+      order.buyerCourier ??
       ""
     ).trim();
     const tracking = (
@@ -430,28 +536,35 @@ export default function ArrangeShipmentPage() {
     setMessage("");
 
     try {
+      // Held card payments are charged at shipping.
+      await chargeBeforeShipping(order.order_number, order.parcelId || null);
       const supabase = createClient();
-      const { error: shipError } = await supabase.rpc(
-        "admin_update_order_fulfilment",
-        {
-          p_order_number: orderNumber,
-          p_status: "shipped",
-          p_courier_name: courier,
-          p_tracking_number: tracking,
-          p_tracking_url: trackingUrl || null,
-        }
-      );
+      const { error: shipError } = order.parcelId
+        ? await supabase.rpc("admin_update_shop_fulfilment", {
+            p_seller_order_id: order.parcelId,
+            p_status: "shipped",
+            p_courier_name: courier,
+            p_tracking_number: tracking,
+            p_tracking_url: trackingUrl || null,
+          })
+        : await supabase.rpc("admin_update_order_fulfilment", {
+            p_order_number: order.order_number,
+            p_status: "shipped",
+            p_courier_name: courier,
+            p_tracking_number: tracking,
+            p_tracking_url: trackingUrl || null,
+          });
 
       if (shipError) throw shipError;
 
       await loadOrders();
-      setMessage(orderNumber + " marked as SHIPPED.");
-    } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : "Unable to mark this order as shipped."
+      setMessage(
+        order.order_number +
+          (order.shopName ? " · " + order.shopName : "") +
+          " marked as SHIPPED."
       );
+    } catch (caught) {
+      setError(describeError(caught, "Unable to mark this order as shipped."));
     } finally {
       setShippingBusy("");
     }
@@ -460,35 +573,13 @@ export default function ArrangeShipmentPage() {
   return (
     <main className={styles.adminShell}>
       <div className={styles.adminWorkspace}>
-        <aside className={styles.adminSidebar}>
-          <a href="/admin" className={styles.adminBrand}>
-            <span>MIVO</span>
-            <small>STORE CONTROL</small>
-          </a>
-
-          <nav className={styles.adminSideNav}>
-            <a href="/admin"><span>01</span>Dashboard</a>
-            <a href="/admin/orders"><span>02</span>Orders</a>
-            <a href="/admin/arrange-shipment" className={styles.active}><span>03</span>Arrange Shipment</a>
-            <a href="/admin/claims"><span>04</span>Claims</a>
-            <a href="/admin/marketing"><span>05</span>Marketing Centre</a>
-            <a href="/admin/products"><span>06</span>Products</a>
-            <a href="/admin/products/new"><span>07</span>Add Product</a>
-            <a href="/admin/shipping"><span>08</span>Shipping</a>
-          </nav>
-
-          <div className={styles.adminSidebarFoot}>
-            <span>PAID ORDERS</span>
-            <strong>{counts.ready} TO ARRANGE</strong>
-            <a href="/admin/orders?tab=to_ship">OPEN TO SHIP</a>
-          </div>
-        </aside>
+        <AdminSidebar />
 
         <section className={styles.adminContent}>
           <header className={styles.adminHeader}>
             <div>
               <span className={styles.adminEyebrow}>
-                MIVO · FULFILMENT
+                MIVO · Fulfilment
               </span>
               <h1>Arrange Shipment</h1>
               <p>
@@ -499,7 +590,7 @@ export default function ArrangeShipmentPage() {
 
             <div className={styles.adminHeaderActions}>
               <div className={styles.adminAttention}>
-                <span>READY</span>
+                <span>Ready</span>
                 <strong>{loading ? "—" : counts.ready}</strong>
               </div>
             </div>
@@ -512,7 +603,7 @@ export default function ArrangeShipmentPage() {
                 className={tab === "ready" ? styles.active : ""}
                 onClick={() => setTab("ready")}
               >
-                <span>READY TO ARRANGE</span>
+                <span>Ready to arrange</span>
                 <b>{counts.ready}</b>
               </button>
               <button
@@ -520,14 +611,14 @@ export default function ArrangeShipmentPage() {
                 className={tab === "arranged" ? styles.active : ""}
                 onClick={() => setTab("arranged")}
               >
-                <span>ARRANGED</span>
+                <span>Arranged</span>
                 <b>{counts.arranged}</b>
               </button>
             </nav>
 
             <div className={styles.adminOrderToolbar}>
               <label>
-                <span>SEARCH PAID ORDERS</span>
+                <span>Search paid orders</span>
                 <input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
@@ -536,7 +627,7 @@ export default function ArrangeShipmentPage() {
               </label>
 
               <div>
-                <span>SHOWING</span>
+                <span>Showing</span>
                 <strong>
                   {loading ? "—" : filtered.length + " / " + orders.length}
                 </strong>
@@ -562,7 +653,7 @@ export default function ArrangeShipmentPage() {
                     disabled={selected.length === 0}
                     onClick={() => setModalOpen(true)}
                   >
-                    MASS ARRANGE SHIPMENT
+                    Mass arrange shipment
                   </button>
                 </div>
               </div>
@@ -592,16 +683,16 @@ export default function ArrangeShipmentPage() {
                   return (
                     <article
                       className={styles.adminOrderCard}
-                      key={order.id}
+                      key={order.key}
                     >
                       {!arranged ? (
                         <label className={styles.adminOrderBatchCheck}>
                           <input
                             type="checkbox"
-                            checked={selected.includes(order.order_number)}
-                            onChange={() => toggleOrder(order.order_number)}
+                            checked={selected.includes(order.key)}
+                            onChange={() => toggleOrder(order.key)}
                           />
-                          <span>SELECT</span>
+                          <span>Select</span>
                         </label>
                       ) : null}
 
@@ -610,8 +701,14 @@ export default function ArrangeShipmentPage() {
                         style={!arranged ? { paddingLeft: 102 } : undefined}
                       >
                         <div className={styles.adminOrderIdentity}>
-                          <span>ORDER</span>
+                          <span>Order</span>
                           <strong>{order.order_number}</strong>
+                          {order.parcelId ? (
+                            <small>
+                              Parcel {order.parcelIndex}/{order.shopCount} ·{" "}
+                              {order.shopName}
+                            </small>
+                          ) : null}
                           <small>
                             Paid{" "}
                             {order.paid_at
@@ -629,7 +726,7 @@ export default function ArrangeShipmentPage() {
                         </div>
 
                         <div className={styles.adminOrderCustomer}>
-                          <span>CUSTOMER</span>
+                          <span>Customer</span>
                           <strong>{customerName(order)}</strong>
                           <small>
                             {order.customer?.email ||
@@ -639,7 +736,7 @@ export default function ArrangeShipmentPage() {
                         </div>
 
                         <div className={styles.adminOrderItemsBrief}>
-                          <span>ITEMS</span>
+                          <span>Items</span>
                           <strong>{totalQty}</strong>
                           <small>
                             {order.items[0]?.product_name || "No item data"}
@@ -657,13 +754,13 @@ export default function ArrangeShipmentPage() {
                               ]
                             }
                           >
-                            {arranged ? "ARRANGED" : "READY"}
+                            {arranged ? "Arranged" : "Ready"}
                           </span>
                           <small>{courierName(order)}</small>
                         </div>
 
                         <div className={styles.adminOrderAmount}>
-                          <span>TOTAL</span>
+                          <span>Total</span>
                           <strong>
                             {money(Number(order.total_amount))}
                           </strong>
@@ -671,9 +768,9 @@ export default function ArrangeShipmentPage() {
                             {arranged
                               ? order.shipment?.arrangement_method ===
                                 "pickup"
-                                ? "PICKUP"
+                                ? "Pickup"
                                 : "DROP-OFF"
-                              : "PAID"}
+                              : "Paid"}
                           </small>
                         </div>
                       </div>
@@ -681,38 +778,38 @@ export default function ArrangeShipmentPage() {
                       {arranged ? (
                         <div className={styles.adminArrangedTracking}>
                           <label>
-                            <span>COURIER *</span>
+                            <span>Courier *</span>
                             <select
                               value={
-                                courierInputs[order.order_number] ??
+                                courierInputs[order.key] ??
                                 order.shipment?.courier_name ??
+                                order.buyerCourier ??
                                 ""
                               }
                               onChange={(event) =>
                                 setCourierInputs((current) => ({
                                   ...current,
-                                  [order.order_number]: event.target.value,
+                                  [order.key]: event.target.value,
                                 }))
                               }
                             >
-                              <option value="">SELECT COURIER</option>
-                              <option value="SPX Express">SPX EXPRESS</option>
-                              <option value="J&T Express">J&T EXPRESS</option>
+                              <option value="">Select courier</option>
+{COURIERS.map((name) => (<option key={name} value={name}>{name}</option>))}
                             </select>
                           </label>
 
                           <label>
-                            <span>TRACKING NUMBER *</span>
+                            <span>Tracking number *</span>
                             <input
                               value={
-                                trackingInputs[order.order_number] ??
+                                trackingInputs[order.key] ??
                                 order.shipment?.tracking_number ??
                                 ""
                               }
                               onChange={(event) =>
                                 setTrackingInputs((current) => ({
                                   ...current,
-                                  [order.order_number]: event.target.value,
+                                  [order.key]: event.target.value,
                                 }))
                               }
                               placeholder="Enter tracking number"
@@ -723,23 +820,23 @@ export default function ArrangeShipmentPage() {
                             type="button"
                             className={styles.adminAction}
                             disabled={
-                              shippingBusy === order.order_number ||
+                              shippingBusy === order.key ||
                               !(
-                                courierInputs[order.order_number] ??
+                                courierInputs[order.key] ??
                                 order.shipment?.courier_name ??
                                 ""
                               ).trim() ||
                               !(
-                                trackingInputs[order.order_number] ??
+                                trackingInputs[order.key] ??
                                 order.shipment?.tracking_number ??
                                 ""
                               ).trim()
                             }
                             onClick={() => void markShipped(order)}
                           >
-                            {shippingBusy === order.order_number
-                              ? "SAVING..."
-                              : "SAVE TRACKING & MARK SHIPPED"}
+                            {shippingBusy === order.key
+                              ? "Saving…"
+                              : "Save tracking & mark shipped"}
                           </button>
                         </div>
                       ) : null}
@@ -765,8 +862,8 @@ export default function ArrangeShipmentPage() {
           >
             <div className={styles.adminMassArrangeHeader}>
               <div>
-                <span>MIVO FULFILMENT</span>
-                <h2>MASS ARRANGE SHIPMENT</h2>
+                <span>MIVO fulfilment</span>
+                <h2>Mass arrange shipment</h2>
                 <p>
                   Arrange {selected.length} paid order
                   {selected.length === 1 ? "" : "s"} at once.
@@ -792,7 +889,7 @@ export default function ArrangeShipmentPage() {
                   }
                   onClick={() => setArrangementMethod("drop_off")}
                 >
-                  <strong>DROP-OFF</strong>
+                  <strong>Drop-off</strong>
                   <span>Pack and drop parcels at the courier point.</span>
                 </button>
 
@@ -805,14 +902,14 @@ export default function ArrangeShipmentPage() {
                   }
                   onClick={() => setArrangementMethod("pickup")}
                 >
-                  <strong>PICKUP</strong>
+                  <strong>Pickup</strong>
                   <span>Prepare parcels for courier collection.</span>
                 </button>
               </div>
 
               {arrangementMethod === "pickup" ? (
                 <label className={styles.adminMassField}>
-                  <span>PICKUP DATE *</span>
+                  <span>Pickup date *</span>
                   <input
                     type="date"
                     value={pickupDate}
@@ -823,21 +920,19 @@ export default function ArrangeShipmentPage() {
               ) : null}
 
               <label className={styles.adminMassField}>
-                <span>COURIER</span>
+                <span>Courier</span>
                 <select
                   value={courierOverride}
                   onChange={(event) =>
                     setCourierOverride(event.target.value)
                   }
                 >
-                  <option value="">USE EACH ORDER'S COURIER</option>
-                  <option value="SPX Express">SPX EXPRESS</option>
-                  <option value="J&T Express">J&T EXPRESS</option>
+                  <option value="">Use each order's courier</option>
                 </select>
               </label>
 
               <div className={styles.adminMassSummary}>
-                <span>PAID ORDERS SELECTED</span>
+                <span>Paid orders selected</span>
                 <strong>{selected.length}</strong>
                 <small>
                   Confirmed orders move to ARRANGED / PACKED.
@@ -852,7 +947,7 @@ export default function ArrangeShipmentPage() {
                 disabled={busy}
                 onClick={() => setModalOpen(false)}
               >
-                CANCEL
+                Cancel
               </button>
               <button
                 type="button"
@@ -865,7 +960,7 @@ export default function ArrangeShipmentPage() {
                 onClick={() => void arrangeSelected()}
               >
                 {busy
-                  ? "ARRANGING..."
+                  ? "Arranging…"
                   : "CONFIRM " +
                     selected.length +
                     " SHIPMENT" +

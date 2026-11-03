@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useState } from "react";
 import type { Product } from "@/data/products";
 import { formatPrice } from "@/data/products";
-import type { FitmentStatus } from "@/data/fitments";
+import { isFitmentVerifiedShop, type FitmentStatus } from "@/data/fitments";
 import { useMarketplace } from "./MarketplaceProvider";
 import { ShopLine } from "./ShopBadge";
+import { useT } from "./LanguageProvider";
+import type { Translate } from "@/lib/i18n";
 
 const brandLogos: Record<string, string> = {
   NIKKEN: "/brands/nikken-logo.svg",
@@ -14,24 +16,30 @@ const brandLogos: Record<string, string> = {
   GSP: "/brands/gsp-logo.svg",
 };
 
-const fitmentCopy: Record<FitmentStatus, { pill: string; text: string }> = {
-  fits: {
-    pill: "✓ Fits your car",
-    text: "Confirmed compatible with your selected vehicle",
-  },
-  universal: {
-    pill: "✓ Fits your car",
-    text: "Compatible with your selected vehicle",
-  },
-  "not-fit": {
-    pill: "Doesn't fit",
-    text: "This product does not match your selected vehicle",
-  },
-  unverified: {
-    pill: "Fitment unverified",
-    text: "Compatibility data has not been confirmed yet",
-  },
-};
+function fitmentCopy(t: Translate): Record<FitmentStatus, { pill: string; text: string }> {
+  return {
+    fits: {
+      pill: t("fit.fits"),
+      text: t("browse.card.fitsText"),
+    },
+    universal: {
+      pill: t("fit.fits"),
+      text: t("browse.card.universalText"),
+    },
+    "not-fit": {
+      pill: t("fit.notFit"),
+      text: t("browse.card.notFitText"),
+    },
+    unverified: {
+      pill: t("fit.unverified"),
+      text: t("browse.card.unverifiedText"),
+    },
+    "seller-fits": {
+      pill: t("fit.sellerSays"),
+      text: t("fit.sellerSaysText"),
+    },
+  };
+}
 
 export default function ProductCard({
   product,
@@ -44,6 +52,7 @@ export default function ProductCard({
   fitmentStatus?: FitmentStatus;
   hrefSuffix?: string;
 }) {
+  const t = useT();
   const { addToCart } = useMarketplace();
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -91,9 +100,17 @@ export default function ProductCard({
         : 99;
 
   const detailHref = "/products/" + product.slug + hrefSuffix;
-  const fitment = fitmentStatus ? fitmentCopy[fitmentStatus] : null;
+  // Other shops' parts: listed, but fitment is the shop's own claim.
+  const fitment = !fitmentStatus
+    ? null
+    : fitmentStatus === "unverified" && !isFitmentVerifiedShop(product)
+      ? {
+          pill: t("fit.check"),
+          text: t("browse.card.shopClaimText"),
+        }
+      : fitmentCopy(t)[fitmentStatus];
   const visualFitmentStatus =
-    fitmentStatus === "universal" ? "fits" : fitmentStatus;
+    fitmentStatus === "universal" ? "fits" : fitmentStatus === "seller-fits" ? "unverified" : fitmentStatus;
   const cardClass =
     (compact
       ? "productCard premiumProductCard"
@@ -134,7 +151,7 @@ export default function ProductCard({
             const image = event.currentTarget;
             image.onerror = null;
             image.src = product.brand === "GSP" ? "/brands/gsp-logo.svg" : "/mivo-logo-dark.svg";
-            image.title = "Product photo unavailable";
+            image.title = t("browse.card.photoUnavailable");
           }} />
         ) : (
           <div className="productPlaceholder" aria-hidden="true">
@@ -155,7 +172,7 @@ export default function ProductCard({
       {/* Hover actions (desktop): quick paths without opening the card first. */}
       <div className="productHoverActions">
         <Link href={detailHref} className="productHoverView">
-          View details
+          {t("browse.card.viewDetails")}
         </Link>
         {!requiresSelection && fitmentStatus !== "not-fit" && !soldOut ? (
           <button
@@ -163,7 +180,7 @@ export default function ProductCard({
             className="productHoverAdd"
             onClick={() => addToCart(product, singleVariant, 1)}
           >
-            Add to cart
+            {t("browse.card.addToCart")}
           </button>
         ) : null}
       </div>
@@ -185,7 +202,7 @@ export default function ProductCard({
           {Number(product.rating || 0) > 0 ? (
             <span>★ {Number(product.rating).toFixed(1)}</span>
           ) : (
-            <span>New</span>
+            <span>{t("browse.card.new")}</span>
           )}
         </div>
 
@@ -200,8 +217,14 @@ export default function ProductCard({
           sellerId={product.sellerId}
         />
 
+        {!fitmentStatus && product.fitmentLevel && product.fitmentLevel !== "none" ? (
+          <span className={"fitmentLevelTag level-" + product.fitmentLevel}>
+            {product.fitmentLevel === "verified" ? t("fit.levelVerified") : t("fit.levelSeller")}
+          </span>
+        ) : null}
+
         <p className={fitmentTextClass}>
-          {fitment?.text || "Check compatibility with your vehicle"}
+          {fitment?.text || t("browse.card.defaultText")}
         </p>
 
         <div className="productBottom">
@@ -210,14 +233,15 @@ export default function ProductCard({
               <del>{formatPrice(cardComparePrice)}</del>
             ) : null}
             <strong>
-              {requiresSelection ? "From " : ""}
-              {formatPrice(product.price)}
+              {requiresSelection
+                ? t("browse.card.fromPrice", { price: formatPrice(product.price) })
+                : formatPrice(product.price)}
             </strong>
           </div>
 
           {requiresSelection || fitmentStatus === "not-fit" ? (
             <Link href={detailHref} className="miniCartButton">
-              {fitmentStatus === "not-fit" ? "View" : "Options"}
+              {fitmentStatus === "not-fit" ? t("card.view") : t("card.options")}
             </Link>
           ) : (
             <button
@@ -227,10 +251,10 @@ export default function ProductCard({
               onClick={() => setQuickAddOpen((open) => !open)}
             >
               {soldOut
-                ? "Sold out"
+                ? t("card.soldOut")
                 : quickAddOpen
-                  ? "Cancel"
-                  : "Add"}
+                  ? t("browse.card.cancel")
+                  : t("card.add")}
             </button>
           )}
         </div>
@@ -238,13 +262,13 @@ export default function ProductCard({
         {quickAddOpen && !requiresSelection && !soldOut ? (
           <div className="quickAddPanel">
             <div>
-              <span>Quantity</span>
+              <span>{t("browse.card.quantity")}</span>
               <div className="quantityStepper">
                 <button
                   type="button"
                   onClick={decrease}
                   disabled={quantity <= 1}
-                  aria-label="Decrease quantity"
+                  aria-label={t("browse.card.decrease")}
                 >
                   −
                 </button>
@@ -253,7 +277,7 @@ export default function ProductCard({
                   type="button"
                   onClick={increase}
                   disabled={quantity >= maxQuantity}
-                  aria-label="Increase quantity"
+                  aria-label={t("browse.card.increase")}
                 >
                   +
                 </button>
@@ -265,7 +289,7 @@ export default function ProductCard({
               className="quickAddConfirm"
               onClick={confirmAdd}
             >
-              Add {quantity} to cart
+              {t("browse.card.addN", { n: quantity })}
             </button>
           </div>
         ) : null}

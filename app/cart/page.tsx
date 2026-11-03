@@ -6,8 +6,10 @@ import { formatPrice } from "@/data/products";
 import { useMarketplace } from "@/components/MarketplaceProvider";
 import CartVoucherStrip from "@/components/CartVoucherStrip";
 import ShopBadge, { shopHref } from "@/components/ShopBadge";
+import { useT } from "@/components/LanguageProvider";
 
 export default function CartPage() {
+  const t = useT();
   const {
     cart, cartCount, cartReady, selectedCartLineIds,
     clearBuyNow,
@@ -34,7 +36,7 @@ export default function CartPage() {
     return (
       <main className="cartPage">
         <div className="container"><div className="cartEmpty">
-          <span>MIVO cart</span><h1>Loading your cart...</h1>
+          <span>{t("buy.cart.eyebrow")}</span><h1>{t("buy.cart.loading")}</h1>
         </div></div>
       </main>
     );
@@ -44,9 +46,9 @@ export default function CartPage() {
     return (
       <main className="cartPage">
         <div className="container"><div className="cartEmpty">
-          <span>MIVO cart</span><h1>Your cart is empty.</h1>
-          <p>Find the right parts for your vehicle and add them here.</p>
-          <Link href="/products" className="cartPrimaryButton">Shop parts</Link>
+          <span>{t("buy.cart.eyebrow")}</span><h1>{t("buy.cart.empty")}</h1>
+          <p>{t("buy.cart.emptyHint")}</p>
+          <Link href="/products" className="cartPrimaryButton">{t("buy.cart.shopParts")}</Link>
         </div></div>
       </main>
     );
@@ -64,13 +66,13 @@ export default function CartPage() {
   const checkoutAction = (className: string, mobile = false) =>
     selectedQuantity ? (
       <Link href="/checkout" className={className}>
-        {mobile ? <>Check out ({selectedQuantity})</> : (
-          <span><small>Selected products only</small>Check out ({selectedQuantity})</span>
+        {mobile ? <>{t("buy.cart.checkout", { n: selectedQuantity })}</> : (
+          <span><small>{t("buy.cart.selectedOnly")}</small>{t("buy.cart.checkout", { n: selectedQuantity })}</span>
         )}
       </Link>
     ) : (
       <button type="button" className={className} disabled>
-        {mobile ? "Select items" : <span><small>Choose items to buy</small>Select items</span>}
+        {mobile ? t("buy.cart.selectItems") : <span><small>{t("buy.cart.chooseItems")}</small>{t("buy.cart.selectItems")}</span>}
       </button>
     );
 
@@ -79,26 +81,25 @@ export default function CartPage() {
       <div className="container">
         <div className="cartPageHeader">
           <div>
-            <span className="cartEyebrow">MIVO cart</span>
-            <h1>Shopping Cart</h1>
-            <p>{cartCount} item{cartCount === 1 ? "" : "s"} in cart · {selectedQuantity} selected</p>
+            <span className="cartEyebrow">{t("buy.cart.eyebrow")}</span>
+            <h1>{t("buy.cart.title")}</h1>
+            <p>{t("buy.cart.countLine", { n: cartCount, selected: selectedQuantity })}</p>
           </div>
-          <button type="button" className="cartClearButton" onClick={clearCart}>Clear cart</button>
+          <button type="button" className="cartClearButton" onClick={clearCart}>{t("buy.cart.clear")}</button>
         </div>
 
         <div className="modernCartLayout">
           <section className="modernCartLines">
             <div className="cartSelectionToolbar">
-              <strong>Products</strong><span>Choose the parts you want to check out</span>
-              {allCheckbox("SELECT ALL")}
+              <strong>{t("buy.cart.products")}</strong><span>{t("buy.cart.chooseParts")}</span>
+              {allCheckbox(t("buy.cart.selectAll"))}
             </div>
             <CartVoucherStrip />
 
             {[...cart]
               .sort((a, b) => (a.product.seller || "").localeCompare(b.product.seller || ""))
               .map((line, lineIndex, lines) => {
-              // Lines are grouped visually by shop, Shopee-style; every shop
-              // ships from the same MIVO warehouse.
+              // Lines are grouped by shop, Shopee-style; each shop ships its own parcel.
               const shopName = line.product.seller || "MIVO";
               const newShop =
                 lineIndex === 0 ||
@@ -118,17 +119,17 @@ export default function CartPage() {
                       <span className="cartStoreDot">{shopName.slice(0, 1)}</span>
                       <div>
                         <strong>{shopName} <ShopBadge tier={line.product.sellerTier} /></strong>
-                        <small>Ships from the MIVO warehouse</small>
+                        <small>{line.product.sellerTier === "direct" ? t("buy.pd.shipsFromWarehouse") : t("buy.pd.shipsFromShop")}</small>
                       </div>
                     </Link>
-                    <span>Visit shop ›</span>
+                    <span>{t("shop.visit")} ›</span>
                   </div>
                 ) : null}
                 <article className={"modernCartLine cartLineSelectable" + (checked ? "" : " cartLineUnselected")}>
-                  <label className="cartCheckOnly" title={"Select " + line.product.name}>
+                  <label className="cartCheckOnly" title={t("buy.cart.selectItem", { name: line.product.name })}>
                     <input type="checkbox" className="cartCheckInput" checked={checked}
                       onChange={() => toggleCartLineSelection(line.lineId)}
-                      aria-label={"Select " + line.product.name} />
+                      aria-label={t("buy.cart.selectItem", { name: line.product.name })} />
                   </label>
                   <Link href={"/products/" + line.product.slug} className="modernCartImage">
                     {line.product.imageUrl ? (
@@ -151,21 +152,21 @@ export default function CartPage() {
                     <strong className="modernCartUnitPrice">{formatPrice(price)}</strong>
                   </div>
                   <div className="modernCartControls">
-                    <span>Quantity</span>
+                    <span>{t("buy.pd.quantity")}</span>
                     <div className="quantityStepper cartQuantityStepper">
                       <button type="button" disabled={line.quantity <= 1}
                         onClick={() => updateQuantity(line.lineId, line.quantity - 1)}
-                        aria-label="Decrease quantity">−</button>
+                        aria-label={t("buy.cart.decrease")}>−</button>
                       <strong>{line.quantity}</strong>
                       <button type="button" disabled={typeof maxStock === "number" && line.quantity >= maxStock}
                         onClick={() => updateQuantity(line.lineId, line.quantity + 1)}
-                        aria-label="Increase quantity">+</button>
+                        aria-label={t("buy.cart.increase")}>+</button>
                     </div>
                     <button type="button" className="modernRemoveButton"
-                      onClick={() => removeFromCart(line.lineId)}>Remove</button>
+                      onClick={() => removeFromCart(line.lineId)}>{t("buy.cart.remove")}</button>
                   </div>
                   <div className="modernCartLineTotal">
-                    <span>Item total</span><strong>{formatPrice(lineTotal)}</strong>
+                    <span>{t("buy.cart.itemTotal")}</span><strong>{formatPrice(lineTotal)}</strong>
                   </div>
                 </article>
                 </Fragment>
@@ -173,46 +174,46 @@ export default function CartPage() {
             })}
 
             <div className="cartBulkToolbar">
-              {allCheckbox("SELECT ALL")}
-              <span>{selectedQuantity} of {cartCount} items selected</span>
+              {allCheckbox(t("buy.cart.selectAll"))}
+              <span>{t("buy.cart.selectedOf", { n: selectedQuantity, total: cartCount })}</span>
               <button type="button" disabled={!selectedCart.length}
-                onClick={() => selectedCart.forEach((line) => removeFromCart(line.lineId))}>Remove selected</button>
+                onClick={() => selectedCart.forEach((line) => removeFromCart(line.lineId))}>{t("buy.cart.removeSelected")}</button>
             </div>
             <div className="cartContinueRow">
-              <Link href="/products">← CONTINUE SHOPPING</Link>
-              <span>Secure checkout · Malaysia delivery</span>
+              <Link href="/products">{t("buy.cart.continue")}</Link>
+              <span>{t("buy.cart.secureLine")}</span>
             </div>
           </section>
 
           <aside className="modernOrderSummary">
             <div className="summaryHeading">
-              <span>Order summary</span><strong>{selectedQuantity} selected</strong>
+              <span>{t("buy.cart.orderSummary")}</span><strong>{t("buy.cart.nSelected", { n: selectedQuantity })}</strong>
             </div>
             <div className="summaryRows">
-              <div><span>Selected items</span><strong>{selectedQuantity} / {cartCount}</strong></div>
-              <div><span>Subtotal</span><strong>{formatPrice(selectedSubtotal)}</strong></div>
-              <div><span>Shipping</span><strong>Calculated at checkout</strong></div>
+              <div><span>{t("buy.cart.selectedItems")}</span><strong>{selectedQuantity} / {cartCount}</strong></div>
+              <div><span>{t("buy.cart.subtotal")}</span><strong>{formatPrice(selectedSubtotal)}</strong></div>
+              <div><span>{t("buy.cart.shipping")}</span><strong>{t("buy.cart.calcAtCheckout")}</strong></div>
             </div>
             <div className="summaryDivider" />
             <div className="modernSummaryTotal">
-              <div><span>Selected total</span><small>Before shipping</small></div>
+              <div><span>{t("buy.cart.selectedTotal")}</span><small>{t("buy.cart.beforeShipping")}</small></div>
               <strong>{formatPrice(selectedSubtotal)}</strong>
             </div>
             {checkoutAction("cartCheckoutButton")}
             <p className="cartOnlySelectedNote">
-              Only checked items will be ordered. Unchecked items stay in your cart.
+              {t("buy.cart.onlyChecked")}
             </p>
             <div className="checkoutTrust">
-              <span>Secure payment</span><span>Order tracking</span><span>Vehicle-fitment support</span>
+              <span>{t("buy.cart.securePayment")}</span><span>{t("buy.cart.orderTracking")}</span><span>{t("buy.cart.fitmentSupport")}</span>
             </div>
           </aside>
         </div>
       </div>
       <div className="mobileCheckoutBar cartMobileSelectionBar">
-        {allCheckbox("ALL")}
+        {allCheckbox(t("buy.cart.all"))}
         <div className="cartMobileSelectedTotal">
-          <span>Selected total</span><strong>{formatPrice(selectedSubtotal)}</strong>
-          <small>{selectedQuantity} selected</small>
+          <span>{t("buy.cart.selectedTotal")}</span><strong>{formatPrice(selectedSubtotal)}</strong>
+          <small>{t("buy.cart.nSelected", { n: selectedQuantity })}</small>
         </div>
         {checkoutAction("cartMobileCheckoutAction", true)}
       </div>

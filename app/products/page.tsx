@@ -8,9 +8,15 @@ import { getActiveProducts } from "@/lib/catalog";
 import {
   fitmentRank,
   getProductFitmentStatus,
+  shopFitmentStatus,
   type FitmentStatus,
 } from "@/data/fitments";
 import { getLiveFitmentStatuses } from "@/lib/liveFitment";
+import { searchProducts } from "@/lib/search";
+import { vehicleInQuery } from "@/lib/vehicleTerms";
+import SearchVehicleHint from "@/components/SearchVehicleHint";
+import { getT } from "@/lib/i18n/server";
+import type { Key, Translate } from "@/lib/i18n";
 
 
 type ProductGroup =
@@ -71,14 +77,10 @@ function matchesProductGroup(category: string, group: string) {
   );
 }
 
-function groupHeading(group: string) {
+function groupHeading(group: string, t: Translate) {
   if (!(group in groupKeywords)) return "";
 
-  return (
-    group.charAt(0).toUpperCase() +
-    group.slice(1) +
-    " Parts"
-  );
+  return t(("browse.group." + group) as Key);
 }
 
 export default async function ProductsPage({
@@ -87,9 +89,10 @@ export default async function ProductsPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
+  const t = await getT();
   const productsPromise = getActiveProducts();
 
-  const q = typeof params.q === "string" ? params.q.toLowerCase() : "";
+  const rawQuery = typeof params.q === "string" ? params.q.trim() : "";
   const category =
     typeof params.category === "string" ? params.category.toLowerCase() : "";
   const group =
@@ -160,21 +163,20 @@ export default async function ProductsPage({
 
   const products = await productsPromise;
   const representedBrands = [
-    { name: "NIKKEN", category: "Drive Shaft · Shock Absorber · Steering Rack · Lower Arm", logo: "/brands/nikken-logo.svg", slug: "nikken", intro: "NIKKEN focuses on key automotive replacement components for everyday vehicles.", about: "Its core product range on MIVO includes drive shafts, shock absorbers, steering racks and lower arms, with an emphasis on practical fitment, dependable performance and durable replacement solutions." },
-    { name: "KYB", category: "Shock Absorber · Coil Spring · Lower Arm", logo: "/brands/kyb-logo.svg", slug: "kyb", intro: "KYB focuses on suspension and ride-control components for passenger vehicles.", about: "Its core product range on MIVO includes shock absorbers, coil springs and lower arms, covering key suspension and chassis replacement needs." },
-    { name: "GSP", category: "Drive Shaft · Steering Rack · Wheel Bearing Hub · Lower Arm", logo: "/brands/gsp-logo.svg", slug: "gsp", intro: "GSP focuses on drivetrain, steering and chassis replacement components.", about: "Its core product range on MIVO includes drive shafts, steering racks, wheel bearing hubs and lower arms for passenger-vehicle replacement applications." },
+    { name: "NIKKEN", category: t("browse.brands.nikken.range"), logo: "/brands/nikken-logo.svg", slug: "nikken", intro: "NIKKEN focuses on key automotive replacement components for everyday vehicles.", about: t("browse.brands.nikken.about") },
+    { name: "KYB", category: t("browse.brands.kyb.range"), logo: "/brands/kyb-logo.svg", slug: "kyb", intro: "KYB focuses on suspension and ride-control components for passenger vehicles.", about: t("browse.brands.kyb.about") },
+    { name: "GSP", category: t("browse.brands.gsp.range"), logo: "/brands/gsp-logo.svg", slug: "gsp", intro: "GSP focuses on drivetrain, steering and chassis replacement components.", about: t("browse.brands.gsp.about") },
   ];
 
 
-  const baseFiltered = products.filter(
+  const inSection = products.filter(
     (product) =>
-      (!q ||
-        (product.name + " " + product.brand + " " + product.category)
-          .toLowerCase()
-          .includes(q)) &&
       (!category || product.category.toLowerCase().includes(category)) &&
       (!group || matchesProductGroup(product.category, group))
   );
+  // Word-by-word search across name, brand, SKU/OEM, category, shop and more.
+  const search = searchProducts(inSection, rawQuery);
+  const baseFiltered = search.items;
 
   const liveFitmentStatuses = selectedVehicle
     ? await getLiveFitmentStatuses(
@@ -187,10 +189,12 @@ export default async function ProductsPage({
 
   const withFitment = baseFiltered.map((product) => ({
     product,
-    fitmentStatus:
+    fitmentStatus: shopFitmentStatus(
+      product,
       product.id && liveFitmentStatuses[product.id]
         ? liveFitmentStatuses[product.id]
-        : getProductFitmentStatus(product.slug, selectedVehicle),
+        : getProductFitmentStatus(product.slug, selectedVehicle)
+    ),
   }));
 
   const ranked = selectedVehicle
@@ -217,7 +221,7 @@ export default async function ProductsPage({
           counts[item.fitmentStatus] += 1;
           return counts;
         },
-        { fits: 0, universal: 0, unverified: 0, "not-fit": 0 }
+        { fits: 0, universal: 0, unverified: 0, "not-fit": 0, "seller-fits": 0 }
       )
     : null;
 
@@ -246,7 +250,7 @@ export default async function ProductsPage({
     return "/products" + (next.toString() ? "?" + next.toString() : "");
   }
 
-  const vehicleName = selectedModel || "vehicle";
+  const vehicleName = selectedModel || t("browse.products.vehicleFallback");
   const otherGroups = (Object.keys(groupKeywords) as ProductGroup[]).filter(
     (item) => item !== group
   );
@@ -264,11 +268,17 @@ export default async function ProductsPage({
         <div className="fitmentResultsBar">
           <div>
             <strong>{fitmentCounts.fits + fitmentCounts.universal}</strong>
-            <span>CONFIRMED FITS</span>
+            <span>{t("browse.products.confirmedFits")}</span>
           </div>
+          {fitmentCounts["seller-fits"] > 0 ? (
+            <div>
+              <strong>{fitmentCounts["seller-fits"]}</strong>
+              <span>{t("fit.sellerSays")}</span>
+            </div>
+          ) : null}
           <div>
             <strong>{fitmentCounts.unverified}</strong>
-            <span>AWAITING FITMENT DATA</span>
+            <span>{t("browse.products.notVerified")}</span>
           </div>
           {fitmentCounts["not-fit"] > 0 ? (
             <a
@@ -277,7 +287,9 @@ export default async function ProductsPage({
             >
               <strong>{fitmentCounts["not-fit"]}</strong>
               <span>
-                NOT FOR YOUR VEHICLE · {showAll ? "HIDE" : "SHOW"}
+                {t("browse.products.notForYou", {
+                  action: showAll ? t("browse.products.hide") : t("browse.products.show"),
+                })}
               </span>
             </a>
           ) : null}
@@ -287,24 +299,24 @@ export default async function ProductsPage({
       {view === "brands" ? (
         <>
           <section className="brandsHero">
-            <span>BRANDS AVAILABLE ON MIVO</span>
-            <h1>Brands</h1>
-            <p>Explore automotive brands available on MIVO.</p>
+            <span>{t("browse.brands.kicker")}</span>
+            <h1>{t("browse.brands.title")}</h1>
+            <p>{t("browse.brands.intro")}</p>
           </section>
           <div className="brandDirectory">
             {representedBrands.map((brand) => (
               <details id={brand.slug} className="brandDirectoryCard brandExpandableCard" key={brand.name}>
                 <summary>
                   <span className="brandLogo" aria-label={brand.name}>
-                    <img src={brand.logo} alt={brand.name + " logo"} />
+                    <img src={brand.logo} alt={t("browse.brands.logo", { brand: brand.name })} />
                   </span>
                 </summary>
                 <div className="brandInlineDetails">
-                  <span>ABOUT {brand.name}</span>
-                  <h2>What does {brand.name} do?</h2>
+                  <span>{t("browse.brands.about", { brand: brand.name })}</span>
+                  <h2>{t("browse.brands.what", { brand: brand.name })}</h2>
                   <p>{brand.about}</p>
                   <strong>{brand.category}</strong>
-                  <a href={"/products?q=" + encodeURIComponent(brand.name)}>Explore {brand.name} products</a>
+                  <a href={"/products?q=" + encodeURIComponent(brand.name)}>{t("browse.brands.explore", { brand: brand.name })}</a>
                 </div>
               </details>
             ))}
@@ -312,18 +324,27 @@ export default async function ProductsPage({
         </>
       ) : (
       <div className="pageHeading">
+        {rawQuery && !selectedVehicle && vehicleInQuery(rawQuery) ? (
+          <SearchVehicleHint
+            car={vehicleInQuery(rawQuery)?.model || vehicleInQuery(rawQuery)?.make || ""}
+          />
+        ) : null}
         <div>
           <h1>
-            {group
-              ? groupHeading(group)
+            {rawQuery
+              ? t("browse.products.resultsFor", { q: rawQuery })
+              : group
+              ? groupHeading(group, t)
               : selectedVehicle
-                ? "Parts for your vehicle"
-                : "All Products"}
+                ? t("browse.products.forVehicle")
+                : t("browse.products.allProducts")}
           </h1>
           <p>
-            {hiddenCount
-              ? visible.length + " parts for your " + vehicleName
-              : visible.length + " products shown"}
+            {rawQuery && !search.exact && visible.length
+              ? t("browse.products.closeMatches", { n: visible.length })
+              : hiddenCount
+              ? t("browse.products.partsForYour", { n: visible.length, car: vehicleName })
+              : t("browse.products.shown", { n: visible.length })}
           </p>
         </div>
       </div>
@@ -347,39 +368,31 @@ export default async function ProductsPage({
           {hiddenCount || !visible.length ? (
             <section className="fitmentMorePanel">
               <div className="fitmentMoreCopy">
-                <span>{hiddenCount ? "ONLY PARTS THAT FIT" : "MORE PARTS COMING"}</span>
+                <span>{hiddenCount ? t("browse.products.onlyFit") : t("browse.products.moreComing")}</span>
                 <h2>
-                  {!hiddenCount
-                    ? "No " +
-                      (group ? groupHeading(group).toLowerCase() : "matching parts") +
-                      " in the catalogue yet."
+                  {!hiddenCount && rawQuery
+                    ? t("browse.products.noMatchQuery", { q: rawQuery })
+                    : !hiddenCount
+                    ? t("browse.products.noGroup", {
+                        what: group
+                          ? groupHeading(group, t).toLowerCase()
+                          : t("browse.products.matchingParts"),
+                      })
                     : visible.length
-                      ? hiddenCount +
-                        " other parts don't fit your " +
-                        vehicleName +
-                        "."
-                      : "Nothing here fits your " + vehicleName + " yet."}
+                      ? t("browse.products.otherDontFit", { n: hiddenCount, car: vehicleName })
+                      : t("browse.products.nothingFits", { car: vehicleName })}
                 </h2>
                 <p>
-                  {hiddenCount ? (
-                    <>
-                      We&rsquo;ve hidden parts that are confirmed not to fit, so
-                      you only see what will. Try another system, or show
-                      everything if you&rsquo;re shopping for a different car.
-                    </>
-                  ) : (
-                    <>
-                      We&rsquo;re adding new parts to MIVO regularly. In the
-                      meantime, explore another system.
-                    </>
-                  )}
+                  {hiddenCount
+                    ? t("browse.products.hiddenNote")
+                    : t("browse.products.addingNote")}
                 </p>
               </div>
 
               <div className="fitmentMoreGroups">
                 {otherGroups.map((item) => (
                   <a key={item} href={catalogHref({ group: item, q: null, category: null, showAll: null })}>
-                    {item.charAt(0).toUpperCase() + item.slice(1)}
+                    {t(("nav." + item) as Key)}
                     <span aria-hidden="true">→</span>
                   </a>
                 ))}
@@ -388,19 +401,19 @@ export default async function ProductsPage({
               <div className="fitmentMoreActions">
                 {hiddenCount ? (
                   <a href={catalogHref({ showAll: "1" })} className="fitmentMoreGhost">
-                    Show all {ranked.length} parts
+                    {t("browse.products.showAllN", { n: ranked.length })}
                   </a>
                 ) : (
                   <a
                     href={catalogHref({ group: null, q: null, category: null })}
                     className="fitmentMoreGhost"
                   >
-                    Browse all parts
+                    {t("browse.products.browseAll")}
                   </a>
                 )}
                 {selectedVehicle ? (
                   <a href="/?addVehicle=1#fitment" className="fitmentMoreGhost">
-                    Change vehicle
+                    {t("browse.changeVehicle")}
                   </a>
                 ) : null}
               </div>

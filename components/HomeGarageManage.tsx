@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import ProductVehicleSelector from "@/components/ProductVehicleSelector";
+import { useT } from "@/components/LanguageProvider";
 
 export default function HomeGarageManage() {
+  const t = useT();
   const [open, setOpen] = useState(false);
 
   return (
@@ -15,7 +17,7 @@ export default function HomeGarageManage() {
         aria-haspopup="dialog"
         aria-expanded={open}
       >
-        Manage
+        {t("buy.v.manage")}
       </button>
       <ProductVehicleSelector
         open={open}

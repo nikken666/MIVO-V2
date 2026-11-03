@@ -1,8 +1,10 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../../Admin.module.css";
+import AdminSidebar from "@/components/admin/AdminSidebar";
 
 type CampaignOption = {
   id: string;
@@ -102,7 +104,7 @@ export default function MarketingVouchersPage() {
 
     if (adminError) throw adminError;
     if (!isAdmin) {
-      window.location.href = "/";
+      leaveBackOffice();
       return;
     }
 
@@ -443,35 +445,13 @@ export default function MarketingVouchersPage() {
   return (
     <main className={styles.adminShell}>
       <div className={styles.adminWorkspace}>
-        <aside className={styles.adminSidebar}>
-          <a href="/admin" className={styles.adminBrand}>
-            <span>MIVO</span>
-            <small>STORE CONTROL</small>
-          </a>
-          <nav className={styles.adminSideNav}>
-            <a href="/admin"><span>01</span>Dashboard</a>
-            <a href="/admin/orders"><span>02</span>Orders</a>
-            <a href="/admin/arrange-shipment"><span>03</span>Arrange Shipment</a>
-            <a href="/admin/claims"><span>04</span>Claims</a>
-            <a href="/admin/marketing" className={styles.active}>
-              <span>05</span>Marketing Centre
-            </a>
-            <a href="/admin/products"><span>06</span>Products</a>
-            <a href="/admin/products/new"><span>07</span>Add Product</a>
-            <a href="/admin/shipping"><span>08</span>Shipping</a>
-          </nav>
-          <div className={styles.adminSidebarFoot}>
-            <span>ACTIVE VOUCHERS</span>
-            <strong>{loading ? "—" : activeCount}</strong>
-            <a href="/admin/marketing">MARKETING CENTRE</a>
-          </div>
-        </aside>
+        <AdminSidebar />
 
         <section className={styles.adminContent}>
           <header className={styles.adminHeader}>
             <div>
               <span className={styles.adminEyebrow}>
-                MARKETING CENTRE · VOUCHERS
+                Marketing centre · Vouchers
               </span>
               <h1>Vouchers</h1>
               <p>
@@ -508,7 +488,7 @@ export default function MarketingVouchersPage() {
               <div className={styles.adminPanelHead}>
                 <div>
                   <span className={styles.adminPanelKicker}>
-                    {editingId ? "EDIT VOUCHER" : "CREATE VOUCHER"}
+                    {editingId ? "Edit voucher" : "Create voucher"}
                   </span>
                   <h2>Voucher Builder</h2>
                   <p>
@@ -521,7 +501,7 @@ export default function MarketingVouchersPage() {
               <form className={styles.adminForm} onSubmit={saveVoucher}>
                 <div className={styles.adminFormGrid}>
                   <label className={styles.adminField}>
-                    <span>CODE</span>
+                    <span>Code</span>
                     <input
                       required
                       value={form.code}
@@ -536,7 +516,7 @@ export default function MarketingVouchersPage() {
                   </label>
 
                   <label className={styles.adminField}>
-                    <span>NAME</span>
+                    <span>Name</span>
                     <input
                       required
                       value={form.name}
@@ -546,12 +526,12 @@ export default function MarketingVouchersPage() {
                           name: event.target.value,
                         }))
                       }
-                      placeholder="RM10 OFF"
+                      placeholder="RM10 off"
                     />
                   </label>
 
                   <label className={styles.adminField + " " + styles.full}>
-                    <span>DESCRIPTION</span>
+                    <span>Description</span>
                     <input
                       value={form.description}
                       onChange={(event) =>
@@ -565,7 +545,7 @@ export default function MarketingVouchersPage() {
                   </label>
 
                   <label className={styles.adminField}>
-                    <span>CAMPAIGN</span>
+                    <span>Campaign</span>
                     <select
                       value={form.campaign_id}
                       onChange={(event) =>
@@ -585,7 +565,7 @@ export default function MarketingVouchersPage() {
                   </label>
 
                   <label className={styles.adminField}>
-                    <span>TYPE</span>
+                    <span>Type</span>
                     <select
                       value={form.discount_type}
                       onChange={(event) =>
@@ -609,7 +589,7 @@ export default function MarketingVouchersPage() {
                       <span>
                         {form.discount_type === "percent"
                           ? "DISCOUNT %"
-                          : "DISCOUNT RM"}
+                          : "Discount RM"}
                       </span>
                       <input
                         type="number"
@@ -627,7 +607,7 @@ export default function MarketingVouchersPage() {
                   ) : null}
 
                   <label className={styles.adminField}>
-                    <span>MINIMUM SPEND</span>
+                    <span>Minimum spend</span>
                     <input
                       type="number"
                       min="0"
@@ -643,7 +623,7 @@ export default function MarketingVouchersPage() {
                   </label>
 
                   <label className={styles.adminField}>
-                    <span>MAX DISCOUNT</span>
+                    <span>Max discount</span>
                     <input
                       type="number"
                       min="0"
@@ -660,7 +640,7 @@ export default function MarketingVouchersPage() {
                   </label>
 
                   <label className={styles.adminField}>
-                    <span>SCOPE</span>
+                    <span>Scope</span>
                     <select
                       value={form.scope_type}
                       onChange={(event) => {
@@ -686,15 +666,15 @@ export default function MarketingVouchersPage() {
                   {form.scope_type !== "all" ? (
                     form.scope_type === "product" ? (
                       <div className={styles.adminField + " " + styles.full}>
-                        <span>APPLIES TO</span>
+                        <span>Applies to</span>
                         <button type="button" className={styles.productPickerTrigger} onClick={() => setProductPickerOpen(true)}>
                           <span>{selectedProductIds.length ? selectedProductIds.length + " products selected" : "Select products"}</span>
-                          <b>SELECT</b>
+                          <b>Select</b>
                         </button>
                       </div>
                     ) : (
                       <label className={styles.adminField}>
-                        <span>APPLIES TO</span>
+                        <span>Applies to</span>
                         <select required value={form.scope_id} onChange={(event) => setForm((current) => ({ ...current, scope_id: event.target.value }))}>
                           <option value="">Choose</option>
                           {scopeOptions.map((option) => <option value={option.id} key={option.id}>{option.name}</option>)}
@@ -704,7 +684,7 @@ export default function MarketingVouchersPage() {
                   ) : null}
 
                   <label className={styles.adminField}>
-                    <span>TOTAL USAGE LIMIT</span>
+                    <span>Total usage limit</span>
                     <input
                       type="number"
                       min="1"
@@ -720,7 +700,7 @@ export default function MarketingVouchersPage() {
                   </label>
 
                   <label className={styles.adminField}>
-                    <span>PER USER LIMIT</span>
+                    <span>Per user limit</span>
                     <input
                       type="number"
                       min="1"
@@ -745,11 +725,11 @@ export default function MarketingVouchersPage() {
                         }))
                       }
                     />
-                    <span>FIRST ORDER ONLY</span>
+                    <span>First order only</span>
                   </label>
 
                   <label className={styles.adminField}>
-                    <span>START</span>
+                    <span>Start</span>
                     <input
                       type="datetime-local"
                       required
@@ -764,7 +744,7 @@ export default function MarketingVouchersPage() {
                   </label>
 
                   <label className={styles.adminField}>
-                    <span>END</span>
+                    <span>End</span>
                     <input
                       type="datetime-local"
                       required
@@ -786,9 +766,9 @@ export default function MarketingVouchersPage() {
                     disabled={busy === "save"}
                   >
                     {busy === "save"
-                      ? "SAVING..."
+                      ? "Saving…"
                       : editingId
-                        ? "SAVE VOUCHER"
+                        ? "Save voucher"
                         : "+ CREATE VOUCHER"}
                   </button>
 
@@ -802,7 +782,7 @@ export default function MarketingVouchersPage() {
                         setSelectedProductIds([]);
                       }}
                     >
-                      CANCEL EDIT
+                      Cancel edit
                     </button>
                   ) : null}
                 </div>
@@ -812,7 +792,7 @@ export default function MarketingVouchersPage() {
             <section className={styles.adminPanel}>
               <div className={styles.adminPanelHead}>
                 <div>
-                  <span className={styles.adminPanelKicker}>VOUCHER LIST</span>
+                  <span className={styles.adminPanelKicker}>Voucher list</span>
                   <h2>{vouchers.length} Vouchers</h2>
                   <p>Active, paused and historical voucher setup.</p>
                 </div>
@@ -853,7 +833,7 @@ export default function MarketingVouchersPage() {
                           )}
                         </small>
                         {voucher.first_order_only ? (
-                          <b>FIRST ORDER</b>
+                          <b>First order</b>
                         ) : null}
                       </div>
 
@@ -863,7 +843,7 @@ export default function MarketingVouchersPage() {
                           className={styles.promotionEdit}
                           onClick={() => void editVoucher(voucher)}
                         >
-                          EDIT
+                          Edit
                         </button>
                         <button
                           type="button"
@@ -875,7 +855,7 @@ export default function MarketingVouchersPage() {
                               : styles.promotionOff
                           }
                         >
-                          {voucher.is_active ? "ACTIVE" : "OFF"}
+                          {voucher.is_active ? "Active" : "Off"}
                         </button>
                         <button
                           type="button"
@@ -884,8 +864,8 @@ export default function MarketingVouchersPage() {
                           disabled={busy === "delete-" + voucher.id}
                         >
                           {busy === "delete-" + voucher.id
-                            ? "DELETING..."
-                            : "DELETE"}
+                            ? "Deleting…"
+                            : "Delete"}
                         </button>
                       </div>
                     </article>
@@ -898,7 +878,7 @@ export default function MarketingVouchersPage() {
           {productPickerOpen ? (
             <div className={styles.productPickerOverlay} role="dialog" aria-modal="true">
               <div className={styles.productPickerModal}>
-                <div className={styles.productPickerHead}><div><span>SELECT PRODUCTS</span><h2>Choose eligible products</h2></div><button type="button" onClick={() => setProductPickerOpen(false)}>CLOSE</button></div>
+                <div className={styles.productPickerHead}><div><span>Select products</span><h2>Choose eligible products</h2></div><button type="button" onClick={() => setProductPickerOpen(false)}>Close</button></div>
                 <div className={styles.productPickerSearch}><input autoFocus placeholder="Search product name" value={productSearch} onChange={(event) => setProductSearch(event.target.value)} /><span>{filteredProducts.length} PRODUCTS</span></div>
                 <div className={styles.productPickerList}>
                   {filteredProducts.map((product) => {
@@ -936,7 +916,7 @@ export default function MarketingVouchersPage() {
                     disabled={!selectedProductIds.length}
                     onClick={() => setProductPickerOpen(false)}
                   >
-                    CONFIRM
+                    Confirm
                   </button>
                 </div>
               </div>

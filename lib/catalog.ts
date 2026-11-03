@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { attachFitmentLevels } from "@/lib/fitmentLevels";
 import {
   products as demoProducts,
   type Product,
@@ -305,7 +306,9 @@ export async function getActiveProducts(): Promise<Product[]> {
       .map(mapProduct)
       .filter((product): product is Product => Boolean(product));
 
-    return live.length > 0 ? await attachReviewStats(live) : demoProducts;
+    return live.length > 0
+      ? await attachFitmentLevels(await attachReviewStats(live))
+      : demoProducts;
   } catch {
     return demoProducts;
   }
@@ -331,7 +334,7 @@ export async function getActiveProductBySlug(
     const mapped = row ? mapProduct(row) : null;
 
     if (mapped) {
-      const [withReviews] = await attachReviewStats([mapped]);
+      const [withReviews] = await attachFitmentLevels(await attachReviewStats([mapped]));
       return withReviews;
     }
   } catch {
@@ -377,6 +380,31 @@ export async function getProductPublicReviews(
     return [];
   }
 }
+
+/** Reviewer names (masked when anonymous) from supabase/review-names.sql. */
+async function attachReviewerNames(reviews: ProductPublicReview[]): Promise<ProductPublicReview[]> {
+  if (!reviews.length) return reviews;
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("product_review_names", {
+      p_ids: reviews.map((review) => review.id),
+    });
+    if (error || !data) return reviews;
+    const names = new Map(
+      (data as Array<{ id: string; display_name: string | null }>).map((row) => [row.id, row.display_name])
+    );
+    return reviews.map((review) => ({ ...review, reviewerName: names.get(review.id) || null }));
+  } catch {
+    return reviews;
+  }
+}
+
+export async function getProductPublicReviewsWithNames(
+  productId: string
+): Promise<ProductPublicReview[]> {
+  return attachReviewerNames(await getProductPublicReviews(productId));
+}
+
 
 
 export async function getRelatedProducts(

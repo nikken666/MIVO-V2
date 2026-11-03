@@ -10,6 +10,9 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import type { Product } from "@/data/products";
 import { formatPrice } from "@/data/products";
+import { useT } from "./LanguageProvider";
+import type { Translate } from "@/lib/i18n";
+import { friendlyError } from "@/lib/i18n/errors";
 
 type TemplateType =
   | "mega_sale"
@@ -66,13 +69,13 @@ type Voucher = {
 };
 
 const eventCategories = [
-  { label: "MAINTENANCE", mark: "M", href: "/products?group=maintenance" },
-  { label: "BRAKING", mark: "B", href: "/products?group=braking" },
-  { label: "SUSPENSION", mark: "S", href: "/products?group=suspension" },
-  { label: "STEERING", mark: "R", href: "/products?group=steering" },
-  { label: "DRIVETRAIN", mark: "D", href: "/products?group=drivetrain" },
-  { label: "COOLING", mark: "C", href: "/products?group=cooling" },
-];
+  { label: "nav.maintenance", mark: "M", href: "/products?group=maintenance" },
+  { label: "nav.braking", mark: "B", href: "/products?group=braking" },
+  { label: "nav.suspension", mark: "S", href: "/products?group=suspension" },
+  { label: "nav.steering", mark: "R", href: "/products?group=steering" },
+  { label: "nav.drivetrain", mark: "D", href: "/products?group=drivetrain" },
+  { label: "nav.cooling", mark: "C", href: "/products?group=cooling" },
+] as const;
 
 function countdownLabel(endsAt: string, now: number) {
   const diff = Math.max(0, new Date(endsAt).getTime() - now);
@@ -90,12 +93,12 @@ function countdownLabel(endsAt: string, now: number) {
   };
 }
 
-function voucherValue(voucher: Voucher) {
-  if (voucher.discount_type === "free_shipping") return "FREE SHIPPING";
+function voucherValue(voucher: Voucher, t: Translate) {
+  if (voucher.discount_type === "free_shipping") return t("browse.promo.freeShipping");
   if (voucher.discount_type === "percent") {
-    return Number(voucher.discount_value) + "% OFF";
+    return t("browse.promo.percentOff", { n: Number(voucher.discount_value) });
   }
-  return "RM" + Number(voucher.discount_value).toFixed(0) + " OFF";
+  return t("browse.promo.rmOff", { n: Number(voucher.discount_value).toFixed(0) });
 }
 
 function dealInfo(product: Product) {
@@ -143,6 +146,7 @@ export default function HomePromotions({
   // banner carousel and flash-sale row).
   only?: "vouchers";
 }) {
+  const t = useT();
   const onlyVouchers = only === "vouchers";
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
@@ -278,10 +282,10 @@ export default function HomePromotions({
       setClaimedIds((current) =>
         current.includes(voucher.id) ? current : [...current, voucher.id]
       );
-      setMessage(voucher.code + " added to My Vouchers.");
+      setMessage(t("browse.promo.added", { code: voucher.code }));
     } catch (caught) {
       setMessage(
-        caught instanceof Error ? caught.message : "Unable to claim voucher."
+        friendlyError(caught, t, "browse.promo.claimError")
       );
     } finally {
       setBusyId("");
@@ -332,25 +336,25 @@ export default function HomePromotions({
           "campaignCountdown" + (compact ? " campaignCountdownCompact" : "")
         }
       >
-        <span>ENDS IN</span>
+        <span>{t("browse.promo.endsIn")}</span>
         <div>
           <strong>{countdown.days}</strong>
-          <small>DAYS</small>
+          <small>{t("browse.promo.days")}</small>
         </div>
         <i>:</i>
         <div>
           <strong>{countdown.hours}</strong>
-          <small>HRS</small>
+          <small>{t("browse.promo.hrs")}</small>
         </div>
         <i>:</i>
         <div>
           <strong>{countdown.minutes}</strong>
-          <small>MIN</small>
+          <small>{t("browse.promo.min")}</small>
         </div>
         <i>:</i>
         <div>
           <strong>{countdown.seconds}</strong>
-          <small>SEC</small>
+          <small>{t("browse.promo.sec")}</small>
         </div>
       </div>
     );
@@ -365,7 +369,7 @@ export default function HomePromotions({
   const saleTitle =
     campaign && campaign.title.startsWith(eventCode + " ")
       ? campaign.title.slice(eventCode.length + 1)
-      : campaign?.title || "AUTO SALE";
+      : campaign?.title || t("browse.promo.autoSale");
   const benefits =
     campaign?.benefit_items?.filter(Boolean).slice(0, 4) || [];
 
@@ -423,7 +427,7 @@ export default function HomePromotions({
             ) : templateType === "voucher_blast" ? (
               <div className="campaignVoucherBlast">
                 <div className="campaignEventCopy">
-                  <span>{campaign.badge || "LIMITED TIME"}</span>
+                  <span>{campaign.badge || t("browse.promo.limitedTime")}</span>
                   {campaign.highlight_text ? (
                     <b>{campaign.highlight_text}</b>
                   ) : null}
@@ -434,7 +438,7 @@ export default function HomePromotions({
                   ) : null}
                   <div className="campaignEventActions">
                     <Link href={campaign.landing_path || "/products"}>
-                      {campaign.cta_label || "SHOP NOW"} <b aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></b>
+                      {campaign.cta_label || t("browse.shopNow")} <b aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></b>
                     </Link>
                     <Countdown compact />
                   </div>
@@ -442,8 +446,8 @@ export default function HomePromotions({
 
                 <div className="campaignVoucherStack">
                   <div className="campaignVoucherStackHead">
-                    <span>CLAIM & SAVE</span>
-                    <strong>Event Vouchers</strong>
+                    <span>{t("browse.promo.claimSave")}</span>
+                    <strong>{t("browse.promo.eventVouchers")}</strong>
                   </div>
                   {campaignVouchers.length > 0 ? (
                     campaignVouchers.map((voucher) => {
@@ -453,13 +457,16 @@ export default function HomePromotions({
                         <article key={voucher.id}>
                           <div>
                             <span>{voucher.code}</span>
-                            <strong>{voucherValue(voucher)}</strong>
+                            <strong>{voucherValue(voucher, t)}</strong>
                             <small>
-                              Min. Spend{" "}
-                              {formatPrice(Number(voucher.minimum_spend))}
+                              {t("browse.promo.minSpend", {
+                                amount: formatPrice(Number(voucher.minimum_spend)),
+                              })}
                               {voucher.max_discount
-                                ? " · Cap " +
-                                  formatPrice(Number(voucher.max_discount))
+                                ? " · " +
+                                  t("browse.promo.cap", {
+                                    amount: formatPrice(Number(voucher.max_discount)),
+                                  })
                                 : ""}
                             </small>
                           </div>
@@ -469,17 +476,17 @@ export default function HomePromotions({
                             onClick={() => void claim(voucher)}
                           >
                             {claimed
-                              ? "CLAIMED"
+                              ? t("browse.promo.claimed")
                               : busyId === voucher.id
                                 ? "..."
-                                : "CLAIM"}
+                                : t("browse.promo.claim")}
                           </button>
                         </article>
                       );
                     })
                   ) : (
                     <div className="campaignVoucherEmpty">
-                      Vouchers linked to this campaign will appear here.
+                      {t("browse.promo.campaignEmpty")}
                     </div>
                   )}
                 </div>
@@ -487,7 +494,7 @@ export default function HomePromotions({
             ) : templateType === "flash_deal_grid" ? (
               <div className="campaignFlashLayout">
                 <div className="campaignEventCopy">
-                  <span>{campaign.badge || "FLASH EVENT"}</span>
+                  <span>{campaign.badge || t("browse.promo.flashEvent")}</span>
                   {campaign.highlight_text ? (
                     <b>{campaign.highlight_text}</b>
                   ) : null}
@@ -495,7 +502,7 @@ export default function HomePromotions({
                   <p>{campaign.subtitle}</p>
                   <div className="campaignEventActions">
                     <Link href={campaign.landing_path || "/products"}>
-                      {campaign.cta_label || "SHOP DEALS"} <b aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></b>
+                      {campaign.cta_label || t("browse.promo.shopDeals")} <b aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></b>
                     </Link>
                     <Countdown compact />
                   </div>
@@ -537,7 +544,7 @@ export default function HomePromotions({
               <div className="campaignCategoryLayout">
                 <div className="campaignEventTop">
                   <div className="campaignEventCopy">
-                    <span>{campaign.badge || "AUTO PARTS FESTIVAL"}</span>
+                    <span>{campaign.badge || t("browse.promo.festival")}</span>
                     {campaign.highlight_text ? (
                       <b>{campaign.highlight_text}</b>
                     ) : null}
@@ -551,7 +558,7 @@ export default function HomePromotions({
                   {eventCategories.map((category) => (
                     <Link href={category.href} key={category.label}>
                       <b>{category.mark}</b>
-                      <span>{category.label}</span>
+                      <span>{t(category.label)}</span>
                       <i aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></i>
                     </Link>
                   ))}
@@ -562,10 +569,10 @@ export default function HomePromotions({
                     {(benefits.length
                       ? benefits
                       : [
-                          "TRUSTED BRANDS",
-                          "VEHICLE FITMENT",
-                          "FAST CHECKOUT",
-                          "MALAYSIA DELIVERY",
+                          t("browse.promo.trustedBrands"),
+                          t("browse.promo.vehicleFitment"),
+                          t("browse.promo.fastCheckout"),
+                          t("browse.promo.malaysiaDelivery"),
                         ]
                     ).map((item, index) => (
                       <span key={item + index}>
@@ -575,7 +582,7 @@ export default function HomePromotions({
                     ))}
                   </div>
                   <Link href={campaign.landing_path || "/products"}>
-                    {campaign.cta_label || "SHOP ALL PARTS"} <span aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></span>
+                    {campaign.cta_label || t("browse.promo.shopAllParts")} <span aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></span>
                   </Link>
                 </div>
               </div>
@@ -583,7 +590,7 @@ export default function HomePromotions({
               <div className="campaignMegaLayout">
                 <div className="campaignEventTop">
                   <div className="campaignEventCopy">
-                    <span>{campaign.badge || "BIG EVENT"}</span>
+                    <span>{campaign.badge || t("browse.promo.bigEvent")}</span>
                     {campaign.highlight_text ? (
                       <b>{campaign.highlight_text}</b>
                     ) : null}
@@ -598,12 +605,13 @@ export default function HomePromotions({
                       {campaignVouchers[0] ? (
                         <div>
                           <span>{campaignVouchers[0].code}</span>
-                          <strong>{voucherValue(campaignVouchers[0])}</strong>
+                          <strong>{voucherValue(campaignVouchers[0], t)}</strong>
                           <small>
-                            Min. Spend{" "}
-                            {formatPrice(
-                              Number(campaignVouchers[0].minimum_spend)
-                            )}
+                            {t("browse.promo.minSpend", {
+                              amount: formatPrice(
+                                Number(campaignVouchers[0].minimum_spend)
+                              ),
+                            })}
                           </small>
                         </div>
                       ) : null}
@@ -611,16 +619,16 @@ export default function HomePromotions({
 
                     <div className="campaignEventActions">
                       <Link href={campaign.landing_path || "/products"}>
-                        {campaign.cta_label || "SHOP EVENT"} <b aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></b>
+                        {campaign.cta_label || t("browse.promo.shopEvent")} <b aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></b>
                       </Link>
                     </div>
                   </div>
 
                   <div className="campaignMegaRight">
                     <div className="campaignBigNumber">
-                      <span>MEGA</span>
+                      <span>{t("browse.promo.mega")}</span>
                       <strong>{eventCode}</strong>
-                      <small>PARTS · VOUCHERS · DEALS</small>
+                      <small>{t("browse.promo.megaSub")}</small>
                     </div>
                     <Countdown />
                   </div>
@@ -630,10 +638,10 @@ export default function HomePromotions({
                   {(benefits.length
                     ? benefits
                     : [
-                        "FREE SHIPPING DEALS",
-                        "FLASH DISCOUNTS",
-                        "LIMITED VOUCHERS",
-                        "POPULAR AUTO PARTS",
+                        t("browse.promo.freeShippingDeals"),
+                        t("browse.promo.flashDiscounts"),
+                        t("browse.promo.limitedVouchers"),
+                        t("browse.promo.popularParts"),
                       ]
                   ).map((item, index) => (
                     <span key={item + index}>
@@ -651,10 +659,10 @@ export default function HomePromotions({
           <div className="voucherSection">
             <div className="voucherSectionHead">
               <div>
-                <span>MIVO VOUCHERS</span>
-                <h2>Claim before checkout.</h2>
+                <span>{t("browse.promo.mivoVouchers")}</span>
+                <h2>{t("browse.promo.claimBefore")}</h2>
               </div>
-              <Link href="/account/vouchers">MY VOUCHERS <span aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></span></Link>
+              <Link href="/account/vouchers">{t("browse.promo.myVouchers")} <span aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></span></Link>
             </div>
 
             <div className="voucherRail">
@@ -665,12 +673,16 @@ export default function HomePromotions({
                   <article className="voucherCard" key={voucher.id}>
                     <div className="voucherValue">
                       <span>{voucher.code}</span>
-                      <strong>{voucherValue(voucher)}</strong>
+                      <strong>{voucherValue(voucher, t)}</strong>
                       <small>
-                        Min. spend {formatPrice(Number(voucher.minimum_spend))}
+                        {t("browse.promo.minSpend", {
+                          amount: formatPrice(Number(voucher.minimum_spend)),
+                        })}
                         {voucher.max_discount
-                          ? " · Cap " +
-                            formatPrice(Number(voucher.max_discount))
+                          ? " · " +
+                            t("browse.promo.cap", {
+                              amount: formatPrice(Number(voucher.max_discount)),
+                            })
                           : ""}
                       </small>
                     </div>
@@ -678,8 +690,8 @@ export default function HomePromotions({
                     <div className="voucherAction">
                       <span>
                         {voucher.first_order_only
-                          ? "FIRST ORDER"
-                          : "LIMITED VOUCHER"}
+                          ? t("browse.promo.firstOrder")
+                          : t("browse.promo.limitedVoucher")}
                       </span>
                       <button
                         type="button"
@@ -687,10 +699,10 @@ export default function HomePromotions({
                         onClick={() => void claim(voucher)}
                       >
                         {claimed
-                          ? "CLAIMED"
+                          ? t("browse.promo.claimed")
                           : busyId === voucher.id
-                            ? "CLAIMING..."
-                            : "CLAIM"}
+                            ? t("browse.promo.claiming")
+                            : t("browse.promo.claim")}
                       </button>
                     </div>
                   </article>
@@ -706,10 +718,10 @@ export default function HomePromotions({
           <div className="flashDealsSection">
             <div className="flashDealsHead">
               <div>
-                <span>FLASH DEALS</span>
-                <h2>Limited-time part prices.</h2>
+                <span>{t("browse.promo.flashDeals")}</span>
+                <h2>{t("browse.promo.limitedPrices")}</h2>
               </div>
-              <Link href="/products">VIEW ALL DEALS <span aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></span></Link>
+              <Link href="/products">{t("browse.promo.viewAllDeals")} <span aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4"/></svg></span></Link>
             </div>
 
             <div className="flashDealsGrid">

@@ -30,3 +30,6 @@ create index if not exists product_variants_product_option_values_idx
   where is_active = true;
 
 commit;
+
+-- Make new functions available to the website immediately.
+notify pgrst, 'reload schema';

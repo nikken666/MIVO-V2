@@ -1,18 +1,47 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import type { Locale } from "@/lib/i18n";
 
 export type PolicySection = {
   title: string;
   body: ReactNode;
 };
 
-const policyLinks = [
-  { href: "/shipping-policy", label: "Shipping" },
-  { href: "/returns-policy", label: "Returns & Refunds" },
-  { href: "/privacy-policy", label: "Privacy" },
-];
+const ui: Record<
+  Locale,
+  {
+    heading: string;
+    shipping: string;
+    returns: string;
+    privacy: string;
+    lastUpdated: string;
+  }
+> = {
+  en: {
+    heading: "MIVO policies",
+    shipping: "Shipping",
+    returns: "Returns & Refunds",
+    privacy: "Privacy",
+    lastUpdated: "Last updated:",
+  },
+  ms: {
+    heading: "Polisi MIVO",
+    shipping: "Penghantaran",
+    returns: "Pulangan & Bayaran Balik",
+    privacy: "Privasi",
+    lastUpdated: "Dikemas kini:",
+  },
+  zh: {
+    heading: "MIVO 政策",
+    shipping: "运送",
+    returns: "退货与退款",
+    privacy: "隐私",
+    lastUpdated: "最后更新：",
+  },
+};
 
 export default function PolicyPage({
+  locale,
   eyebrow,
   title,
   intro,
@@ -20,6 +49,7 @@ export default function PolicyPage({
   current,
   sections,
 }: {
+  locale: Locale;
   eyebrow: string;
   title: string;
   intro: string;
@@ -27,11 +57,18 @@ export default function PolicyPage({
   current: string;
   sections: PolicySection[];
 }) {
+  const t = ui[locale];
+  const policyLinks = [
+    { href: "/shipping-policy", label: t.shipping },
+    { href: "/returns-policy", label: t.returns },
+    { href: "/privacy-policy", label: t.privacy },
+  ];
+
   return (
     <main className="policyPage">
       <div className="container policyLayout">
         <aside className="policyNav" aria-label="Policies">
-          <span>MIVO POLICIES</span>
+          <span>{t.heading}</span>
           {policyLinks.map((link) => (
             <Link
               key={link.href}
@@ -47,7 +84,11 @@ export default function PolicyPage({
           <span className="policyEyebrow">{eyebrow}</span>
           <h1>{title}</h1>
           <p className="policyIntro">{intro}</p>
-          <small className="policyUpdated">Last updated: {updated}</small>
+          <small className="policyUpdated">
+            {t.lastUpdated}
+            {locale === "zh" ? "" : " "}
+            {updated}
+          </small>
 
           {sections.map((section, index) => (
             <section key={section.title}>

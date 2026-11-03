@@ -179,7 +179,7 @@ export default function AdminFitmentBuilder({
     <div className={styles.fitmentBuilder}>
       <div className={styles.fitmentBuilderHead}>
         <div>
-          <span>VEHICLE COMPATIBILITY</span>
+          <span>Vehicle compatibility</span>
           <strong>Which vehicle can use which SKU?</strong>
           <p>
             Apply a fitment to the whole product or target one specific
@@ -192,14 +192,14 @@ export default function AdminFitmentBuilder({
       <div className={styles.fitmentBuilderGrid}>
         {variantOptions.length > 0 ? (
           <label className={styles.adminField}>
-            <span>APPLIES TO</span>
+            <span>Applies to</span>
             <select
               value={targetVariantKey}
               onChange={(event) =>
                 setTargetVariantKey(event.target.value)
               }
             >
-              <option value="ALL">ALL SKU / WHOLE PRODUCT</option>
+              <option value="ALL">All SKU / whole product</option>
               {variantOptions.map((option) => (
                 <option value={option.key} key={option.key}>
                   {option.label}
@@ -211,7 +211,7 @@ export default function AdminFitmentBuilder({
         ) : null}
 
         <label className={styles.adminField}>
-          <span>MAKE</span>
+          <span>Make</span>
           <select
             value={make}
             onChange={(event) =>
@@ -228,7 +228,7 @@ export default function AdminFitmentBuilder({
         </label>
 
         <label className={styles.adminField}>
-          <span>MODEL</span>
+          <span>Model</span>
           <select
             value={model}
             disabled={!make}
@@ -246,7 +246,7 @@ export default function AdminFitmentBuilder({
         </label>
 
         <label className={styles.adminField}>
-          <span>GENERATION</span>
+          <span>Generation</span>
           <select
             value={generationKey}
             disabled={!model}
@@ -265,7 +265,7 @@ export default function AdminFitmentBuilder({
         </label>
 
         <label className={styles.adminField}>
-          <span>VEHICLE VARIANT</span>
+          <span>Vehicle variant</span>
           <select
             value={variant}
             disabled={!generation}
@@ -273,7 +273,7 @@ export default function AdminFitmentBuilder({
               setVariant(event.target.value)
             }
           >
-            <option value="ALL">ALL VEHICLE VARIANTS</option>
+            <option value="ALL">All vehicle variants</option>
             {(generation?.variants || []).map((item) => (
               <option key={item} value={item}>
                 {item}
@@ -283,7 +283,7 @@ export default function AdminFitmentBuilder({
         </label>
 
         <label className={styles.adminField}>
-          <span>YEAR FROM</span>
+          <span>Year from</span>
           <select
             value={yearFrom}
             disabled={!generation}
@@ -300,7 +300,7 @@ export default function AdminFitmentBuilder({
         </label>
 
         <label className={styles.adminField}>
-          <span>YEAR TO</span>
+          <span>Year to</span>
           <select
             value={yearTo}
             disabled={!generation}
@@ -317,7 +317,7 @@ export default function AdminFitmentBuilder({
         </label>
 
         <label className={styles.adminField}>
-          <span>TRANSMISSION</span>
+          <span>Transmission</span>
           <select
             value={transmission}
             disabled={!generation}
@@ -325,7 +325,7 @@ export default function AdminFitmentBuilder({
               setTransmission(event.target.value)
             }
           >
-            <option value="ALL">ALL TRANSMISSIONS</option>
+            <option value="ALL">All transmissions</option>
             {transmissions.map((item) => (
               <option key={item} value={item}>
                 {item}
@@ -367,7 +367,7 @@ export default function AdminFitmentBuilder({
                 type="button"
                 onClick={() => remove(item.key)}
               >
-                REMOVE
+                Remove
               </button>
             </div>
           ))}

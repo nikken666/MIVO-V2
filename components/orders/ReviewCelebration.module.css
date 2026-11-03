@@ -1,0 +1,13 @@
+.wrap{position:relative;width:180px;height:150px;margin:0 auto 6px;display:grid;place-items:center}
+.star{position:relative;z-index:2;width:76px;height:76px;fill:#ffc400;filter:drop-shadow(0 6px 14px rgba(255,196,0,.45));animation:starIn .7s cubic-bezier(.3,1.6,.5,1) both}
+.ring{position:absolute;top:50%;left:50%;width:80px;height:80px;margin:-52px 0 0 -40px;border:3px solid #ffc400;border-radius:50%;opacity:0;animation:ring .9s .2s ease-out both}
+.ring2{border-color:#0071e3;animation-delay:.35s}
+.piece{position:absolute;top:50%;left:50%;width:8px;height:12px;margin:-18px 0 0 -4px;border-radius:2px;background:var(--c);opacity:0;animation:burst 1s ease-out both}
+.row{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:center;gap:4px}
+.small{width:20px;height:20px;fill:#e2e5e6;animation:smallIn .4s cubic-bezier(.3,1.6,.5,1) both}
+.on{fill:#ffc400}
+@keyframes starIn{0%{transform:scale(0) rotate(-40deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes ring{0%{transform:scale(.5);opacity:.9}100%{transform:scale(1.9);opacity:0}}
+@keyframes burst{0%{transform:rotate(var(--a)) translateY(0) scale(.4);opacity:1}80%{opacity:1}100%{transform:rotate(var(--a)) translateY(calc(var(--d) * -1)) rotate(200deg) scale(1);opacity:0}}
+@keyframes smallIn{0%{transform:scale(0)}100%{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.wrap *{animation:none !important}.piece,.ring{display:none}}

@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
+import AdminSidebar from "@/components/admin/AdminSidebar";
+import WarrantyResolution from "@/components/admin/WarrantyResolution";
 
 type ClaimStatus =
   | "new"
@@ -46,16 +49,17 @@ type ClaimView = ClaimRow & {
 type TabKey = "all" | ClaimStatus;
 
 const tabs: Array<{ key: TabKey; label: string }> = [
-  { key: "all", label: "ALL" },
-  { key: "new", label: "NEW" },
-  { key: "reviewing", label: "REVIEWING" },
-  { key: "approved", label: "APPROVED" },
-  { key: "rejected", label: "REJECTED" },
-  { key: "completed", label: "COMPLETED" },
+  { key: "all", label: "All" },
+  { key: "new", label: "New" },
+  { key: "reviewing", label: "Reviewing" },
+  { key: "approved", label: "Approved" },
+  { key: "rejected", label: "Rejected" },
+  { key: "completed", label: "Completed" },
 ];
 
 function label(value: string) {
-  return value.replaceAll("_", " ").toUpperCase();
+  const text = value.replaceAll("_", " ").toLowerCase();
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 function dateLabel(value: string) {
@@ -99,7 +103,7 @@ export default function AdminClaimsPage() {
     if (adminError) throw adminError;
 
     if (!isAdmin) {
-      window.location.href = "/";
+      leaveBackOffice();
       return;
     }
 
@@ -286,35 +290,13 @@ export default function AdminClaimsPage() {
   return (
     <main className={styles.adminShell}>
       <div className={styles.adminWorkspace}>
-        <aside className={styles.adminSidebar}>
-          <a href="/admin" className={styles.adminBrand}>
-            <span>MIVO</span>
-            <small>STORE CONTROL</small>
-          </a>
-
-          <nav className={styles.adminSideNav}>
-            <a href="/admin"><span>01</span>Dashboard</a>
-            <a href="/admin/orders"><span>02</span>Orders</a>
-            <a href="/admin/arrange-shipment"><span>03</span>Arrange Shipment</a>
-            <a href="/admin/claims" className={styles.active}><span>04</span>Claims</a>
-            <a href="/admin/marketing"><span>05</span>Marketing Centre</a>
-            <a href="/admin/products"><span>06</span>Products</a>
-            <a href="/admin/products/new"><span>07</span>Add Product</a>
-            <a href="/admin/shipping"><span>08</span>Shipping</a>
-          </nav>
-
-          <div className={styles.adminSidebarFoot}>
-            <span>STORE MODE</span>
-            <strong>MIVO DIRECT</strong>
-            <a href="/">OPEN STOREFRONT</a>
-          </div>
-        </aside>
+        <AdminSidebar />
 
         <section className={styles.adminContent}>
           <header className={styles.adminHeader}>
             <div>
               <span className={styles.adminEyebrow}>
-                AFTER-SALES CONTROL
+                After-sales control
               </span>
               <h1>Warranty Claims</h1>
               <p>Review customer evidence and manage warranty outcomes.</p>
@@ -322,7 +304,7 @@ export default function AdminClaimsPage() {
 
             <div className={styles.adminHeaderActions}>
               <div className={styles.adminAttention}>
-                <span>OPEN CLAIMS</span>
+                <span>Open claims</span>
                 <strong>
                   {loading
                     ? "—"
@@ -356,7 +338,7 @@ export default function AdminClaimsPage() {
           <section className={styles.adminPanel}>
             <div className={styles.claimToolbar}>
               <label>
-                <span>SEARCH CLAIM</span>
+                <span>Search claim</span>
                 <input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
@@ -364,7 +346,7 @@ export default function AdminClaimsPage() {
                 />
               </label>
               <div>
-                <span>RESULTS</span>
+                <span>Results</span>
                 <strong>{filtered.length}</strong>
               </div>
             </div>
@@ -440,7 +422,7 @@ export default function AdminClaimsPage() {
 
                     <div className={styles.claimMetaGrid}>
                       <div>
-                        <span>CUSTOMER</span>
+                        <span>Customer</span>
                         <strong>
                           {selected.customer?.full_name || "MIVO CUSTOMER"}
                         </strong>
@@ -448,12 +430,12 @@ export default function AdminClaimsPage() {
                         <small>{selected.customer?.phone || "—"}</small>
                       </div>
                       <div>
-                        <span>ISSUE</span>
+                        <span>Issue</span>
                         <strong>{label(selected.issue_type)}</strong>
                         <small>{dateLabel(selected.created_at)}</small>
                       </div>
                       <div>
-                        <span>WARRANTY</span>
+                        <span>Warranty</span>
                         <strong>{selected.warranty_months} MONTHS</strong>
                         <small>
                           Expires {dateLabel(selected.warranty_expires_at)}
@@ -462,13 +444,13 @@ export default function AdminClaimsPage() {
                     </div>
 
                     <div className={styles.claimDescription}>
-                      <span>CUSTOMER DESCRIPTION</span>
+                      <span>Customer description</span>
                       <p>{selected.description}</p>
                     </div>
 
                     {(selected.display_image_urls || []).length > 0 ? (
                       <div className={styles.claimEvidence}>
-                        <span>EVIDENCE</span>
+                        <span>Evidence</span>
                         <div>
                           {(selected.display_image_urls || []).map((url) => (
                             <a
@@ -486,23 +468,23 @@ export default function AdminClaimsPage() {
 
                     <div className={styles.claimAdminForm}>
                       <label>
-                        <span>STATUS</span>
+                        <span>Status</span>
                         <select
                           value={status}
                           onChange={(event) =>
                             setStatus(event.target.value as ClaimStatus)
                           }
                         >
-                          <option value="new">NEW</option>
-                          <option value="reviewing">REVIEWING</option>
-                          <option value="approved">APPROVED</option>
-                          <option value="rejected">REJECTED</option>
-                          <option value="completed">COMPLETED</option>
+                          <option value="new">New</option>
+                          <option value="reviewing">Reviewing</option>
+                          <option value="approved">Approved</option>
+                          <option value="rejected">Rejected</option>
+                          <option value="completed">Completed</option>
                         </select>
                       </label>
 
                       <label>
-                        <span>CUSTOMER UPDATE</span>
+                        <span>Customer update</span>
                         <textarea
                           rows={4}
                           value={adminNote}
@@ -514,7 +496,7 @@ export default function AdminClaimsPage() {
                       </label>
 
                       <label>
-                        <span>RESOLUTION</span>
+                        <span>Resolution</span>
                         <textarea
                           rows={4}
                           value={resolutionNote}
@@ -533,7 +515,7 @@ export default function AdminClaimsPage() {
                           }
                           className={styles.adminSecondaryAction}
                         >
-                          VIEW ORDER
+                          View order
                         </a>
                         <button
                           type="button"
@@ -541,10 +523,16 @@ export default function AdminClaimsPage() {
                           disabled={busy}
                           onClick={() => void saveClaim()}
                         >
-                          {busy ? "SAVING..." : "SAVE CLAIM"}
+                          {busy ? "Saving…" : "Save claim"}
                         </button>
                       </div>
                     </div>
+
+                    <WarrantyResolution
+                      key={selected.id}
+                      claimId={selected.id}
+                      onChanged={() => void loadClaims()}
+                    />
                   </div>
                 ) : null}
               </div>

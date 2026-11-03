@@ -14,6 +14,8 @@ import AdminFitmentBuilder, {
   type AdminFitmentDraft,
 } from "@/components/AdminFitmentBuilder";
 import styles from "../../../Admin.module.css";
+import AdminSidebar from "@/components/admin/AdminSidebar";
+import { getStaffAccess } from "@/lib/staff";
 
 type Option = { id: string; name: string };
 
@@ -196,12 +198,10 @@ export default function EditProductPage() {
           return;
         }
 
-        const { data: isAdmin, error: adminError } =
-          await supabase.rpc("is_admin");
-
-        if (adminError) throw adminError;
-        if (!isAdmin) {
-          window.location.href = "/";
+        // MIVO admins, or sellers for their own shops' products.
+        const access = await getStaffAccess(supabase);
+        if (!access.allowed) {
+          window.location.href = "/sell";
           return;
         }
 
@@ -307,6 +307,10 @@ export default function EditProductPage() {
         }
 
         const productRow = productResult.data as EditProduct;
+        if (!access.isAdmin && !access.shopIds.includes(productRow.seller_id)) {
+          window.location.href = "/seller/products";
+          return;
+        }
         const variantRows =
           (variantResult.data as EditVariant[] | null) || [];
         const vehicles =
@@ -1467,37 +1471,13 @@ export default function EditProductPage() {
   return (
     <main className={styles.adminShell}>
       <div className={styles.adminWorkspace}>
-        <aside className={styles.adminSidebar}>
-          <a href="/admin" className={styles.adminBrand}>
-            <span>MIVO</span>
-            <small>STORE CONTROL</small>
-          </a>
-
-          <nav className={styles.adminSideNav}>
-            <a href="/admin"><span>01</span>Dashboard</a>
-            <a href="/admin/orders"><span>02</span>Orders</a>
-            <a href="/admin/arrange-shipment"><span>03</span>Arrange Shipment</a>
-            <a href="/admin/claims"><span>04</span>Claims</a>
-            <a href="/admin/marketing"><span>05</span>Marketing Centre</a>
-            <a href="/admin/products" className={styles.active}><span>06</span>Products</a>
-            <a href="/admin/products/new"><span>07</span>Add Product</a>
-            <a href="/admin/shipping"><span>08</span>Shipping</a>
-          </nav>
-
-          <div className={styles.adminSidebarFoot}>
-            <span>EDIT MODE</span>
-            <strong>{variants.length} SKU</strong>
-            <a href={"/products/" + product.slug}>
-              OPEN PRODUCT ↗
-            </a>
-          </div>
-        </aside>
+        <AdminSidebar />
 
         <section className={styles.adminContent}>
           <header className={styles.adminHeader}>
             <div>
               <span className={styles.adminEyebrow}>
-                MIVO STORE CONTROL · EDIT PRODUCT
+                MIVO store control · Edit product
               </span>
               <h1>Edit Product</h1>
               <p>
@@ -1517,7 +1497,7 @@ export default function EditProductPage() {
           <form onSubmit={save}>
             <div className={styles.productEditorLayout}>
               <nav className={styles.productEditorNav}>
-                <span>EDIT PRODUCT</span>
+                <span>Edit product</span>
                 <a href="#media">01 · Media</a>
                 <a href="#basic">02 · Basic Info</a>
                 <a href="#variations">03 · Variations</a>
@@ -1530,7 +1510,7 @@ export default function EditProductPage() {
                 <section id="media" className={styles.productEditorCard}>
                   <div className={styles.productEditorCardHead}>
                     <div>
-                      <span>01 · PRODUCT MEDIA</span>
+                      <span>01 · Product media</span>
                       <h2>Product Images</h2>
                       <p>
                         Shopee-style image management. First image is the
@@ -1546,7 +1526,7 @@ export default function EditProductPage() {
                         <img src={image.url} alt={"Product " + (index + 1)} />
                         {index === 0 ? (
                           <span className={styles.editImageMainBadge}>
-                            MAIN
+                            Main
                           </span>
                         ) : null}
 
@@ -1562,7 +1542,7 @@ export default function EditProductPage() {
                             type="button"
                             onClick={() => removeImage(index)}
                           >
-                            REMOVE
+                            Remove
                           </button>
                           <button
                             type="button"
@@ -1586,7 +1566,7 @@ export default function EditProductPage() {
                         />
                         <div>
                           <strong>+</strong>
-                          <span>ADD IMAGE</span>
+                          <span>Add image</span>
                         </div>
                       </label>
                     ) : null}
@@ -1600,7 +1580,7 @@ export default function EditProductPage() {
                 <section id="basic" className={styles.productEditorCard}>
                   <div className={styles.productEditorCardHead}>
                     <div>
-                      <span>02 · BASIC INFORMATION</span>
+                      <span>02 · Basic information</span>
                       <h2>Product Information</h2>
                       <p>
                         Edit title, category, brand and product description.
@@ -1610,7 +1590,7 @@ export default function EditProductPage() {
 
                   <div className={styles.adminFormGrid}>
                     <label className={styles.adminField + " " + styles.full}>
-                      <span>PRODUCT NAME *</span>
+                      <span>Product name *</span>
                       <input
                         name="name"
                         required
@@ -1627,7 +1607,7 @@ export default function EditProductPage() {
                     />
 
                     <label className={styles.adminField}>
-                      <span>BRAND</span>
+                      <span>Brand</span>
                       <select
                         name="brand_id"
                         defaultValue={product.brand_id || ""}
@@ -1642,7 +1622,7 @@ export default function EditProductPage() {
                     </label>
 
                     <label className={styles.adminField + " " + styles.full}>
-                      <span>SHORT DESCRIPTION</span>
+                      <span>Short description</span>
                       <input
                         name="short_description"
                         maxLength={240}
@@ -1651,7 +1631,7 @@ export default function EditProductPage() {
                     </label>
 
                     <label className={styles.adminField + " " + styles.full}>
-                      <span>DESCRIPTION</span>
+                      <span>Description</span>
                       <textarea
                         name="description"
                         defaultValue={product.description || ""}
@@ -1664,7 +1644,7 @@ export default function EditProductPage() {
                 <section id="variations" className={styles.productEditorCard}>
                   <div className={styles.productEditorCardHead}>
                     <div>
-                      <span>03 · SALES INFORMATION</span>
+                      <span>03 · Sales information</span>
                       <h2>Variations</h2>
                       <p>
                         Set up variation names and options first. SKU, price and
@@ -1681,7 +1661,7 @@ export default function EditProductPage() {
                       </div>
 
                       <label className={styles.adminField}>
-                        <span>VARIATION NAME</span>
+                        <span>Variation name</span>
                         <input
                           name="variation_1_name"
                           value={product.variation_1_name || ""}
@@ -1693,7 +1673,7 @@ export default function EditProductPage() {
                       </label>
 
                       <div className={styles.shopeeVariationOptionsLabel}>
-                        <span>OPTIONS</span>
+                        <span>Options</span>
                         <button
                           type="button"
                           onClick={() => addVariationSetupOption(1)}
@@ -1733,7 +1713,7 @@ export default function EditProductPage() {
                                         removeVariationImage(option)
                                       }
                                     >
-                                      REMOVE
+                                      Remove
                                     </button>
                                   </>
                                 ) : (
@@ -1772,12 +1752,12 @@ export default function EditProductPage() {
                             type="button"
                             onClick={disableVariation2}
                           >
-                            REMOVE
+                            Remove
                           </button>
                         </div>
 
                         <label className={styles.adminField}>
-                          <span>VARIATION NAME</span>
+                          <span>Variation name</span>
                           <input
                             name="variation_2_name"
                             value={product.variation_2_name || ""}
@@ -1789,7 +1769,7 @@ export default function EditProductPage() {
                         </label>
 
                         <div className={styles.shopeeVariationOptionsLabel}>
-                          <span>OPTIONS</span>
+                          <span>Options</span>
                           <button
                             type="button"
                             onClick={() => addVariationSetupOption(2)}
@@ -1842,7 +1822,7 @@ export default function EditProductPage() {
 
                   <div className={styles.shopeeVariationMatrixTitle}>
                     <div>
-                      <strong>SKU INFORMATION</strong>
+                      <strong>SKU information</strong>
                       <span>
                         Fill SKU, price and stock after your variation options
                         are ready.
@@ -1858,12 +1838,12 @@ export default function EditProductPage() {
                     >
                       <thead>
                         <tr>
-                          <th>VARIATION</th>
+                          <th>Variation</th>
                           <th>SKU</th>
-                          <th>PRICE</th>
-                          <th>ORIGINAL</th>
-                          <th>STOCK</th>
-                          <th>LOW STOCK</th>
+                          <th>Price</th>
+                          <th>Original</th>
+                          <th>Stock</th>
+                          <th>Low stock</th>
                         </tr>
                       </thead>
 
@@ -1966,7 +1946,7 @@ export default function EditProductPage() {
                 <section id="fitment" className={styles.productEditorCard}>
                   <div className={styles.productEditorCardHead}>
                     <div>
-                      <span>04 · VEHICLE FITMENT</span>
+                      <span>04 · Vehicle fitment</span>
                       <h2>Compatible Vehicles</h2>
                       <p>
                         Choose specific vehicles, or use Match All Cars for
@@ -1981,7 +1961,7 @@ export default function EditProductPage() {
                       className={!isUniversalFitment ? styles.active : ""}
                       onClick={() => setIsUniversalFitment(false)}
                     >
-                      <strong>SELECT VEHICLES</strong>
+                      <strong>Select vehicles</strong>
                       <span>Use detailed make, model and variant fitment.</span>
                     </button>
                     <button
@@ -1989,14 +1969,14 @@ export default function EditProductPage() {
                       className={isUniversalFitment ? styles.active : ""}
                       onClick={() => setIsUniversalFitment(true)}
                     >
-                      <strong>MATCH ALL CARS</strong>
+                      <strong>Match all cars</strong>
                       <span>Show this product as compatible with every vehicle.</span>
                     </button>
                   </div>
 
                   {isUniversalFitment ? (
                     <div className={styles.universalFitmentNotice}>
-                      <strong>MATCH ALL CARS ENABLED</strong>
+                      <strong>Match all cars enabled</strong>
                       <span>
                         Buyers will see this product as compatible with any
                         vehicle selected in My Garage.
@@ -2021,7 +2001,7 @@ export default function EditProductPage() {
                 <section id="shipping" className={styles.productEditorCard}>
                   <div className={styles.productEditorCardHead}>
                     <div>
-                      <span>05 · SHIPPING</span>
+                      <span>05 · Shipping</span>
                       <h2>Weight & Parcel Size</h2>
                       <p>
                         Choose whether every variation shares one parcel size
@@ -2032,7 +2012,7 @@ export default function EditProductPage() {
 
                   <div className={styles.destinationRestrictionBox}>
                     <div>
-                      <strong>DESTINATION RESTRICTIONS</strong>
+                      <strong>Destination restrictions</strong>
                       <span>
                         Choose destinations where this product cannot be shipped.
                       </span>
@@ -2065,7 +2045,7 @@ export default function EditProductPage() {
                       }
                       onClick={() => setShippingMode("same")}
                     >
-                      <strong>SAME SIZE FOR ALL VARIATIONS</strong>
+                      <strong>Same size for all variations</strong>
                       <span>
                         One weight and one L × W × H will be applied to every SKU.
                       </span>
@@ -2078,7 +2058,7 @@ export default function EditProductPage() {
                       }
                       onClick={() => setShippingMode("different")}
                     >
-                      <strong>DIFFERENT SIZE BY VARIATION</strong>
+                      <strong>Different size by variation</strong>
                       <span>
                         Each SKU can have its own weight and parcel dimensions.
                       </span>
@@ -2088,7 +2068,7 @@ export default function EditProductPage() {
                   {shippingMode === "same" ? (
                     <div className={styles.editorTwoCol}>
                       <label className={styles.adminField}>
-                        <span>WEIGHT (KG)</span>
+                        <span>Weight (kg)</span>
                         <input
                           type="number"
                           min="0"
@@ -2104,7 +2084,7 @@ export default function EditProductPage() {
                       </label>
 
                       <label className={styles.adminField}>
-                        <span>LENGTH (CM)</span>
+                        <span>Length (cm)</span>
                         <input
                           type="number"
                           min="0"
@@ -2120,7 +2100,7 @@ export default function EditProductPage() {
                       </label>
 
                       <label className={styles.adminField}>
-                        <span>WIDTH (CM)</span>
+                        <span>Width (cm)</span>
                         <input
                           type="number"
                           min="0"
@@ -2136,7 +2116,7 @@ export default function EditProductPage() {
                       </label>
 
                       <label className={styles.adminField}>
-                        <span>HEIGHT (CM)</span>
+                        <span>Height (cm)</span>
                         <input
                           type="number"
                           min="0"
@@ -2156,11 +2136,11 @@ export default function EditProductPage() {
                       <table className={styles.variantDimensionTable}>
                         <thead>
                           <tr>
-                            <th>VARIATION</th>
-                            <th>WEIGHT KG</th>
-                            <th>LENGTH CM</th>
-                            <th>WIDTH CM</th>
-                            <th>HEIGHT CM</th>
+                            <th>Variation</th>
+                            <th>Weight kg</th>
+                            <th>Length cm</th>
+                            <th>Width cm</th>
+                            <th>Height cm</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -2241,7 +2221,7 @@ export default function EditProductPage() {
                 <section id="publish" className={styles.productEditorCard}>
                   <div className={styles.productEditorCardHead}>
                     <div>
-                      <span>06 · PUBLISH</span>
+                      <span>06 · Publish</span>
                       <h2>Listing Status</h2>
                       <p>
                         Update warranty and storefront visibility.
@@ -2251,7 +2231,7 @@ export default function EditProductPage() {
 
                   <div className={styles.editorTwoCol}>
                     <label className={styles.adminField}>
-                      <span>WARRANTY (MONTHS)</span>
+                      <span>Warranty (months)</span>
                       <input
                         name="warranty_months"
                         type="number"
@@ -2262,7 +2242,7 @@ export default function EditProductPage() {
                     </label>
 
                     <label className={styles.adminField}>
-                      <span>STATUS</span>
+                      <span>Status</span>
                       <select
                         name="status"
                         defaultValue={product.status}
@@ -2292,14 +2272,14 @@ export default function EditProductPage() {
                     href="/admin/products"
                     className={styles.adminSecondary}
                   >
-                    CANCEL
+                    Cancel
                   </a>
                   <button
                     type="submit"
                     className={styles.adminAction}
                     disabled={busy}
                   >
-                    {busy ? "SAVING..." : "SAVE CHANGES"}
+                    {busy ? "Saving…" : "Save changes"}
                   </button>
                 </div>
               </div>

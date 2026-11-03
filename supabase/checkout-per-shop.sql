@@ -1,0 +1,354 @@
+-- =====================================================================
+-- MIVO checkout per shop (marketplace style)
+-- Run once in Supabase → SQL Editor, AFTER seller-centre.sql. Safe to re-run.
+-- With EasyParcel connected, shipping is priced live from EasyParcel instead
+-- (see /api/shipping/quote); MIVO's shipping rules are the fallback.
+--
+-- Each shop packs and ships its own parcel, so the buyer chooses a courier
+-- per shop and pays each shop's shipping. This builds on the existing
+-- quote_shipping_options() and create_pending_order() (unchanged):
+--   * quote_shipping_by_shop()   quotes every shop's items separately.
+--   * create_pending_order_by_shop() creates the order as before, then sets
+--     the order's shipping to the sum of the chosen per-shop quotes and
+--     records each shop's courier (sellers must ship with that courier).
+-- The website falls back to the old single-courier checkout until this runs.
+-- =====================================================================
+
+begin;
+
+alter table public.seller_orders add column if not exists buyer_courier_code text;
+alter table public.seller_orders add column if not exists buyer_courier_name text;
+alter table public.seller_orders add column if not exists buyer_shipping_fee numeric(12,2);
+
+-- Rows of quote_shipping_options() as a jsonb array, whatever its return type.
+create or replace function public.mivo_quote_options(p_items jsonb, p_state text, p_postcode text)
+returns jsonb language plpgsql stable security definer set search_path = public as $$
+declare
+  v_set boolean;
+  v_result jsonb;
+begin
+  select p.proretset into v_set
+    from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public' and p.proname = 'quote_shipping_options'
+   limit 1;
+  if v_set then
+    execute 'select coalesce(jsonb_agg(to_jsonb(q)), ''[]''::jsonb) from public.quote_shipping_options($1, $2, $3) q'
+      into v_result using p_items, p_state, p_postcode;
+  else
+    execute 'select to_jsonb(public.quote_shipping_options($1, $2, $3))'
+      into v_result using p_items, p_state, p_postcode;
+  end if;
+  return coalesce(v_result, '[]'::jsonb);
+end;
+$$;
+
+-- Shipping options for each shop's parcel.
+create or replace function public.quote_shipping_by_shop(p_items jsonb, p_state text, p_postcode text)
+returns jsonb language plpgsql stable security definer set search_path = public as $$
+declare
+  v_group record;
+  v_out jsonb := '[]'::jsonb;
+begin
+  for v_group in
+    select v.seller_id, s.shop_name, s.tier,
+           jsonb_agg(jsonb_build_object('variant_id', v.id, 'quantity', (i ->> 'quantity')::int)) as items
+      from jsonb_array_elements(coalesce(p_items, '[]'::jsonb)) i
+      join public.product_variants v on v.id = (i ->> 'variant_id')::uuid
+      join public.sellers s on s.id = v.seller_id
+     group by v.seller_id, s.shop_name, s.tier
+     order by (s.tier = 'direct') desc, s.shop_name
+  loop
+    v_out := v_out || jsonb_build_array(jsonb_build_object(
+      'seller_id', v_group.seller_id,
+      'shop_name', v_group.shop_name,
+      'tier', v_group.tier,
+      'options', public.mivo_quote_options(v_group.items, p_state, p_postcode)
+    ));
+  end loop;
+  return v_out;
+end;
+$$;
+
+-- MIVO-funded free shipping (superadmin): during a promotion, orders that
+-- reach the minimum spend get shipping paid by MIVO, up to a cap per order.
+create table if not exists public.shipping_promotions (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  starts_at timestamptz not null,
+  ends_at timestamptz not null,
+  min_spend numeric(12,2) not null default 0,
+  max_subsidy numeric(12,2),            -- per order; null = all shipping
+  active boolean not null default true,
+  created_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  check (ends_at > starts_at)
+);
+alter table public.shipping_promotions enable row level security;
+revoke all on public.shipping_promotions from anon, authenticated;
+
+alter table public.orders add column if not exists shipping_subsidy numeric(12,2) not null default 0;
+alter table public.orders add column if not exists shipping_promotion_id uuid references public.shipping_promotions(id) on delete set null;
+
+-- The promotion running now (shown at checkout).
+create or replace function public.active_shipping_promotion()
+returns jsonb language sql stable security definer set search_path = public as $$
+  select to_jsonb(p) - 'created_by' - 'created_at'
+    from public.shipping_promotions p
+   where p.active and now() between p.starts_at and p.ends_at
+   order by p.max_subsidy desc nulls first, p.min_spend
+   limit 1;
+$$;
+grant execute on function public.active_shipping_promotion() to anon, authenticated;
+
+create or replace function public.platform_shipping_promotions()
+returns setof public.shipping_promotions language plpgsql stable security definer set search_path = public as $$
+begin
+  if not public.is_superadmin() then raise exception 'Only the MIVO superadmin can manage free shipping'; end if;
+  return query select * from public.shipping_promotions order by starts_at desc limit 200;
+end;
+$$;
+
+create or replace function public.platform_save_shipping_promotion(
+  p_name text, p_starts_at timestamptz, p_ends_at timestamptz, p_min_spend numeric, p_max_subsidy numeric
+)
+returns uuid language plpgsql security definer set search_path = public as $$
+declare v_id uuid;
+begin
+  if not public.is_superadmin() then raise exception 'Only the MIVO superadmin can manage free shipping'; end if;
+  if coalesce(btrim(p_name), '') = '' then raise exception 'Give the promotion a name'; end if;
+  if p_ends_at <= p_starts_at then raise exception 'The end must be after the start'; end if;
+  insert into public.shipping_promotions (name, starts_at, ends_at, min_spend, max_subsidy, created_by)
+  values (btrim(p_name), p_starts_at, p_ends_at, greatest(coalesce(p_min_spend, 0), 0),
+          case when p_max_subsidy > 0 then p_max_subsidy end, auth.uid())
+  returning id into v_id;
+  return v_id;
+end;
+$$;
+
+create or replace function public.platform_end_shipping_promotion(p_id uuid)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if not public.is_superadmin() then raise exception 'Only the MIVO superadmin can manage free shipping'; end if;
+  update public.shipping_promotions set active = false where id = p_id;
+end;
+$$;
+
+revoke all on function public.platform_shipping_promotions() from public, anon;
+revoke all on function public.platform_save_shipping_promotion(text, timestamptz, timestamptz, numeric, numeric) from public, anon;
+revoke all on function public.platform_end_shipping_promotion(uuid) from public, anon;
+grant execute on function public.platform_shipping_promotions() to authenticated;
+grant execute on function public.platform_save_shipping_promotion(text, timestamptz, timestamptz, numeric, numeric) to authenticated;
+grant execute on function public.platform_end_shipping_promotion(uuid) to authenticated;
+
+-- Shipping prices quoted live from EasyParcel at checkout (server-side, see
+-- /api/shipping/quote). Valid 30 minutes; the order uses them as-is.
+create table if not exists public.checkout_shipping_quotes (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  items_key text not null,               -- sorted "variant:qty" list the quote is for
+  postcode text not null,
+  state text not null,
+  shops jsonb not null,                  -- [{seller_id, amount, courier, service_id}]
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null default now() + interval '30 minutes'
+);
+alter table public.checkout_shipping_quotes enable row level security;
+revoke all on public.checkout_shipping_quotes from anon, authenticated;
+
+create or replace function public.mivo_items_key(p_items jsonb)
+returns text language sql immutable as $$
+  select coalesce(string_agg((i ->> 'variant_id') || ':' || (i ->> 'quantity'), ',' order by i ->> 'variant_id'), '')
+    from jsonb_array_elements(coalesce(p_items, '[]'::jsonb)) i;
+$$;
+
+-- Create the order with shipping per shop: from a live EasyParcel quote
+-- (p_quote_id) or, without one, from MIVO's shipping rules (p_couriers:
+-- {"<seller_id>": "<courier_code>"}).
+drop function if exists public.create_pending_order_by_shop(jsonb, jsonb, text, uuid, jsonb);
+create or replace function public.create_pending_order_by_shop(
+  p_items jsonb,
+  p_shipping_address jsonb,
+  p_customer_note text default null,
+  p_voucher_id uuid default null,
+  p_couriers jsonb default '{}'::jsonb,
+  p_quote_id uuid default null
+)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_quotes jsonb;
+  v_shop jsonb;
+  v_choice jsonb;
+  v_code text;
+  v_first_code text;
+  v_shipping numeric := 0;
+  v_result jsonb;
+  v_order public.orders%rowtype;
+  v_discount numeric;
+  v_voucher record;
+  v_live public.checkout_shipping_quotes%rowtype;
+  v_fees jsonb := '[]'::jsonb;   -- [{seller_id, fee, courier_code, courier_name}]
+  v_promo public.shipping_promotions%rowtype;
+  v_subsidy numeric := 0;
+begin
+  if auth.uid() is null then raise exception 'Please sign in'; end if;
+
+  v_quotes := public.quote_shipping_by_shop(p_items, p_shipping_address ->> 'state', p_shipping_address ->> 'postcode');
+  if jsonb_array_length(v_quotes) = 0 then raise exception 'Your cart is empty'; end if;
+
+  if p_quote_id is not null then
+    -- Live EasyParcel prices quoted for this cart and address.
+    select * into v_live from public.checkout_shipping_quotes
+     where id = p_quote_id and user_id = auth.uid();
+    if not found or v_live.expires_at < now() then
+      raise exception 'Shipping price expired. Please refresh the checkout page.';
+    end if;
+    if v_live.items_key <> public.mivo_items_key(p_items)
+       or v_live.postcode <> coalesce(p_shipping_address ->> 'postcode', '')
+       or v_live.state <> coalesce(p_shipping_address ->> 'state', '') then
+      raise exception 'Your cart or address changed. Please refresh the checkout page.';
+    end if;
+    for v_shop in select * from jsonb_array_elements(v_quotes) loop
+      select q into v_choice from jsonb_array_elements(v_live.shops) q
+       where q ->> 'seller_id' = v_shop ->> 'seller_id' limit 1;
+      if v_choice is null then raise exception 'Shipping price missing for %', v_shop ->> 'shop_name'; end if;
+      v_shipping := v_shipping + coalesce((v_choice ->> 'amount')::numeric, 0);
+      v_fees := v_fees || jsonb_build_array(jsonb_build_object(
+        'seller_id', v_shop ->> 'seller_id', 'fee', (v_choice ->> 'amount')::numeric,
+        'courier_code', v_choice ->> 'service_id', 'courier_name', v_choice ->> 'courier'));
+      -- create_pending_order still needs one of MIVO's courier codes.
+      v_first_code := coalesce(v_first_code, v_shop -> 'options' -> 0 ->> 'courier_code');
+      v_choice := null;
+    end loop;
+  else
+    -- MIVO's own shipping rules: one courier per shop.
+    for v_shop in select * from jsonb_array_elements(v_quotes) loop
+      v_code := p_couriers ->> (v_shop ->> 'seller_id');
+      v_choice := null;
+      select o into v_choice from jsonb_array_elements(v_shop -> 'options') o
+       where o ->> 'courier_code' = v_code limit 1;
+      if v_choice is null then
+        raise exception 'Choose a courier for %', v_shop ->> 'shop_name';
+      end if;
+      v_first_code := coalesce(v_first_code, v_code);
+      v_shipping := v_shipping + coalesce((v_choice ->> 'shipping_amount')::numeric, 0);
+      v_fees := v_fees || jsonb_build_array(jsonb_build_object(
+        'seller_id', v_shop ->> 'seller_id', 'fee', (v_choice ->> 'shipping_amount')::numeric,
+        'courier_code', v_code, 'courier_name', v_choice ->> 'courier_name'));
+    end loop;
+  end if;
+
+  -- The existing checkout does stock, prices, vouchers and the order itself.
+  v_result := public.create_pending_order(
+    p_items,
+    p_shipping_address || jsonb_build_object('courier_code', v_first_code, 'shop_couriers', p_couriers),
+    p_customer_note,
+    p_voucher_id
+  );
+
+  select * into v_order from public.orders
+   where order_number = v_result ->> 'order_number' and user_id = auth.uid()
+   for update;
+  if not found then raise exception 'Order not found after checkout'; end if;
+
+  -- MIVO free-shipping promotion: MIVO pays shipping (up to the cap) when the
+  -- order reaches the minimum spend. The buyer pays only what's left.
+  select * into v_promo from public.shipping_promotions
+   where active and now() between starts_at and ends_at
+   order by max_subsidy desc nulls first, min_spend limit 1;
+  if found and coalesce(v_order.subtotal, 0) >= v_promo.min_spend then
+    v_subsidy := least(v_shipping, coalesce(v_promo.max_subsidy, v_shipping));
+  end if;
+  v_shipping := v_shipping - v_subsidy;
+
+  -- Free-shipping vouchers follow the new shipping total.
+  v_discount := coalesce(v_order.discount_amount, 0);
+  if v_order.voucher_code is not null then
+    select discount_type, max_discount into v_voucher
+      from public.vouchers where code = v_order.voucher_code limit 1;
+    if found and v_voucher.discount_type = 'free_shipping' then
+      v_discount := least(v_shipping, coalesce(nullif(v_voucher.max_discount, 0), v_shipping));
+    end if;
+  end if;
+
+  update public.orders
+     set shipping_amount = v_shipping,
+         shipping_subsidy = v_subsidy,
+         shipping_promotion_id = case when v_subsidy > 0 then v_promo.id end,
+         discount_amount = v_discount,
+         total_amount = greatest(0, coalesce(subtotal, 0) + v_shipping - v_discount),
+         updated_at = now()
+   where id = v_order.id;
+
+  -- Each shop's shipping fee (and what it was priced at) on its parcel.
+  for v_shop in select * from jsonb_array_elements(v_fees) loop
+    update public.seller_orders
+       set buyer_courier_code = v_shop ->> 'courier_code',
+           buyer_courier_name = v_shop ->> 'courier_name',
+           buyer_shipping_fee = (v_shop ->> 'fee')::numeric
+     where order_id = v_order.id and seller_id = (v_shop ->> 'seller_id')::uuid;
+  end loop;
+
+  if p_quote_id is not null then
+    delete from public.checkout_shipping_quotes where id = p_quote_id or expires_at < now() - interval '1 day';
+  end if;
+
+  return v_result || jsonb_build_object(
+    'shipping_amount', v_shipping,
+    'shipping_subsidy', v_subsidy,
+    'discount_amount', v_discount,
+    'total_amount', greatest(0, coalesce(v_order.subtotal, 0) + v_shipping - v_discount)
+  );
+end;
+$$;
+
+revoke all on function public.mivo_quote_options(jsonb, text, text) from public, anon;
+revoke all on function public.quote_shipping_by_shop(jsonb, text, text) from public;
+revoke all on function public.create_pending_order_by_shop(jsonb, jsonb, text, uuid, jsonb, uuid) from public, anon;
+grant execute on function public.mivo_quote_options(jsonb, text, text) to authenticated;
+grant execute on function public.quote_shipping_by_shop(jsonb, text, text) to anon, authenticated;
+grant execute on function public.create_pending_order_by_shop(jsonb, jsonb, text, uuid, jsonb, uuid) to authenticated;
+
+-- Seller Centre: include the courier the buyer chose for each parcel.
+drop function if exists public.seller_parcels(uuid);
+create function public.seller_parcels(p_seller_id uuid default null)
+returns table (
+  seller_order_id uuid, seller_id uuid, order_number text, order_status text, payment_status text,
+  parcel_status text, subtotal numeric, shipping_address jsonb, customer_note text, created_at timestamptz,
+  paid_at timestamptz, courier_name text, tracking_number text, buyer_courier_name text)
+language sql stable security definer set search_path = public as $$
+  select so.id, so.seller_id, o.order_number, o.status::text, o.payment_status::text,
+         greatest_status.status, so.subtotal, so.shipping_address, so.customer_note, o.created_at,
+         o.paid_at, sh.courier_name, sh.tracking_number,
+         coalesce(so.buyer_courier_name, o.shipping_address ->> 'shipping_courier_name', o.shipping_address ->> 'courier_name')
+    from public.seller_orders so
+    join public.orders o on o.id = so.order_id
+    cross join lateral (
+      select case
+        when public.mivo_fulfilment_rank(so.status::text) >= public.mivo_fulfilment_rank(o.status::text) then so.status::text
+        else o.status::text end as status
+    ) greatest_status
+    left join lateral (
+      select courier_name, tracking_number from public.shipments s
+       where s.seller_order_id = so.id order by s.created_at limit 1
+    ) sh on true
+   where so.seller_id in (select public.my_shop_ids())
+     and (p_seller_id is null or so.seller_id = p_seller_id)
+   order by o.created_at desc
+   limit 500;
+$$;
+grant execute on function public.seller_parcels(uuid) to authenticated;
+
+commit;
+
+-- Make new functions available to the website immediately.
+notify pgrst, 'reload schema';
+
+-- Couriers are not shown to buyers: the shop (or EasyParcel) picks one when
+-- the order is arranged. buyer_courier_* only records what shipping was priced at.
+-- Remove the earlier courier lock if it was installed.
+begin;
+drop trigger if exists mivo_lock_buyer_courier on public.shipments;
+drop function if exists public.mivo_lock_buyer_courier();
+commit;
+
+notify pgrst, 'reload schema';

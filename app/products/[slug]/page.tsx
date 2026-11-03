@@ -8,7 +8,7 @@ import SavedVehicleProductsBootstrap from "@/components/SavedVehicleProductsBoot
 import { htmlToPlainText } from "@/lib/plainText";
 import {
   getActiveProductBySlug as fetchActiveProductBySlug,
-  getProductPublicReviews,
+  getProductPublicReviewsWithNames,
   getRelatedProducts,
 } from "@/lib/catalog";
 
@@ -53,6 +53,7 @@ export async function generateMetadata({
 import { getLiveProductFitmentDetail } from "@/lib/liveFitment";
 import {
   getProductFitmentStatus,
+  shopFitmentStatus,
   type SelectedVehicle,
 } from "@/data/fitments";
 
@@ -115,7 +116,7 @@ export default async function ProductPage({
         )
       : Promise.resolve(null),
     product.id
-      ? getProductPublicReviews(product.id)
+      ? getProductPublicReviewsWithNames(product.id)
       : Promise.resolve([]),
     getRelatedProducts(product),
   ]);
@@ -124,6 +125,15 @@ export default async function ProductPage({
     fitmentStatus = liveFitment.productStatus;
     variantFitmentStatuses = liveFitment.variantStatuses;
   }
+
+  // Only MIVO Direct parts carry verified fitment; other shops stay unverified.
+  if (fitmentStatus) fitmentStatus = shopFitmentStatus(product, fitmentStatus);
+  variantFitmentStatuses = Object.fromEntries(
+    Object.entries(variantFitmentStatuses).map(([id, status]) => [
+      id,
+      shopFitmentStatus(product, status),
+    ])
+  );
 
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||

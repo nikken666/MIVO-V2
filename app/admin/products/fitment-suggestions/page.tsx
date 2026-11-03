@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import { suggestFitment, type FitmentSuggestion, type Generation } from "@/lib/fitmentSuggest";
 import styles from "../../Admin.module.css";
 import ui from "../../store-health/StoreHealth.module.css";
+import AdminSidebar from "@/components/admin/AdminSidebar";
 
 type ProductRow = { id: string; name: string; status: string; seller_id: string; is_universal_fitment: boolean };
 type VehicleRow = { id: string; make: string; model: string; generation: string; generation_key: string; year_from: number; year_to: number | null };
@@ -36,7 +38,7 @@ export default function FitmentSuggestionsPage() {
         }
         const { data: isAdmin } = await client.rpc("is_admin");
         if (!isAdmin) {
-          window.location.assign("/admin");
+          leaveBackOffice();
           return;
         }
 
@@ -210,26 +212,16 @@ export default function FitmentSuggestionsPage() {
   return (
     <main className={styles.adminShell}>
       <div className={styles.adminWorkspace}>
-        <aside className={styles.adminSidebar}>
-          <a href="/admin" className={styles.adminBrand}><span>MIVO</span><small>STORE CONTROL</small></a>
-          <nav className={styles.adminSideNav}>
-            <a href="/admin">Dashboard</a>
-            <a href="/admin/products">Products</a>
-            <a href="/admin/products/import">Import from Shopee</a>
-            <a href="/admin/products/fitment-suggestions" className={styles.active}>Fitment suggestions</a>
-            <a href="/admin/shops">Shops</a>
-            <a href="/admin/store-health">Store Health</a>
-          </nav>
-        </aside>
+        <AdminSidebar />
 
         <section className={styles.adminContent}>
           <header className={styles.adminHeader}>
             <div>
-              <span className={styles.adminEyebrow}>MIVO STORE CONTROL · VEHICLE FITMENT</span>
+              <span className={styles.adminEyebrow}>MIVO store control · Vehicle fitment</span>
               <h1>Fitment suggestions</h1>
               <p>Vehicles read from each product title. Check, untick anything wrong, then save. Nothing is saved without your approval.</p>
             </div>
-            <a className={styles.adminAction} href="/admin/store-health">STORE HEALTH</a>
+            <a className={styles.adminAction} href="/admin/store-health">Store health</a>
           </header>
 
           <section className={styles.adminPanel}>
@@ -244,14 +236,14 @@ export default function FitmentSuggestionsPage() {
             </div>
 
             <div className={ui.toolbar} style={{ alignItems: "end", flexWrap: "wrap" }}>
-              <label className={styles.adminField}><span>SHOP</span>
+              <label className={styles.adminField}><span>Shop</span>
                 <select value={shopFilter} onChange={(e) => setShopFilter(e.target.value)}>
                   <option value="">All shops</option>
                   {shops.map((s) => <option key={s.id} value={s.id}>{s.shop_name}</option>)}
                 </select>
               </label>
               <button type="button" className={styles.adminAction} disabled={busy !== "" || !highReady} onClick={() => void approveAllHigh()}>
-                {busy === "bulk" ? "SAVING…" : "SAVE ALL HIGH-CONFIDENCE (" + highReady + ")"}
+                {busy === "bulk" ? "Saving…" : "SAVE ALL HIGH-CONFIDENCE (" + highReady + ")"}
               </button>
             </div>
 

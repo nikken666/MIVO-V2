@@ -6,18 +6,21 @@ import HomePromotions from "@/components/HomePromotions";
 import HomeBannerCarousel from "@/components/HomeBannerCarousel";
 import FlashSale from "@/components/FlashSale";
 import VehiclePickerButton from "@/components/VehiclePickerButton";
+import FitsMyCarChip from "@/components/FitsMyCarChip";
 import { products } from "@/data/products";
+import { getT } from "@/lib/i18n/server";
+import type { Key } from "@/lib/i18n";
 
 const categories = [
-  { name: "Maintenance", short: "Oil & filters", href: "/products?group=maintenance" },
-  { name: "Braking", short: "Brakes", href: "/products?group=braking" },
-  { name: "Suspension", short: "Suspension", href: "/products?group=suspension" },
-  { name: "Steering", short: "Steering", href: "/products?group=steering" },
-  { name: "Drivetrain", short: "Drivetrain", href: "/products?group=drivetrain" },
-  { name: "Cooling", short: "Cooling", href: "/products?group=cooling" },
-  { name: "Vouchers", short: "Vouchers", href: "/account/vouchers" },
-  { name: "All", short: "All parts", href: "/products" },
-];
+  { name: "Maintenance", short: "browse.home.cat.maintenance", href: "/products?group=maintenance" },
+  { name: "Braking", short: "browse.home.cat.braking", href: "/products?group=braking" },
+  { name: "Suspension", short: "browse.home.cat.suspension", href: "/products?group=suspension" },
+  { name: "Steering", short: "browse.home.cat.steering", href: "/products?group=steering" },
+  { name: "Drivetrain", short: "browse.home.cat.drivetrain", href: "/products?group=drivetrain" },
+  { name: "Cooling", short: "browse.home.cat.cooling", href: "/products?group=cooling" },
+  { name: "Vouchers", short: "browse.home.cat.vouchers", href: "/account/vouchers" },
+  { name: "All", short: "browse.home.cat.all", href: "/products" },
+] satisfies { name: string; short: Key; href: string }[];
 
 // Line icons (24px grid, stroked with currentColor) for the category row.
 const categoryIcons: Record<string, ReactNode> = {
@@ -76,6 +79,7 @@ const brandLogos = [
 const DISCOVER_COUNT = 20;
 
 export default async function HomePage() {
+  const t = await getT();
   const liveProducts = await getActiveProducts();
   const catalogue = liveProducts.length ? liveProducts : products;
 
@@ -107,27 +111,27 @@ export default async function HomePage() {
         <div className="shopSideBanners">
           <VehiclePickerButton variant="banner" />
           <Link href="/products?view=brands" className="shopSideBanner shopSideBannerBrands">
-            <span className="shopSideBannerKicker">Official brands</span>
-            <strong>Shop by brand</strong>
+            <span className="shopSideBannerKicker">{t("browse.home.officialBrands")}</span>
+            <strong>{t("browse.home.shopByBrand")}</strong>
             <span className="shopBrandRow">
               {brandLogos.map((brand) => (
                 <img src={brand.logo} alt={brand.name} key={brand.name} />
               ))}
             </span>
-            <span className="shopSideBannerCta">View brands ›</span>
+            <span className="shopSideBannerCta">{t("browse.home.viewBrands")}</span>
           </Link>
         </div>
       </section>
 
       {/* Category icons */}
       <section className="container shopSection">
-        <nav className="shopCategories" aria-label="Shop by category">
+        <nav className="shopCategories" aria-label={t("browse.home.categoriesAria")}>
           {categories.map((cat) => (
             <Link href={cat.href} className={"shopCategory" + (cat.name === "Vouchers" ? " isVoucher" : "")} key={cat.name}>
               <span className="shopCategoryIcon" aria-hidden="true">
                 <svg viewBox="0 0 24 24">{categoryIcons[cat.name]}</svg>
               </span>
-              <span>{cat.short}</span>
+              <span>{t(cat.short)}</span>
             </Link>
           ))}
         </nav>
@@ -140,12 +144,12 @@ export default async function HomePage() {
       {/* Daily discover */}
       <section className="container shopSection" id="discover">
         <div className="shopSectionHead">
-          <h2>Daily discover</h2>
+          <h2>{t("browse.home.dailyDiscover")}</h2>
           <div className="shopChips" role="list">
-            <span className="shopChip active" role="listitem">All parts</span>
-            <Link href="/products" className="shopChip" role="listitem">Fits my car</Link>
-            <Link href="/products?group=suspension" className="shopChip" role="listitem">Suspension</Link>
-            <Link href="/products?group=steering" className="shopChip" role="listitem">Steering</Link>
+            <span className="shopChip active" role="listitem">{t("browse.home.cat.all")}</span>
+            <FitsMyCarChip />
+            <Link href="/products?group=suspension" className="shopChip" role="listitem">{t("browse.home.cat.suspension")}</Link>
+            <Link href="/products?group=steering" className="shopChip" role="listitem">{t("browse.home.cat.steering")}</Link>
           </div>
         </div>
         <div className="shopDiscoverGrid">
@@ -154,7 +158,7 @@ export default async function HomePage() {
           ))}
         </div>
         <div className="shopMore">
-          <Link href="/products" className="btn btnLight">See more parts</Link>
+          <Link href="/products" className="btn btnLight">{t("browse.home.seeMore")}</Link>
         </div>
       </section>
 
@@ -165,29 +169,29 @@ export default async function HomePage() {
             <span className="shopTrustIcon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M8 12.5l2.7 2.7L16.5 9.5" /></svg>
             </span>
-            <strong>Fitment checked</strong>
-            <small>Parts matched to your exact car</small>
+            <strong>{t("browse.home.trust1Title")}</strong>
+            <small>{t("browse.home.trust1Text")}</small>
           </div>
           <div>
             <span className="shopTrustIcon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7" /><circle cx="7" cy="17.5" r="1.8" /><circle cx="17" cy="17.5" r="1.8" /></svg>
             </span>
-            <strong>Malaysia-wide delivery</strong>
-            <small>Tracked from our warehouse to you</small>
+            <strong>{t("browse.home.trust2Title")}</strong>
+            <small>{t("browse.home.trust2Text")}</small>
           </div>
           <div>
             <span className="shopTrustIcon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6z" /><path d="M9 12l2 2 4-4" /></svg>
             </span>
-            <strong>Warranty included</strong>
-            <small>Claim online from your orders</small>
+            <strong>{t("browse.home.trust3Title")}</strong>
+            <small>{t("browse.home.trust3Text")}</small>
           </div>
           <div>
             <span className="shopTrustIcon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2.5" /><path d="M3 10h18M7 15h4" /></svg>
             </span>
-            <strong>Secure checkout</strong>
-            <small>Card payments by Stripe</small>
+            <strong>{t("browse.home.trust4Title")}</strong>
+            <small>{t("browse.home.trust4Text")}</small>
           </div>
         </div>
       </section>

@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import { useT } from "@/components/LanguageProvider";
 import {
   vehicleDatabase,
   vehicleLabel,
@@ -23,6 +25,7 @@ type Props = {
 const TOTAL_STEPS = 6;
 
 export default function ProductVehicleSelector({ open, onClose, mode = "product" }: Props) {
+  const t = useT();
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [make, setMake] = useState("");
@@ -293,14 +296,16 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
     await applyVehicle(vehicle);
   }
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
-  return (
+  // Portal to <body>: the header's backdrop-filter would otherwise trap this
+  // fixed modal inside the header, and header form styles would leak in.
+  return createPortal(
     <div
       className="productVehicleModalBackdrop"
       role="dialog"
       aria-modal="true"
-      aria-label="Select your vehicle"
+      aria-label={t("buy.v.selectYourVehicle")}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -308,16 +313,16 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
       <section className="productVehicleModal">
         <header className="productVehicleModalHead">
           <div>
-            <span>MIVO vehicle fitment</span>
-            <h2>Select your vehicle</h2>
-            <p>{mode === "garage" ? "Switch between your saved vehicles or add another car." : "Stay on this product page while MIVO checks compatibility."}</p>
+            <span>{t("buy.vs.eyebrow")}</span>
+            <h2>{t("buy.v.selectYourVehicle")}</h2>
+            <p>{mode === "garage" ? t("buy.vs.garageHint") : t("buy.vs.productHint")}</p>
           </div>
 
           <button
             type="button"
             className="productVehicleModalClose"
             onClick={onClose}
-            aria-label="Close vehicle selector"
+            aria-label={t("buy.vs.close")}
           >
             ×
           </button>
@@ -326,8 +331,8 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
         {step === 1 && savedVehicles.length > 0 ? (
           <div className="productVehicleGarage">
             <div className="productVehicleGarageHead">
-              <span>My Garage</span>
-              <strong>Quick switch vehicle</strong>
+              <span>{t("header.garage")}</span>
+              <strong>{t("buy.vs.quickSwitch")}</strong>
             </div>
             <div className="productVehicleGarageList">
               {savedVehicles.map((garageVehicle, index) => (
@@ -360,20 +365,20 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
                   <div>
                     <strong>{garageVehicle.label}</strong>
                     <small>
-                      {index === 0 ? "CURRENT / DEFAULT VEHICLE" : "SAVED VEHICLE"}
+                      {index === 0 ? t("buy.vs.currentDefault") : t("buy.vs.savedVehicle")}
                     </small>
                   </div>
-                  <b>{applying ? "..." : "USE"}</b>
+                  <b>{applying ? "..." : t("buy.vs.use")}</b>
                 </button>
               ))}
             </div>
             <div className="productVehicleGarageDivider">
-              <span>Or select another vehicle</span>
+              <span>{t("buy.vs.orSelectAnother")}</span>
             </div>
           </div>
         ) : loadingSaved && step === 1 ? (
           <div className="productVehicleSaved loading">
-            Checking My Garage...
+            {t("buy.vs.checkingGarage")}
           </div>
         ) : null}
 
@@ -384,16 +389,16 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
         <div className="productVehicleStepTop">
           <span>
             {step <= TOTAL_STEPS
-              ? "STEP " +
-                String(step).padStart(2, "0") +
-                " / " +
-                String(TOTAL_STEPS).padStart(2, "0")
-              : "CONFIRM VEHICLE"}
+              ? t("buy.vs.step", {
+                  n: String(step).padStart(2, "0"),
+                  total: String(TOTAL_STEPS).padStart(2, "0"),
+                })
+              : t("buy.vs.confirmVehicle")}
           </span>
 
           {step > 1 && step <= TOTAL_STEPS ? (
             <button type="button" onClick={goBack}>
-              ← BACK
+              {t("buy.v.back")}
             </button>
           ) : null}
         </div>
@@ -401,7 +406,7 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
         <div className="productVehicleBody">
           {step === 1 ? (
             <>
-              <h3>What brand is your car?</h3>
+              <h3>{t("buy.v.whatBrand")}</h3>
               <div className="productVehicleChoiceGrid">
                 {vehicleDatabase.map((entry) => (
                   <button
@@ -419,7 +424,7 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
 
           {step === 2 ? (
             <>
-              <h3>Which {make} model?</h3>
+              <h3>{t("buy.vs.whichModel", { make })}</h3>
               <div className="productVehicleChoiceGrid">
                 {models.map((item) => (
                   <button
@@ -437,7 +442,7 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
 
           {step === 3 ? (
             <>
-              <h3>Which generation?</h3>
+              <h3>{t("buy.vs.whichGeneration")}</h3>
               <div className="productVehicleChoiceGrid">
                 {generations.map((vehicle) => (
                   <button
@@ -448,7 +453,7 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
                     <div>
                       <strong>{vehicle.generation || vehicle.model}</strong>
                       <small>
-                        {vehicle.startYear}–{vehicle.endYear ?? "Present"}
+                        {vehicle.startYear}–{vehicle.endYear ?? t("buy.v.present")}
                       </small>
                     </div>
                     <span>→</span>
@@ -460,7 +465,7 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
 
           {step === 4 && selectedVehicle ? (
             <>
-              <h3>What year is your car?</h3>
+              <h3>{t("buy.v.whatYear")}</h3>
               <div className="productVehicleYearGrid">
                 {years.map((item) => (
                   <button
@@ -477,7 +482,7 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
 
           {step === 5 && selectedVehicle ? (
             <>
-              <h3>Which variant?</h3>
+              <h3>{t("buy.vs.whichVariant")}</h3>
               <div className="productVehicleChoiceGrid">
                 {selectedVehicle.variants.map((item) => (
                   <button
@@ -495,7 +500,7 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
 
           {step === 6 && selectedVehicle ? (
             <>
-              <h3>Which transmission?</h3>
+              <h3>{t("buy.vs.whichTransmission")}</h3>
               <div className="productVehicleTransmissionGrid">
                 {transmissions.map((item) => (
                   <button
@@ -505,7 +510,7 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
                   >
                     <span>{item === "AUTO" ? "A" : "M"}</span>
                     <strong>
-                      {item === "AUTO" ? "AUTOMATIC" : "MANUAL"}
+                      {item === "AUTO" ? t("buy.v.automatic") : t("buy.v.manual")}
                     </strong>
                   </button>
                 ))}
@@ -516,15 +521,15 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
           {step === 7 && selectedVehicle ? (
             <div className="productVehicleConfirm">
               <span className="productVehicleConfirmIcon">✓</span>
-              <h3>Use this vehicle?</h3>
+              <h3>{t("buy.vs.useThisVehicle")}</h3>
 
               <div className="productVehicleSummary">
-                <div><span>Make</span><strong>{make}</strong></div>
-                <div><span>Model</span><strong>{selectedVehicle.model}</strong></div>
-                <div><span>Generation</span><strong>{selectedVehicle.generation || "—"}</strong></div>
-                <div><span>Year</span><strong>{year}</strong></div>
-                <div><span>Variant</span><strong>{variant}</strong></div>
-                <div><span>Transmission</span><strong>{transmission}</strong></div>
+                <div><span>{t("buy.v.make")}</span><strong>{make}</strong></div>
+                <div><span>{t("buy.v.model")}</span><strong>{selectedVehicle.model}</strong></div>
+                <div><span>{t("buy.v.generation")}</span><strong>{selectedVehicle.generation || "—"}</strong></div>
+                <div><span>{t("buy.v.year")}</span><strong>{year}</strong></div>
+                <div><span>{t("buy.v.variant")}</span><strong>{variant}</strong></div>
+                <div><span>{t("buy.v.transmission")}</span><strong>{transmission === "AUTO" ? t("buy.v.automatic") : transmission === "MANUAL" ? t("buy.v.manual") : transmission}</strong></div>
               </div>
 
               <button
@@ -533,7 +538,7 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
                 onClick={() => void confirmSelection()}
                 disabled={applying}
               >
-                {applying ? "CHECKING FITMENT..." : "USE VEHICLE & CHECK FITMENT"}
+                {applying ? t("buy.vs.checkingFitment") : t("buy.vs.useAndCheck")}
               </button>
 
               <button
@@ -542,12 +547,13 @@ export default function ProductVehicleSelector({ open, onClose, mode = "product"
                 onClick={reset}
                 disabled={applying}
               >
-                Start again
+                {t("buy.v.startAgain")}
               </button>
             </div>
           ) : null}
         </div>
       </section>
-    </div>
+    </div>,
+    document.body
   );
 }

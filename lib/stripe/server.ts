@@ -7,9 +7,11 @@ type StripeRequestOptions = {
 };
 
 export function getStripeSecretKey() {
-  const key = process.env.STRIPE_SECRET_KEY;
+  const key = (process.env.STRIPE_SECRET_KEY || "").trim();
   if (!key) {
-    throw new Error("Stripe is not configured yet.");
+    // Say which deployment is missing it, so it's clear where to add it in Vercel.
+    const env = process.env.VERCEL_ENV || "local";
+    throw new Error("Stripe is not configured yet: STRIPE_SECRET_KEY is missing in this " + env + " deployment.");
   }
   return key;
 }
@@ -18,7 +20,9 @@ export async function stripeRequest<T>(
   path: string,
   options: StripeRequestOptions = {}
 ): Promise<T> {
-  const response = await fetch("https://api.stripe.com/v1" + path, {
+  // STRIPE_API_BASE lets local tests point at a mock Stripe server.
+  const base = process.env.STRIPE_API_BASE || "https://api.stripe.com";
+  const response = await fetch(base + "/v1" + path, {
     method: options.method || "GET",
     headers: {
       Authorization: "Bearer " + getStripeSecretKey(),

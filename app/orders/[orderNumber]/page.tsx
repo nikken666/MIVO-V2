@@ -1,13 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import OrderJourney from "@/components/orders/OrderJourney";
+import ParcelTracker from "@/components/orders/ParcelTracker";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import ChatNowButton from "@/components/chat/ChatNowButton";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/data/products";
 import PaidCancellationModal from "@/components/PaidCancellationModal";
 import UnpaidCancellationModal from "@/components/UnpaidCancellationModal";
 import StripePayButton from "@/components/StripePayButton";
+import { useT } from "@/components/LanguageProvider";
+import type { Key, Translate } from "@/lib/i18n";
+import { intlTag } from "@/lib/i18n/format";
+import { friendlyError } from "@/lib/i18n/errors";
 
 type OrderRow = {
   id: string;
@@ -44,10 +51,12 @@ type OrderItem = {
 };
 
 type ShipmentInfo = {
+  seller_order_id?: string;
   courier_name: string | null;
   tracking_number: string | null;
   tracking_url: string | null;
   status: string;
+  shop_name?: string | null;
 };
 
 type OrderStatusHistoryRow = {
@@ -57,13 +66,6 @@ type OrderStatusHistoryRow = {
   created_at: string;
 };
 
-const steps = [
-  { key: "placed", label: "ORDER PLACED" },
-  { key: "paid", label: "PAID" },
-  { key: "packed", label: "PACKED" },
-  { key: "shipped", label: "SHIPPED" },
-  { key: "delivered", label: "DELIVERED" },
-];
 
 function progressForStatus(status: string) {
   if (status === "delivered") return 4;
@@ -73,18 +75,26 @@ function progressForStatus(status: string) {
   return 0;
 }
 
-function formatStatus(value: string) {
-  return value.replaceAll("_", " ").toUpperCase();
+function formatStatus(value: string, t: Translate) {
+  const key = ("account.status." + value) as Key;
+  const label = t(key);
+  if (label !== key) return label;
+  const text = value.replaceAll("_", " ");
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 export default function OrderDetailsPage() {
   const params = useParams();
   const router = useRouter();
+  const t = useT();
   const orderNumber = String(params.orderNumber || "");
 
   const [order, setOrder] = useState<OrderRow | null>(null);
   const [items, setItems] = useState<OrderItem[]>([]);
-  const [shipment, setShipment] = useState<ShipmentInfo | null>(null);
+  const [shipments, setShipments] = useState<ShipmentInfo[]>([]);
+  const [shopCount, setShopCount] = useState(1);
+  const [orderShops, setOrderShops] = useState<Array<{ id: string; name: string }>>([]);
+  const shipment = shipments[0] || null;
   const [statusHistory, setStatusHistory] = useState<OrderStatusHistoryRow[]>([]);
   const [reviewedAll, setReviewedAll] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -117,7 +127,7 @@ export default function OrderDetailsPage() {
       .maybeSingle();
 
     if (orderError || !orderData) {
-      throw orderError || new Error("Order not found.");
+      throw orderError || new Error(t("account.detail.notFound"));
     }
 
     const { data: itemData, error: itemError } = await supabase
@@ -130,29 +140,64 @@ export default function OrderDetailsPage() {
 
     if (itemError) throw itemError;
 
+    // One seller order per shop; each shop ships its own parcel.
     const { data: sellerOrderData, error: sellerOrderError } = await supabase
       .from("seller_orders")
-      .select("id")
+      .select("id, seller_id")
       .eq("order_id", orderData.id)
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle();
+      .order("created_at", { ascending: true });
 
     if (sellerOrderError) throw sellerOrderError;
 
-    let shipmentData: ShipmentInfo | null = null;
+    const sellerOrderRows =
+      (sellerOrderData as Array<{ id: string; seller_id: string | null }> | null) ||
+      [];
+    let shipmentData: ShipmentInfo[] = [];
 
-    if (sellerOrderData?.id) {
-      const { data: foundShipment, error: shipmentError } = await supabase
-        .from("shipments")
-        .select("courier_name, tracking_number, tracking_url, status")
-        .eq("seller_order_id", sellerOrderData.id)
-        .order("created_at", { ascending: true })
-        .limit(1)
-        .maybeSingle();
+    if (sellerOrderRows.length > 0) {
+      const sellerIds = Array.from(
+        new Set(
+          sellerOrderRows
+            .map((row) => row.seller_id)
+            .filter((value): value is string => Boolean(value))
+        )
+      );
+      const [shipmentResult, shopResult] = await Promise.all([
+        supabase
+          .from("shipments")
+          .select("seller_order_id, courier_name, tracking_number, tracking_url, status")
+          .in(
+            "seller_order_id",
+            sellerOrderRows.map((row) => row.id)
+          )
+          .order("created_at", { ascending: true }),
+        sellerIds.length
+          ? supabase.from("sellers").select("id, shop_name").in("id", sellerIds)
+          : Promise.resolve({ data: [], error: null }),
+      ]);
 
-      if (shipmentError) throw shipmentError;
-      shipmentData = (foundShipment as ShipmentInfo | null) || null;
+      if (shipmentResult.error) throw shipmentResult.error;
+
+      const shopNames = new Map(
+        (
+          (shopResult.data as Array<{ id: string; shop_name: string }> | null) ||
+          []
+        ).map((row) => [row.id, row.shop_name])
+      );
+      const found = (shipmentResult.data as ShipmentInfo[] | null) || [];
+
+      // First shipment per shop, in shop order.
+      shipmentData = sellerOrderRows
+        .map((row): ShipmentInfo | null => {
+          const match = found.find((item) => item.seller_order_id === row.id);
+          return match
+            ? {
+                ...match,
+                shop_name: row.seller_id ? shopNames.get(row.seller_id) : null,
+              }
+            : null;
+        })
+        .filter((value): value is ShipmentInfo => Boolean(value));
     }
 
     const rawItems = (itemData as OrderItem[] | null) || [];
@@ -250,7 +295,22 @@ export default function OrderDetailsPage() {
 
     setOrder(orderData as OrderRow);
     setItems(loadedItems);
-    setShipment(shipmentData);
+    setShipments(shipmentData);
+    setShopCount(Math.max(sellerOrderRows.length, 1));
+    {
+      const ids = Array.from(
+        new Set(sellerOrderRows.map((row) => row.seller_id).filter((v): v is string => Boolean(v)))
+      );
+      const { data: shopRows } = ids.length
+        ? await supabase.from("sellers").select("id, shop_name").in("id", ids)
+        : { data: [] };
+      setOrderShops(
+        ((shopRows || []) as Array<{ id: string; shop_name: string }>).map((row) => ({
+          id: row.id,
+          name: row.shop_name,
+        }))
+      );
+    }
     setReviewedAll(allReviewed);
     setStatusHistory(
       (historyData as OrderStatusHistoryRow[] | null) || []
@@ -266,7 +326,7 @@ export default function OrderDetailsPage() {
       } catch (caught) {
         if (!active) return;
         setError(
-          caught instanceof Error ? caught.message : "Unable to open order."
+          friendlyError(caught, t, "account.detail.openError")
         );
       } finally {
         if (active) setLoading(false);
@@ -302,9 +362,7 @@ export default function OrderDetailsPage() {
       await load();
     } catch (caught) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : "Unable to confirm this order."
+        friendlyError(caught, t, "account.orders.confirmError")
       );
     } finally {
       setBusy(false);
@@ -315,7 +373,7 @@ export default function OrderDetailsPage() {
     return (
       <main className="accountDataPage">
         <div className="container">
-          <p className="accountDataNotice">Loading order...</p>
+          <p className="accountDataNotice">{t("account.detail.loading")}</p>
         </div>
       </main>
     );
@@ -326,9 +384,9 @@ export default function OrderDetailsPage() {
       <main className="accountDataPage">
         <div className="container">
           <div className="ordersEmpty">
-            <strong>Unable to open order.</strong>
-            <p>{error || "Order not found."}</p>
-            <Link href="/orders">Back to my orders</Link>
+            <strong>{t("account.detail.openError")}</strong>
+            <p>{error || t("account.detail.notFound")}</p>
+            <Link href="/orders">{t("account.detail.backToOrders")}</Link>
           </div>
         </div>
       </main>
@@ -344,15 +402,15 @@ export default function OrderDetailsPage() {
   const timelineSteps = [
     {
       key: "placed",
-      title: "Order Placed",
-      description: "Your order has been received by MIVO.",
+      title: t("account.detail.placedTitle"),
+      description: t("account.detail.placedText"),
       complete: progress >= 0,
       timestamp: order.created_at,
     },
     {
       key: "paid",
-      title: "Payment Confirmed",
-      description: "Your payment has been verified successfully.",
+      title: t("account.detail.paidTitle"),
+      description: t("account.detail.paidText"),
       complete: progress >= 1,
       timestamp:
         statusHistory.find((entry) => entry.new_status === "paid")
@@ -360,8 +418,8 @@ export default function OrderDetailsPage() {
     },
     {
       key: "packed",
-      title: "Packed",
-      description: "Your order is packed and ready for courier handover.",
+      title: t("account.detail.packedTitle"),
+      description: t("account.detail.packedText"),
       complete: progress >= 2,
       timestamp:
         statusHistory.find((entry) =>
@@ -370,12 +428,18 @@ export default function OrderDetailsPage() {
     },
     {
       key: "shipped",
-      title: "Shipped",
-      description: shipment?.tracking_number
-        ? (shipment.courier_name || "Courier") +
-          " · " +
-          shipment.tracking_number
-        : "Your parcel has been handed over to the courier.",
+      title: t("account.detail.shippedTitle"),
+      description:
+        shopCount > 1
+          ? t("account.detail.parcelsShipped", {
+              n: shipments.length,
+              total: shopCount,
+            })
+          : shipment?.tracking_number
+          ? (shipment.courier_name || t("account.detail.courier")) +
+            " · " +
+            shipment.tracking_number
+          : t("account.detail.shippedText"),
       complete: progress >= 3,
       timestamp:
         statusHistory.find((entry) => entry.new_status === "shipped")
@@ -383,8 +447,8 @@ export default function OrderDetailsPage() {
     },
     {
       key: "delivered",
-      title: "Delivered",
-      description: "Your parcel has been delivered.",
+      title: t("account.detail.deliveredTitle"),
+      description: t("account.detail.deliveredText"),
       complete: progress >= 4,
       timestamp:
         statusHistory.find((entry) => entry.new_status === "delivered")
@@ -397,51 +461,57 @@ export default function OrderDetailsPage() {
       <div className="container">
         <div className="orderDetailTop">
           <div>
-            <Link href="/orders">← MY ORDERS</Link>
-            <span>ORDER {order.order_number}</span>
+            <Link href="/orders">← {t("account.orders.title")}</Link>
+            <span>{t("account.detail.orderNo", { n: order.order_number })}</span>
           </div>
 
           <div>
-            <span>Status</span>
-            <strong>{formatStatus(order.status)}</strong>
+            <span>{t("account.detail.status")}</span>
+            <strong>{formatStatus(order.status, t)}</strong>
           </div>
         </div>
 
         {!cancelled ? (
-          <section className="orderProgressCard">
-            <div className="orderProgressLine" />
-            {steps.map((step, index) => (
-              <div
-                className={
-                  "orderProgressStep" +
-                  (index <= progress ? " complete" : "")
-                }
-                key={step.key}
-              >
-                <i>{index <= progress ? "✓" : index + 1}</i>
-                <span>{step.label}</span>
-              </div>
-            ))}
-          </section>
+          <OrderJourney
+            status={order.status}
+            detail={
+              order.status === "shipped" && shipment?.tracking_number
+                ? (shipment.courier_name || t("account.detail.courier")) + " · " + shipment.tracking_number
+                : null
+            }
+          />
         ) : (
           <section className="orderCancelledBanner">
-            <strong>{formatStatus(order.status)}</strong>
+            <strong>{formatStatus(order.status, t)}</strong>
             <span>
               {order.refund_status && order.refund_status !== "none"
-                ? "Refund status: " + formatStatus(order.refund_status)
-                : "This order is no longer in the active delivery flow."}
+                ? t("account.detail.refundStatusLine", {
+                    status: formatStatus(order.refund_status, t),
+                  })
+                : t("account.orders.inactiveText")}
             </span>
           </section>
         )}
+
+        {["shipped", "delivered", "completed"].includes(order.status) || shipments.some((row) => row.tracking_number) ? (
+          <ParcelTracker
+            orderNumber={order.order_number}
+            shopNames={Object.fromEntries(
+              shipments
+                .filter((row) => row.seller_order_id)
+                .map((row) => [row.seller_order_id as string, row.shop_name || ""])
+            )}
+          />
+        ) : null}
 
         <div className="orderDetailLayout">
           <div className="orderDetailMainColumn">
             <section className="orderDetailMain">
               <div className="orderDetailSectionHead">
                 <div>
-                  <span>Order items</span>
+                  <span>{t("account.detail.orderItems")}</span>
                   <h2>
-                    {items.length} item{items.length === 1 ? "" : "s"}
+                    {t("account.common.items", { n: items.length })}
                   </h2>
                 </div>
               </div>
@@ -462,12 +532,12 @@ export default function OrderDetailsPage() {
 
                     <div className="orderDetailItemInfo">
                       <strong>{item.product_name}</strong>
-                      <span>{item.variant_name || "Default"}</span>
-                      <small>Qty {item.quantity}</small>
+                      <span>{item.variant_name || t("account.common.defaultVariant")}</span>
+                      <small>{t("account.common.qty", { n: item.quantity })}</small>
                     </div>
 
                     <div className="orderDetailItemPrice">
-                      <span>{formatPrice(Number(item.unit_price))} each</span>
+                      <span>{t("account.common.each", { price: formatPrice(Number(item.unit_price)) })}</span>
                       <strong>
                         {formatPrice(Number(item.line_subtotal))}
                       </strong>
@@ -478,7 +548,7 @@ export default function OrderDetailsPage() {
 
               {order.customer_note ? (
                 <div className="orderCustomerNote">
-                  <span>Order note</span>
+                  <span>{t("account.detail.orderNote")}</span>
                   <p>{order.customer_note}</p>
                 </div>
               ) : null}
@@ -488,10 +558,10 @@ export default function OrderDetailsPage() {
               <section className="orderTimelineCard">
                 <div className="orderTimelineHead">
                   <div>
-                    <span>Shipment updates</span>
-                    <h2>Tracking Timeline</h2>
+                    <span>{t("account.detail.shipmentUpdates")}</span>
+                    <h2>{t("account.detail.timeline")}</h2>
                   </div>
-                  {shipment?.courier_name ? (
+                  {shopCount <= 1 && shipment?.courier_name ? (
                     <strong>{shipment.courier_name}</strong>
                   ) : null}
                 </div>
@@ -516,7 +586,7 @@ export default function OrderDetailsPage() {
                           {step.timestamp ? (
                             <time>
                               {new Date(step.timestamp).toLocaleString(
-                                "en-MY",
+                                intlTag(),
                                 {
                                   day: "2-digit",
                                   month: "short",
@@ -527,7 +597,7 @@ export default function OrderDetailsPage() {
                               )}
                             </time>
                           ) : (
-                            <time>{step.complete ? "Completed" : "Pending"}</time>
+                            <time>{step.complete ? t("account.detail.stepDone") : t("account.detail.stepPending")}</time>
                           )}
                         </div>
                         <p>{step.description}</p>
@@ -540,8 +610,20 @@ export default function OrderDetailsPage() {
           </div>
 
           <aside className="orderDetailSide">
+            {orderShops.length ? (
+              <section className="orderSideCard orderChatCard">
+                <span>{t("account.detail.questions")}</span>
+                {orderShops.map((shop) => (
+                  <div className="orderChatRow" key={shop.id}>
+                    <strong>{shop.name}</strong>
+                    <ChatNowButton sellerId={shop.id} orderNumber={order.order_number} />
+                  </div>
+                ))}
+              </section>
+            ) : null}
+
             <section className="orderSideCard">
-              <span>Delivery address</span>
+              <span>{t("account.detail.deliveryAddress")}</span>
               <strong>{address.full_name}</strong>
               <p>
                 {address.phone}
@@ -555,48 +637,58 @@ export default function OrderDetailsPage() {
               </p>
             </section>
 
-            {shipment?.tracking_number ? (
-              <section className="orderSideCard">
-                <span>Shipment tracking</span>
-                <div className="orderPaymentStatus">
-                  <strong>{shipment.courier_name || "COURIER"}</strong>
-                  <small>{formatStatus(shipment.status)}</small>
-                </div>
-
-                <div className="orderSideRows">
-                  <div>
-                    <span>Tracking number</span>
-                    <strong>{shipment.tracking_number}</strong>
+            {shipments
+              .filter((parcel) => parcel.tracking_number)
+              .map((parcel, index) => (
+                <section
+                  className="orderSideCard"
+                  key={parcel.seller_order_id || index}
+                >
+                  <span>
+                    {shopCount > 1
+                      ? t("account.detail.parcelN", { n: index + 1 }) +
+                        (parcel.shop_name ? " · " + parcel.shop_name : "")
+                      : t("account.detail.shipmentTracking")}
+                  </span>
+                  <div className="orderPaymentStatus">
+                    <strong>{parcel.courier_name || t("account.detail.courier")}</strong>
+                    <small>{formatStatus(parcel.status, t)}</small>
                   </div>
-                </div>
 
-                {shipment.tracking_url ? (
-                  <a
-                    href={shipment.tracking_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="orderPrimaryButton orderSideMainAction"
-                  >
-                    Track parcel
-                  </a>
-                ) : null}
-              </section>
-            ) : null}
+                  <div className="orderSideRows">
+                    <div>
+                      <span>{t("account.detail.trackingNumber")}</span>
+                      <strong>{parcel.tracking_number}</strong>
+                    </div>
+                  </div>
+
+                  {parcel.tracking_url ? (
+                    <a
+                      href={parcel.tracking_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="orderPrimaryButton orderSideMainAction"
+                    >
+                      {t("account.detail.trackParcel")}
+                    </a>
+                  ) : null}
+                </section>
+              ))}
 
             <section className="orderSideCard">
-              <span>Payment</span>
+              <span>{t("account.detail.payment")}</span>
               <div className="orderPaymentStatus">
-                <strong>{formatStatus(order.payment_status)}</strong>
-                <small>{formatStatus(order.status)}</small>
+                <strong>{formatStatus(order.payment_status, t)}</strong>
+                <small>{formatStatus(order.status, t)}</small>
               </div>
 
               <div className="orderSideRows">
                 <div>
-                  <span>Subtotal</span>
+                  <span>{t("account.common.subtotal")}</span>
                   <strong>{formatPrice(Number(order.subtotal))}</strong>
                 </div>
                 <div>
-                  <span>Shipping</span>
+                  <span>{t("account.common.shipping")}</span>
                   <strong>
                     {Number(order.shipping_amount) > 0
                       ? formatPrice(Number(order.shipping_amount))
@@ -606,7 +698,7 @@ export default function OrderDetailsPage() {
                 {Number(order.discount_amount || 0) > 0 ? (
                   <div>
                     <span>
-                      Voucher{order.voucher_code ? " (" + order.voucher_code + ")" : ""}
+                      {t("account.common.voucher")}{order.voucher_code ? " (" + order.voucher_code + ")" : ""}
                     </span>
                     <strong className="orderDiscountValue">
                       − {formatPrice(Number(order.discount_amount))}
@@ -616,7 +708,7 @@ export default function OrderDetailsPage() {
               </div>
 
               <div className="orderSideTotal">
-                <span>Total</span>
+                <span>{t("account.common.total")}</span>
                 <strong>{formatPrice(Number(order.total_amount))}</strong>
               </div>
             </section>
@@ -630,20 +722,19 @@ export default function OrderDetailsPage() {
                 }
                 className="orderGhostButton orderSideMainAction"
               >
-                View receipt
+                {t("account.detail.viewReceipt")}
               </Link>
             ) : null}
 
             {order.status === "pending_payment" ? (
               <>
                 <section className="orderCancellationNotice">
-                  <span>Payment deadline</span>
+                  <span>{t("account.detail.deadline")}</span>
                   <strong>
-                    Pay within 24 hours from order creation
+                    {t("account.detail.deadlineTitle")}
                   </strong>
                   <p>
-                    Unpaid orders are cancelled automatically and reserved stock
-                    is released.
+                    {t("account.detail.deadlineText")}
                   </p>
                 </section>
 
@@ -652,13 +743,13 @@ export default function OrderDetailsPage() {
                   className="orderGhostButton orderSideMainAction orderCancelButton"
                   onClick={() => setShowUnpaidCancel(true)}
                 >
-                  Cancel order
+                  {t("account.orders.cancelOrder")}
                 </button>
 
                 <StripePayButton
                   orderNumber={order.order_number}
                   className="orderPrimaryButton orderSideMainAction"
-                  children="PAY NOW · CARD / FPX / GRABPAY"
+                  children={t("account.detail.payNow")}
                 />
               </>
             ) : null}
@@ -666,14 +757,25 @@ export default function OrderDetailsPage() {
             {order.payment_status === "paid" &&
             !cancelled &&
             order.status !== "shipped" &&
-            order.status !== "delivered" ? (
+            order.status !== "delivered" &&
+            // A multi-shop order with one parcel already on its way can't be cancelled.
+            !shipments.some((parcel) => parcel.tracking_number) ? (
               <button
                 type="button"
                 className="orderGhostButton orderSideMainAction orderCancelButton"
                 onClick={() => setShowPaidCancel(true)}
               >
-                Cancel order
+                {t("account.orders.cancelOrder")}
               </button>
+            ) : null}
+
+            {order.status === "shipped" || order.status === "delivered" ? (
+              <Link
+                href={"/orders/" + encodeURIComponent(order.order_number) + "/return"}
+                className="orderGhostButton orderSideMainAction"
+              >
+                {t("ret.request")}
+              </Link>
             ) : null}
 
             {order.status === "shipped" ? (
@@ -683,7 +785,7 @@ export default function OrderDetailsPage() {
                 disabled={busy}
                 onClick={confirmReceived}
               >
-                {busy ? "CONFIRMING..." : "ORDER RECEIVED"}
+                {busy ? t("account.orders.confirming") : t("account.orders.orderReceived")}
               </button>
             ) : null}
 
@@ -694,7 +796,7 @@ export default function OrderDetailsPage() {
                   className="orderGhostButton orderSideMainAction"
                   disabled
                 >
-                  Reviewed
+                  {t("account.orders.reviewed")}
                 </button>
               ) : (
                 <Link
@@ -705,7 +807,7 @@ export default function OrderDetailsPage() {
                   }
                   className="orderPrimaryButton orderSideMainAction"
                 >
-                  Rate order
+                  {t("account.orders.rateOrder")}
                 </Link>
               )
             ) : null}
@@ -720,18 +822,18 @@ export default function OrderDetailsPage() {
                 }
                 className="orderGhostButton orderSideMainAction"
               >
-                View warranty
+                {t("account.detail.viewWarranty")}
               </Link>
             ) : null}
 
             {cancelled &&
             Number(order.cancellation_refund_amount || 0) > 0 ? (
               <section className="orderSideCard refundSummaryCard">
-                <span>Refund summary</span>
+                <span>{t("account.detail.refundSummary")}</span>
 
                 <div className="orderSideRows">
                   <div>
-                    <span>Payment processing fee</span>
+                    <span>{t("account.common.processingFee")}</span>
                     <strong>
                       − {formatPrice(
                         Number(order.payment_processing_fee_amount || 0)
@@ -739,7 +841,7 @@ export default function OrderDetailsPage() {
                     </strong>
                   </div>
                   <div>
-                    <span>Cancellation administration fee</span>
+                    <span>{t("account.common.adminFee")}</span>
                     <strong>
                       − {formatPrice(
                         Number(order.cancellation_platform_fee_amount || 0)
@@ -747,7 +849,7 @@ export default function OrderDetailsPage() {
                     </strong>
                   </div>
                   <div>
-                    <span>Service fee</span>
+                    <span>{t("account.common.serviceFee")}</span>
                     <strong>
                       − {formatPrice(
                         Number(order.cancellation_service_fee_amount || 0)
@@ -757,7 +859,7 @@ export default function OrderDetailsPage() {
                 </div>
 
                 <div className="orderSideTotal">
-                  <span>Refund amount</span>
+                  <span>{t("account.common.refundAmount")}</span>
                   <strong>
                     {formatPrice(
                       Number(order.cancellation_refund_amount || 0)
@@ -766,16 +868,17 @@ export default function OrderDetailsPage() {
                 </div>
 
                 <p className="refundStatusText">
-                  Refund status:{" "}
+                  {t("account.detail.refundStatus")}{" "}
                   <strong>
-                    {formatStatus(order.refund_status || "pending")}
+                    {formatStatus(order.refund_status || "pending", t)}
                   </strong>
                 </p>
               </section>
             ) : null}
 
             <Link href="/products" className="orderGhostButton orderSideMainAction">
-              Continue shopping
+              {t("account.common.continueShopping")}
+
             </Link>
           </aside>
         </div>

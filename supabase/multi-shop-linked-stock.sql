@@ -300,3 +300,6 @@ commit;
 --   select tier, shop_name from public.sellers order by sort_order;
 --   select stock_group, count(*) from public.product_variants
 --    group by stock_group having count(*) > 1;
+
+-- Make new functions available to the website immediately.
+notify pgrst, 'reload schema';

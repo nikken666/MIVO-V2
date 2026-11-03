@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/data/products";
+import { useT } from "@/components/LanguageProvider";
+import { friendlyError, ShownError } from "@/lib/i18n/errors";
 
 type CancellationPreview = {
   order_number: string;
@@ -27,12 +29,27 @@ export default function PaidCancellationModal({
   onClose: () => void;
   onCancelled: () => void | Promise<void>;
 }) {
+  const t = useT();
   const [preview, setPreview] = useState<CancellationPreview | null>(null);
   const [reason, setReason] = useState("");
   const [accepted, setAccepted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  // Card payment still on hold (charged only at shipping): full release, no fees.
+  const [onHold, setOnHold] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .from("orders")
+      .select("payment_capture_status")
+      .eq("order_number", orderNumber)
+      .maybeSingle()
+      .then(({ data }) =>
+        setOnHold((data as { payment_capture_status?: string } | null)?.payment_capture_status === "authorized")
+      );
+  }, [orderNumber]);
 
   useEffect(() => {
     let active = true;
@@ -51,9 +68,7 @@ export default function PaidCancellationModal({
       } catch (caught) {
         if (!active) return;
         setError(
-          caught instanceof Error
-            ? caught.message
-            : "Unable to calculate cancellation refund."
+          friendlyError(caught, t, "account.paidCancel.previewError")
         );
       } finally {
         if (active) setLoading(false);
@@ -90,14 +105,15 @@ export default function PaidCancellationModal({
 
       if (!response.ok) {
         if (data.refundPending) {
-          throw new Error(
-            (data.error || "Stripe refund could not be completed.") +
-              " Your order is cancelled and the refund is marked as pending."
+          throw new ShownError(
+            friendlyError(data.error, t, "account.paidCancel.refundFailed") +
+              " " +
+              t("account.paidCancel.refundPending")
           );
         }
 
-        throw new Error(
-          data.error || "Unable to cancel and refund this paid order."
+        throw new ShownError(
+          friendlyError(data.error, t, "account.paidCancel.refundError")
         );
       }
 
@@ -105,9 +121,7 @@ export default function PaidCancellationModal({
       onClose();
     } catch (caught) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : "Unable to cancel this paid order."
+        friendlyError(caught, t, "account.cancel.error")
       );
     } finally {
       setBusy(false);
@@ -124,82 +138,86 @@ export default function PaidCancellationModal({
       >
         <div className="cancelModalHead">
           <div>
-            <span>PAID ORDER CANCELLATION</span>
-            <h2 id="cancel-order-title">Review your refund first.</h2>
+            <span>{t("account.paidCancel.eyebrow")}</span>
+            <h2 id="cancel-order-title">{t("account.paidCancel.title")}</h2>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close">
+          <button type="button" onClick={onClose} aria-label={t("chat.close")}>
             ×
           </button>
         </div>
 
         {loading ? (
           <p className="accountDataNotice">
-            Calculating cancellation charges...
+            {t("account.paidCancel.calculating")}
           </p>
         ) : error && !preview ? (
           <p className="accountDataError">{error}</p>
         ) : preview ? (
           <>
+            {onHold ? (
+              <div className="cancelHoldNote">
+                <strong>{t("hold.title")}</strong>
+                <p>{t("hold.text", { amount: formatPrice(Number(preview.order_total)) })}</p>
+              </div>
+            ) : null}
+            {onHold ? null : (
             <div className="cancelRefundBreakdown">
               <div>
-                <span>Order total</span>
+                <span>{t("account.paidCancel.orderTotal")}</span>
                 <strong>{formatPrice(Number(preview.order_total))}</strong>
               </div>
               <div>
-                <span>Payment processing fee</span>
+                <span>{t("account.common.processingFee")}</span>
                 <strong>
                   − {formatPrice(Number(preview.processing_fee))}
                 </strong>
               </div>
               <div>
                 <span>
-                  Cancellation administration fee (
+                  {t("account.common.adminFee")} (
                   {Number(preview.admin_fee_percent)}%)
                 </span>
                 <strong>− {formatPrice(Number(preview.admin_fee))}</strong>
               </div>
               <div>
-                <span>Service fee</span>
+                <span>{t("account.common.serviceFee")}</span>
                 <strong>
                   − {formatPrice(Number(preview.service_fee))}
                 </strong>
               </div>
             </div>
 
+            )}
+
             <div className="cancelRefundTotal">
               <div>
-                <span>ESTIMATED REFUND</span>
+                <span>{t("account.paidCancel.estimated")}</span>
                 <small>
-                  Refund processing begins after cancellation is confirmed.
+                  {t("account.paidCancel.estimatedText")}
                 </small>
               </div>
-              <strong>{formatPrice(Number(preview.refund_amount))}</strong>
+              <strong>{formatPrice(Number(onHold ? preview.order_total : preview.refund_amount))}</strong>
             </div>
 
             <div className="cancelPolicyBox">
-              <strong>Cancellation policy</strong>
+              <strong>{t("account.paidCancel.policy")}</strong>
               <p>
-                Payment processing charges are non-refundable. MIVO charges a
-                3% cancellation administration fee capped at RM20, plus a RM2
-                service fee. Once an order has been shipped, cancellation is
-                unavailable.
+                {t("account.paidCancel.policyText")}
               </p>
               {preview.processing_fee_is_fallback ? (
                 <small>
-                  The payment processing fee shown is based on the current
-                  standard card-processing fallback. When the payment gateway
-                  provides the actual fee, MIVO uses the actual amount.
+                  {t("account.paidCancel.fallbackText")}
                 </small>
               ) : null}
             </div>
 
             <label className="cancelReasonField">
-              <span>REASON (OPTIONAL)</span>
+              <span>{t("account.paidCancel.reason")}</span>
               <textarea
                 rows={3}
                 value={reason}
                 onChange={(event) => setReason(event.target.value)}
-                placeholder="Tell us why you are cancelling"
+                placeholder={t("account.paidCancel.reasonPlaceholder")}
               />
             </label>
 
@@ -210,8 +228,7 @@ export default function PaidCancellationModal({
                 onChange={(event) => setAccepted(event.target.checked)}
               />
               <span>
-                I understand the deductions above and agree to receive the
-                displayed refund amount.
+                {t("account.paidCancel.agree")}
               </span>
             </label>
 
@@ -224,7 +241,7 @@ export default function PaidCancellationModal({
                 onClick={onClose}
                 disabled={busy}
               >
-                KEEP ORDER
+                {t("account.cancel.keep")}
               </button>
 
               <button
@@ -233,7 +250,8 @@ export default function PaidCancellationModal({
                 disabled={!accepted || busy}
                 onClick={confirmCancellation}
               >
-                {busy ? "CANCELLING..." : "CONFIRM CANCELLATION"}
+                {busy ? t("account.cancel.cancelling") : t("account.paidCancel.confirm")}
+
               </button>
             </div>
           </>

@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/data/products";
+import { useT } from "@/components/LanguageProvider";
+import type { Translate } from "@/lib/i18n";
+import { friendlyError } from "@/lib/i18n/errors";
 
 type Voucher = {
   id: string;
@@ -17,15 +20,16 @@ type Voucher = {
   ends_at: string;
 };
 
-function valueLabel(voucher: Voucher) {
-  if (voucher.discount_type === "free_shipping") return "FREE SHIPPING";
+function valueLabel(t: Translate, voucher: Voucher) {
+  if (voucher.discount_type === "free_shipping") return t("buy.voucher.freeShipping");
   if (voucher.discount_type === "percent") {
-    return Number(voucher.discount_value) + "% OFF";
+    return t("buy.voucher.percentOff", { n: Number(voucher.discount_value) });
   }
-  return "RM" + Number(voucher.discount_value).toFixed(0) + " OFF";
+  return t("buy.voucher.amountOff", { n: Number(voucher.discount_value).toFixed(0) });
 }
 
 export default function CartVoucherStrip() {
+  const t = useT();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [claimedIds, setClaimedIds] = useState<string[]>([]);
   const [busyId, setBusyId] = useState("");
@@ -137,10 +141,10 @@ export default function CartVoucherStrip() {
       setClaimedIds((current) =>
         current.includes(voucher.id) ? current : [...current, voucher.id]
       );
-      setMessage(voucher.code + " claimed.");
+      setMessage(t("buy.voucher.claimedMsg", { code: voucher.code }));
     } catch (caught) {
       setMessage(
-        caught instanceof Error ? caught.message : "Unable to claim voucher."
+        friendlyError(caught, t, "buy.voucher.claimFailed")
       );
     } finally {
       setBusyId("");
@@ -153,10 +157,10 @@ export default function CartVoucherStrip() {
     <section className="cartVoucherStrip">
       <div className="cartVoucherHead">
         <div>
-          <span>MIVO VOUCHERS</span>
-          <strong>Save more at checkout</strong>
+          <span>{t("buy.voucher.eyebrow")}</span>
+          <strong>{t("buy.voucher.saveMore")}</strong>
         </div>
-        <Link href="/account/vouchers">MY VOUCHERS →</Link>
+        <Link href="/account/vouchers">{t("buy.voucher.myVouchers")}</Link>
       </div>
 
       <div className="cartVoucherMiniGrid">
@@ -167,9 +171,11 @@ export default function CartVoucherStrip() {
             <article key={voucher.id}>
               <div>
                 <span>{voucher.code}</span>
-                <strong>{valueLabel(voucher)}</strong>
+                <strong>{valueLabel(t, voucher)}</strong>
                 <small>
-                  Min. spend {formatPrice(Number(voucher.minimum_spend))}
+                  {t("buy.voucher.minSpend", {
+                    amount: formatPrice(Number(voucher.minimum_spend)),
+                  })}
                 </small>
               </div>
               <button
@@ -178,10 +184,10 @@ export default function CartVoucherStrip() {
                 onClick={() => void claim(voucher)}
               >
                 {claimed
-                  ? "CLAIMED"
+                  ? t("buy.voucher.claimed")
                   : busyId === voucher.id
                     ? "..."
-                    : "CLAIM"}
+                    : t("buy.voucher.claim")}
               </button>
             </article>
           );

@@ -1,8 +1,10 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../../Admin.module.css";
+import AdminSidebar from "@/components/admin/AdminSidebar";
 
 type ProductRelation =
   | {
@@ -105,7 +107,7 @@ export default function AdminDiscountsPage() {
     if (adminError) throw adminError;
 
     if (!isAdmin) {
-      window.location.href = "/";
+      leaveBackOffice();
       return;
     }
 
@@ -321,36 +323,12 @@ export default function AdminDiscountsPage() {
   return (
     <main className={styles.adminShell}>
       <div className={styles.adminWorkspace}>
-        <aside className={styles.adminSidebar}>
-          <a href="/admin" className={styles.adminBrand}>
-            <span>MIVO</span>
-            <small>STORE CONTROL</small>
-          </a>
-
-          <nav className={styles.adminSideNav}>
-            <a href="/admin"><span>01</span>Dashboard</a>
-            <a href="/admin/orders"><span>02</span>Orders</a>
-            <a href="/admin/arrange-shipment"><span>03</span>Arrange Shipment</a>
-            <a href="/admin/claims"><span>04</span>Claims</a>
-            <a href="/admin/marketing" className={styles.active}>
-              <span>05</span>Marketing Centre
-            </a>
-            <a href="/admin/products"><span>06</span>Products</a>
-            <a href="/admin/products/new"><span>07</span>Add Product</a>
-            <a href="/admin/shipping"><span>08</span>Shipping</a>
-          </nav>
-
-          <div className={styles.adminSidebarFoot}>
-            <span>LIVE DISCOUNTS</span>
-            <strong>{loading ? "—" : counts.live}</strong>
-            <a href="/">OPEN STOREFRONT</a>
-          </div>
-        </aside>
+        <AdminSidebar />
 
         <section className={styles.adminContent}>
           <header className={styles.adminHeader}>
             <div>
-              <span className={styles.adminEyebrow}>MARKETING CENTRE · DISCOUNTS</span>
+              <span className={styles.adminEyebrow}>Marketing centre · Discounts</span>
               <h1>Discounts</h1>
               <p>
                 Schedule real sale prices without changing the regular product
@@ -360,11 +338,11 @@ export default function AdminDiscountsPage() {
 
             <div className={styles.adminHeaderActions}>
               <div className={styles.adminAttention}>
-                <span>LIVE</span>
+                <span>Live</span>
                 <strong>{loading ? "—" : counts.live}</strong>
               </div>
               <div className={styles.adminAttention}>
-                <span>SCHEDULED</span>
+                <span>Scheduled</span>
                 <strong>{loading ? "—" : counts.scheduled}</strong>
               </div>
             </div>
@@ -387,7 +365,7 @@ export default function AdminDiscountsPage() {
           <section className={styles.adminPanel}>
             <div className={styles.adminPanelHead}>
               <div>
-                <span className={styles.adminPanelKicker}>CREATE DISCOUNT</span>
+                <span className={styles.adminPanelKicker}>Create discount</span>
                 <h2>Schedule Sale Price</h2>
                 <p>
                   Select SKUs below, set a percentage and campaign window.
@@ -402,7 +380,7 @@ export default function AdminDiscountsPage() {
               onSubmit={applyDiscount}
             >
               <label className={styles.adminField}>
-                <span>DISCOUNT %</span>
+                <span>Discount %</span>
                 <input
                   type="number"
                   min="0.01"
@@ -414,7 +392,7 @@ export default function AdminDiscountsPage() {
               </label>
 
               <label className={styles.adminField}>
-                <span>START</span>
+                <span>Start</span>
                 <input
                   type="datetime-local"
                   value={startsAt}
@@ -423,7 +401,7 @@ export default function AdminDiscountsPage() {
               </label>
 
               <label className={styles.adminField}>
-                <span>END</span>
+                <span>End</span>
                 <input
                   type="datetime-local"
                   value={endsAt}
@@ -432,7 +410,7 @@ export default function AdminDiscountsPage() {
               </label>
 
               <div className={styles.discountBuilderActions}>
-                <button type="button" className={styles.adminSecondaryAction} onClick={() => setPickerOpen(true)}>SELECT PRODUCTS</button>
+                <button type="button" className={styles.adminSecondaryAction} onClick={() => setPickerOpen(true)}>Select products</button>
                 <span>
                   {selected.length} SKU{selected.length === 1 ? "" : "s"} selected
                 </span>
@@ -441,7 +419,7 @@ export default function AdminDiscountsPage() {
                   className={styles.adminAction}
                   disabled={busy === "apply" || selected.length === 0}
                 >
-                  {busy === "apply" ? "APPLYING..." : "APPLY DISCOUNT"}
+                  {busy === "apply" ? "Applying…" : "Apply discount"}
                 </button>
                 {selected.length > 0 ? (
                   <button
@@ -450,7 +428,7 @@ export default function AdminDiscountsPage() {
                     disabled={busy === "clear"}
                     onClick={() => void clearDiscount(selected)}
                   >
-                    REMOVE DISCOUNT
+                    Remove discount
                   </button>
                 ) : null}
               </div>
@@ -460,7 +438,7 @@ export default function AdminDiscountsPage() {
           <section className={styles.adminPanel}>
             <div className={styles.discountToolbar}>
               <label>
-                <span>SEARCH PRODUCT / SKU</span>
+                <span>Search product / SKU</span>
                 <input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
@@ -473,7 +451,7 @@ export default function AdminDiscountsPage() {
                 className={styles.adminSecondaryAction}
                 onClick={toggleAllVisible}
               >
-                {allVisibleSelected ? "CLEAR VISIBLE" : "SELECT ALL VISIBLE"}
+                {allVisibleSelected ? "Clear visible" : "Select all visible"}
               </button>
             </div>
 
@@ -493,15 +471,15 @@ export default function AdminDiscountsPage() {
                 >
                   <thead>
                     <tr>
-                      <th>SELECT</th>
-                      <th>PRODUCT</th>
-                      <th>VARIATION / SKU</th>
-                      <th>REGULAR PRICE</th>
-                      <th>DISCOUNT</th>
-                      <th>SALE PRICE</th>
-                      <th>WINDOW</th>
-                      <th>STATUS</th>
-                      <th>ACTION</th>
+                      <th>Select</th>
+                      <th>Product</th>
+                      <th>Variation / SKU</th>
+                      <th>Regular price</th>
+                      <th>Discount</th>
+                      <th>Sale price</th>
+                      <th>Window</th>
+                      <th>Status</th>
+                      <th>Action</th>
                     </tr>
                   </thead>
 
@@ -615,7 +593,7 @@ export default function AdminDiscountsPage() {
                                   void clearDiscount([row.id])
                                 }
                               >
-                                REMOVE
+                                Remove
                               </button>
                             ) : (
                               <span>—</span>
@@ -633,12 +611,12 @@ export default function AdminDiscountsPage() {
           {pickerOpen ? (
             <div className={styles.productPickerOverlay} role="dialog" aria-modal="true">
               <div className={styles.productPickerModal}>
-                <div className={styles.productPickerHead}><div><span>SELECT PRODUCTS & VARIATIONS</span><h2>Choose discount items</h2></div><button type="button" onClick={() => setPickerOpen(false)}>CLOSE</button></div>
+                <div className={styles.productPickerHead}><div><span>Select products & variations</span><h2>Choose discount items</h2></div><button type="button" onClick={() => setPickerOpen(false)}>Close</button></div>
                 <div className={styles.productPickerSearch}><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search product, variation or SKU" /><span>{filtered.length} ITEMS</span></div>
                 <div className={styles.discountPickerList}>
                   {filtered.map((row) => { const product=productData(row.products); const checked=selected.includes(row.id); return <button type="button" key={row.id} className={checked ? styles.discountPickerSelected : ""} onClick={() => toggleSelected(row.id)}><i>{checked ? <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.4 12 13 4.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg> : null}</i>{product?.primary_image_url ? <img src={product.primary_image_url} alt="" /> : <span className={styles.discountPickerFallback}>M</span>}<span><strong>{product?.name || "MIVO Product"}</strong><small>{row.title || "Default"} · {row.sku}</small><small>{money(row.price)}</small></span></button>})}
                 </div>
-                <div className={styles.productPickerFooter}><button type="button" className={styles.pickerSelectAll} onClick={toggleAllVisible}>{allVisibleSelected ? "CLEAR VISIBLE" : "SELECT ALL VISIBLE"}</button><span>{selected.length} SKU{selected.length===1?"":"s"} selected</span><button type="button" disabled={!selected.length} onClick={() => setPickerOpen(false)}>CONFIRM</button></div>
+                <div className={styles.productPickerFooter}><button type="button" className={styles.pickerSelectAll} onClick={toggleAllVisible}>{allVisibleSelected ? "Clear visible" : "Select all visible"}</button><span>{selected.length} SKU{selected.length===1?"":"s"} selected</span><button type="button" disabled={!selected.length} onClick={() => setPickerOpen(false)}>Confirm</button></div>
               </div>
             </div>
           ) : null}

@@ -1,8 +1,10 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../../Admin.module.css";
+import AdminSidebar from "@/components/admin/AdminSidebar";
 
 type TemplateType =
   | "mega_sale"
@@ -62,28 +64,28 @@ const templates: Array<{
   {
     key: "mega_sale",
     name: "Mega Sale Hero",
-    kicker: "BIG EVENT",
+    kicker: "Big event",
     description:
       "Large 10.10 / 11.11 style hero with highlight, countdown and benefit strip.",
   },
   {
     key: "voucher_blast",
     name: "Voucher Blast",
-    kicker: "VOUCHER EVENT",
+    kicker: "Voucher event",
     description:
       "Campaign headline plus large claimable voucher tickets and countdown.",
   },
   {
     key: "flash_deal_grid",
     name: "Flash Deal Grid",
-    kicker: "PRODUCT EVENT",
+    kicker: "Product event",
     description:
       "Hero headline with selected discounted products displayed inside the campaign.",
   },
   {
     key: "category_festival",
     name: "Auto Parts Festival",
-    kicker: "CATEGORY EVENT",
+    kicker: "Category event",
     description:
       "Big event hero with direct category shortcuts for Braking, Suspension and more.",
   },
@@ -98,32 +100,32 @@ const bannerStyles: Array<{
   {
     key: "formal",
     name: "Formal Premium",
-    kicker: "CLEAN",
+    kicker: "Clean",
     description: "Refined official campaign with a premium corporate finish.",
   },
   {
     key: "motorsport",
     name: "Motorsport",
-    kicker: "PERFORMANCE",
+    kicker: "Performance",
     description: "Aggressive racing graphics, speed lines and bold sale typography.",
   },
   {
     key: "garage",
     name: "Garage Workshop",
-    kicker: "MECHANICAL",
+    kicker: "Mechanical",
     description: "Workshop-inspired styling with industrial panels and parts cues.",
   },
   {
     key: "street",
     name: "Street Performance",
-    kicker: "TUNING",
+    kicker: "Tuning",
     description: "Night-street energy with neon accents and a younger car-culture feel.",
   },
 ];
 
 const campaignPresets = {
   red_sale: {
-    label: "MIVO RED",
+    label: "MIVO red",
     primary_color: "#D8242F",
     secondary_color: "#6F0D14",
     text_color: "#FFFFFF",
@@ -134,7 +136,7 @@ const campaignPresets = {
     button_text_color: "#B61923",
   },
   orange_market: {
-    label: "ORANGE SALE",
+    label: "Orange sale",
     primary_color: "#F4511E",
     secondary_color: "#C62828",
     text_color: "#FFFFFF",
@@ -145,7 +147,7 @@ const campaignPresets = {
     button_text_color: "#E74616",
   },
   black_premium: {
-    label: "BLACK PREMIUM",
+    label: "Black premium",
     primary_color: "#17191B",
     secondary_color: "#050607",
     text_color: "#FFFFFF",
@@ -156,7 +158,7 @@ const campaignPresets = {
     button_text_color: "#FFFFFF",
   },
   blue_tech: {
-    label: "BLUE TECH",
+    label: "Blue tech",
     primary_color: "#1769AA",
     secondary_color: "#0A2B4C",
     text_color: "#FFFFFF",
@@ -167,7 +169,7 @@ const campaignPresets = {
     button_text_color: "#0D5E9B",
   },
   gold_premium: {
-    label: "GOLD PREMIUM",
+    label: "Gold premium",
     primary_color: "#B8892E",
     secondary_color: "#3B2A0E",
     text_color: "#FFFFFF",
@@ -241,16 +243,16 @@ function toLocalInput(value?: string) {
 
 function blankCampaign(): CampaignForm {
   return {
-    title: "AUTO SALE",
+    title: "Auto sale",
     subtitle: "",
     badge: "LIMITED TIME",
-    cta_label: "SHOP 10.10 DEALS",
+    cta_label: "Shop 10.10 deals",
     landing_path: "/products",
     template_type: "mega_sale",
     banner_style: "formal",
     event_code: "10.10",
-    highlight_text: "UP TO 50% OFF",
-    voucher_text: "EXTRA VOUCHERS AVAILABLE",
+    highlight_text: "Up to 50% off",
+    voucher_text: "Extra vouchers available",
     benefits: [
       "FREE SHIPPING DEALS",
       "FLASH DISCOUNTS",
@@ -312,7 +314,7 @@ export default function MarketingCampaignsPage() {
 
     if (adminError) throw adminError;
     if (!isAdmin) {
-      window.location.href = "/";
+      leaveBackOffice();
       return;
     }
 
@@ -793,36 +795,12 @@ export default function MarketingCampaignsPage() {
   return (
     <main className={styles.adminShell}>
       <div className={styles.adminWorkspace}>
-        <aside className={styles.adminSidebar}>
-          <a href="/admin" className={styles.adminBrand}>
-            <span>MIVO</span>
-            <small>STORE CONTROL</small>
-          </a>
-
-          <nav className={styles.adminSideNav}>
-            <a href="/admin"><span>01</span>Dashboard</a>
-            <a href="/admin/orders"><span>02</span>Orders</a>
-            <a href="/admin/arrange-shipment"><span>03</span>Arrange Shipment</a>
-            <a href="/admin/claims"><span>04</span>Claims</a>
-            <a href="/admin/marketing" className={styles.active}>
-              <span>05</span>Marketing Centre
-            </a>
-            <a href="/admin/products"><span>06</span>Products</a>
-            <a href="/admin/products/new"><span>07</span>Add Product</a>
-            <a href="/admin/shipping"><span>08</span>Shipping</a>
-          </nav>
-
-          <div className={styles.adminSidebarFoot}>
-            <span>ACTIVE CAMPAIGNS</span>
-            <strong>{loading ? "—" : activeCount}</strong>
-            <a href="/">OPEN STOREFRONT</a>
-          </div>
-        </aside>
+        <AdminSidebar />
 
         <section className={styles.adminContent}>
           <header className={styles.marketingV2Header}>
             <div>
-              <span>MARKETING CENTRE</span>
+              <span>Marketing centre</span>
               <h1>Campaigns</h1>
               <p>
                 Build, schedule and manage homepage campaigns from one place.
@@ -851,7 +829,7 @@ export default function MarketingCampaignsPage() {
           <section className={styles.marketingCampaignOverview}>
             <div className={styles.marketingSectionHead}>
               <div>
-                <span>CAMPAIGN MANAGEMENT</span>
+                <span>Campaign management</span>
                 <h2>{loading ? "Campaigns" : campaigns.length + " Campaign" + (campaigns.length === 1 ? "" : "s")}</h2>
                 <p>
                   Homepage campaigns with schedule, artwork and storefront status.
@@ -859,7 +837,7 @@ export default function MarketingCampaignsPage() {
               </div>
               <div className={styles.marketingStatusSummary}>
                 <b>{activeCount}</b>
-                <span>LIVE NOW</span>
+                <span>Live now</span>
               </div>
             </div>
 
@@ -870,7 +848,7 @@ export default function MarketingCampaignsPage() {
                 <strong>No campaign yet.</strong>
                 <span>Create your first homepage promotion.</span>
                 <button type="button" onClick={openNewCampaign}>
-                  CREATE CAMPAIGN
+                  Create campaign
                 </button>
               </div>
             ) : (
@@ -934,15 +912,15 @@ export default function MarketingCampaignsPage() {
 
                         <div className={styles.marketingCampaignMetaV2}>
                           <div>
-                            <span>LAYOUT</span>
+                            <span>Layout</span>
                             <strong>{template.name}</strong>
                           </div>
                           <div>
-                            <span>PLACEMENT</span>
+                            <span>Placement</span>
                             <strong>Homepage</strong>
                           </div>
                           <div>
-                            <span>START</span>
+                            <span>Start</span>
                             <strong>
                               {new Date(campaign.starts_at).toLocaleString("en-MY", {
                                 day: "2-digit",
@@ -953,7 +931,7 @@ export default function MarketingCampaignsPage() {
                             </strong>
                           </div>
                           <div>
-                            <span>END</span>
+                            <span>End</span>
                             <strong>
                               {new Date(campaign.ends_at).toLocaleString("en-MY", {
                                 day: "2-digit",
@@ -968,7 +946,7 @@ export default function MarketingCampaignsPage() {
 
                       <div className={styles.marketingCampaignActionsV2}>
                         <button type="button" onClick={() => editCampaign(campaign)}>
-                          EDIT
+                          Edit
                         </button>
                         <button
                           type="button"
@@ -983,7 +961,7 @@ export default function MarketingCampaignsPage() {
                           disabled={busy === "toggle-" + campaign.id}
                           onClick={() => void toggleCampaign(campaign)}
                         >
-                          {campaign.is_active ? "DEACTIVATE" : "ACTIVATE"}
+                          {campaign.is_active ? "Deactivate" : "Activate"}
                         </button>
                         <button
                           type="button"
@@ -991,7 +969,7 @@ export default function MarketingCampaignsPage() {
                           disabled={busy === "delete-" + campaign.id}
                           onClick={() => void deleteCampaign(campaign)}
                         >
-                          DELETE
+                          Delete
                         </button>
                       </div>
                     </article>
@@ -1019,7 +997,7 @@ export default function MarketingCampaignsPage() {
                       <div className={styles.marketingStepHead}>
                         <b>01</b>
                         <div>
-                          <span>LAYOUT</span>
+                          <span>Layout</span>
                           <h3>Choose campaign type</h3>
                         </div>
                       </div>
@@ -1059,14 +1037,14 @@ export default function MarketingCampaignsPage() {
                       <div className={styles.marketingStepHead}>
                         <b>02</b>
                         <div>
-                          <span>CONTENT</span>
+                          <span>Content</span>
                           <h3>Campaign message</h3>
                         </div>
                       </div>
 
                       <div className={styles.marketingFormGridV2}>
                         <label>
-                          <span>EVENT NUMBER / DATE</span>
+                          <span>Event number / date</span>
                           <input
                             value={form.event_code}
                             onChange={(event) =>
@@ -1080,7 +1058,7 @@ export default function MarketingCampaignsPage() {
                         </label>
 
                         <label>
-                          <span>SALE TITLE *</span>
+                          <span>Sale title *</span>
                           <input
                             required
                             value={form.title}
@@ -1090,12 +1068,12 @@ export default function MarketingCampaignsPage() {
                                 title: event.target.value,
                               }))
                             }
-                            placeholder="AUTO SALE"
+                            placeholder="Auto sale"
                           />
                         </label>
 
                         <label>
-                          <span>EVENT TAG</span>
+                          <span>Event tag</span>
                           <input
                             value={form.badge}
                             onChange={(event) =>
@@ -1104,12 +1082,12 @@ export default function MarketingCampaignsPage() {
                                 badge: event.target.value,
                               }))
                             }
-                            placeholder="LIMITED TIME"
+                            placeholder="Limited time"
                           />
                         </label>
 
                         <label className={styles.full}>
-                          <span>SUBTITLE</span>
+                          <span>Subtitle</span>
                           <input
                             value={form.subtitle}
                             onChange={(event) =>
@@ -1123,7 +1101,7 @@ export default function MarketingCampaignsPage() {
                         </label>
 
                         <label>
-                          <span>HIGHLIGHT</span>
+                          <span>Highlight</span>
                           <input
                             value={form.highlight_text}
                             onChange={(event) =>
@@ -1132,12 +1110,12 @@ export default function MarketingCampaignsPage() {
                                 highlight_text: event.target.value,
                               }))
                             }
-                            placeholder="UP TO 50% OFF"
+                            placeholder="Up to 50% off"
                           />
                         </label>
 
                         <label>
-                          <span>VOUCHER HIGHLIGHT</span>
+                          <span>Voucher highlight</span>
                           <input
                             value={form.voucher_text}
                             onChange={(event) =>
@@ -1146,12 +1124,12 @@ export default function MarketingCampaignsPage() {
                                 voucher_text: event.target.value,
                               }))
                             }
-                            placeholder="EXTRA VOUCHERS AVAILABLE"
+                            placeholder="Extra vouchers available"
                           />
                         </label>
 
                         <label>
-                          <span>CTA LABEL</span>
+                          <span>Cta label</span>
                           <input
                             value={form.cta_label}
                             onChange={(event) =>
@@ -1164,7 +1142,7 @@ export default function MarketingCampaignsPage() {
                         </label>
 
                         <label>
-                          <span>CTA LINK</span>
+                          <span>Cta link</span>
                           <input
                             value={form.landing_path}
                             onChange={(event) =>
@@ -1180,7 +1158,7 @@ export default function MarketingCampaignsPage() {
 
                       {form.template_type === "mega_sale" ? (
                         <div className={styles.marketingBenefitsV2}>
-                          <span>BENEFIT STRIP</span>
+                          <span>Benefit strip</span>
                           <div>
                             {form.benefits.map((benefit, index) => (
                               <input
@@ -1199,7 +1177,7 @@ export default function MarketingCampaignsPage() {
                       {form.template_type === "flash_deal_grid" ? (
                         <div className={styles.marketingProductsPickerV2}>
                           <div>
-                            <span>FEATURED PRODUCTS</span>
+                            <span>Featured products</span>
                             <small>{form.featured_product_ids.length} selected.</small>
                           </div>
                           <button
@@ -1207,7 +1185,7 @@ export default function MarketingCampaignsPage() {
                             className={styles.adminSecondaryAction}
                             onClick={() => setProductPickerOpen(true)}
                           >
-                            SELECT CAMPAIGN PRODUCTS
+                            Select campaign products
                           </button>
                         </div>
                       ) : null}
@@ -1217,7 +1195,7 @@ export default function MarketingCampaignsPage() {
                       <div className={styles.marketingStepHead}>
                         <b>03</b>
                         <div>
-                          <span>STYLE & ARTWORK</span>
+                          <span>Style & artwork</span>
                           <h3>Brand the campaign</h3>
                         </div>
                       </div>
@@ -1225,7 +1203,7 @@ export default function MarketingCampaignsPage() {
                       <div className={styles.marketingBannerStyleBlock}>
                         <div className={styles.marketingBannerStyleHead}>
                           <div>
-                            <span>BANNER STYLE</span>
+                            <span>Banner style</span>
                             <strong>Choose how the campaign feels</strong>
                           </div>
                           <small>
@@ -1319,12 +1297,12 @@ export default function MarketingCampaignsPage() {
 
                       <div className={styles.marketingArtworkGridV2}>
                         <label>
-                          <span>DESKTOP BANNER</span>
+                          <span>Desktop banner</span>
                           <div className={styles.marketingUploadBoxV2}>
                             {form.desktop_image_url ? (
                               <img src={form.desktop_image_url} alt="" />
                             ) : (
-                              <strong>+ UPLOAD DESKTOP</strong>
+                              <strong>+ Upload desktop</strong>
                             )}
                             <input
                               type="file"
@@ -1340,12 +1318,12 @@ export default function MarketingCampaignsPage() {
                         </label>
 
                         <label>
-                          <span>MOBILE BANNER</span>
+                          <span>Mobile banner</span>
                           <div className={styles.marketingUploadBoxV2}>
                             {form.mobile_image_url ? (
                               <img src={form.mobile_image_url} alt="" />
                             ) : (
-                              <strong>+ UPLOAD MOBILE</strong>
+                              <strong>+ Upload mobile</strong>
                             )}
                             <input
                               type="file"
@@ -1363,7 +1341,7 @@ export default function MarketingCampaignsPage() {
 
                       <div className={styles.marketingFormGridV2}>
                         <label>
-                          <span>DISPLAY MODE</span>
+                          <span>Display mode</span>
                           <select
                             value={form.display_mode}
                             onChange={(event) =>
@@ -1379,7 +1357,7 @@ export default function MarketingCampaignsPage() {
                         </label>
 
                         <label>
-                          <span>IMAGE POSITION</span>
+                          <span>Image position</span>
                           <select
                             value={form.image_position}
                             onChange={(event) =>
@@ -1420,7 +1398,7 @@ export default function MarketingCampaignsPage() {
                         </label>
 
                         <label className={styles.marketingToggleV2}>
-                          <span>COUNTDOWN</span>
+                          <span>Countdown</span>
                           <input
                             type="checkbox"
                             checked={form.show_countdown}
@@ -1440,14 +1418,14 @@ export default function MarketingCampaignsPage() {
                       <div className={styles.marketingStepHead}>
                         <b>04</b>
                         <div>
-                          <span>SCHEDULE & PUBLISH</span>
+                          <span>Schedule & publish</span>
                           <h3>Choose when it runs</h3>
                         </div>
                       </div>
 
                       <div className={styles.marketingFormGridV2}>
                         <label>
-                          <span>START</span>
+                          <span>Start</span>
                           <input
                             type="datetime-local"
                             value={form.starts_at}
@@ -1461,7 +1439,7 @@ export default function MarketingCampaignsPage() {
                         </label>
 
                         <label>
-                          <span>END</span>
+                          <span>End</span>
                           <input
                             type="datetime-local"
                             value={form.ends_at}
@@ -1482,7 +1460,7 @@ export default function MarketingCampaignsPage() {
                           disabled={busy === "save"}
                           onClick={() => setPublishMode("draft")}
                         >
-                          <span>SAVE AS DRAFT</span>
+                          <span>Save as draft</span>
                           <small>Keep it hidden from customers.</small>
                         </button>
                         <button
@@ -1491,7 +1469,7 @@ export default function MarketingCampaignsPage() {
                           disabled={busy === "save"}
                           onClick={() => setPublishMode("publish")}
                         >
-                          <span>{busy === "save" ? "SAVING..." : editingId ? "SAVE & PUBLISH" : "PUBLISH CAMPAIGN"}</span>
+                          <span>{busy === "save" ? "Saving…" : editingId ? "SAVE & PUBLISH" : "PUBLISH CAMPAIGN"}</span>
                           <small>Runs automatically inside the selected time window.</small>
                         </button>
                       </div>
@@ -1500,7 +1478,7 @@ export default function MarketingCampaignsPage() {
 
                   <aside className={styles.marketingPreviewV2}>
                     <div className={styles.marketingPreviewHeadV2}>
-                      <span>LIVE PREVIEW</span>
+                      <span>Live preview</span>
                       <strong>Homepage</strong>
                     </div>
 
@@ -1557,17 +1535,17 @@ export default function MarketingCampaignsPage() {
 
                     <div className={styles.marketingPreviewDetailsV2}>
                       <div>
-                        <span>STYLE</span>
+                        <span>Style</span>
                         <strong>{form.banner_style.toUpperCase()}</strong>
                       </div>
                       <div>
-                        <span>LAYOUT</span>
+                        <span>Layout</span>
                         <strong>
                           {templates.find((item) => item.key === form.template_type)?.name}
                         </strong>
                       </div>
                       <div>
-                        <span>COUNTDOWN</span>
+                        <span>Countdown</span>
                         <strong>{form.show_countdown ? "VISIBLE" : "HIDDEN"}</strong>
                       </div>
                     </div>
@@ -1581,8 +1559,8 @@ export default function MarketingCampaignsPage() {
             <div className={styles.productPickerOverlay} role="dialog" aria-modal="true">
               <div className={styles.productPickerModal}>
                 <div className={styles.productPickerHead}>
-                  <div><span>CAMPAIGN PRODUCTS</span><h2>Select products</h2></div>
-                  <button type="button" onClick={() => setProductPickerOpen(false)}>CLOSE</button>
+                  <div><span>Campaign products</span><h2>Select products</h2></div>
+                  <button type="button" onClick={() => setProductPickerOpen(false)}>Close</button>
                 </div>
                 <div className={styles.productPickerSearch}>
                   <input autoFocus value={productQuery} onChange={(event) => setProductQuery(event.target.value)} placeholder="Search products" />
@@ -1601,7 +1579,7 @@ export default function MarketingCampaignsPage() {
                 </div>
                 <div className={styles.productPickerFooter}>
                   <span>{form.featured_product_ids.length} products selected</span>
-                  <button type="button" onClick={() => setProductPickerOpen(false)}>CONFIRM</button>
+                  <button type="button" onClick={() => setProductPickerOpen(false)}>Confirm</button>
                 </div>
               </div>
             </div>

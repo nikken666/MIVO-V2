@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useT } from "./LanguageProvider";
 
 export type ShopTier = "direct" | "preferred" | "standard";
 
@@ -15,9 +18,10 @@ export default function ShopBadge({
   tier?: ShopTier | null;
   size?: "sm" | "md";
 }) {
+  const t = useT();
   if (tier === "direct") {
     return (
-      <span className={"shopBadge shopBadgeDirect " + size} title="Sold and shipped by MIVO">
+      <span className={"shopBadge shopBadgeDirect " + size} title={t("browse.badge.directTitle")}>
         <svg viewBox="0 0 16 16" aria-hidden="true">
           <path d="M8 1.5l1.6 1.2 2 .1.6 1.9 1.6 1.2-.6 1.9.6 1.9-1.6 1.2-.6 1.9-2 .1L8 14.5l-1.6-1.2-2-.1-.6-1.9L2.2 10l.6-1.9-.6-1.9 1.6-1.2.6-1.9 2-.1z" />
           <path className="tick" d="M5.6 8.2l1.6 1.6 3.2-3.4" />
@@ -28,8 +32,8 @@ export default function ShopBadge({
   }
   if (tier === "preferred") {
     return (
-      <span className={"shopBadge shopBadgePreferred " + size} title="Preferred seller">
-        Preferred
+      <span className={"shopBadge shopBadgePreferred " + size} title={t("browse.badge.preferredTitle")}>
+        {t("browse.badge.preferred")}
       </span>
     );
   }

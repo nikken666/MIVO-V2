@@ -16,5 +16,5 @@ export default function GspPhotoRestore(){
   }
   setMessage("All three GSP images restored.");
  }
- return <main style={{padding:32,maxWidth:650,margin:"auto"}}><h1>Restore GSP Product Images</h1><p>Upload 1SET, SHORT and LONG images to their existing product image paths.</p>{["MAIN / 1SET","SHORT","LONG"].map((name,i)=><label key={name} style={{display:"block",marginBottom:22}}>{name}<input type="file" accept="image/png" onChange={e=>setFiles(a=>a.map((f,j)=>i===j?e.target.files?.[0]||null:f))}/></label>)}<button type="button" onClick={()=>void restore()}>RESTORE GSP IMAGES</button><p>{message}</p></main>;
+ return <main style={{padding:32,maxWidth:650,margin:"auto"}}><h1>Restore GSP Product Images</h1><p>Upload 1SET, SHORT and LONG images to their existing product image paths.</p>{["MAIN / 1SET","SHORT","LONG"].map((name,i)=><label key={name} style={{display:"block",marginBottom:22}}>{name}<input type="file" accept="image/png" onChange={e=>setFiles(a=>a.map((f,j)=>i===j?e.target.files?.[0]||null:f))}/></label>)}<button type="button" onClick={()=>void restore()}>Restore GSP images</button><p>{message}</p></main>;
 }

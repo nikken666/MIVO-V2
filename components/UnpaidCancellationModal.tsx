@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useT } from "@/components/LanguageProvider";
+import { friendlyError } from "@/lib/i18n/errors";
 
 export default function UnpaidCancellationModal({
   orderNumber,
@@ -12,6 +14,7 @@ export default function UnpaidCancellationModal({
   onClose: () => void;
   onCancelled: () => void | Promise<void>;
 }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -32,9 +35,7 @@ export default function UnpaidCancellationModal({
       onClose();
     } catch (caught) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : "Unable to cancel this order."
+        friendlyError(caught, t, "account.cancel.error")
       );
     } finally {
       setBusy(false);
@@ -51,17 +52,17 @@ export default function UnpaidCancellationModal({
       >
         <div className="cancelModalHead">
           <div>
-            <span>ORDER CANCELLATION</span>
-            <h2 id="unpaid-cancel-title">Cancel this order?</h2>
+            <span>{t("account.cancel.eyebrow")}</span>
+            <h2 id="unpaid-cancel-title">{t("account.cancel.title")}</h2>
           </div>
 
-          <button type="button" onClick={onClose} aria-label="Close">
+          <button type="button" onClick={onClose} aria-label={t("chat.close")}>
             ×
           </button>
         </div>
 
         <div className="unpaidCancelOrderNumber">
-          <span>ORDER NUMBER</span>
+          <span>{t("account.cancel.orderNumber")}</span>
           <strong>{orderNumber}</strong>
         </div>
 
@@ -69,18 +70,17 @@ export default function UnpaidCancellationModal({
           <div>
             <i>✓</i>
             <p>
-              <strong>No cancellation fee</strong>
-              <small>No payment has been made for this order.</small>
+              <strong>{t("account.cancel.noFee")}</strong>
+              <small>{t("account.cancel.noFeeText")}</small>
             </p>
           </div>
 
           <div>
             <i>✓</i>
             <p>
-              <strong>Reserved stock will be released</strong>
+              <strong>{t("account.cancel.stockReleased")}</strong>
               <small>
-                Product stock reserved for this order becomes available again
-                immediately.
+                {t("account.cancel.stockReleasedText")}
               </small>
             </p>
           </div>
@@ -88,20 +88,18 @@ export default function UnpaidCancellationModal({
           <div>
             <i>!</i>
             <p>
-              <strong>This action cannot be undone</strong>
+              <strong>{t("account.cancel.cannotUndo")}</strong>
               <small>
-                If you change your mind later, you will need to place a new
-                order.
+                {t("account.cancel.cannotUndoText")}
               </small>
             </p>
           </div>
         </div>
 
         <div className="unpaidCancelAutoNote">
-          <span>24-HOUR PAYMENT RULE</span>
+          <span>{t("account.cancel.rule")}</span>
           <p>
-            Unpaid orders are also cancelled automatically 24 hours after the
-            order is placed.
+            {t("account.cancel.ruleText")}
           </p>
         </div>
 
@@ -114,7 +112,7 @@ export default function UnpaidCancellationModal({
             onClick={onClose}
             disabled={busy}
           >
-            KEEP ORDER
+            {t("account.cancel.keep")}
           </button>
 
           <button
@@ -123,7 +121,8 @@ export default function UnpaidCancellationModal({
             disabled={busy}
             onClick={confirmCancellation}
           >
-            {busy ? "CANCELLING..." : "CANCEL ORDER"}
+            {busy ? t("account.cancel.cancelling") : t("account.orders.cancelOrder")}
+
           </button>
         </div>
       </section>

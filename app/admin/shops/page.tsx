@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import PickupAddressEditor from "@/components/admin/PickupAddressEditor";
+import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
 import ui from "../store-health/StoreHealth.module.css";
+import AdminSidebar from "@/components/admin/AdminSidebar";
 
 type Tier = "direct" | "preferred" | "standard";
 
@@ -32,6 +35,9 @@ const emptyForm = {
   logo_url: "",
   banner_url: "",
   sort_order: 100,
+  return_name: "",
+  return_phone: "",
+  return_address: "",
 };
 
 const tierLabel: Record<Tier, string> = {
@@ -64,7 +70,7 @@ export default function AdminShopsPage() {
       const { data: isAdmin, error: adminError } = await client.rpc("is_admin");
       if (adminError) throw adminError;
       if (!isAdmin) {
-        window.location.assign("/admin");
+        leaveBackOffice();
         return;
       }
 
@@ -105,6 +111,22 @@ export default function AdminShopsPage() {
     void load();
   }, []);
 
+  // Load the saved return address when a shop is opened for editing.
+  useEffect(() => {
+    if (!form.id) return;
+    const id = form.id;
+    void createClient()
+      .rpc("admin_get_shop_return_address", { p_id: id })
+      .then(({ data }) => {
+        const value = (data || {}) as { name?: string | null; phone?: string | null; address?: string | null };
+        setForm((current) =>
+          current.id === id
+            ? { ...current, return_name: value.name || "", return_phone: value.phone || "", return_address: value.address || "" }
+            : current
+        );
+      });
+  }, [form.id]);
+
   // Linked stock overview: groups whose stock is shared by several shops.
   const linked = useMemo(() => {
     const shopsPerGroup = new Map<string, Set<string>>();
@@ -119,6 +141,18 @@ export default function AdminShopsPage() {
   }, [listings]);
 
   const listingCount = (shopId: string) => listings.filter((row) => row.seller_id === shopId).length;
+
+  // Approve a seller's application, or suspend a shop.
+  async function setStatus(id: string, status: string) {
+    setError("");
+    setMessage("");
+    const { error: statusError } = await createClient().rpc("admin_set_shop_status", { p_id: id, p_status: status });
+    if (statusError) setError(statusError.message);
+    else {
+      setMessage(status === "approved" ? "Shop approved. The seller can now use Seller Centre." : "Shop " + status + ".");
+      await load();
+    }
+  }
 
   async function save(event: React.FormEvent) {
     event.preventDefault();
@@ -138,6 +172,16 @@ export default function AdminShopsPage() {
         p_sort_order: Number(form.sort_order) || 100,
       });
       if (saveError) throw saveError;
+      // Return address (supabase/shop-return-address.sql). New shops get it on their next edit.
+      if (form.id) {
+        const { error: addressError } = await createClient().rpc("admin_save_shop_return_address", {
+          p_id: form.id,
+          p_name: form.return_name,
+          p_phone: form.return_phone,
+          p_address: form.return_address,
+        });
+        if (addressError && !/admin_save_shop_return_address/.test(addressError.message)) throw addressError;
+      }
       setMessage(form.id ? "Shop updated." : "Shop created.");
       setForm(emptyForm);
       await load();
@@ -157,26 +201,16 @@ export default function AdminShopsPage() {
   return (
     <main className={styles.adminShell}>
       <div className={styles.adminWorkspace}>
-        <aside className={styles.adminSidebar}>
-          <a href="/admin" className={styles.adminBrand}><span>MIVO</span><small>STORE CONTROL</small></a>
-          <nav className={styles.adminSideNav}>
-            <a href="/admin">Dashboard</a>
-            <a href="/admin/orders">Orders</a>
-            <a href="/admin/products">Products</a>
-            <a href="/admin/shops" className={styles.active}>Shops</a>
-            <a href="/admin/products/import">Import from Shopee</a>
-            <a href="/admin/store-health">Store Health</a>
-          </nav>
-        </aside>
+        <AdminSidebar />
 
         <section className={styles.adminContent}>
           <header className={styles.adminHeader}>
             <div>
-              <span className={styles.adminEyebrow}>MIVO STORE CONTROL · MARKETPLACE</span>
+              <span className={styles.adminEyebrow}>MIVO store control · Marketplace</span>
               <h1>Shops</h1>
-              <p>All shops ship from the MIVO warehouse. Listings with the same SKU share one stock.</p>
+              <p>Each shop packs and ships its own parcels. Listings with the same SKU in your own shops share one stock.</p>
             </div>
-            <a className={styles.adminAction} href="/shops" target="_blank" rel="noreferrer">VIEW SHOPS ↗</a>
+            <a className={styles.adminAction} href="/shops" target="_blank" rel="noreferrer">View shops ↗</a>
           </header>
 
           <section className={styles.adminPanel}>
@@ -191,27 +225,36 @@ export default function AdminShopsPage() {
             {message ? <p>{message}</p> : null}
 
             <form onSubmit={save} className={ui.toolbar} style={{ flexWrap: "wrap", alignItems: "end" }}>
-              <label className={styles.adminField}><span>SHOP NAME</span><input required {...field("shop_name")} placeholder="e.g. MIVO Auto Parts KL" /></label>
-              <label className={styles.adminField}><span>LINK (SLUG)</span><input {...field("slug")} placeholder="mivo-auto-kl" /></label>
-              <label className={styles.adminField}><span>TIER</span>
+              <label className={styles.adminField}><span>Shop name</span><input required {...field("shop_name")} placeholder="e.g. MIVO Auto Parts KL" /></label>
+              <label className={styles.adminField}><span>Link (slug)</span><input {...field("slug")} placeholder="mivo-auto-kl" /></label>
+              <label className={styles.adminField}><span>Tier</span>
                 <select {...field("tier")}>
                   {(Object.keys(tierLabel) as Tier[]).map((tier) => <option key={tier} value={tier}>{tierLabel[tier]}</option>)}
                 </select>
               </label>
-              <label className={styles.adminField}><span>ORDER</span><input type="number" {...field("sort_order")} /></label>
-              <label className={styles.adminField}><span>TAGLINE</span><input {...field("tagline")} placeholder="Short line under the shop name" /></label>
-              <label className={styles.adminField}><span>LOGO URL</span><input {...field("logo_url")} placeholder="https://…" /></label>
-              <label className={styles.adminField}><span>BANNER URL</span><input {...field("banner_url")} placeholder="https://…" /></label>
-              <button type="submit" disabled={saving}>{saving ? "SAVING…" : form.id ? "UPDATE SHOP" : "ADD SHOP"}</button>
-              {form.id ? <button type="button" onClick={() => setForm(emptyForm)}>CANCEL</button> : null}
+              <label className={styles.adminField}><span>Order</span><input type="number" {...field("sort_order")} /></label>
+              <label className={styles.adminField}><span>Tagline</span><input {...field("tagline")} placeholder="Short line under the shop name" /></label>
+              <label className={styles.adminField}><span>Logo URL</span><input {...field("logo_url")} placeholder="https://…" /></label>
+              <label className={styles.adminField}><span>Banner URL</span><input {...field("banner_url")} placeholder="https://…" /></label>
+              {form.id ? (
+                <>
+                  <label className={styles.adminField}><span>Return to (name)</span><input {...field("return_name")} placeholder="MIVO Returns" /></label>
+                  <label className={styles.adminField}><span>Return phone</span><input {...field("return_phone")} placeholder="01X-XXXXXXX" /></label>
+                  <label className={styles.adminField} style={{ minWidth: 320, flex: 1 }}><span>Return address (shown to customers on approved returns)</span><input {...field("return_address")} placeholder="Street, postcode, city, state" /></label>
+                </>
+              ) : null}
+              <button type="submit" disabled={saving}>{saving ? "Saving…" : form.id ? "Update shop" : "Add shop"}</button>
+              {form.id ? <button type="button" onClick={() => setForm(emptyForm)}>Cancel</button> : null}
             </form>
+
+            {form.id ? <PickupAddressEditor key={form.id} sellerId={form.id} /> : null}
 
             {loading ? (
               <p>Loading shops…</p>
             ) : (
               <div className={ui.tableWrap}>
                 <table className={ui.table}>
-                  <thead><tr><th>SHOP</th><th>TIER</th><th>LINK</th><th>LISTINGS</th><th>STATUS</th><th>ACTION</th></tr></thead>
+                  <thead><tr><th>Shop</th><th>Tier</th><th>Link</th><th>Listings</th><th>Status</th><th>Action</th></tr></thead>
                   <tbody>
                     {shops.map((shop) => (
                       <tr key={shop.id}>
@@ -219,7 +262,18 @@ export default function AdminShopsPage() {
                         <td>{tierLabel[shop.tier] || shop.tier}</td>
                         <td>{shop.slug ? <a href={"/shops/" + shop.slug} target="_blank" rel="noreferrer">/shops/{shop.slug}</a> : "—"}</td>
                         <td>{listingCount(shop.id)}</td>
-                        <td>{shop.status}</td>
+                        <td>
+                          {shop.status}
+                          {shop.status !== "approved" ? (
+                            <button type="button" className={styles.adminAction} style={{ marginLeft: 8 }} onClick={() => void setStatus(shop.id, "approved")}>
+                              Approve
+                            </button>
+                          ) : shop.tier !== "direct" ? (
+                            <button type="button" style={{ marginLeft: 8 }} onClick={() => void setStatus(shop.id, "suspended")}>
+                              Suspend
+                            </button>
+                          ) : null}
+                        </td>
                         <td>
                           <button
                             type="button"
@@ -234,12 +288,15 @@ export default function AdminShopsPage() {
                                 logo_url: shop.logo_url || "",
                                 banner_url: shop.banner_url || "",
                                 sort_order: shop.sort_order,
+                                return_name: "",
+                                return_phone: "",
+                                return_address: "",
                               })
                             }
                           >
-                            EDIT
+                            Edit
                           </button>{" "}
-                          <a href={"/admin/products/new?shop=" + shop.id}>ADD PRODUCT</a>
+                          <a href={"/admin/products/new?shop=" + shop.id}>Add product</a>
                         </td>
                       </tr>
                     ))}

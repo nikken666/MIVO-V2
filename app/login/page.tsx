@@ -4,11 +4,14 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Logo from "@/components/Logo";
+import { useT } from "@/components/LanguageProvider";
+import { friendlyError } from "@/lib/i18n/errors";
 
 type Mode = "login" | "register";
 
 export default function LoginPage() {
   const router = useRouter();
+  const t = useT();
 
   const [mode, setMode] = useState<Mode>("login");
   const [fullName, setFullName] = useState("");
@@ -42,9 +45,7 @@ export default function LoginPage() {
 
         if (signUpError) throw signUpError;
 
-        setMessage(
-          "Account created. Check your email to confirm it, then sign in to MIVO."
-        );
+        setMessage(t("account.login.created"));
         setMode("login");
         return;
       }
@@ -61,7 +62,7 @@ export default function LoginPage() {
       router.refresh();
     } catch (caught) {
       setError(
-        caught instanceof Error ? caught.message : "Authentication failed."
+        friendlyError(caught, t, "account.login.failed")
       );
     } finally {
       setBusy(false);
@@ -74,38 +75,38 @@ export default function LoginPage() {
         <section className="mivoAuthVisual">
           <div className="mivoAuthVisualTop">
             <Logo variant="light" className="mivoAuthLogo" />
-            <span>Account access</span>
+            <span>{t("account.login.access")}</span>
           </div>
 
           <div className="mivoAuthVisualCopy">
-            <span className="mivoAuthEyebrow">MIVO customer account</span>
+            <span className="mivoAuthEyebrow">{t("account.login.eyebrow")}</span>
             <h1>
-              Your garage.
+              {t("account.login.heroLine1")}
               <br />
-              Your orders.
+              {t("account.login.heroLine2")}
               <br />
-              <em>One account.</em>
+              <em>{t("account.login.heroLine3")}</em>
             </h1>
             <p>
-              Save your vehicle, track orders and move through checkout faster.
+              {t("account.login.heroText")}
             </p>
           </div>
 
           <div className="mivoAuthBenefits">
-            <span>✓ Saved vehicle fitment</span>
-            <span>✓ Faster checkout</span>
-            <span>✓ Order tracking</span>
+            <span>✓ {t("account.login.benefit1")}</span>
+            <span>✓ {t("account.login.benefit2")}</span>
+            <span>✓ {t("account.login.benefit3")}</span>
           </div>
         </section>
 
         <section className="mivoAuthFormPanel">
           <div className="mivoAuthFormHead">
-            <span>MIVO account</span>
-            <h2>{mode === "login" ? "Welcome back." : "Create your account."}</h2>
+            <span>{t("account.login.formEyebrow")}</span>
+            <h2>{mode === "login" ? t("account.login.welcomeBack") : t("account.login.createTitle")}</h2>
             <p>
               {mode === "login"
-                ? "Sign in to continue shopping with your saved MIVO account."
-                : "Create one account for orders, garage and delivery details."}
+                ? t("account.login.signInText")
+                : t("account.login.registerText")}
             </p>
           </div>
 
@@ -119,7 +120,7 @@ export default function LoginPage() {
                 setMessage("");
               }}
             >
-              Sign in
+              {t("account.login.signInTab")}
             </button>
             <button
               type="button"
@@ -130,26 +131,26 @@ export default function LoginPage() {
                 setMessage("");
               }}
             >
-              Register
+              {t("account.login.registerTab")}
             </button>
           </div>
 
           <form className="mivoAuthForm" onSubmit={submit}>
             {mode === "register" ? (
               <label>
-                <span>Full name</span>
+                <span>{t("account.login.fullName")}</span>
                 <input
                   required
                   value={fullName}
                   onChange={(event) => setFullName(event.target.value)}
-                  placeholder="Your full name"
+                  placeholder={t("account.login.fullNamePlaceholder")}
                   autoComplete="name"
                 />
               </label>
             ) : null}
 
             <label>
-              <span>Email address</span>
+              <span>{t("account.login.email")}</span>
               <input
                 required
                 type="email"
@@ -161,14 +162,14 @@ export default function LoginPage() {
             </label>
 
             <label>
-              <span>Password</span>
+              <span>{t("account.login.password")}</span>
               <input
                 required
                 minLength={8}
                 type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                placeholder="Minimum 8 characters"
+                placeholder={t("account.login.passwordPlaceholder")}
                 autoComplete={mode === "login" ? "current-password" : "new-password"}
               />
             </label>
@@ -178,20 +179,20 @@ export default function LoginPage() {
 
             <button className="mivoAuthSubmit" type="submit" disabled={busy}>
               <span>
-                <small>{mode === "login" ? "MIVO ACCOUNT" : "NEW CUSTOMER"}</small>
+                <small>{mode === "login" ? t("account.login.submitSmallLogin") : t("account.login.submitSmallRegister")}</small>
                 {busy
-                  ? "PLEASE WAIT..."
+                  ? t("account.login.pleaseWait")
                   : mode === "login"
-                    ? "SIGN IN"
-                    : "CREATE ACCOUNT"}
+                    ? t("account.login.signIn")
+                    : t("account.login.createAccount")}
               </span>
               <b>→</b>
             </button>
           </form>
 
           <div className="mivoAuthFinePrint">
-            <span>Secure account access</span>
-            <span>Malaysia customer support</span>
+            <span>{t("account.login.fine1")}</span>
+            <span>{t("account.login.fine2")}</span>
           </div>
         </section>
       </div>

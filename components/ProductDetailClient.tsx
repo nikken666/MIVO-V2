@@ -8,7 +8,11 @@ import type {
   ProductPublicReview,
   ProductVariant,
 } from "@/data/products";
-import type { FitmentStatus } from "@/data/fitments";
+import { isFitmentVerifiedShop, type FitmentStatus } from "@/data/fitments";
+import { useLanguage } from "./LanguageProvider";
+import { intlTag } from "@/lib/i18n/format";
+import type { Translate } from "@/lib/i18n";
+import { openChat } from "./chat/ChatWidget";
 import { formatPrice } from "@/data/products";
 import { useMarketplace } from "./MarketplaceProvider";
 import ProductCard from "./ProductCard";
@@ -22,11 +26,11 @@ function uniqueValues(values: Array<string | null | undefined>) {
   );
 }
 
-function stockCopy(stock: number | undefined) {
-  if (typeof stock !== "number") return "Select a variation";
-  if (stock <= 0) return "Out of stock";
-  if (stock <= 20) return "Only " + stock + " left";
-  return "In stock";
+function stockCopy(t: Translate, stock: number | undefined) {
+  if (typeof stock !== "number") return t("buy.pd.selectVariation");
+  if (stock <= 0) return t("buy.pd.outOfStock");
+  if (stock <= 20) return t("buy.pd.onlyLeft", { n: stock });
+  return t("buy.pd.inStock");
 }
 
 export default function ProductDetailClient({
@@ -44,6 +48,7 @@ export default function ProductDetailClient({
   variantFitmentStatuses?: Record<string, FitmentStatus>;
   selectedVehicleLabel?: string;
 }) {
+  const { t, locale } = useLanguage();
   const router = useRouter();
   const { addToCart, startBuyNow, cartReady } = useMarketplace();
 
@@ -367,7 +372,7 @@ export default function ProductDetailClient({
     <main className="productDetailPage">
       <div className="container">
         <div className="productBreadcrumb">
-          <Link href="/products">All parts</Link>
+          <Link href="/products">{t("buy.pd.allParts")}</Link>
           <span>›</span>
           <Link href={"/products?category=" + encodeURIComponent(product.category)}>
             {product.category.toUpperCase()}
@@ -391,7 +396,7 @@ export default function ProductDetailClient({
                     type="button"
                     className="galleryArrow galleryArrowLeft"
                     onClick={previousImage}
-                    aria-label="Previous product image"
+                    aria-label={t("buy.pd.prevImage")}
                   >
                     ‹
                   </button>
@@ -399,7 +404,7 @@ export default function ProductDetailClient({
                     type="button"
                     className="galleryArrow galleryArrowRight"
                     onClick={nextImage}
-                    aria-label="Next product image"
+                    aria-label={t("buy.pd.nextImage")}
                   >
                     ›
                   </button>
@@ -421,7 +426,7 @@ export default function ProductDetailClient({
                       (activeImage === index ? " active" : "")
                     }
                     onClick={() => setActiveImage(index)}
-                    aria-label={"View product image " + (index + 1)}
+                    aria-label={t("buy.pd.viewImage", { n: index + 1 })}
                   >
                     <img src={image} alt="" />
                   </button>
@@ -443,27 +448,43 @@ export default function ProductDetailClient({
                   ).join("")}
                 </span>
                 <span>
-                  {product.reviews} review{product.reviews === 1 ? "" : "s"}
+                  {t("buy.pd.reviewCount", { n: product.reviews })}
                 </span>
                 {displaySku ? <span>SKU {displaySku}</span> : null}
               </div>
 
               {product.seller ? (
-                <Link href={shopHref(product)} className="productShopCard">
-                  <span className="productShopAvatar" aria-hidden="true">
-                    {product.sellerLogo ? (
-                      <img src={product.sellerLogo} alt="" />
-                    ) : (
-                      product.seller.slice(0, 1)
-                    )}
-                  </span>
-                  <span className="productShopText">
-                    <strong>
-                      {product.seller} <ShopBadge tier={product.sellerTier} />
-                    </strong>
-                    <small>Visit shop ›</small>
-                  </span>
-                </Link>
+                <div className="productShopRow">
+                  <Link href={shopHref(product)} className="productShopCard">
+                    <span className="productShopAvatar" aria-hidden="true">
+                      {product.sellerLogo ? (
+                        <img src={product.sellerLogo} alt="" />
+                      ) : (
+                        product.seller.slice(0, 1)
+                      )}
+                    </span>
+                    <span className="productShopText">
+                      <strong>
+                        {product.seller} <ShopBadge tier={product.sellerTier} />
+                      </strong>
+                      <small>{t("shop.visit")} ›</small>
+                    </span>
+                  </Link>
+                  {product.sellerId ? (
+                    <button
+                      type="button"
+                      className="chatNowButton"
+                      onClick={() =>
+                        openChat({ sellerId: product.sellerId, productId: product.id })
+                      }
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4A2.5 2.5 0 0 1 4 13.5z" />
+                      </svg>
+                      {t("chat.chatNow")}
+                    </button>
+                  ) : null}
+                </div>
               ) : null}
             </div>
 
@@ -480,7 +501,7 @@ export default function ProductDetailClient({
                 ) : null}
               </div>
               <span>
-                {displayDiscountPercent ? "SALE PRICE" : "PRICE"}
+                {displayDiscountPercent ? t("buy.pd.salePrice") : t("buy.pd.price")}
               </span>
             </div>
 
@@ -496,25 +517,35 @@ export default function ProductDetailClient({
               }
             >
               <div>
-                <span>Vehicle fitment</span>
+                <span>{t("buy.pd.vehicleFitment")}</span>
                 <strong>
                   {selectedVariantFitmentStatus === "fits"
-                    ? "✓ FITS YOUR VEHICLE"
+                    ? t("buy.pd.fitsYourVehicle")
                     : selectedVariantFitmentStatus === "not-fit"
-                      ? "NOT COMPATIBLE"
+                      ? t("buy.pd.notCompatible")
                       : selectedVariantFitmentStatus === "universal"
-                        ? "✓ FITS YOUR VEHICLE"
+                        ? t("buy.pd.fitsYourVehicle")
+                        : selectedVariantFitmentStatus === "seller-fits"
+                          ? t("fit.sellerSays")
                         : selectedVariantFitmentStatus === "unverified"
-                          ? "FITMENT NOT VERIFIED"
-                          : "SELECT YOUR VEHICLE"}
+                          ? isFitmentVerifiedShop(product)
+                            ? t("buy.pd.fitmentNotVerified")
+                            : t("buy.pd.notVerifiedByMivo")
+                          : t("buy.v.selectYourVehicle")}
                 </strong>
+                {!isFitmentVerifiedShop(product) ? (
+                  <small className="productFitmentShopNote">
+                    {t("buy.pd.shopNote", {
+                      shop: product.seller || t("buy.pd.anotherShop"),
+                    })}
+                  </small>
+                ) : null}
                 {selectedVehicleLabel ? (
                   <>
                     <small>{selectedVehicleLabel}</small>
                     {confirmedFitmentCount > 0 ? (
                       <small>
-                        {confirmedFitmentCount} compatible option
-                        {confirmedFitmentCount === 1 ? "" : "s"} available
+                        {t("buy.pd.compatibleOptions", { n: confirmedFitmentCount })}
                       </small>
                     ) : null}
                   </>
@@ -525,7 +556,7 @@ export default function ProductDetailClient({
                 className="productFitmentSelectButton"
                 onClick={() => setVehicleSelectorOpen(true)}
               >
-                {selectedVehicleLabel ? "CHANGE VEHICLE →" : "SELECT VEHICLE →"}
+                {selectedVehicleLabel ? t("buy.pd.changeVehicle") : t("buy.pd.selectVehicle")}
               </button>
             </div>
 
@@ -534,7 +565,7 @@ export default function ProductDetailClient({
                 <div className="productOptionLabel">
                   <span>{product.variation1Name}</span>
                   <small>
-                    {option1 || "Choose an option"}
+                    {option1 || t("buy.pd.chooseOption")}
                   </small>
                 </div>
 
@@ -562,7 +593,7 @@ export default function ProductDetailClient({
                           />
                         ) : null}
                         <span>{value}</span>
-                        {soldOut ? <small>Sold out</small> : null}
+                        {soldOut ? <small>{t("card.soldOut")}</small> : null}
                       </button>
                     );
                   })}
@@ -575,7 +606,7 @@ export default function ProductDetailClient({
                 <div className="productOptionLabel">
                   <span>{product.variation2Name}</span>
                   <small>
-                    {option2 || "Choose an option"}
+                    {option2 || t("buy.pd.chooseOption")}
                   </small>
                 </div>
 
@@ -599,7 +630,7 @@ export default function ProductDetailClient({
                         }
                       >
                         {value}
-                        {soldOut ? <small>Sold out</small> : null}
+                        {soldOut ? <small>{t("card.soldOut")}</small> : null}
                       </button>
                     );
                   })}
@@ -609,15 +640,16 @@ export default function ProductDetailClient({
 
             <div className="productQuantityLine">
               <div>
-                <span>Quantity</span>
+                <span>{t("buy.pd.quantity")}</span>
                 <small>
                   {selectionComplete
                     ? stockCopy(
+                        t,
                         typeof displayStock === "number"
                           ? displayStock
                           : undefined
                       )
-                    : "Select variation first"}
+                    : t("buy.pd.selectVariationFirst")}
                 </small>
               </div>
 
@@ -654,7 +686,7 @@ export default function ProductDetailClient({
                 onClick={addCurrentToCart}
               >
                 <span>＋</span>
-                {outOfStock ? "Out of stock" : "Add to cart"}
+                {outOfStock ? t("buy.pd.outOfStock") : t("buy.pd.addToCart")}
               </button>
 
               <button
@@ -663,7 +695,7 @@ export default function ProductDetailClient({
                 disabled={outOfStock || !cartReady}
                 onClick={buyNow}
               >
-                Buy now
+                {t("buy.pd.buyNow")}
               </button>
             </div>
 
@@ -671,26 +703,30 @@ export default function ProductDetailClient({
               <div>
                 <span>✓</span>
                 <p>
-                  <strong>Ships from the MIVO warehouse</strong>
+                  <strong>
+                    {product.sellerTier === "direct"
+                      ? t("buy.pd.shipsFromWarehouse")
+                      : t("buy.pd.shipsFromShop")}
+                  </strong>
                   <small>
                     {product.sellerTier === "direct"
-                      ? "Sold and fulfilled by MIVO"
-                      : "Sold by " + (product.seller || "MIVO") + ", fulfilled by MIVO"}
+                      ? t("buy.pd.soldByMivo")
+                      : t("buy.pd.shipsFromShopHint", { shop: product.seller || "MIVO" })}
                   </small>
                 </p>
               </div>
               <div>
                 <span>✓</span>
                 <p>
-                  <strong>Malaysia delivery</strong>
-                  <small>Shipping calculated at checkout</small>
+                  <strong>{t("buy.pd.malaysiaDelivery")}</strong>
+                  <small>{t("buy.pd.shippingAtCheckout")}</small>
                 </p>
               </div>
               <div>
                 <span>✓</span>
                 <p>
-                  <strong>Account synced</strong>
-                  <small>Cart, address, orders and vehicle saved to your account</small>
+                  <strong>{t("buy.pd.accountSynced")}</strong>
+                  <small>{t("buy.pd.accountSyncedHint")}</small>
                 </p>
               </div>
             </div>
@@ -701,26 +737,26 @@ export default function ProductDetailClient({
           <div className="productShopeeDetails">
             <section className="productSpecificationCard">
               <div className="productInfoSectionTitle">
-                <span>Product details</span>
-                <h2>Product Specifications</h2>
+                <span>{t("buy.pd.productDetails")}</span>
+                <h2>{t("buy.pd.specifications")}</h2>
               </div>
 
               <div className="productSpecificationGrid">
                 <div>
-                  <span>Brand</span>
+                  <span>{t("buy.pd.brand")}</span>
                   <strong>{product.brand}</strong>
                 </div>
                 <div>
-                  <span>Category</span>
+                  <span>{t("buy.pd.category")}</span>
                   <strong>{product.category}</strong>
                 </div>
                 <div>
                   <span>SKU</span>
-                  <strong>{displaySku || "Select a variation"}</strong>
+                  <strong>{displaySku || t("buy.pd.selectVariation")}</strong>
                 </div>
                 <div>
-                  <span>Condition</span>
-                  <strong>New</strong>
+                  <span>{t("buy.pd.condition")}</span>
+                  <strong>{t("buy.pd.new")}</strong>
                 </div>
                 {product.variation1Name ? (
                   <div>
@@ -728,7 +764,7 @@ export default function ProductDetailClient({
                     <strong>
                       {selectedVariant?.variation1Value ||
                         option1 ||
-                        "Select a variation"}
+                        t("buy.pd.selectVariation")}
                     </strong>
                   </div>
                 ) : null}
@@ -738,24 +774,23 @@ export default function ProductDetailClient({
                     <strong>
                       {selectedVariant?.variation2Value ||
                         option2 ||
-                        "Select a variation"}
+                        t("buy.pd.selectVariation")}
                     </strong>
                   </div>
                 ) : null}
                 <div>
-                  <span>Warranty</span>
+                  <span>{t("buy.pd.warranty")}</span>
                   <strong>
                     {product.warrantyMonths
-                      ? product.warrantyMonths +
-                        " Month" +
-                        (product.warrantyMonths === 1 ? "" : "s")
-                      : "Not specified"}
+                      ? t("buy.pd.warrantyMonths", { n: product.warrantyMonths })
+                      : t("buy.pd.notSpecified")}
                   </strong>
                 </div>
                 <div>
-                  <span>Stock</span>
+                  <span>{t("buy.pd.stock")}</span>
                   <strong>
                     {stockCopy(
+                      t,
                       typeof displayStock === "number"
                         ? displayStock
                         : undefined
@@ -764,7 +799,7 @@ export default function ProductDetailClient({
                 </div>
                 {selectedVariant?.weightKg ? (
                   <div>
-                    <span>Weight</span>
+                    <span>{t("buy.pd.weight")}</span>
                     <strong>{selectedVariant.weightKg} kg</strong>
                   </div>
                 ) : null}
@@ -772,7 +807,7 @@ export default function ProductDetailClient({
                 selectedVariant?.widthCm &&
                 selectedVariant?.heightCm ? (
                   <div>
-                    <span>Package Size</span>
+                    <span>{t("buy.pd.packageSize")}</span>
                     <strong>
                       {selectedVariant.lengthCm} × {selectedVariant.widthCm} ×{" "}
                       {selectedVariant.heightCm} cm
@@ -784,8 +819,8 @@ export default function ProductDetailClient({
 
             <section className="productDescriptionCard productShopeeDescription">
               <div className="productInfoSectionTitle">
-                <span>Description</span>
-                <h2>Product Description</h2>
+                <span>{t("buy.pd.description")}</span>
+                <h2>{t("buy.pd.productDescription")}</h2>
               </div>
 
               <div className="productDescriptionBody">
@@ -803,22 +838,18 @@ export default function ProductDetailClient({
 
             <section className="productWarrantyCard">
               <div className="productInfoSectionTitle">
-                <span>After-sales</span>
-                <h2>Warranty</h2>
+                <span>{t("buy.pd.afterSales")}</span>
+                <h2>{t("buy.pd.warranty")}</h2>
               </div>
 
               <div className="productWarrantySummary">
                 <strong>
                   {product.warrantyMonths
-                    ? product.warrantyMonths +
-                      " Month" +
-                      (product.warrantyMonths === 1 ? "" : "s") +
-                      " Warranty"
-                    : "Warranty information not specified"}
+                    ? t("buy.pd.warrantyMonths", { n: product.warrantyMonths })
+                    : t("buy.pd.warrantyUnspecified")}
                 </strong>
                 <p>
-                  Warranty eligibility is subject to the product condition,
-                  order record and the applicable warranty terms.
+                  {t("buy.pd.warrantyTerms")}
                 </p>
               </div>
             </section>
@@ -828,7 +859,7 @@ export default function ProductDetailClient({
         <section className="productReviewsSection">
           <div className="productReviewsHeader">
             <div>
-              <span>Product ratings</span>
+              <span>{t("buy.pd.ratings")}</span>
               <h2>
                 {displayRating.toFixed(1)}
                 <small> / 5</small>
@@ -846,7 +877,7 @@ export default function ProductDetailClient({
                 className={reviewFilter === "all" ? "active" : ""}
                 onClick={() => setReviewFilter("all")}
               >
-                ALL ({productReviews.length})
+                {t("buy.pd.filterAll", { n: productReviews.length })}
               </button>
               {[5, 4, 3, 2, 1].map((rating) => (
                 <button
@@ -857,7 +888,7 @@ export default function ProductDetailClient({
                     setReviewFilter(rating as 1 | 2 | 3 | 4 | 5)
                   }
                 >
-                  {rating} STAR ({reviewCounts[rating] || 0})
+                  {t("buy.pd.filterStar", { rating, n: reviewCounts[rating] || 0 })}
                 </button>
               ))}
               <button
@@ -865,13 +896,11 @@ export default function ProductDetailClient({
                 className={reviewFilter === "photos" ? "active" : ""}
                 onClick={() => setReviewFilter("photos")}
               >
-                WITH PHOTOS (
-                {
-                  productReviews.filter(
+                {t("buy.pd.filterPhotos", {
+                  n: productReviews.filter(
                     (review) => review.imageUrls.length > 0
-                  ).length
-                }
-                )
+                  ).length,
+                })}
               </button>
             </div>
           </div>
@@ -881,13 +910,15 @@ export default function ProductDetailClient({
               {filteredReviews.map((review) => (
                 <article className="productReviewItem" key={review.id}>
                   <div className="productReviewBuyer">
-                    <div className="productReviewAvatar">M</div>
+                    <div className="productReviewAvatar">
+                      {(review.reviewerName || t("buy.pd.customer")).slice(0, 1).toUpperCase()}
+                    </div>
                     <div>
-                      <strong>MIVO Customer</strong>
+                      <strong>{review.reviewerName || t("buy.pd.customer")}</strong>
                       <span>
                         {review.verifiedPurchase
-                          ? "✓ VERIFIED PURCHASE"
-                          : "CUSTOMER REVIEW"}
+                          ? t("buy.pd.verifiedPurchase")
+                          : t("buy.pd.customerReview")}
                       </span>
                     </div>
                   </div>
@@ -902,7 +933,7 @@ export default function ProductDetailClient({
                     <div className="productReviewMeta">
                       <span>
                         {new Date(review.createdAt).toLocaleDateString(
-                          "en-MY",
+                          intlTag(locale),
                           {
                             day: "2-digit",
                             month: "short",
@@ -911,7 +942,7 @@ export default function ProductDetailClient({
                         )}
                       </span>
                       {review.variantName ? (
-                        <span>Variation: {review.variantName}</span>
+                        <span>{t("buy.pd.variation", { name: review.variantName })}</span>
                       ) : null}
                     </div>
 
@@ -926,7 +957,7 @@ export default function ProductDetailClient({
                             rel="noreferrer"
                             key={url}
                           >
-                            <img src={url} alt="Customer review" />
+                            <img src={url} alt={t("buy.pd.customerReview")} />
                           </a>
                         ))}
                       </div>
@@ -937,8 +968,8 @@ export default function ProductDetailClient({
             </div>
           ) : (
             <div className="productReviewEmpty">
-              <strong>No reviews in this filter yet.</strong>
-              <span>Choose another rating filter to see more feedback.</span>
+              <strong>{t("buy.pd.noReviews")}</strong>
+              <span>{t("buy.pd.noReviewsHint")}</span>
             </div>
           )}
         </section>
@@ -947,10 +978,10 @@ export default function ProductDetailClient({
           <section className="relatedProductsSection">
             <div className="relatedProductsHead">
               <div>
-                <span>Related parts</span>
-                <h2>You may also like</h2>
+                <span>{t("buy.pd.relatedParts")}</span>
+                <h2>{t("buy.pd.youMayLike")}</h2>
               </div>
-              <Link href="/products">View all parts →</Link>
+              <Link href="/products">{t("buy.pd.viewAll")}</Link>
             </div>
 
             <div className="relatedProductsGrid">
@@ -987,17 +1018,17 @@ export default function ProductDetailClient({
             aria-modal="true"
             aria-labelledby="fitment-override-title"
           >
-            <span>Fitment warning</span>
+            <span>{t("buy.pd.fitmentWarning")}</span>
             <h2 id="fitment-override-title">
-              This part does not match your selected vehicle.
+              {t("buy.pd.fitmentMismatch")}
             </h2>
             <p>
-              Your selected vehicle is <strong>{selectedVehicleLabel}</strong>.
-              You can still order this item if it is for another vehicle or
-              you have independently confirmed the fitment.
+              {t("buy.pd.overrideBefore")}{" "}
+              <strong>{selectedVehicleLabel}</strong>
+              {t("buy.pd.overrideAfter")}
             </p>
             <div className="fitmentOverrideSummary">
-              <small>Selected part</small>
+              <small>{t("buy.pd.selectedPart")}</small>
               <strong>
                 {[selectedVariant?.variation1Value, selectedVariant?.variation2Value]
                   .filter(Boolean)
@@ -1010,14 +1041,14 @@ export default function ProductDetailClient({
                 className="fitmentOverrideCancel"
                 onClick={() => setFitmentConfirmAction(null)}
               >
-                Go back
+                {t("buy.pd.goBack")}
               </button>
               <button
                 type="button"
                 className="fitmentOverrideConfirm"
                 onClick={confirmFitmentOverride}
               >
-                I UNDERSTAND, CONTINUE
+                {t("buy.pd.understandContinue")}
               </button>
             </div>
           </div>
@@ -1032,7 +1063,7 @@ export default function ProductDetailClient({
           onClick={addCurrentToCart}
         >
           <span>＋</span>
-          Add to cart
+          {t("buy.pd.addToCart")}
         </button>
 
         <button
@@ -1041,7 +1072,7 @@ export default function ProductDetailClient({
           disabled={outOfStock || !cartReady}
           onClick={buyNow}
         >
-          Buy now
+          {t("buy.pd.buyNow")}
         </button>
       </div>
     </main>

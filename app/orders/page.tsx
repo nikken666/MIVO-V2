@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import OrderStatusIcon from "@/components/orders/OrderStatusIcon";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -8,6 +9,10 @@ import { formatPrice } from "@/data/products";
 import PaidCancellationModal from "@/components/PaidCancellationModal";
 import UnpaidCancellationModal from "@/components/UnpaidCancellationModal";
 import StripePayButton from "@/components/StripePayButton";
+import { useT } from "@/components/LanguageProvider";
+import type { Key, Translate } from "@/lib/i18n";
+import { intlTag } from "@/lib/i18n/format";
+import { friendlyError } from "@/lib/i18n/errors";
 
 type OrderItemPreview = {
   id: string;
@@ -37,17 +42,21 @@ type OrderTab =
   | "completed"
   | "cancelled";
 
-const tabs: Array<{ key: OrderTab; label: string }> = [
-  { key: "all", label: "ALL" },
-  { key: "to_pay", label: "TO PAY" },
-  { key: "to_ship", label: "TO SHIP" },
-  { key: "to_receive", label: "TO RECEIVE" },
-  { key: "completed", label: "COMPLETED" },
-  { key: "cancelled", label: "CANCELLED" },
+const tabs: Array<{ key: OrderTab; label: Key }> = [
+  { key: "all", label: "account.orders.tabAll" },
+  { key: "to_pay", label: "me.toPay" },
+  { key: "to_ship", label: "me.toShip" },
+  { key: "to_receive", label: "me.toReceive" },
+  { key: "completed", label: "account.orders.tabCompleted" },
+  { key: "cancelled", label: "account.orders.tabCancelled" },
 ];
 
-function formatOrderStatus(value: string) {
-  return value.replaceAll("_", " ").toUpperCase();
+function formatOrderStatus(value: string, t: Translate) {
+  const key = ("account.status." + value) as Key;
+  const label = t(key);
+  if (label !== key) return label;
+  const text = value.replaceAll("_", " ");
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 function orderBucket(order: OrderRow): Exclude<OrderTab, "all"> {
@@ -73,13 +82,13 @@ function orderBucket(order: OrderRow): Exclude<OrderTab, "all"> {
   return "to_pay";
 }
 
-function statusCopy(order: OrderRow, reviewed = false) {
+function statusCopy(order: OrderRow, t: Translate, reviewed = false) {
   const bucket = orderBucket(order);
 
   if (bucket === "to_pay") {
     return {
-      title: "Waiting for payment",
-      text: "Pay within 24 hours. Unpaid orders are cancelled automatically.",
+      title: t("account.orders.toPayTitle"),
+      text: t("account.orders.toPayText"),
     };
   }
 
@@ -87,39 +96,48 @@ function statusCopy(order: OrderRow, reviewed = false) {
     return {
       title:
         order.status === "packed"
-          ? "Packed and ready to ship"
-          : "Seller is preparing your order",
-      text: "Your order is being prepared for shipment.",
+          ? t("account.orders.packedTitle")
+          : t("account.orders.preparingTitle"),
+      text: t("account.orders.toShipText"),
     };
   }
 
   if (bucket === "to_receive") {
     return {
-      title: "Parcel is on the way",
-      text: "Confirm receipt after your parcel arrives.",
+      title: t("account.orders.toReceiveTitle"),
+      text: t("account.orders.toReceiveText"),
     };
   }
 
   if (bucket === "completed") {
     return {
-      title: "Order completed",
+      title: t("account.orders.completedTitle"),
       text: reviewed
-        ? "Your parcel has been received and this order has been reviewed."
-        : "Your parcel has been received. You can now rate your order.",
+        ? t("account.orders.completedReviewedText")
+        : t("account.orders.completedText"),
     };
   }
 
   return {
-    title: formatOrderStatus(order.status),
-    text: "This order is no longer in the active fulfilment flow.",
+    title: formatOrderStatus(order.status, t),
+    text: t("account.orders.inactiveText"),
   };
 }
 
 export default function OrdersPage() {
   const router = useRouter();
+  const t = useT();
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [reviewedOrderIds, setReviewedOrderIds] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<OrderTab>("all");
+
+  // Deep links from the Me page: /orders?tab=to_ship
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("tab");
+    if (tabs.some((item) => item.key === requested)) {
+      setActiveTab(requested as OrderTab);
+    }
+  }, []);
   const [loading, setLoading] = useState(true);
   const [busyOrder, setBusyOrder] = useState("");
   const [unpaidCancelOrder, setUnpaidCancelOrder] = useState("");
@@ -277,7 +295,7 @@ export default function OrdersPage() {
       } catch (caught) {
         if (!active) return;
         setError(
-          caught instanceof Error ? caught.message : "Unable to load orders."
+          friendlyError(caught, t, "account.orders.loadError")
         );
       } finally {
         if (active) setLoading(false);
@@ -332,9 +350,7 @@ export default function OrdersPage() {
       setActiveTab("completed");
     } catch (caught) {
       setError(
-        caught instanceof Error
-          ? caught.message
-          : "Unable to confirm this order."
+        friendlyError(caught, t, "account.orders.confirmError")
       );
     } finally {
       setBusyOrder("");
@@ -346,12 +362,12 @@ export default function OrdersPage() {
       <div className="container">
         <div className="accountDataHeader">
           <div>
-            <span>MIVO account</span>
-            <h1>My Orders</h1>
-            <p>Track payment, fulfilment, delivery and completed orders.</p>
+            <span>{t("account.common.mivoAccount")}</span>
+            <h1>{t("account.orders.title")}</h1>
+            <p>{t("account.orders.subtitle")}</p>
           </div>
 
-          <Link href="/account">← ACCOUNT</Link>
+          <Link href="/account">← {t("account.common.backAccount")}</Link>
         </div>
 
         <section className="orderCenterPanel">
@@ -363,7 +379,7 @@ export default function OrdersPage() {
                 className={activeTab === tab.key ? "active" : ""}
                 onClick={() => setActiveTab(tab.key)}
               >
-                <span>{tab.label}</span>
+                <span>{t(tab.label)}</span>
                 {counts[tab.key] > 0 ? <b>{counts[tab.key]}</b> : null}
               </button>
             ))}
@@ -372,19 +388,19 @@ export default function OrdersPage() {
           {error ? <p className="accountDataError">{error}</p> : null}
 
           {loading ? (
-            <p className="accountDataNotice">Loading your orders...</p>
+            <p className="accountDataNotice">{t("account.orders.loading")}</p>
           ) : visibleOrders.length === 0 ? (
             <div className="ordersEmpty">
-              <strong>No orders here yet.</strong>
-              <p>Your orders will move between these tabs automatically.</p>
-              <Link href="/products">Browse parts</Link>
+              <strong>{t("account.orders.emptyTitle")}</strong>
+              <p>{t("account.orders.emptyText")}</p>
+              <Link href="/products">{t("account.orders.browseParts")}</Link>
             </div>
           ) : (
             <div className="shopOrderList">
               {visibleOrders.map((order) => {
                 const bucket = orderBucket(order);
                 const reviewed = reviewedOrderIds.includes(order.id);
-                const copy = statusCopy(order, reviewed);
+                const copy = statusCopy(order, t, reviewed);
                 const date = new Date(order.created_at);
                 const items = order.order_items || [];
                 const totalQty = items.reduce(
@@ -396,10 +412,10 @@ export default function OrdersPage() {
                   <article className="shopOrderCard" key={order.id}>
                     <div className="shopOrderHead">
                       <div>
-                        <span>Order</span>
+                        <span>{t("account.orders.order")}</span>
                         <strong>{order.order_number}</strong>
                         <small>
-                          {date.toLocaleDateString("en-MY", {
+                          {date.toLocaleDateString(intlTag(), {
                             day: "2-digit",
                             month: "short",
                             year: "numeric",
@@ -407,9 +423,12 @@ export default function OrdersPage() {
                         </small>
                       </div>
 
-                      <div className={"shopOrderStatus " + bucket}>
-                        <span>{copy.title}</span>
-                        <small>{copy.text}</small>
+                      <div className={"shopOrderStatus " + bucket} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <OrderStatusIcon bucket={bucket} />
+                        <div>
+                          <span>{copy.title}</span>
+                          <small>{copy.text}</small>
+                        </div>
                       </div>
                     </div>
 
@@ -428,15 +447,14 @@ export default function OrdersPage() {
                           </div>
                           <div>
                             <strong>{item.product_name}</strong>
-                            <span>Qty {item.quantity}</span>
+                            <span>{t("account.common.qty", { n: item.quantity })}</span>
                           </div>
                         </div>
                       ))}
 
                       {items.length > 3 ? (
                         <span className="shopOrderMore">
-                          +{items.length - 3} more item
-                          {items.length - 3 === 1 ? "" : "s"}
+                          {t("account.orders.moreItems", { n: items.length - 3 })}
                         </span>
                       ) : null}
                     </div>
@@ -444,7 +462,7 @@ export default function OrdersPage() {
                     <div className="shopOrderFoot">
                       <div className="shopOrderTotal">
                         <span>
-                          {totalQty} ITEM{totalQty === 1 ? "" : "S"}
+                          {t("account.common.items", { n: totalQty })}
                         </span>
                         <strong>{formatPrice(Number(order.total_amount))}</strong>
                       </div>
@@ -457,7 +475,7 @@ export default function OrdersPage() {
                           }
                           className="orderGhostButton"
                         >
-                          View order
+                          {t("account.orders.viewOrder")}
                         </Link>
 
                         {bucket === "to_pay" ? (
@@ -469,7 +487,7 @@ export default function OrdersPage() {
                                 setUnpaidCancelOrder(order.order_number)
                               }
                             >
-                              Cancel order
+                              {t("account.orders.cancelOrder")}
                             </button>
 
                             <StripePayButton
@@ -487,7 +505,7 @@ export default function OrdersPage() {
                               setPaidCancelOrder(order.order_number)
                             }
                           >
-                            Cancel order
+                            {t("account.orders.cancelOrder")}
                           </button>
                         ) : null}
 
@@ -501,8 +519,8 @@ export default function OrdersPage() {
                             }
                           >
                             {busyOrder === order.order_number
-                              ? "CONFIRMING..."
-                              : "ORDER RECEIVED"}
+                              ? t("account.orders.confirming")
+                              : t("account.orders.orderReceived")}
                           </button>
                         ) : null}
 
@@ -513,7 +531,7 @@ export default function OrdersPage() {
                               className="orderGhostButton"
                               disabled
                             >
-                              Reviewed
+                              {t("account.orders.reviewed")}
                             </button>
                           ) : (
                             <Link
@@ -524,7 +542,7 @@ export default function OrdersPage() {
                               }
                               className="orderPrimaryButton"
                             >
-                              Rate order
+                              {t("account.orders.rateOrder")}
                             </Link>
                           )
                         ) : null}
@@ -541,8 +559,9 @@ export default function OrdersPage() {
                             }
                             className="orderGhostButton"
                           >
-                            Warranty
+                            {t("account.orders.warranty")}
                           </Link>
+
                         ) : null}
                       </div>
                     </div>

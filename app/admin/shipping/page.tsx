@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import EasyParcelStatus from "@/components/admin/EasyParcelStatus";
+import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
 import styles from "../Admin.module.css";
+import AdminSidebar from "@/components/admin/AdminSidebar";
 
 type ShippingRule = {
   id: string;
@@ -66,7 +69,7 @@ export default function AdminShippingPage() {
 
         if (adminError) throw adminError;
         if (!isAdmin) {
-          window.location.href = "/";
+          leaveBackOffice();
           return;
         }
 
@@ -184,37 +187,13 @@ export default function AdminShippingPage() {
   return (
     <main className={styles.adminShell}>
       <div className={styles.adminWorkspace}>
-        <aside className={styles.adminSidebar}>
-          <a href="/admin" className={styles.adminBrand}>
-            <span>MIVO</span>
-            <small>STORE CONTROL</small>
-          </a>
-
-          <nav className={styles.adminSideNav}>
-            <a href="/admin"><span>01</span>Dashboard</a>
-            <a href="/admin/orders"><span>02</span>Orders</a>
-            <a href="/admin/arrange-shipment"><span>03</span>Arrange Shipment</a>
-            <a href="/admin/claims"><span>04</span>Claims</a>
-            <a href="/admin/marketing"><span>05</span>Marketing Centre</a>
-            <a href="/admin/products"><span>06</span>Products</a>
-            <a href="/admin/products/new"><span>07</span>Add Product</a>
-            <a href="/admin/shipping" className={styles.active}><span>08</span>Shipping</a>
-          </nav>
-
-          <div className={styles.adminSidebarFoot}>
-            <span>DELIVERY</span>
-            <strong>
-              {rules.filter((rule) => rule.is_active).length} ACTIVE ZONES
-            </strong>
-            <a href="/">OPEN STOREFRONT ↗</a>
-          </div>
-        </aside>
+        <AdminSidebar />
 
         <section className={styles.adminContent}>
           <header className={styles.adminHeader}>
             <div>
               <span className={styles.adminEyebrow}>
-                MIVO STORE CONTROL · SHIPPING
+                MIVO store control · Shipping
               </span>
               <h1>Shipping Rules</h1>
               <p>
@@ -223,9 +202,10 @@ export default function AdminShippingPage() {
               </p>
             </div>
           </header>
+          <EasyParcelStatus />
 
           <section className={styles.shippingFormulaCard}>
-            <span>HOW MIVO CALCULATES SHIPPING</span>
+            <span>How MIVO calculates shipping</span>
             <strong>
               Tiered courier rate card + RM2 MIVO markup.
             </strong>
@@ -267,7 +247,7 @@ export default function AdminShippingPage() {
                           )
                         }
                       />
-                      <span>{rule.is_active ? "ACTIVE" : "INACTIVE"}</span>
+                      <span>{rule.is_active ? "Active" : "Inactive"}</span>
                     </label>
                   </div>
 
@@ -302,7 +282,7 @@ export default function AdminShippingPage() {
                   <div className={styles.shippingRuleFields}>
 
                     <label className={styles.adminField}>
-                      <span>VOLUMETRIC DIVISOR</span>
+                      <span>Volumetric divisor</span>
                       <input
                         type="number"
                         min="1"
@@ -319,7 +299,7 @@ export default function AdminShippingPage() {
                     </label>
 
                     <label className={styles.adminField}>
-                      <span>MINIMUM CHARGEABLE KG</span>
+                      <span>Minimum chargeable kg</span>
                       <input
                         type="number"
                         min="0"
@@ -336,7 +316,7 @@ export default function AdminShippingPage() {
                     </label>
 
                     <label className={styles.adminField}>
-                      <span>MIVO MARKUP (RM)</span>
+                      <span>MIVO markup (RM)</span>
                       <input
                         type="number"
                         min="0"
@@ -353,7 +333,7 @@ export default function AdminShippingPage() {
                     </label>
 
                     <label className={styles.adminField}>
-                      <span>BULKY ABOVE (KG)</span>
+                      <span>Bulky above (kg)</span>
                       <input
                         type="number"
                         min="0"
@@ -371,7 +351,7 @@ export default function AdminShippingPage() {
                     </label>
 
                     <label className={styles.adminField}>
-                      <span>BULKY SURCHARGE (RM)</span>
+                      <span>Bulky surcharge (RM)</span>
                       <input
                         type="number"
                         min="0"
@@ -388,7 +368,7 @@ export default function AdminShippingPage() {
                     </label>
 
                     <label className={styles.adminField}>
-                      <span>FREE SHIPPING ABOVE (RM)</span>
+                      <span>Free shipping above (RM)</span>
                       <input
                         type="number"
                         min="0"
@@ -406,7 +386,7 @@ export default function AdminShippingPage() {
                     </label>
 
                     <label className={styles.adminField}>
-                      <span>MAX SHIPPING FEE (RM)</span>
+                      <span>Max shipping fee (RM)</span>
                       <input
                         type="number"
                         min="0"
@@ -434,7 +414,7 @@ export default function AdminShippingPage() {
                       disabled={saving === rule.id}
                       onClick={() => saveRule(rule)}
                     >
-                      {saving === rule.id ? "SAVING..." : "SAVE RULE"}
+                      {saving === rule.id ? "Saving…" : "Save rule"}
                     </button>
                   </div>
                 </section>

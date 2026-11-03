@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useT } from "@/components/LanguageProvider";
+import type { Key, Translate } from "@/lib/i18n";
+import { intlTag } from "@/lib/i18n/format";
+import { friendlyError } from "@/lib/i18n/errors";
 
 type WarrantyOrder = {
   id: string;
@@ -52,16 +56,25 @@ function dateLabel(value: Date | string | null) {
   if (!value) return "—";
   const date = value instanceof Date ? value : new Date(value);
 
-  return date.toLocaleDateString("en-MY", {
+  return date.toLocaleDateString(intlTag(), {
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
 }
 
+function formatStatus(value: string, t: Translate) {
+  const key = ("account.status." + value) as Key;
+  const label = t(key);
+  if (label !== key) return label;
+  const text = value.replaceAll("_", " ");
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 export default function OrderWarrantyPage() {
   const params = useParams();
   const router = useRouter();
+  const t = useT();
   const orderNumber = String(params.orderNumber || "");
 
   const [order, setOrder] = useState<WarrantyOrder | null>(null);
@@ -101,7 +114,7 @@ export default function OrderWarrantyPage() {
           .maybeSingle();
 
         if (orderError || !orderData) {
-          throw orderError || new Error("Order not found.");
+          throw orderError || new Error(t("account.detail.notFound"));
         }
 
         if (orderData.status !== "delivered") {
@@ -128,7 +141,7 @@ export default function OrderWarrantyPage() {
         );
 
         if (warrantiedItems.length === 0) {
-          throw new Error("No warranty is registered for this order.");
+          throw new Error(t("account.warranty.noWarranty"));
         }
 
         const productIds = Array.from(
@@ -234,9 +247,7 @@ export default function OrderWarrantyPage() {
       } catch (caught) {
         if (!active) return;
         setError(
-          caught instanceof Error
-            ? caught.message
-            : "Unable to load warranty."
+          friendlyError(caught, t, "account.warranty.loadError")
         );
       } finally {
         if (active) setLoading(false);
@@ -266,7 +277,7 @@ export default function OrderWarrantyPage() {
     return (
       <main className="accountDataPage">
         <div className="container">
-          <p className="accountDataNotice">Loading warranty...</p>
+          <p className="accountDataNotice">{t("account.warranty.loading")}</p>
         </div>
       </main>
     );
@@ -277,10 +288,10 @@ export default function OrderWarrantyPage() {
       <main className="accountDataPage">
         <div className="container">
           <div className="ordersEmpty">
-            <strong>Warranty information unavailable.</strong>
-            <p>{error || "No warranty information found."}</p>
+            <strong>{t("account.warranty.unavailable")}</strong>
+            <p>{error || t("account.warranty.notFound")}</p>
             <Link href={"/orders/" + encodeURIComponent(orderNumber)}>
-              BACK TO ORDER →
+              {t("account.receipt.backToOrder")} →
             </Link>
           </div>
         </div>
@@ -293,30 +304,29 @@ export default function OrderWarrantyPage() {
       <div className="container">
         <div className="accountDataHeader">
           <div>
-            <span>MIVO WARRANTY</span>
-            <h1>Warranty Coverage</h1>
+            <span>{t("account.warranty.eyebrow")}</span>
+            <h1>{t("account.warranty.title")}</h1>
             <p>
-              Order {order.order_number} · {activeCount} active coverage
-              {activeCount === 1 ? "" : "s"}
+              {t("account.warranty.subtitle", { order: order.order_number, n: activeCount })}
             </p>
           </div>
 
           <Link href={"/orders/" + encodeURIComponent(order.order_number)}>
-            ← ORDER DETAILS
+            ← {t("account.receipt.orderDetails")}
           </Link>
         </div>
 
         <section className="warrantyOverview">
           <div>
-            <span>WARRANTY START</span>
+            <span>{t("account.warranty.start")}</span>
             <strong>{dateLabel(warrantyStart)}</strong>
           </div>
           <div>
-            <span>ORDER STATUS</span>
-            <strong>COMPLETED</strong>
+            <span>{t("account.warranty.orderStatus")}</span>
+            <strong>{t("account.status.completed")}</strong>
           </div>
           <div>
-            <span>COVERED ITEMS</span>
+            <span>{t("account.warranty.coveredItems")}</span>
             <strong>{items.length}</strong>
           </div>
         </section>
@@ -338,7 +348,7 @@ export default function OrderWarrantyPage() {
                 </div>
 
                 <div className="warrantyItemInfo">
-                  <span>{active ? "ACTIVE WARRANTY" : "WARRANTY ENDED"}</span>
+                  <span>{active ? t("account.warranty.activeWarranty") : t("account.warranty.ended")}</span>
                   <strong>{item.product_name}</strong>
                   {item.variant_name ? (
                     <small>{item.variant_name}</small>
@@ -347,27 +357,25 @@ export default function OrderWarrantyPage() {
 
                 <div className="warrantyItemPeriod">
                   <div>
-                    <span>PERIOD</span>
+                    <span>{t("account.warranty.period")}</span>
                     <strong>
-                      {months} MONTH{months === 1 ? "" : "S"}
+                      {t("account.warranty.months", { n: months })}
                     </strong>
                   </div>
                   <div>
-                    <span>EXPIRES</span>
+                    <span>{t("account.warranty.expires")}</span>
                     <strong>{dateLabel(expiry)}</strong>
                   </div>
                   <b className={active ? "active" : "expired"}>
-                    {active ? "ACTIVE" : "EXPIRED"}
+                    {active ? t("account.status.active") : t("account.status.expired")}
                   </b>
                 </div>
 
                 <div className="warrantyItemActions">
                   {claimsByItem[item.id] ? (
                     <small>
-                      LATEST CLAIM {claimsByItem[item.id].claim_number} ·{" "}
-                      {claimsByItem[item.id].status
-                        .replaceAll("_", " ")
-                        .toUpperCase()}
+                      {t("account.warranty.latestClaim", { n: claimsByItem[item.id].claim_number })} ·{" "}
+                      {formatStatus(claimsByItem[item.id].status, t)}
                     </small>
                   ) : null}
 
@@ -384,14 +392,14 @@ export default function OrderWarrantyPage() {
                       }
                       className="orderPrimaryButton"
                     >
-                      SUBMIT CLAIM
+                      {t("account.warranty.submitClaim")}
                     </Link>
                   ) : claimsByItem[item.id] ? (
                     <Link
                       href="/account/claims"
                       className="orderGhostButton"
                     >
-                      VIEW CLAIM
+                      {t("account.warranty.viewClaim")}
                     </Link>
                   ) : null}
                 </div>
@@ -401,13 +409,12 @@ export default function OrderWarrantyPage() {
         </div>
 
         <section className="warrantyTermsCard">
-          <span>IMPORTANT</span>
-          <h2>Warranty record</h2>
+          <span>{t("account.warranty.important")}</span>
+          <h2>{t("account.warranty.recordTitle")}</h2>
           <p>
-            Keep your MIVO order record and the product in a condition suitable
-            for inspection. Warranty eligibility is subject to the applicable
-            product warranty terms and verification of the returned item.
+            {t("account.warranty.recordText")}
           </p>
+
         </section>
       </div>
     </main>

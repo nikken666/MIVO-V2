@@ -51,3 +51,6 @@ revoke all on function public.mivo_guard_seller_changes() from public, anon, aut
 
 -- Check: as a normal shopper, inserting a shop with status 'approved'
 -- now stores 'pending'; only an admin (or this editor) can approve it.
+
+-- Make new functions available to the website immediately.
+notify pgrst, 'reload schema';
