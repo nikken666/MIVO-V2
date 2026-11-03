@@ -57,6 +57,7 @@ const platformGroup: NavGroup = {
   title: "Platform",
   items: [
     { href: "/admin/platform/campaigns", label: "Platform campaigns" },
+    { href: "/admin/platform/free-shipping", label: "Free shipping" },
     { href: "/admin/platform/commission", label: "Commission" },
     { href: "/admin/platform/notices", label: "Notices to sellers" },
   ],

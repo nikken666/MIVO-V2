@@ -184,7 +184,9 @@ create policy "sellers read own shipments" on public.shipments for select to aut
   using (exists (select 1 from public.seller_orders so where so.id = seller_order_id and so.seller_id in (select public.my_shop_ids())));
 
 -- Seller order list with what a seller needs from the parent order.
-create or replace function public.seller_parcels(p_seller_id uuid default null)
+-- Dropped first: checkout-per-shop.sql later adds a column to the result.
+drop function if exists public.seller_parcels(uuid);
+create function public.seller_parcels(p_seller_id uuid default null)
 returns table (
   seller_order_id uuid, seller_id uuid, order_number text, order_status text, payment_status text,
   parcel_status text, subtotal numeric, shipping_address jsonb, customer_note text, created_at timestamptz,

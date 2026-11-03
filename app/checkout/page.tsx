@@ -157,6 +157,13 @@ export default function CheckoutPage() {
   const [shopCourier, setShopCourier] = useState<Record<string, string>>({});
   // Live EasyParcel shipping quote (saved server-side); "" = MIVO's own rules.
   const [liveQuoteId, setLiveQuoteId] = useState("");
+  // MIVO-funded free shipping promotion running now (supabase/checkout-per-shop.sql).
+  const [shippingPromo, setShippingPromo] = useState<{ name: string; min_spend: number; max_subsidy: number | null } | null>(null);
+  useEffect(() => {
+    void createClient()
+      .rpc("active_shipping_promotion")
+      .then(({ data }) => setShippingPromo((data as { name: string; min_spend: number; max_subsidy: number | null } | null) || null));
+  }, []);
   const [shippingLoading, setShippingLoading] = useState(false);
   const [shippingError, setShippingError] = useState("");
   const [vouchers, setVouchers] = useState<VoucherOption[]>([]);
@@ -343,11 +350,15 @@ export default function CheckoutPage() {
   const checkoutItemsKey = checkoutItems.map((item) => item.variant_id + ":" + item.quantity).join("|");
 
   const discountAmount = Number(voucherPreview?.discount_amount || 0);
+  const grossShipping = Number(shippingQuote?.shipping_amount || 0);
+  const promoReached = Boolean(shippingPromo && subtotal >= Number(shippingPromo.min_spend));
+  const shippingSubsidy =
+    shippingQuote && promoReached
+      ? Math.min(grossShipping, shippingPromo?.max_subsidy != null ? Number(shippingPromo.max_subsidy) : grossShipping)
+      : 0;
+  const netShipping = Math.max(0, grossShipping - shippingSubsidy);
   const checkoutTotal = shippingQuote
-    ? Math.max(
-        0,
-        subtotal + Number(shippingQuote.shipping_amount || 0) - discountAmount
-      )
+    ? Math.max(0, subtotal + netShipping - discountAmount)
     : subtotal;
 
   const selectedVoucher =
@@ -595,7 +606,7 @@ export default function CheckoutPage() {
           {
             p_voucher_id: selectedVoucherId,
             p_items: checkoutItems,
-            p_shipping_amount: shippingQuote.shipping_amount,
+            p_shipping_amount: netShipping,
           }
         );
 
@@ -642,7 +653,7 @@ export default function CheckoutPage() {
           const { data, error } = await supabase.rpc("preview_voucher", {
             p_voucher_id: voucher.id,
             p_items: checkoutItems,
-            p_shipping_amount: shippingQuote.shipping_amount,
+            p_shipping_amount: netShipping,
           });
 
           return error
@@ -1231,6 +1242,17 @@ export default function CheckoutPage() {
                         : t("buy.co.unavailable")}
                 </strong>
               </div>
+              {shippingSubsidy > 0 ? (
+                <div className="checkoutFreeShipping">
+                  <span>{t("buy.co.freeShippingMivo")}</span>
+                  <strong>− {formatPrice(shippingSubsidy)}</strong>
+                </div>
+              ) : null}
+              {shippingPromo && shippingQuote && !promoReached ? (
+                <p className="checkoutFreeShippingNudge">
+                  {t("buy.co.freeShippingNudge", { amount: formatPrice(Number(shippingPromo.min_spend) - subtotal) })}
+                </p>
+              ) : null}
             </div>
 
             <div className="mivoMobileVoucherToggle">

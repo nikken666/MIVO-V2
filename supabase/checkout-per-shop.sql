@@ -69,6 +69,77 @@ begin
 end;
 $$;
 
+-- MIVO-funded free shipping (superadmin): during a promotion, orders that
+-- reach the minimum spend get shipping paid by MIVO, up to a cap per order.
+create table if not exists public.shipping_promotions (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  starts_at timestamptz not null,
+  ends_at timestamptz not null,
+  min_spend numeric(12,2) not null default 0,
+  max_subsidy numeric(12,2),            -- per order; null = all shipping
+  active boolean not null default true,
+  created_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  check (ends_at > starts_at)
+);
+alter table public.shipping_promotions enable row level security;
+revoke all on public.shipping_promotions from anon, authenticated;
+
+alter table public.orders add column if not exists shipping_subsidy numeric(12,2) not null default 0;
+alter table public.orders add column if not exists shipping_promotion_id uuid references public.shipping_promotions(id) on delete set null;
+
+-- The promotion running now (shown at checkout).
+create or replace function public.active_shipping_promotion()
+returns jsonb language sql stable security definer set search_path = public as $$
+  select to_jsonb(p) - 'created_by' - 'created_at'
+    from public.shipping_promotions p
+   where p.active and now() between p.starts_at and p.ends_at
+   order by p.max_subsidy desc nulls first, p.min_spend
+   limit 1;
+$$;
+grant execute on function public.active_shipping_promotion() to anon, authenticated;
+
+create or replace function public.platform_shipping_promotions()
+returns setof public.shipping_promotions language plpgsql stable security definer set search_path = public as $$
+begin
+  if not public.is_superadmin() then raise exception 'Only the MIVO superadmin can manage free shipping'; end if;
+  return query select * from public.shipping_promotions order by starts_at desc limit 200;
+end;
+$$;
+
+create or replace function public.platform_save_shipping_promotion(
+  p_name text, p_starts_at timestamptz, p_ends_at timestamptz, p_min_spend numeric, p_max_subsidy numeric
+)
+returns uuid language plpgsql security definer set search_path = public as $$
+declare v_id uuid;
+begin
+  if not public.is_superadmin() then raise exception 'Only the MIVO superadmin can manage free shipping'; end if;
+  if coalesce(btrim(p_name), '') = '' then raise exception 'Give the promotion a name'; end if;
+  if p_ends_at <= p_starts_at then raise exception 'The end must be after the start'; end if;
+  insert into public.shipping_promotions (name, starts_at, ends_at, min_spend, max_subsidy, created_by)
+  values (btrim(p_name), p_starts_at, p_ends_at, greatest(coalesce(p_min_spend, 0), 0),
+          case when p_max_subsidy > 0 then p_max_subsidy end, auth.uid())
+  returning id into v_id;
+  return v_id;
+end;
+$$;
+
+create or replace function public.platform_end_shipping_promotion(p_id uuid)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if not public.is_superadmin() then raise exception 'Only the MIVO superadmin can manage free shipping'; end if;
+  update public.shipping_promotions set active = false where id = p_id;
+end;
+$$;
+
+revoke all on function public.platform_shipping_promotions() from public, anon;
+revoke all on function public.platform_save_shipping_promotion(text, timestamptz, timestamptz, numeric, numeric) from public, anon;
+revoke all on function public.platform_end_shipping_promotion(uuid) from public, anon;
+grant execute on function public.platform_shipping_promotions() to authenticated;
+grant execute on function public.platform_save_shipping_promotion(text, timestamptz, timestamptz, numeric, numeric) to authenticated;
+grant execute on function public.platform_end_shipping_promotion(uuid) to authenticated;
+
 -- Shipping prices quoted live from EasyParcel at checkout (server-side, see
 -- /api/shipping/quote). Valid 30 minutes; the order uses them as-is.
 create table if not exists public.checkout_shipping_quotes (
@@ -116,6 +187,8 @@ declare
   v_voucher record;
   v_live public.checkout_shipping_quotes%rowtype;
   v_fees jsonb := '[]'::jsonb;   -- [{seller_id, fee, courier_code, courier_name}]
+  v_promo public.shipping_promotions%rowtype;
+  v_subsidy numeric := 0;
 begin
   if auth.uid() is null then raise exception 'Please sign in'; end if;
 
@@ -177,6 +250,16 @@ begin
    for update;
   if not found then raise exception 'Order not found after checkout'; end if;
 
+  -- MIVO free-shipping promotion: MIVO pays shipping (up to the cap) when the
+  -- order reaches the minimum spend. The buyer pays only what's left.
+  select * into v_promo from public.shipping_promotions
+   where active and now() between starts_at and ends_at
+   order by max_subsidy desc nulls first, min_spend limit 1;
+  if found and coalesce(v_order.subtotal, 0) >= v_promo.min_spend then
+    v_subsidy := least(v_shipping, coalesce(v_promo.max_subsidy, v_shipping));
+  end if;
+  v_shipping := v_shipping - v_subsidy;
+
   -- Free-shipping vouchers follow the new shipping total.
   v_discount := coalesce(v_order.discount_amount, 0);
   if v_order.voucher_code is not null then
@@ -189,6 +272,8 @@ begin
 
   update public.orders
      set shipping_amount = v_shipping,
+         shipping_subsidy = v_subsidy,
+         shipping_promotion_id = case when v_subsidy > 0 then v_promo.id end,
          discount_amount = v_discount,
          total_amount = greatest(0, coalesce(subtotal, 0) + v_shipping - v_discount),
          updated_at = now()
@@ -209,6 +294,7 @@ begin
 
   return v_result || jsonb_build_object(
     'shipping_amount', v_shipping,
+    'shipping_subsidy', v_subsidy,
     'discount_amount', v_discount,
     'total_amount', greatest(0, coalesce(v_order.subtotal, 0) + v_shipping - v_discount)
   );

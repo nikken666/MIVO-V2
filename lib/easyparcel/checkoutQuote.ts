@@ -1,9 +1,11 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import * as ep from "@/lib/easyparcel/api";
 
-// Checkout shipping priced live from EasyParcel: each shop's parcel from its
-// pickup address to the buyer, cheapest usable service. Throws when EasyParcel
-// can't price every shop, so checkout falls back to MIVO's shipping rules.
+// Checkout shipping per shop: the buyer pays MIVO's price list (Shipping
+// settings, Shopee-style rates), or EasyParcel's real cost when that is higher.
+// The cost is from each shop's pickup address to the buyer, cheapest usable
+// service. Throws when EasyParcel can't price every shop, so checkout falls
+// back to MIVO's shipping rules alone.
 
 type CartItem = { variant_id: string; quantity: number };
 
@@ -57,8 +59,21 @@ export async function quoteCheckout(userId: string, items: CartItem[], address: 
   const sellerIds = Array.from(new Set((variants || []).map((v) => v.seller_id)));
   const { data: shops } = await admin.from("sellers").select("id, shop_name, tier, pickup_address").in("id", sellerIds);
 
+  // MIVO's own price list (Shipping settings), per shop: what the buyer pays,
+  // unless EasyParcel's real cost is higher (then the cost, so MIVO never loses).
+  const priceList = new Map<string, number>();
+  const { data: rules } = await admin.rpc("quote_shipping_by_shop", {
+    p_items: items,
+    p_state: address.state,
+    p_postcode: address.postcode,
+  });
+  for (const shop of (rules as Array<{ seller_id: string; options?: Array<{ shipping_amount: number | string }> }> | null) || []) {
+    const prices = (shop.options || []).map((o) => Number(o.shipping_amount)).filter((n) => Number.isFinite(n));
+    if (prices.length) priceList.set(shop.seller_id, Math.min(...prices));
+  }
+
   const receiver: ep.Address = { name: "Buyer", phone: "0", line1: "-", postcode: address.postcode, city: "-", state: address.state };
-  const results: Array<{ seller_id: string; shop_name: string; tier: string | null; amount: number; courier: string; service_id: string }> = [];
+  const results: Array<{ seller_id: string; shop_name: string; tier: string | null; amount: number; cost: number; courier: string; service_id: string }> = [];
 
   for (const shop of shops || []) {
     const pickup = (shop.pickup_address || {}) as Record<string, string>;
@@ -93,7 +108,8 @@ export async function quoteCheckout(userId: string, items: CartItem[], address: 
       seller_id: shop.id,
       shop_name: shop.shop_name,
       tier: shop.tier,
-      amount: Math.round((best.price + handlingFee()) * 100) / 100,
+      amount: Math.round(Math.max(priceList.get(shop.id) ?? 0, best.price + handlingFee()) * 100) / 100,
+      cost: best.price,
       courier: best.courierName,
       service_id: best.serviceId,
     });

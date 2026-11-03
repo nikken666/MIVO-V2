@@ -11172,3 +11172,5 @@ button.shopChip{font:inherit;cursor:pointer}
 .checkoutStandardDelivery strong{display:block!important;font-size:15px!important;color:var(--ink,#1d1d1f)!important;letter-spacing:normal!important}
 .checkoutStandardDelivery small{display:block!important;margin-top:3px!important;font-size:13px!important;color:var(--grey,#6e6e73)!important;letter-spacing:normal!important}
 .checkoutStandardDelivery b{font-size:16px;white-space:nowrap}
+.checkoutFreeShipping strong,.checkoutFreeShipping span{color:#1f9d4c!important}
+.checkoutFreeShippingNudge{margin:8px 0 0;padding:8px 12px;border-radius:10px;background:#eefaf1;color:#1f7a3c;font-size:13px}
