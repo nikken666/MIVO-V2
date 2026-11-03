@@ -10,6 +10,7 @@ import type {
 } from "@/data/products";
 import type { FitmentStatus } from "@/data/fitments";
 import CarRecommendations from "@/components/CarRecommendations";
+import ShopVouchers from "@/components/ShopVouchers";
 import { useLanguage } from "./LanguageProvider";
 import { intlTag } from "@/lib/i18n/format";
 import type { Translate } from "@/lib/i18n";
@@ -487,6 +488,7 @@ export default function ProductDetailClient({
                   ) : null}
                 </div>
               ) : null}
+              <ShopVouchers sellerId={product.sellerId} compact />
             </div>
 
             <div className="productPricePanel">

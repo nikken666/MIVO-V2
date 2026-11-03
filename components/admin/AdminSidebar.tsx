@@ -82,6 +82,14 @@ const sellerGroups: NavGroup[] = [
     ],
   },
   {
+    title: "Marketing",
+    items: [
+      { href: "/seller/marketing", label: "Marketing centre" },
+      { href: "/seller/marketing?tab=vouchers", label: "Shop vouchers" },
+      { href: "/seller/marketing?tab=campaigns", label: "MIVO campaigns" },
+    ],
+  },
+  {
     title: "Customer service",
     items: [{ href: "/seller/chat", label: "Chat", badge: "chat" }],
   },

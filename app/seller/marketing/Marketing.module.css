@@ -1,0 +1,57 @@
+.tabs{display:flex;gap:6px;margin:0 0 16px;padding:5px;border-radius:14px;background:#eef0f2;width:max-content;max-width:100%;overflow-x:auto}
+.tabs button{position:relative;border:0;background:transparent;padding:9px 16px;border-radius:10px;font-size:14px;font-weight:500;color:#4a5056;cursor:pointer;white-space:nowrap}
+.tabs button.tabActive{background:#fff;color:#111;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.dot{position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;background:#ee4d2d}
+.ok{margin:0 0 12px;padding:10px 14px;border-radius:10px;background:#e7f6ec;color:#067647;font-size:13px}
+.hint{margin:4px 0 14px;color:#6b7075;font-size:13px;line-height:1.5}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:12px}
+.toolbar>label{min-width:150px}
+.search{width:100%;max-width:360px;margin:0 0 12px;padding:10px 12px;border:1px solid #d9dcde;border-radius:10px;font-size:13px}
+.table{width:100%;border-collapse:collapse;min-width:720px}
+.table th{padding:10px;text-align:left;border-bottom:1px solid #e5e7e8;font-size:12px;color:#8a9095;font-weight:600}
+.table td{padding:10px;border-bottom:1px solid #eef0f1;font-size:13px;vertical-align:middle}
+.picked td{background:#f4f8ff}
+.product{display:flex;gap:10px;align-items:center}
+.product img,.product>span:first-child{width:42px;height:42px;border-radius:8px;object-fit:cover;background:#f1f3f4;flex:0 0 auto}
+.product strong{display:block;font-size:13px}
+.product small{color:#8a9095;font-size:12px}
+.sale{color:#ee4d2d}
+.pill{display:inline-flex;flex-direction:column;gap:2px;padding:4px 10px;border-radius:999px;background:#f1f3f4;color:#5f656a;font-size:12px;font-weight:600}
+.pill small{font-weight:400;font-size:11px;color:inherit;opacity:.85}
+.live{background:#e7f6ec;color:#067647}
+.soon{background:#fff4e5;color:#b54708}
+.headRow{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.formCard{margin:6px 0 18px;padding:18px;border:1px solid #e6e8ea;border-radius:16px;background:#fafbfc}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.applies{display:flex;gap:18px;margin:14px 0 8px;font-size:13px}
+.productPick{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px;max-height:220px;overflow:auto;padding:10px;border:1px solid #e6e8ea;border-radius:10px;background:#fff;font-size:13px}
+.formActions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.ticketPreview{display:flex;align-items:center;gap:14px;margin-bottom:14px;padding:12px 16px;border-radius:12px;background:linear-gradient(90deg,#ee4d2d,#ff7337);color:#fff;width:max-content;max-width:100%}
+.ticketPreview strong{font-size:18px}
+.ticketPreview span{font-size:12px;opacity:.9}
+.ticketPreview code{padding:3px 8px;border-radius:6px;background:rgba(255,255,255,.2);font-size:12px}
+.tickets{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.ticket{display:flex;border:1px solid #f3c9bd;border-radius:12px;overflow:hidden;background:#fff}
+.ticketLeft{display:flex;flex-direction:column;justify-content:center;gap:4px;width:110px;padding:12px;background:#fff1ec;color:#ee4d2d;border-right:2px dashed #f3c9bd;text-align:center}
+.ticketLeft strong{font-size:16px}
+.ticketLeft small{font-size:11px;color:#b5523a}
+.ticketBody{flex:1;display:flex;flex-direction:column;gap:4px;padding:12px;min-width:0}
+.ticketBody>strong{font-size:15px;letter-spacing:.04em}
+.ticketBody small{font-size:12px;color:#6b7075}
+.ticketBody .pill{align-self:flex-start}
+.ticketActions{display:flex;gap:12px;margin-top:4px}
+.ticketActions button{border:0;background:none;padding:0;color:var(--accent);font-size:13px;cursor:pointer}
+.ended{opacity:.55}
+.campaigns{display:grid;gap:12px}
+.campaign{padding:16px 18px;border:1px solid #e6e8ea;border-radius:14px;background:#fff}
+.campaign header{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.campaign header strong{font-size:16px}
+.campaign p{margin:8px 0 0;color:#555;font-size:13px;line-height:1.5}
+.campaign dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:12px 0 0}
+.campaign dt{font-size:12px;color:#8a9095}
+.campaign dd{margin:2px 0 0;font-size:13px;font-weight:600}
+@media(max-width:560px){
+  .tabs{width:100%}
+  .tabs button{padding:8px 10px;font-size:13px}
+  .ticketLeft{width:90px}
+}
