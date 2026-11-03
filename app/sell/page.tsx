@@ -97,7 +97,8 @@ export default function SellOnMivoPage() {
       setApps(list);
       // An application waiting on the seller opens pre-filled.
       const open = list.find((a) => a.status === "more_info" || a.status === "rejected");
-      if (list.length && !open) setEditing(false);
+      // One shop per account: someone who already has a shop doesn't get a new-shop form.
+      if ((list.length || ((shopRows || []) as Shop[]).length) && !open) setEditing(false);
     })();
   }, []);
 

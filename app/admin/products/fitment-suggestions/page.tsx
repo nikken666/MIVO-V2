@@ -221,7 +221,10 @@ export default function FitmentSuggestionsPage() {
               <h1>Fitment suggestions</h1>
               <p>Vehicles read from each product title. Check, untick anything wrong, then save. Nothing is saved without your approval.</p>
             </div>
-            <a className={styles.adminAction} href="/admin/store-health">Store health</a>
+            <div className={styles.adminHeaderActions}>
+              <a className={styles.adminSecondaryAction} href="/admin/products/fitment-review">Fitment review</a>
+              <a className={styles.adminSecondaryAction} href="/admin/store-health">Store health</a>
+            </div>
           </header>
 
           <section className={styles.adminPanel}>
