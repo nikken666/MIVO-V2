@@ -279,80 +279,50 @@ export default function ShopeeImportPage() {
     setDone(0);
     setTotal(importable.length);
     setLog([]);
-    const client = createClient();
 
     for (const row of importable) {
       if (stopRef.current) break;
       const { product, brandId, categoryId, newVariants } = row;
-      let productId: string | null = null;
       try {
         const images = [];
         for (const url of product.images.slice(0, 9)) images.push(await copyImage(url));
 
-        const { data: created, error: productError } = await client
-          .from("products")
-          .insert({
-            seller_id: shopId,
-            category_id: categoryId,
-            brand_id: brandId,
-            name: product.name.trim(),
-            slug: (slugify(product.name) || "product") + "-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
-            short_description: null,
-            description: product.description || null,
-            primary_image_url: images[0] || null,
-            warranty_months: warrantyMonths,
-            variation_1_name: product.variation1Name,
-            variation_2_name: product.variation2Name,
-            is_universal_fitment: false,
-            restricted_shipping_states: [],
-            status,
-            published_at: status === "active" ? new Date().toISOString() : null,
-            created_by: userId,
-          })
-          .select("id")
-          .single();
-        if (productError) throw productError;
-        productId = created.id;
-
-        const variantRows = (suffix: string) =>
-          newVariants.map((variant, index) => ({
-            product_id: created.id,
-            seller_id: shopId,
-            sort_order: index,
-            title: [variant.value1, variant.value2].filter(Boolean).join(" / ") || "Default",
-            variation_1_value: variant.value1,
-            variation_2_value: variant.value2,
-            sku: variant.sku + suffix,
-            price: variant.price ?? 0,
-            compare_at_price: null,
-            stock_on_hand: Math.max(0, Math.round(variant.stock ?? 0)),
-            stock_reserved: 0,
-            low_stock_threshold: 5,
-            weight_kg: variant.weight ?? 0,
-            length_cm: variant.length ?? 0,
-            width_cm: variant.width ?? 0,
-            height_cm: variant.height ?? 0,
-            variant_image_url: variant.image,
-            is_active: true,
-          }));
-        let { error: variantError } = await client.from("product_variants").insert(variantRows(""));
-        // The same SKU on two Shopee listings: keep the second listing with "-B".
-        if (variantError && (variantError.code === "23505" || /duplicate key|unique/i.test(variantError.message))) {
-          ({ error: variantError } = await client.from("product_variants").insert(variantRows("-B")));
-        }
-        if (variantError) throw variantError;
-
-        if (images.length) {
-          const { error: imageError } = await client.from("product_images").insert(
-            images.map((image_url, sort_order) => ({
-              product_id: created.id,
-              image_url,
-              alt_text: product.name,
-              sort_order,
-            }))
-          );
-          if (imageError) throw imageError;
-        }
+        // The server writes the product (see /api/admin/products/import-one).
+        const response = await fetch("/api/admin/products/import-one", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            shopId,
+            product: {
+              category_id: categoryId,
+              brand_id: brandId,
+              name: product.name.trim(),
+              slug: (slugify(product.name) || "product") + "-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+              description: product.description || null,
+              primary_image_url: images[0] || null,
+              warranty_months: warrantyMonths,
+              variation_1_name: product.variation1Name,
+              variation_2_name: product.variation2Name,
+              status,
+            },
+            variants: newVariants.map((variant) => ({
+              title: [variant.value1, variant.value2].filter(Boolean).join(" / ") || "Default",
+              variation_1_value: variant.value1,
+              variation_2_value: variant.value2,
+              sku: variant.sku,
+              price: variant.price ?? 0,
+              stock_on_hand: Math.max(0, Math.round(variant.stock ?? 0)),
+              weight_kg: variant.weight ?? 0,
+              length_cm: variant.length ?? 0,
+              width_cm: variant.width ?? 0,
+              height_cm: variant.height ?? 0,
+              variant_image_url: variant.image,
+            })),
+            images,
+          }),
+        });
+        const result = (await response.json().catch(() => ({}))) as { id?: string; error?: string };
+        if (!response.ok || !result.id) throw new Error(result.error || "Import failed (" + response.status + ").");
 
         setLog((current) => [
           ...current,
@@ -364,8 +334,6 @@ export default function ShopeeImportPage() {
           return next;
         });
       } catch (caught) {
-        // Roll back a half-created product so a re-run starts clean.
-        if (productId) await client.from("products").delete().eq("id", productId);
         setLog((current) => [
           ...current,
           { name: product.name, ok: false, detail: describeError(caught) },
