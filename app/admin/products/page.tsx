@@ -170,6 +170,10 @@ export default function AdminProductsPage() {
   const [myShops, setMyShops] = useState<Array<{ id: string; name: string; tier: string | null }>>([]);
   const [shopFilter, setShopFilter] = useState("all");
   const [bulkStatusBusy, setBulkStatusBusy] = useState(false);
+  // Pagination (big catalogues).
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+  const [pageInput, setPageInput] = useState("1");
   const [liveTab, setLiveTab] = useState<"all" | "restock">("all");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
@@ -419,6 +423,54 @@ export default function AdminProductsPage() {
     return sorted;
   }, [products, query, catalogTab, liveTab, shopFilter, searchField, dateRange, priceMin, priceMax, promoFilter, sortBy]);
 
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const currentPage = Math.min(page, pageCount);
+  const paged = useMemo(
+    () => filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [filtered, currentPage, pageSize]
+  );
+  // Back to page 1 whenever the filters change.
+  useEffect(() => {
+    setPage(1);
+  }, [query, catalogTab, liveTab, shopFilter, searchField, dateRange, priceMin, priceMax, promoFilter, sortBy, pageSize]);
+  useEffect(() => {
+    setPageInput(String(currentPage));
+  }, [currentPage]);
+
+  // Delete ticked drafts (only drafts; the server double-checks).
+  async function bulkDeleteDrafts() {
+    const ids = filtered.filter((p) => selectedProductIds.has(p.id) && p.status === "draft").map((p) => p.id);
+    if (!ids.length) return;
+    if (!window.confirm("Delete " + ids.length + " draft product(s)? This can't be undone.")) return;
+    setBulkStatusBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      const response = await fetch("/api/admin/products/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids }),
+      });
+      const result = (await response.json().catch(() => ({}))) as { deleted?: number; kept?: number; error?: string };
+      if (!response.ok) throw new Error(result.error || "Could not delete products.");
+      if ((result.deleted || 0) > 0) {
+        // Reload what's left, so anything kept by the server stays visible.
+        const idSet = new Set(ids);
+        const { data: still } = await createClient().from("products").select("id").in("id", ids.slice(0, 300));
+        const remaining = new Set(((still || []) as Array<{ id: string }>).map((r) => r.id));
+        setProducts((current) => current.filter((item) => !idSet.has(item.id) || remaining.has(item.id)));
+      }
+      setSelectedProductIds(new Set());
+      setMessage(
+        (result.deleted || 0) + " draft product(s) deleted." + (result.kept ? " " + result.kept + " kept (not a draft, or already ordered)." : "")
+      );
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not delete products.");
+    } finally {
+      setBulkStatusBusy(false);
+    }
+  }
+
   // Publish / delist many at once (the server checks the shops are yours).
   async function bulkSetStatus(nextStatus: "active" | "inactive") {
     const ids = filtered.filter((p) => selectedProductIds.has(p.id)).map((p) => p.id);
@@ -464,7 +516,7 @@ export default function AdminProductsPage() {
   }
 
   function toggleVisibleSelection() {
-    const visibleIds = filtered.map((product) => product.id);
+    const visibleIds = paged.map((product) => product.id);
     const allSelected =
       visibleIds.length > 0 &&
       visibleIds.every((id) => selectedProductIds.has(id));
@@ -1512,8 +1564,8 @@ export default function AdminProductsPage() {
                 className={styles.productBulkSecondary}
                 onClick={toggleVisibleSelection}
               >
-                {filtered.length > 0 &&
-                filtered.every((product) =>
+                {paged.length > 0 &&
+                paged.every((product) =>
                   selectedProductIds.has(product.id)
                 )
                   ? "Clear visible"
@@ -1524,6 +1576,17 @@ export default function AdminProductsPage() {
                 {selectedProductIds.size} PRODUCT
                 {selectedProductIds.size === 1 ? "" : "S"} SELECTED
               </span>
+
+              {catalogTab === "draft" ? (
+                <button
+                  type="button"
+                  className={styles.productBulkDanger}
+                  disabled={selectedProductIds.size === 0 || bulkStatusBusy}
+                  onClick={() => void bulkDeleteDrafts()}
+                >
+                  Delete selected
+                </button>
+              ) : null}
 
               {catalogTab === "draft" || catalogTab === "delisted" ? (
                 <button
@@ -1583,7 +1646,7 @@ export default function AdminProductsPage() {
                   </thead>
 
                   <tbody>
-                    {filtered.map((product) => {
+                    {paged.map((product) => {
                       const variants = product.product_variants || [];
                       const stock = variants.reduce(
                         (sum, item) => sum + availableStock(item),
@@ -1999,6 +2062,48 @@ export default function AdminProductsPage() {
                 </table>
               </div>
             )}
+
+            {!loading && filtered.length > 0 ? (
+              <nav className={styles.pager} aria-label="Pages">
+                <span className={styles.pagerInfo}>
+                  {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filtered.length)} of {filtered.length}
+                </span>
+                <div className={styles.pagerControls}>
+                  <button type="button" onClick={() => setPage(1)} disabled={currentPage === 1} aria-label="First page">«</button>
+                  <button type="button" onClick={() => setPage(currentPage - 1)} disabled={currentPage === 1} aria-label="Previous page">‹</button>
+                  <form
+                    className={styles.pagerJump}
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const n = Math.round(Number(pageInput));
+                      if (Number.isFinite(n)) setPage(Math.min(pageCount, Math.max(1, n)));
+                    }}
+                  >
+                    <input
+                      value={pageInput}
+                      inputMode="numeric"
+                      aria-label="Page"
+                      onChange={(e) => setPageInput(e.target.value.replace(/[^0-9]/g, ""))}
+                      onBlur={() => {
+                        const n = Math.round(Number(pageInput));
+                        if (Number.isFinite(n) && n > 0) setPage(Math.min(pageCount, n));
+                        else setPageInput(String(currentPage));
+                      }}
+                    />
+                    <span>/ {pageCount}</span>
+                  </form>
+                  <button type="button" onClick={() => setPage(currentPage + 1)} disabled={currentPage === pageCount} aria-label="Next page">›</button>
+                  <button type="button" onClick={() => setPage(pageCount)} disabled={currentPage === pageCount} aria-label="Last page">»</button>
+                </div>
+                <select className={styles.pagerSize} value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))} aria-label="Products per page">
+                  {[10, 50, 100, 200, 300].map((n) => (
+                    <option key={n} value={n}>
+                      {n} / page
+                    </option>
+                  ))}
+                </select>
+              </nav>
+            ) : null}
 
             {bulkEditOpen ? (
               <div
