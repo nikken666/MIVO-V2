@@ -9,6 +9,15 @@ import { createClient } from "@/lib/supabase/client";
 // (every visitor's browser sees it); NEXT_PUBLIC_GOOGLE_CLIENT_ID overrides it.
 const MIVO_GOOGLE_CLIENT_ID = "278353123157-8or8ueaj2sd2539060ehtvsjlro9od0v.apps.googleusercontent.com";
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() || MIVO_GOOGLE_CLIENT_ID;
+// Google only accepts the web addresses listed under "Authorized JavaScript origins"
+// (no wildcards). Elsewhere, e.g. a Vercel preview link, use the redirect button.
+const ORIGINS = (process.env.NEXT_PUBLIC_GOOGLE_ORIGINS || "https://mivo-v2.vercel.app,http://localhost:3000")
+  .split(",")
+  .map((origin) => origin.trim().replace(/\/$/, ""))
+  .filter(Boolean);
+function originAllowed() {
+  return typeof window !== "undefined" && ORIGINS.includes(window.location.origin);
+}
 
 type GoogleId = {
   initialize: (options: Record<string, unknown>) => void;
@@ -63,6 +72,10 @@ export default function GoogleSignInButton({
 
   useEffect(() => {
     if (!CLIENT_ID) return;
+    if (!originAllowed()) {
+      setFailed(true);
+      return;
+    }
     let cancelled = false;
     const timer = window.setTimeout(() => {
       if (!box.current?.childElementCount) setFailed(true);
