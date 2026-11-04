@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
 
   try {
     if (body.action === "process") {
-      const result = await processEmailQueue({ limit: 25, deadlineMs: 45_000 });
+      const result = await processEmailQueue({ limit: 25, deadlineMs: 45_000, ignorePause: true });
       const { count } = await admin.from("email_queue").select("id", { count: "exact", head: true }).in("status", ["pending", "sending"]);
       return NextResponse.json({ ...result, remaining: count || 0 });
     }

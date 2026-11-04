@@ -7,6 +7,27 @@ import nodemailer, { type Transporter } from "nodemailer";
 
 let transporter: Transporter | null = null;
 
+// When the mail server refuses the login (wrong password, blocked account), stop
+// trying for a while instead of failing on every order. Manual checks still try.
+const AUTH_PAUSE_MS = 30 * 60 * 1000;
+let authPausedUntil = 0;
+
+export function isAuthError(error: unknown) {
+  const e = error as { code?: string; responseCode?: number } | null;
+  return e?.code === "EAUTH" || e?.responseCode === 535 || e?.responseCode === 534;
+}
+
+export function smtpPaused() {
+  return Date.now() < authPausedUntil;
+}
+
+function noteError(error: unknown) {
+  if (isAuthError(error)) {
+    authPausedUntil = Date.now() + AUTH_PAUSE_MS;
+    transporter = null; // pick up a new password after a redeploy or restart
+  }
+}
+
 function smtpUser() {
   return (process.env.SMTP_USER || "").trim().replace(/^["']|["']$/g, "").toLowerCase();
 }
@@ -31,7 +52,13 @@ export function smtpDiagnostics() {
 /** Log in to the mail server without sending anything. */
 export async function verifySmtp() {
   if (!emailConfigured()) throw new Error("SMTP_USER / SMTP_PASS missing.");
-  await transport().verify();
+  try {
+    await transport().verify();
+    authPausedUntil = 0;
+  } catch (error) {
+    noteError(error);
+    throw error;
+  }
 }
 
 export function emailConfigured() {
@@ -67,15 +94,20 @@ export async function sendMail(mail: Mail) {
   if (!emailConfigured()) throw new Error("Email is not set up (SMTP_USER / SMTP_PASS missing in Vercel).");
   const user = smtpUser();
   const name = (process.env.EMAIL_FROM_NAME || "MIVO").replace(/["\r\n]/g, "");
-  await transport().sendMail({
-    from: `"${name}" <${process.env.EMAIL_FROM?.trim() || user}>`,
-    replyTo: process.env.EMAIL_REPLY_TO?.trim() || undefined,
-    to: mail.to,
-    subject: mail.subject.replace(/[\r\n]+/g, " "),
-    html: mail.html,
-    text: mail.text,
-    headers: mail.unsubscribeUrl
-      ? { "List-Unsubscribe": `<${mail.unsubscribeUrl}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" }
-      : undefined,
-  });
+  try {
+    await transport().sendMail({
+      from: `"${name}" <${process.env.EMAIL_FROM?.trim() || user}>`,
+      replyTo: process.env.EMAIL_REPLY_TO?.trim() || undefined,
+      to: mail.to,
+      subject: mail.subject.replace(/[\r\n]+/g, " "),
+      html: mail.html,
+      text: mail.text,
+      headers: mail.unsubscribeUrl
+        ? { "List-Unsubscribe": `<${mail.unsubscribeUrl}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" }
+        : undefined,
+    });
+  } catch (error) {
+    noteError(error);
+    throw error;
+  }
 }
