@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useT } from "./LanguageProvider";
 import { friendlyError } from "@/lib/i18n/errors";
+import { celebrateClaim } from "@/lib/flyToCart";
 
 type ShopVoucher = {
   id: string;
@@ -50,7 +51,7 @@ export default function ShopVouchers({ sellerId, compact = false }: { sellerId?:
     };
   }, [sellerId]);
 
-  async function claim(voucher: ShopVoucher) {
+  async function claim(voucher: ShopVoucher, button?: HTMLElement) {
     setBusy(voucher.id);
     setMessage("");
     try {
@@ -65,6 +66,7 @@ export default function ShopVouchers({ sellerId, compact = false }: { sellerId?:
       const { error } = await supabase.rpc("claim_voucher", { p_voucher_id: voucher.id });
       if (error && !/already/i.test(error.message)) throw error;
       setClaimed((current) => new Set(current).add(voucher.id));
+      celebrateClaim(button);
       setMessage(t("buy.voucher.claimedMsg", { code: voucher.code }));
     } catch (caught) {
       setMessage(friendlyError(caught, t, "buy.voucher.claimFailed"));
@@ -89,7 +91,7 @@ export default function ShopVouchers({ sellerId, compact = false }: { sellerId?:
               </b>
               <small>{t("buy.voucher.minSpend", { amount: "RM" + Number(v.minimum_spend).toFixed(0) })}</small>
             </div>
-            <button type="button" disabled={busy === v.id || claimed.has(v.id)} onClick={() => void claim(v)}>
+            <button type="button" disabled={busy === v.id || claimed.has(v.id)} onClick={(event) => void claim(v, event.currentTarget)}>
               {claimed.has(v.id) ? t("buy.voucher.claimed") : t("buy.voucher.claim")}
             </button>
           </div>

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getActiveProducts } from "@/lib/catalog";
+import { cardProduct, getActiveProducts } from "@/lib/catalog";
 import { getFittingProductIds } from "@/lib/liveFitment";
 import { fitmentRank, shopFitmentStatus, type FitmentStatus } from "@/data/fitments";
 
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     })
     .sort((a, b) => a.score - b.score)
     .slice(0, limit)
-    .map(({ product, fitmentStatus }) => ({ product, fitmentStatus }));
+    .map(({ product, fitmentStatus }) => ({ product: cardProduct(product), fitmentStatus }));
 
   return NextResponse.json({ items }, { headers: { "Cache-Control": "private, max-age=120" } });
 }

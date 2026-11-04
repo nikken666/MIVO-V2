@@ -57,6 +57,7 @@ export default function CarRecommendations({
   const t = useT();
   const [saved, setSaved] = useState<Saved | null | undefined>(undefined);
   const [items, setItems] = useState<Item[]>([]);
+  const [loading, setLoading] = useState(false);
   const excludeKey = exclude.filter(Boolean).sort().join(",");
 
   useEffect(() => {
@@ -75,9 +76,11 @@ export default function CarRecommendations({
   useEffect(() => {
     if (!vehicleKey) {
       setItems([]);
+      setLoading(false);
       return;
     }
     let cancelled = false;
+    setLoading(true);
     const params = new URLSearchParams(vehicleKey);
     if (category) params.set("category", category);
     if (excludeKey) params.set("exclude", excludeKey);
@@ -89,6 +92,9 @@ export default function CarRecommendations({
       })
       .catch(() => {
         if (!cancelled) setItems([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
@@ -110,9 +116,31 @@ export default function CarRecommendations({
     );
   }
 
+  const car = saved.model || saved.make || "";
+
+  // A2: shimmer cards while the parts for this car load.
+  if (loading && !items.length) {
+    return (
+      <section className="carRec" aria-busy="true">
+        <div className="carRecHead">
+          <h2><span className="carRecTag" key={vehicleKey}>🚗 {car}</span></h2>
+        </div>
+        <div className="carRecRow">
+          {Array.from({ length: Math.min(limit, 5) }).map((_, index) => (
+            <div className="carRecItem catalogLoadingCard" key={index}>
+              <div className="catalogLoadingImage skeletonBlock" />
+              <div className="catalogLoadingLine skeletonBlock" />
+              <div className="catalogLoadingLine short skeletonBlock" />
+              <div className="catalogLoadingLine price skeletonBlock" />
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
   if (!items.length) return null;
 
-  const car = saved.model || saved.make || "";
   const heading =
     title === "alsoFits"
       ? t("buy.rec.alsoFits", { car })
@@ -123,12 +151,17 @@ export default function CarRecommendations({
   return (
     <section className="carRec" aria-label={heading}>
       <div className="carRecHead">
-        <h2>{heading}</h2>
+        {/* A5: the car tag slides in, then the parts appear one after another */}
+        <h2 className="carRecHeading" key={vehicleKey}>{heading}</h2>
         <a href={"/products?" + vehicleKey}>{t("buy.rec.viewAll", { car })}</a>
       </div>
       <div className="carRecRow">
-        {items.map((item) => (
-          <div className="carRecItem" key={item.product.slug}>
+        {items.map((item, index) => (
+          <div
+            className="carRecItem carRecItemIn"
+            key={vehicleKey + item.product.slug}
+            style={{ animationDelay: Math.min(index, 10) * 70 + "ms" }}
+          >
             <ProductCard product={item.product} compact fitmentStatus={item.fitmentStatus} />
           </div>
         ))}

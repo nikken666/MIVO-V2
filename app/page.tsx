@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { getActiveProducts } from "@/lib/catalog";
+import { cardProduct, getActiveProducts } from "@/lib/catalog";
 import ProductCard from "@/components/ProductCard";
 import HomePromotions from "@/components/HomePromotions";
 import HomeBannerCarousel from "@/components/HomeBannerCarousel";
@@ -104,6 +104,16 @@ export default async function HomePage() {
     picked.add(product.slug);
   }
 
+  // Only what the page shows goes to the browser (not the whole catalogue).
+  const bestOff = (product: (typeof catalogue)[number]) =>
+    Math.max(0, ...(product.variants || []).map((v) => (v.compareAtPrice && v.compareAtPrice > v.price ? 1 - v.price / v.compareAtPrice : 0)));
+  const onSale = catalogue
+    .filter((product) => bestOff(product) > 0)
+    .sort((a, b) => bestOff(b) - bestOff(a))
+    .slice(0, 60)
+    .map(cardProduct);
+  const discoverCards = discover.map(cardProduct);
+
   return (
     <main className="home shopHome">
       {/* Banners: big carousel + two side banners */}
@@ -138,9 +148,9 @@ export default async function HomePage() {
         </nav>
       </section>
 
-      <HomePromotions products={catalogue} only="vouchers" />
+      <HomePromotions products={onSale} only="vouchers" />
 
-      <FlashSale products={catalogue} />
+      <FlashSale products={onSale} />
 
       <div className="container">
         <CarRecommendations promptWhenNoCar />
@@ -158,7 +168,7 @@ export default async function HomePage() {
           </div>
         </div>
         <div className="shopDiscoverGrid">
-          {discover.map((product) => (
+          {discoverCards.map((product) => (
             <ProductCard product={product} compact key={product.slug} />
           ))}
         </div>

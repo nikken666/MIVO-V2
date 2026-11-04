@@ -290,7 +290,41 @@ async function attachReviewStats(
   });
 }
 
-export async function getActiveProducts(): Promise<Product[]> {
+// The whole live catalogue is needed by the home page, the product list,
+// shops, search suggestions and recommendations. Loading thousands of
+// products from the database on every request made those pages take many
+// seconds, so it's kept in memory for a minute per server (one load shared by
+// everyone; a change in the back office shows up within a minute).
+const CATALOGUE_TTL_MS = 60_000;
+let catalogueCache: { at: number; promise: Promise<Product[]> } | null = null;
+
+export function getActiveProducts(): Promise<Product[]> {
+  if (!catalogueCache || Date.now() - catalogueCache.at > CATALOGUE_TTL_MS) {
+    const promise = loadActiveProducts();
+    catalogueCache = { at: Date.now(), promise };
+    // A failed load isn't kept.
+    promise.catch(() => {
+      if (catalogueCache?.promise === promise) catalogueCache = null;
+    });
+  }
+  return catalogueCache.promise;
+}
+
+/**
+ * What a product card needs, without the description and extra images, so
+ * pages that list many products send far less to the browser.
+ */
+export function cardProduct(product: Product): Product {
+  return {
+    ...product,
+    description: "",
+    shortDescription: undefined,
+    imageUrls: (product.imageUrls || []).slice(0, 2),
+    restrictedShippingStates: undefined,
+  };
+}
+
+async function loadActiveProducts(): Promise<Product[]> {
   try {
     const supabase = await createClient();
     // At most 1000 rows come back per request: page through big catalogues.

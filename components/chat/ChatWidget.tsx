@@ -156,7 +156,15 @@ export default function ChatWidget() {
   const unread = conversations.reduce((sum, c) => sum + (c.customer_unread || 0), 0);
   // No floating button while paying: it covered the order total. Chat still opens from "Chat now".
   const pathname = usePathname() || "";
-  const hideLauncher = !open && (pathname === "/checkout" || pathname === "/cart" || pathname.includes("/success"));
+  // Product pages have their own "Chat now"; the back office has its own inbox.
+  const hideLauncher =
+    !open &&
+    (pathname === "/checkout" ||
+      pathname === "/cart" ||
+      pathname.includes("/success") ||
+      /^\/products\/[^/]+/.test(pathname) ||
+      pathname.startsWith("/admin") ||
+      pathname === "/seller" || pathname.startsWith("/seller/"));
   const active = conversations.find((c) => c.id === activeId) || null;
 
   return (

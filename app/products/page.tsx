@@ -4,14 +4,14 @@ import ProductCard from "@/components/ProductCard";
 import SavedVehicleProductsBootstrap from "@/components/SavedVehicleProductsBootstrap";
 import ProductsVehicleBanner from "@/components/ProductsVehicleBanner";
 import { createClient } from "@/lib/supabase/server";
-import { getActiveProducts } from "@/lib/catalog";
+import { cardProduct, getActiveProducts } from "@/lib/catalog";
 import {
   fitmentRank,
   getProductFitmentStatus,
   shopFitmentStatus,
   type FitmentStatus,
 } from "@/data/fitments";
-import { getLiveFitmentStatuses } from "@/lib/liveFitment";
+import { getFittingProductIds } from "@/lib/liveFitment";
 import { searchProducts } from "@/lib/search";
 import { vehicleInQuery } from "@/lib/vehicleTerms";
 import SearchVehicleHint from "@/components/SearchVehicleHint";
@@ -178,14 +178,22 @@ export default async function ProductsPage({
   const search = searchProducts(inSection, rawQuery);
   const baseFiltered = search.items;
 
-  const liveFitmentStatuses = selectedVehicle
-    ? await getLiveFitmentStatuses(
-        baseFiltered
-          .map((product) => product.id)
-          .filter((id): id is string => Boolean(id)),
-        selectedVehicle
-      )
-    : {};
+  // Which products fit the car: one query by vehicle (not one per product).
+  // Products with fitment data that doesn't include this car don't fit.
+  const fitting = selectedVehicle ? await getFittingProductIds(selectedVehicle) : null;
+  const liveFitmentStatuses: Record<string, FitmentStatus> = {};
+  if (fitting) {
+    for (const product of baseFiltered) {
+      if (!product.id) continue;
+      liveFitmentStatuses[product.id] = fitting.fits.has(product.id)
+        ? "fits"
+        : product.isUniversalFitment || fitting.universal.has(product.id)
+          ? "universal"
+          : product.fitmentLevel && product.fitmentLevel !== "none"
+            ? "not-fit"
+            : "unverified";
+    }
+  }
 
   const withFitment = baseFiltered.map((product) => ({
     product,
@@ -215,6 +223,14 @@ export default async function ProductsPage({
       : ranked;
   const hiddenCount = ranked.length - visible.length;
 
+  // 48 per page: thousands of cards on one page made the list very slow.
+  const PAGE_SIZE = 48;
+  const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
+  const pageNumber = Math.min(pageCount, Math.max(1, Math.floor(Number(params.page) || 1)));
+  const pageItems = visible
+    .slice((pageNumber - 1) * PAGE_SIZE, pageNumber * PAGE_SIZE)
+    .map((item) => ({ ...item, product: cardProduct(item.product) }));
+
   const fitmentCounts = selectedVehicle
     ? ranked.reduce<Record<FitmentStatus, number>>(
         (counts, item) => {
@@ -241,6 +257,7 @@ export default async function ProductsPage({
     if (category) next.set("category", category);
     if (group) next.set("group", group);
     if (showAll) next.set("showAll", "1");
+    if (!("page" in changes)) next.delete("page");
 
     for (const [key, value] of Object.entries(changes)) {
       if (value === null) next.delete(key);
@@ -350,7 +367,7 @@ export default async function ProductsPage({
         <>
           {visible.length ? (
             <div className="catalogGrid">
-              {visible.map(({ product, fitmentStatus }) => (
+              {pageItems.map(({ product, fitmentStatus }) => (
                 <ProductCard
                   product={product}
                   fitmentStatus={selectedVehicle ? fitmentStatus : undefined}
@@ -359,6 +376,38 @@ export default async function ProductsPage({
                 />
               ))}
             </div>
+          ) : null}
+
+          {pageCount > 1 ? (
+            <nav className="catalogPager" aria-label={t("browse.products.pages")}>
+              <a
+                href={catalogHref({ page: pageNumber > 2 ? String(pageNumber - 1) : null })}
+                className={pageNumber === 1 ? "disabled" : ""}
+                aria-disabled={pageNumber === 1}
+                aria-label={t("browse.products.prevPage")}
+              >
+                ‹
+              </a>
+              {Array.from(new Set([1, pageNumber - 2, pageNumber - 1, pageNumber, pageNumber + 1, pageNumber + 2, pageCount]))
+                .filter((n) => n >= 1 && n <= pageCount)
+                .sort((a, b) => a - b)
+                .map((n, index, list) => (
+                  <span key={n} style={{ display: "contents" }}>
+                    {index > 0 && n - list[index - 1] > 1 ? <span className="catalogPagerGap">…</span> : null}
+                    <a href={catalogHref({ page: n > 1 ? String(n) : null })} className={n === pageNumber ? "active" : ""} aria-current={n === pageNumber ? "page" : undefined}>
+                      {n}
+                    </a>
+                  </span>
+                ))}
+              <a
+                href={catalogHref({ page: pageNumber < pageCount ? String(pageNumber + 1) : String(pageCount) })}
+                className={pageNumber === pageCount ? "disabled" : ""}
+                aria-disabled={pageNumber === pageCount}
+                aria-label={t("browse.products.nextPage")}
+              >
+                ›
+              </a>
+            </nav>
           ) : null}
 
           {hiddenCount || !visible.length ? (

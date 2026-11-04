@@ -13,6 +13,7 @@ import { formatPrice } from "@/data/products";
 import { useT } from "./LanguageProvider";
 import type { Translate } from "@/lib/i18n";
 import { friendlyError } from "@/lib/i18n/errors";
+import { celebrateClaim } from "@/lib/flyToCart";
 
 type TemplateType =
   | "mega_sale"
@@ -258,7 +259,7 @@ export default function HomePromotions({
     return selected.length ? selected : deals.map((row) => row.product).slice(0, 4);
   }, [campaign, products, deals]);
 
-  async function claim(voucher: Voucher) {
+  async function claim(voucher: Voucher, button?: HTMLElement) {
     setMessage("");
     setBusyId(voucher.id);
 
@@ -282,6 +283,7 @@ export default function HomePromotions({
       setClaimedIds((current) =>
         current.includes(voucher.id) ? current : [...current, voucher.id]
       );
+      celebrateClaim(button);
       setMessage(t("browse.promo.added", { code: voucher.code }));
     } catch (caught) {
       setMessage(
@@ -473,7 +475,7 @@ export default function HomePromotions({
                           <button
                             type="button"
                             disabled={claimed || busyId === voucher.id}
-                            onClick={() => void claim(voucher)}
+                            onClick={(event) => void claim(voucher, event.currentTarget)}
                           >
                             {claimed
                               ? t("browse.promo.claimed")
@@ -696,7 +698,7 @@ export default function HomePromotions({
                       <button
                         type="button"
                         disabled={claimed || busyId === voucher.id}
-                        onClick={() => void claim(voucher)}
+                        onClick={(event) => void claim(voucher, event.currentTarget)}
                       >
                         {claimed
                           ? t("browse.promo.claimed")

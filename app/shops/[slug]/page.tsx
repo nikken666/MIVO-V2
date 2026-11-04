@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import ChatNowButton from "@/components/chat/ChatNowButton";
 import ProductCard from "@/components/ProductCard";
 import ShopBadge from "@/components/ShopBadge";
-import { getActiveProducts } from "@/lib/catalog";
+import { cardProduct, getActiveProducts } from "@/lib/catalog";
 import { getShop } from "@/lib/shops";
 import { getT } from "@/lib/i18n/server";
 
@@ -52,6 +52,19 @@ export default async function ShopPage({
       (!q || (p.name + " " + p.brand).toLowerCase().includes(q))
   );
   const base = "/shops/" + encodeURIComponent(shop.slug || shop.id);
+
+  // 48 per page (a shop can have thousands of products).
+  const PAGE_SIZE = 48;
+  const pageCount = Math.max(1, Math.ceil(shown.length / PAGE_SIZE));
+  const pageNumber = Math.min(pageCount, Math.max(1, Math.floor(Number(query.page) || 1)));
+  const pageItems = shown.slice((pageNumber - 1) * PAGE_SIZE, pageNumber * PAGE_SIZE).map(cardProduct);
+  const pageHref = (n: number) => {
+    const next = new URLSearchParams();
+    if (activeCategory) next.set("category", activeCategory);
+    if (q) next.set("q", q);
+    if (n > 1) next.set("page", String(n));
+    return base + (next.toString() ? "?" + next.toString() : "");
+  };
 
   return (
     <main className="shopPage">
@@ -99,13 +112,28 @@ export default async function ShopPage({
 
         {shown.length ? (
           <div className="shopDiscoverGrid">
-            {shown.map((product) => (
+            {pageItems.map((product) => (
               <ProductCard product={product} compact key={product.slug} />
             ))}
           </div>
         ) : (
           <p className="shopsEmpty">{t("browse.shop.empty")}</p>
         )}
+        {pageCount > 1 ? (
+          <nav className="catalogPager" aria-label={t("browse.products.pages")}>
+            <a href={pageHref(Math.max(1, pageNumber - 1))} className={pageNumber === 1 ? "disabled" : ""} aria-label={t("browse.products.prevPage")}>‹</a>
+            {Array.from(new Set([1, pageNumber - 1, pageNumber, pageNumber + 1, pageCount]))
+              .filter((n) => n >= 1 && n <= pageCount)
+              .sort((a, b) => a - b)
+              .map((n, index, list) => (
+                <span key={n} style={{ display: "contents" }}>
+                  {index > 0 && n - list[index - 1] > 1 ? <span className="catalogPagerGap">…</span> : null}
+                  <a href={pageHref(n)} className={n === pageNumber ? "active" : ""} aria-current={n === pageNumber ? "page" : undefined}>{n}</a>
+                </span>
+              ))}
+            <a href={pageHref(Math.min(pageCount, pageNumber + 1))} className={pageNumber === pageCount ? "disabled" : ""} aria-label={t("browse.products.nextPage")}>›</a>
+          </nav>
+        ) : null}
       </div>
     </main>
   );
