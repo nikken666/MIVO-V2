@@ -12,6 +12,7 @@ import {
   type FitmentStatus,
 } from "@/data/fitments";
 import { getFittingProductIds } from "@/lib/liveFitment";
+import { nameSuggestsVehicle } from "@/lib/guessFitment";
 import { searchProducts } from "@/lib/search";
 import { vehicleInQuery } from "@/lib/vehicleTerms";
 import SearchVehicleHint from "@/components/SearchVehicleHint";
@@ -195,7 +196,9 @@ export default async function ProductsPage({
           ? "universal"
           : product.fitmentLevel && product.fitmentLevel !== "none"
             ? "not-fit"
-            : "unverified";
+            : nameSuggestsVehicle(product, selectedVehicle!.vehicleId)
+              ? "likely"
+              : "unverified";
     }
   }
 
@@ -241,7 +244,7 @@ export default async function ProductsPage({
           counts[item.fitmentStatus] += 1;
           return counts;
         },
-        { fits: 0, universal: 0, unverified: 0, "not-fit": 0, "seller-fits": 0 }
+        { fits: 0, universal: 0, unverified: 0, "not-fit": 0, "seller-fits": 0, likely: 0 }
       )
     : null;
 
@@ -295,6 +298,12 @@ export default async function ProductsPage({
             <div>
               <strong>{fitmentCounts["seller-fits"]}</strong>
               <span>{t("fit.sellerSays")}</span>
+            </div>
+          ) : null}
+          {fitmentCounts.likely > 0 ? (
+            <div>
+              <strong>{fitmentCounts.likely}</strong>
+              <span>{t("fit.likely")}</span>
             </div>
           ) : null}
           {fitmentCounts["not-fit"] > 0 ? (

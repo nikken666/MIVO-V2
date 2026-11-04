@@ -10,7 +10,8 @@ export type ProductFitment = {
   rules?: FitmentRule[];
 };
 
-export type FitmentStatus = "fits" | "not-fit" | "unverified" | "universal" | "seller-fits";
+// "likely": no fitment saved, but the product name points to this car (not confirmed).
+export type FitmentStatus = "fits" | "not-fit" | "unverified" | "universal" | "seller-fits" | "likely";
 
 export type SelectedVehicle = {
   vehicleId: string;
@@ -75,8 +76,9 @@ export function fitmentRank(status: FitmentStatus) {
   if (status === "fits") return 0;
   if (status === "universal") return 1;
   if (status === "seller-fits") return 2;
-  if (status === "unverified") return 3;
-  return 4;
+  if (status === "likely") return 3;
+  if (status === "unverified") return 4;
+  return 5;
 }
 
 /**
@@ -99,7 +101,7 @@ export function shopFitmentStatus(
   product: { sellerTier?: string | null; seller?: string | null; fitmentVerified?: boolean },
   status: FitmentStatus
 ): FitmentStatus {
-  if (isFitmentVerifiedShop(product)) return status;
+  if (isFitmentVerifiedShop(product) || status === "likely") return status;
   if (status === "fits" || status === "universal") return "seller-fits";
   return "unverified";
 }

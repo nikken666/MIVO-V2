@@ -11387,3 +11387,10 @@ button.shopChip{font:inherit;cursor:pointer}
 .mivoAuthCheck{display:flex!important;align-items:flex-start;gap:10px;font-size:13px;line-height:1.45;color:#4a5056;cursor:pointer}
 .mivoAuthCheck input{width:18px!important;height:18px;min-height:0!important;margin:1px 0 0;flex:0 0 auto;accent-color:var(--accent,#0071e3)}
 .mivoGoogleBox{display:flex;justify-content:center;min-height:44px}
+
+/* "Probably fits · not confirmed" (fitment guessed from the product name) */
+.fitmentPill.likely{background:#fff1d6!important;color:#8a4b00!important}
+.productFitmentText.likely{color:#8a4b00}
+.fitmentState-likely{border-color:#f5d39a}
+.productFitmentCompact.fitment-likely{border-color:#f5d39a;background:#fffaf0}
+.productFitmentCompact.fitment-likely strong{color:#8a4b00}

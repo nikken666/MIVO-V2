@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cardProduct, getActiveProducts } from "@/lib/catalog";
 import { getFittingProductIds } from "@/lib/liveFitment";
+import { nameSuggestsVehicle } from "@/lib/guessFitment";
 import { fitmentRank, shopFitmentStatus, type FitmentStatus } from "@/data/fitments";
 
 export const dynamic = "force-dynamic";
@@ -49,7 +50,13 @@ export async function GET(request: NextRequest) {
   const items = products
     .filter((p) => p.id && !exclude.has(p.id) && !exclude.has(p.slug) && Number(p.stock ?? 1) > 0)
     .map((p) => {
-      const raw: FitmentStatus | null = fits.has(p.id!) ? "fits" : universal.has(p.id!) ? "universal" : null;
+      const raw: FitmentStatus | null = fits.has(p.id!)
+        ? "fits"
+        : universal.has(p.id!)
+          ? "universal"
+          : nameSuggestsVehicle(p, vehicleId)
+            ? "likely"
+            : null;
       return raw ? { product: p, fitmentStatus: shopFitmentStatus(p, raw) } : null;
     })
     .filter((x): x is NonNullable<typeof x> => Boolean(x))
