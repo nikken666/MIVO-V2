@@ -92,29 +92,48 @@ function codeMatches(genCode: string, codes: Set<string>): boolean {
   return false;
 }
 
-export function suggestFitment(title: string, generations: Generation[]): FitmentSuggestion[] {
-  const text = upper(title);
+type ModelEntry = { key: string; make: string; model: string; gens: Generation[]; re: RegExp | null; risky: boolean };
 
+// The model list and its patterns depend only on the vehicle list: build them once.
+const prepared = new WeakMap<Generation[], ModelEntry[]>();
+function modelEntries(generations: Generation[]): ModelEntry[] {
+  const cached = prepared.get(generations);
+  if (cached) return cached;
   // Models, longest first so "COROLLA ALTIS" wins over "COROLLA".
   const models = new Map<string, Generation[]>();
   for (const g of generations) {
     const k = g.make + "|" + g.model;
     models.set(k, [...(models.get(k) || []), g]);
   }
-  const modelList = [...models.entries()]
-    .map(([k, gens]) => ({ key: k, make: gens[0].make, model: gens[0].model, gens }))
+  const list = [...models.entries()]
+    .map(([k, gens]) => {
+      const words = upper(gens[0].model).split(/[^A-Z0-9]+/).filter(Boolean);
+      return {
+        key: k,
+        make: gens[0].make,
+        model: gens[0].model,
+        gens,
+        re: words.length ? new RegExp("(?<![A-Z0-9])" + words.map(escape).join("[\\s\\-]*") + "(?![A-Z0-9])", "g") : null,
+        // Short or numeric model names (e.g. "86") need the make in the title.
+        risky: words.join("").length <= 3 || /^\d+$/.test(words.join("")),
+      };
+    })
     .sort((a, b) => b.model.length - a.model.length);
+  prepared.set(generations, list);
+  return list;
+}
 
-  type Hit = { start: number; end: number; entry: (typeof modelList)[number] };
+export function suggestFitment(title: string, generations: Generation[]): FitmentSuggestion[] {
+  const text = upper(title);
+  const modelList = modelEntries(generations);
+
+  type Hit = { start: number; end: number; entry: ModelEntry };
   const hits: Hit[] = [];
   for (const entry of modelList) {
-    const words = upper(entry.model).split(/[^A-Z0-9]+/).filter(Boolean);
-    if (!words.length) continue;
-    // Short or numeric model names (e.g. "86") need the make in the title.
-    const risky = words.join("").length <= 3 || /^\d+$/.test(words.join(""));
-    if (risky && !text.includes(upper(entry.make))) continue;
-    const re = new RegExp("(?<![A-Z0-9])" + words.map(escape).join("[\\s\\-]*") + "(?![A-Z0-9])", "g");
-    for (const m of text.matchAll(re)) {
+    if (!entry.re) continue;
+    if (entry.risky && !text.includes(upper(entry.make))) continue;
+    entry.re.lastIndex = 0;
+    for (const m of text.matchAll(entry.re)) {
       const start = m.index ?? 0;
       const end = start + m[0].length;
       if (hits.some((h) => start < h.end && end > h.start)) continue; // overlapping a longer model

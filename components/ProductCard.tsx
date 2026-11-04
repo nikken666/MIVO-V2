@@ -39,6 +39,10 @@ function fitmentCopy(t: Translate): Record<FitmentStatus, { pill: string; text: 
       pill: t("fit.sellerSays"),
       text: t("fit.sellerSaysText"),
     },
+    likely: {
+      pill: t("fit.likely"),
+      text: t("fit.likelyText"),
+    },
   };
 }
 

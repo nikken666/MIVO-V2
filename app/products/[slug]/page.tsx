@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 
+import { nameSuggestsVehicle } from "@/lib/guessFitment";
 import type { Metadata } from "next";
 import { cache } from "react";
 import { notFound } from "next/navigation";
@@ -124,6 +125,10 @@ export default async function ProductPage({
   if (liveFitment) {
     fitmentStatus = liveFitment.productStatus;
     variantFitmentStatuses = liveFitment.variantStatuses;
+  }
+  // No fitment saved, but the name names this car: "probably fits" (not confirmed).
+  if (selectedVehicle && (!fitmentStatus || fitmentStatus === "unverified") && nameSuggestsVehicle(product, selectedVehicle.vehicleId)) {
+    fitmentStatus = "likely";
   }
 
   // Only MIVO Direct parts carry verified fitment; other shops stay unverified.

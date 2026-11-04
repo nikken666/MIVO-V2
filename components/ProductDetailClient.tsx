@@ -531,6 +531,8 @@ export default function ProductDetailClient({
                       ? t("buy.pd.fitsYourVehicle")
                       : selectedVariantFitmentStatus === "seller-fits"
                         ? t("fit.sellerSays")
+                        : selectedVariantFitmentStatus === "likely"
+                          ? t("fit.likely")
                         : selectedVariantFitmentStatus === "not-fit"
                           ? t("buy.pd.notCompatible")
                           : selectedVehicleLabel}
@@ -540,6 +542,7 @@ export default function ProductDetailClient({
                     {selectedVariantFitmentStatus && selectedVariantFitmentStatus !== "unverified" ? (
                       <small>{selectedVehicleLabel}</small>
                     ) : null}
+                    {selectedVariantFitmentStatus === "likely" ? <small>{t("fit.likelyText")}</small> : null}
                     {selectedVariantFitmentStatus === "not-fit" && confirmedFitmentCount > 0 ? (
                       <small>
                         {t("buy.pd.compatibleOptions", { n: confirmedFitmentCount })}
