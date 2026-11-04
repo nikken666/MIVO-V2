@@ -161,6 +161,7 @@ export default function ChatWidget() {
     !open &&
     (pathname === "/checkout" ||
       pathname === "/cart" ||
+      pathname === "/login" ||
       pathname.includes("/success") ||
       /^\/products\/[^/]+/.test(pathname) ||
       pathname.startsWith("/admin") ||

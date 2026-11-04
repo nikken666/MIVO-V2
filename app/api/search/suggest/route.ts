@@ -2,22 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { getActiveProducts } from "@/lib/catalog";
 import { searchProducts } from "@/lib/search";
 import { vehicleInQuery } from "@/lib/vehicleTerms";
-import type { Product } from "@/data/products";
+import { searchShops } from "@/lib/shopSearch";
 
-// The catalogue changes rarely; keep it in memory for a minute per server.
-let cache: { at: number; products: Product[] } | null = null;
-async function catalogue() {
-  if (!cache || Date.now() - cache.at > 60_000) {
-    cache = { at: Date.now(), products: await getActiveProducts() };
-  }
-  return cache.products;
-}
 
 export async function GET(request: NextRequest) {
   const q = String(request.nextUrl.searchParams.get("q") || "").trim().slice(0, 80);
-  if (q.length < 2) return NextResponse.json({ products: [], terms: [], vehicle: null });
+  if (q.length < 2) return NextResponse.json({ products: [], terms: [], shops: [], vehicle: null });
 
-  const products = await catalogue();
+  // getActiveProducts is cached in memory for a minute (lib/catalog.ts).
+  const products = await getActiveProducts();
+  const shops = await searchShops(q, products, 2);
   const { items } = searchProducts(products, q);
   const lower = q.toLowerCase();
 
@@ -38,6 +32,7 @@ export async function GET(request: NextRequest) {
         shop: p.seller || null,
       })),
       terms,
+      shops,
       vehicle: vehicleInQuery(q),
     },
     { headers: { "Cache-Control": "public, max-age=30" } }
