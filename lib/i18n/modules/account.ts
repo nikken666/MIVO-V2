@@ -23,6 +23,7 @@ const login = {
   "account.login.signInText": ["Sign in to continue shopping with your MIVO account.", "Log masuk untuk terus membeli-belah dengan akaun MIVO anda.", "登录 MIVO 账户，继续购物。"],
   "account.login.registerText": ["One account for your orders, garage and delivery details.", "Satu akaun untuk pesanan, garaj dan butiran penghantaran anda.", "一个账户管理订单、车库和收货信息。"],
   "account.login.signInTab": ["Sign in", "Log masuk", "登录"],
+  "account.login.promoOptIn": ["Email me MIVO promotions and vouchers (stop anytime)", "E-mel promosi dan baucar MIVO kepada saya (boleh berhenti bila-bila)", "通过邮件接收 MIVO 促销和优惠券（可随时退订）"],
   "account.login.google": ["Continue with Google", "Teruskan dengan Google", "使用 Google 继续"],
   "account.login.apple": ["Continue with Apple", "Teruskan dengan Apple", "使用 Apple 继续"],
   "account.login.orEmail": ["or use your email", "atau guna e-mel anda", "或使用邮箱"],

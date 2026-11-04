@@ -67,3 +67,4 @@
   .shortcuts{grid-template-columns:1fr 1fr}
   .form{grid-template-columns:1fr}
 }
+.settingRow+.settingRow{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}

@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { stripeRequest } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { releaseOrderPayment } from "@/lib/stripe/holds";
+import { sendQueuedEmailsQuietly } from "@/lib/email/queue";
 
 type OrderRow = {
   id: string;
@@ -273,6 +274,7 @@ export async function POST(request: NextRequest) {
       .eq("id", order.id);
 
     if (updateError) throw updateError;
+    await sendQueuedEmailsQuietly();
 
     return NextResponse.json({
       refundId: refund.id,

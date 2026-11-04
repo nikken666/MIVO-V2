@@ -5,6 +5,7 @@ import {
   verifyStripeWebhookSignature,
 } from "@/lib/stripe/server";
 import { getIntent, HOLD_DAYS } from "@/lib/stripe/holds";
+import { sendQueuedEmailsQuietly } from "@/lib/email/queue";
 
 type StripeEvent = {
   id: string;
@@ -323,6 +324,9 @@ export async function POST(request: NextRequest) {
     ) {
       await applyRefundEvent(object);
     }
+
+    // Receipt / refund email queued by the database trigger: send it now.
+    await sendQueuedEmailsQuietly();
 
     await admin
       .from("payment_webhook_events")
