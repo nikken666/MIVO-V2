@@ -7,6 +7,7 @@ import { formatPrice } from "@/data/products";
 import { useT } from "@/components/LanguageProvider";
 import type { Translate } from "@/lib/i18n";
 import { friendlyError } from "@/lib/i18n/errors";
+import { celebrateClaim } from "@/lib/flyToCart";
 
 type Voucher = {
   id: string;
@@ -117,7 +118,7 @@ export default function CartVoucherStrip() {
     };
   }, []);
 
-  async function claim(voucher: Voucher) {
+  async function claim(voucher: Voucher, button?: HTMLElement) {
     setMessage("");
     setBusyId(voucher.id);
 
@@ -141,6 +142,7 @@ export default function CartVoucherStrip() {
       setClaimedIds((current) =>
         current.includes(voucher.id) ? current : [...current, voucher.id]
       );
+      celebrateClaim(button);
       setMessage(t("buy.voucher.claimedMsg", { code: voucher.code }));
     } catch (caught) {
       setMessage(
@@ -181,7 +183,7 @@ export default function CartVoucherStrip() {
               <button
                 type="button"
                 disabled={claimed || busyId === voucher.id}
-                onClick={() => void claim(voucher)}
+                onClick={(event) => void claim(voucher, event.currentTarget)}
               >
                 {claimed
                   ? t("buy.voucher.claimed")

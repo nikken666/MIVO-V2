@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { flyToCart } from "@/lib/flyToCart";
 import type { Product } from "@/data/products";
 import { formatPrice } from "@/data/products";
 import type { FitmentStatus } from "@/data/fitments";
@@ -56,6 +57,8 @@ export default function ProductCard({
   const { addToCart } = useMarketplace();
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const cardRef = useRef<HTMLElement>(null);
+  const flyFromCard = () => flyToCart(cardRef.current?.querySelector(".premiumProductImage img") || cardRef.current?.querySelector(".premiumProductImage"));
 
   const activeVariants = (product.variants || []).filter(
     (variant) => variant.isActive
@@ -132,12 +135,13 @@ export default function ProductCard({
 
   function confirmAdd() {
     addToCart(product, singleVariant, quantity);
+    flyFromCard();
     setQuickAddOpen(false);
     setQuantity(1);
   }
 
   return (
-    <article className={cardClass}>
+    <article className={cardClass} ref={cardRef}>
       <div className="productImageWrap">
       <Link href={detailHref} className={imageClass}>
         {product.imageUrl ? (
@@ -147,7 +151,21 @@ export default function ProductCard({
             image.src = product.brand === "GSP" ? "/brands/gsp-logo.svg" : "/mivo-logo-dark.svg";
             image.title = t("browse.card.photoUnavailable");
           }} />
-        ) : (
+        ) : null}
+        {/* A6: desktop hover shows the second photo */}
+        {product.imageUrl && product.imageUrls?.[1] && product.imageUrls[1] !== product.imageUrl ? (
+          <img
+            className="productAltImage"
+            src={product.imageUrls[1]}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            onError={(event) => {
+              event.currentTarget.style.display = "none";
+            }}
+          />
+        ) : null}
+        {product.imageUrl ? null : (
           <div className="productPlaceholder" aria-hidden="true">
             <span>{product.icon}</span>
             <i />
@@ -172,7 +190,10 @@ export default function ProductCard({
           <button
             type="button"
             className="productHoverAdd"
-            onClick={() => addToCart(product, singleVariant, 1)}
+            onClick={() => {
+              addToCart(product, singleVariant, 1);
+              flyFromCard();
+            }}
           >
             {t("browse.card.addToCart")}
           </button>

@@ -21,6 +21,7 @@ import ProductCard from "./ProductCard";
 import ProductVehicleSelector from "./ProductVehicleSelector";
 import { htmlToParagraphs, htmlToPlainText } from "@/lib/plainText";
 import ShopBadge, { shopHref } from "./ShopBadge";
+import { flyToCart } from "@/lib/flyToCart";
 
 function uniqueValues(values: Array<string | null | undefined>) {
   return Array.from(
@@ -312,6 +313,7 @@ export default function ProductDetailClient({
     }
 
     addToCart(product, selectedVariant, quantity);
+    flyToCart(document.querySelector(".productGalleryMain img") || document.querySelector(".productGalleryMain"));
     setQuantity(1);
   }
 

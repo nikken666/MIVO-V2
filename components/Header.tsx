@@ -125,6 +125,7 @@ export default function Header() {
 
             <Link
               href={loggedIn ? "/account" : "/login"}
+              data-voucher-target=""
               className={
                 loggedIn
                   ? "headerAction accountHeaderAction"
@@ -139,7 +140,12 @@ export default function Header() {
               </strong>
             </Link>
 
-            <Link href="/cart" className="cartAction">
+            <Link href="/cart" className="cartAction" aria-label={t("header.cart")} data-cart-target="">
+              <svg className="cartActionIcon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 4h2l2.2 10.2a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.1L20.5 8H6.2" />
+                <circle cx="9.5" cy="19.5" r="1.3" />
+                <circle cx="17" cy="19.5" r="1.3" />
+              </svg>
               <span>{t("header.cart")}</span>
               <b>{cartCount}</b>
             </Link>

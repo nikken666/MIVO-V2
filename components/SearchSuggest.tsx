@@ -39,6 +39,15 @@ export default function SearchSuggest({ inputRef }: { inputRef: React.RefObject<
   const router = useRouter();
   const [value, setValue] = useState("");
   const [open, setOpen] = useState(false);
+  // Phones: the long hint gets cut off, so show a shorter one.
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 540px)");
+    const update = () => setNarrow(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
   const [data, setData] = useState<Suggestion | null>(null);
   const [recent, setRecent] = useState<string[]>([]);
   const [highlight, setHighlight] = useState(-1);
@@ -115,7 +124,7 @@ export default function SearchSuggest({ inputRef }: { inputRef: React.RefObject<
         aria-label={t("header.search")}
         aria-expanded={open}
         aria-autocomplete="list"
-        placeholder={t("header.searchPlaceholder")}
+        placeholder={t(narrow ? "header.searchPlaceholderShort" : "header.searchPlaceholder")}
         value={value}
         onChange={(e) => {
           setValue(e.target.value);

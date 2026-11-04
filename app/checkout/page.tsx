@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import "./mobile.css";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useMarketplace } from "@/components/MarketplaceProvider";
@@ -21,6 +21,7 @@ import ShopBadge from "@/components/ShopBadge";
 import type { Translate } from "@/lib/i18n";
 import { intlTag } from "@/lib/i18n/format";
 import { friendlyError } from "@/lib/i18n/errors";
+import FreeShippingProgress from "@/components/FreeShippingProgress";
 
 type Buyer = {
   email: string;
@@ -148,10 +149,23 @@ export default function CheckoutPage() {
   const [error, setError] = useState("");
   const [savedAddress, setSavedAddress] = useState<AccountAddress | null>(null);
   const [addressExpanded, setAddressExpanded] = useState(false);
+  const [addressFilled, setAddressFilled] = useState(false);
+  const checkoutFormRef = useRef<HTMLFormElement>(null);
+  function checkAddress(form: HTMLFormElement) {
+    const value = (name: string) => String((form.elements.namedItem(name) as HTMLInputElement | null)?.value || "").trim();
+    const filled = Boolean(value("full_name") && value("phone") && value("address_line_1") && value("postcode") && value("state"));
+    setAddressFilled((current) => (current === filled ? current : filled));
+  }
   const [noteExpanded, setNoteExpanded] = useState(false);
   const [voucherExpanded, setVoucherExpanded] = useState(false);
   const [shippingState, setShippingState] = useState("");
   const [shippingPostcode, setShippingPostcode] = useState("");
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      if (checkoutFormRef.current) checkAddress(checkoutFormRef.current);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  });
   const [shippingQuotes, setShippingQuotes] = useState<ShippingQuote[]>([]);
   const [selectedCourier, setSelectedCourier] = useState("");
   // Per-shop shipping when available; null = single courier for the order (older database).
@@ -871,13 +885,22 @@ export default function CheckoutPage() {
         <div className="container checkoutTopInner">
           <Link href="/cart">{t("buy.co.backToCartArrow")}</Link>
 
-          <div className="checkoutSteps" aria-label={t("buy.co.progress")}>
-            <span className="done">{t("buy.co.stepCart")}</span>
-            <i />
-            <span className="active">{t("buy.co.stepDetails")}</span>
-            <i />
-            <span>{t("buy.co.stepOrder")}</span>
-          </div>
+          {/* A7: address → shipping → payment, filling in as each part is ready */}
+          <ol className="checkoutLiveSteps" aria-label={t("buy.co.progress")}>
+            {[
+              { label: t("buy.co.stepAddress"), done: addressFilled },
+              { label: t("buy.co.stepShipping"), done: addressFilled && Boolean(shippingQuote) },
+              { label: t("buy.co.stepPayment"), done: busy },
+            ].map((step, index, list) => {
+              const active = !step.done && list.slice(0, index).every((before) => before.done);
+              return (
+                <li key={index} className={step.done ? "done" : active ? "active" : ""} aria-current={active ? "step" : undefined}>
+                  <b>{step.done ? "✓" : index + 1}</b>
+                  <span>{step.label}</span>
+                </li>
+              );
+            })}
+          </ol>
 
           <span>{t("header.secure")}</span>
         </div>
@@ -893,7 +916,7 @@ export default function CheckoutPage() {
         </div>
 
         <div className="checkoutLayout">
-          <form className="checkoutFormCard" onSubmit={submit}>
+          <form className="checkoutFormCard" onSubmit={submit} onInput={(event) => checkAddress(event.currentTarget)} ref={checkoutFormRef}>
             <div className="checkoutSectionHead">
               <div>
                 <span>01</span>
@@ -1239,10 +1262,8 @@ export default function CheckoutPage() {
                   <strong>− {formatPrice(shippingSubsidy)}</strong>
                 </div>
               ) : null}
-              {shippingPromo && shippingQuote && !promoReached ? (
-                <p className="checkoutFreeShippingNudge">
-                  {t("buy.co.freeShippingNudge", { amount: formatPrice(Number(shippingPromo.min_spend) - subtotal) })}
-                </p>
+              {shippingPromo && shippingQuote ? (
+                <FreeShippingProgress subtotal={subtotal} promo={shippingPromo} />
               ) : null}
             </div>
 

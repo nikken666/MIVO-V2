@@ -8,6 +8,7 @@ import { useMarketplace } from "@/components/MarketplaceProvider";
 import CartVoucherStrip from "@/components/CartVoucherStrip";
 import ShopBadge, { shopHref } from "@/components/ShopBadge";
 import { useT } from "@/components/LanguageProvider";
+import FreeShippingProgress from "@/components/FreeShippingProgress";
 
 export default function CartPage() {
   const t = useT();
@@ -195,6 +196,7 @@ export default function CartPage() {
               <div><span>{t("buy.cart.subtotal")}</span><strong>{formatPrice(selectedSubtotal)}</strong></div>
               <div><span>{t("buy.cart.shipping")}</span><strong>{t("buy.cart.calcAtCheckout")}</strong></div>
             </div>
+            <FreeShippingProgress subtotal={selectedSubtotal} />
             <div className="summaryDivider" />
             <div className="modernSummaryTotal">
               <div><span>{t("buy.cart.selectedTotal")}</span><small>{t("buy.cart.beforeShipping")}</small></div>
