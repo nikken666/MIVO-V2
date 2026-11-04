@@ -67,10 +67,11 @@ export default function ProductCard({
   const activeVariants = (product.variants || []).filter(
     (variant) => variant.isActive
   );
+  // A real choice only when there is more than one option (a single
+  // "SIDE: RH" option is added straight away).
   const requiresSelection =
-    Boolean(product.variation1Name) ||
-    Boolean(product.variation2Name) ||
-    activeVariants.length > 1;
+    activeVariants.length > 1 ||
+    (activeVariants.length === 0 && (Boolean(product.variation1Name) || Boolean(product.variation2Name)));
   const singleVariant =
     activeVariants.length === 1 ? activeVariants[0] : undefined;
   const soldOut =
@@ -152,7 +153,7 @@ export default function ProductCard({
           <img src={product.imageUrl} alt={product.name} onError={(event) => {
             const image = event.currentTarget;
             image.onerror = null;
-            image.src = product.brand === "GSP" ? "/brands/gsp-logo.svg" : "/mivo-logo-dark.svg";
+            image.src = product.brand === "GSP" ? "/brands/gsp-logo.svg" : "/part-placeholder.svg";
             image.title = t("browse.card.photoUnavailable");
           }} />
         ) : null}

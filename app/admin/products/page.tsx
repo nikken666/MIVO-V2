@@ -1680,7 +1680,7 @@ export default function AdminProductsPage() {
                                     onError={(event) => {
                                       const image = event.currentTarget;
                                       image.onerror = null;
-                                      image.src = product.name.toUpperCase().startsWith("GSP ") ? "/brands/gsp-logo.svg" : "/mivo-logo.png";
+                                      image.src = product.name.toUpperCase().startsWith("GSP ") ? "/brands/gsp-logo.svg" : "/part-placeholder.svg";
                                       image.title = "Product photo unavailable";
                                     }}
                                   />

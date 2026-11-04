@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { openVehiclePicker } from "./VehiclePickerButton";
 import { useT } from "./LanguageProvider";
 import type { Key } from "@/lib/i18n";
+import BannerArt, { type BannerArtKind } from "./BannerArt";
 
 type Slide = {
   id: string;
@@ -156,6 +157,7 @@ export default function HomeBannerCarousel() {
             ) : (
               <>
                 <span className="shopSlideGlow" aria-hidden="true" />
+                <BannerArt kind={(["fitment", "brands", "warranty"].includes(slide.id) ? slide.id : "fitment") as BannerArtKind} />
                 <div className="shopSlideCopy">
                   <span className="shopSlideBadge">{text(slide, "badge") || t("browse.banner.promotion")}</span>
                   <h2>

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import EasyParcelArrange from "@/components/admin/EasyParcelArrange";
+import ShipModeTabs from "@/components/admin/ShipModeTabs";
 import { COURIERS } from "@/lib/couriers";
 import { leaveBackOffice } from "@/lib/leaveBackOffice";
 import { createClient } from "@/lib/supabase/client";
@@ -663,10 +664,9 @@ export default function AdminOrdersPage() {
               ) : null}
 
               {["paid", "processing", "packed"].includes(status) ? (
-                <EasyParcelArrange sellerOrderId={parcel.id} onDone={() => void loadOrders()} />
-              ) : null}
-
-              {["paid", "processing", "packed"].includes(status) ? (
+                <ShipModeTabs
+                  easyParcel={<EasyParcelArrange sellerOrderId={parcel.id} onDone={() => void loadOrders()} />}
+                  manual={
                 <div className={styles.adminShipForm}>
                   <label>
                     <span>Courier *</span>
@@ -709,6 +709,8 @@ export default function AdminOrdersPage() {
                     Mark shipped
                   </button>
                 </div>
+                  }
+                />
               ) : null}
 
               {status === "shipped" || status === "delivered" ? (
@@ -1041,9 +1043,15 @@ export default function AdminOrdersPage() {
                                   </button>
                                 ) : null}
 
-                                {order.parcels[0]?.id ? (
-                                  <EasyParcelArrange sellerOrderId={order.parcels[0].id} onDone={() => void loadOrders()} />
-                                ) : null}
+                                <ShipModeTabs
+                                  easyParcel={
+                                    order.parcels[0]?.id ? (
+                                      <EasyParcelArrange sellerOrderId={order.parcels[0].id} onDone={() => void loadOrders()} />
+                                    ) : (
+                                      <small>EasyParcel needs the shop parcel of this order; use “Ship myself”.</small>
+                                    )
+                                  }
+                                  manual={
                                 <div className={styles.adminShipForm}>
                                     <label>
                                       <span>Courier *</span>
@@ -1085,6 +1093,8 @@ export default function AdminOrdersPage() {
                                       Mark shipped
                                     </button>
                                   </div>
+                                  }
+                                />
                               </>
                             ) : null}
 

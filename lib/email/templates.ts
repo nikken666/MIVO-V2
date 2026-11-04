@@ -30,7 +30,7 @@ const words = {
     ms: "Bayaran anda telah diterima. Ini resit anda. Kami akan e-mel lagi apabila bungkusan dihantar.",
     zh: "我们已收到你的付款，以下是你的收据。包裹发货时我们会再通知你。",
   },
-  shippedSubject: { en: "Your parcel is on the way ({no})", ms: "Bungkusan anda dalam perjalanan ({no})", zh: "你的包裹已发货（{no}）" },
+  shippedSubject: { en: "Your parcel from {shop} is on the way ({no})", ms: "Bungkusan dari {shop} dalam perjalanan ({no})", zh: "{shop} 的包裹已发货（{no}）" },
   shippedTitle: { en: "Your parcel is on the way", ms: "Bungkusan anda dalam perjalanan", zh: "包裹已发出" },
   shippedText: {
     en: "{shop} has sent your parcel.",
@@ -40,7 +40,7 @@ const words = {
   courier: { en: "Courier", ms: "Kurier", zh: "快递" },
   tracking: { en: "Tracking number", ms: "Nombor penjejakan", zh: "运单号" },
   track: { en: "Track my parcel", ms: "Jejak bungkusan", zh: "查看物流" },
-  deliveredSubject: { en: "Delivered: order {no}", ms: "Telah dihantar: pesanan {no}", zh: "订单 {no} 已送达" },
+  deliveredSubject: { en: "Delivered: your {shop} parcel ({no})", ms: "Telah dihantar: bungkusan {shop} ({no})", zh: "{shop} 的包裹已送达（{no}）" },
   deliveredTitle: { en: "Your parcel has arrived", ms: "Bungkusan anda telah tiba", zh: "包裹已送达" },
   deliveredText: {
     en: "Your parcel from {shop} was delivered. Everything OK? Confirm you received it and leave a review – it helps other drivers.",
@@ -232,7 +232,7 @@ export function parcelEmail(site: string, l: Lang, kind: "shipped" | "delivered"
       : "") +
     itemsTable(p.items, l);
   return {
-    subject: w(shipped ? "shippedSubject" : "deliveredSubject", l, { no: p.orderNumber }),
+    subject: w(shipped ? "shippedSubject" : "deliveredSubject", l, { no: p.orderNumber, shop: p.shop }),
     html: layout({
       site, l, preheader: text, title, name: p.name, bodyHtml: body,
       button: shipped ? { text: w("track", l), url: trackUrl } : { text: w("review", l), url: orderUrl },

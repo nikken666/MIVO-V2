@@ -24,7 +24,8 @@ function bestDeal(product: Product): Deal | null {
       compareAt: Number(variant.compareAtPrice || 0),
       stock: typeof variant.stock === "number" ? variant.stock : null,
     }))
-    .filter((item) => item.compareAt > item.price);
+    // Sold-out options never headline a deal ("Only 0 left").
+    .filter((item) => item.compareAt > item.price && (item.stock === null || item.stock > 0));
 
   if (!candidates.length) return null;
 
