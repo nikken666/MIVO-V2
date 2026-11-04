@@ -11,6 +11,7 @@ const VARIATION_ID = /^(变种|规格|变体)\s*ID$|^variation\s*id$|^model\s*id
 const PROMO = /促销价|活动价|折扣价|promotion\s*price|promo\s*price|discount(ed)?\s*price|campaign\s*price/i;
 const PRICE = /^(价格|售价|原价)$|^price$|^original\s*price$/i;
 const SKU = /^sku$/i;
+const ITEM_ID = /^item\s*id$|^(商品|产品)\s*ID$/i;
 
 function headerRow(table: Table) {
   for (let i = 0; i < Math.min(table.rows.length, 6); i++) {
@@ -18,7 +19,14 @@ function headerRow(table: Table) {
     const vid = cells.findIndex((c) => VARIATION_ID.test(c));
     const promo = cells.findIndex((c) => PROMO.test(c));
     if (vid >= 0 && promo >= 0) {
-      return { index: i, vid, promo, price: cells.findIndex((c) => PRICE.test(c)), sku: cells.findIndex((c) => SKU.test(c)) };
+      return {
+        index: i,
+        vid,
+        promo,
+        price: cells.findIndex((c) => PRICE.test(c)),
+        sku: cells.findIndex((c) => SKU.test(c)),
+        item: cells.findIndex((c) => ITEM_ID.test(c)),
+      };
     }
   }
   return null;
@@ -39,6 +47,8 @@ export function parsePriceTables(tables: Table[]) {
   const byVariationId = new Map<string, BigSellerPrice>();
   const skuCount = new Map<string, number>();
   const bySku = new Map<string, BigSellerPrice>();
+  // Shopee Item IDs in the file: BigSeller's "Online products" are the listings on sale.
+  const itemIds = new Set<string>();
   let rows = 0;
   for (const table of tables) {
     const h = headerRow(table);
@@ -46,6 +56,8 @@ export function parsePriceTables(tables: Table[]) {
     for (const row of table.rows.slice(h.index + 1)) {
       const variationId = id(row[h.vid]);
       const sku = h.sku >= 0 ? String(row[h.sku] ?? "").trim().toUpperCase() : "";
+      const itemId = h.item >= 0 ? id(row[h.item]) : "";
+      if (itemId) itemIds.add(itemId);
       const entry = { original: h.price >= 0 ? money(row[h.price]) : null, promo: money(row[h.promo]), sku };
       if (!variationId && !sku) continue;
       rows++;
@@ -58,7 +70,7 @@ export function parsePriceTables(tables: Table[]) {
   }
   // A SKU is only used to match when it appears once (Shopee allows repeats).
   for (const [sku, n] of skuCount) if (n > 1) bySku.delete(sku);
-  return { rows, byVariationId, bySku };
+  return { rows, byVariationId, bySku, itemIds };
 }
 
 export type PriceList = ReturnType<typeof parsePriceTables>;
