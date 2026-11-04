@@ -5,8 +5,10 @@ import { createClient } from "@/lib/supabase/client";
 
 // Google's own sign-in button (Google Identity Services). The account chooser then
 // names this website instead of the Supabase address, and nothing leaves the page.
-// Needs NEXT_PUBLIC_GOOGLE_CLIENT_ID (the same Client ID that is in Supabase).
-const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() || "";
+// Uses the same Client ID that is in Supabase (Google project "MIVO"). It is public
+// (every visitor's browser sees it); NEXT_PUBLIC_GOOGLE_CLIENT_ID overrides it.
+const MIVO_GOOGLE_CLIENT_ID = "278353123157-8or8ueaj2sd2539060ehtvsjlro9od0v.apps.googleusercontent.com";
+const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() || MIVO_GOOGLE_CLIENT_ID;
 
 type GoogleId = {
   initialize: (options: Record<string, unknown>) => void;
