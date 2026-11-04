@@ -9,6 +9,7 @@ type Status = {
   configured: boolean;
   from: string | null;
   instant: boolean;
+  smtp?: { host: string; port: number; user: string | null; passLength: number; passLooksLikeAppPassword: boolean; vercelEnv: string | null };
   dailyLimit: number;
   tablesReady: boolean;
   pending: number | null;
@@ -108,6 +109,21 @@ export default function AdminEmailsPage() {
     }
   }
 
+  async function verify() {
+    setBusy("verify");
+    setError("");
+    setMessage("");
+    try {
+      const result = await post("verify");
+      if (result.ok) setMessage("Gmail accepted the login. Emails can be sent.");
+      else setError("Gmail refused the login: " + result.error);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : String(caught));
+    } finally {
+      setBusy("");
+    }
+  }
+
   async function retry() {
     setBusy("process");
     setError("");
@@ -168,6 +184,25 @@ export default function AdminEmailsPage() {
                   </button>
                 ) : null}
               </div>
+            </div>
+          ) : null}
+
+          {status?.smtp ? (
+            <div className={css.check}>
+              <span>Mail login</span>
+              <b>{status.smtp.user || "SMTP_USER missing"}</b>
+              <span>
+                Password: {status.smtp.passLength} characters
+                {status.smtp.passLength
+                  ? status.smtp.passLooksLikeAppPassword
+                    ? " · looks like a Gmail App Password ✓"
+                    : " · not a Gmail App Password (should be 16 letters)"
+                  : " · SMTP_PASS missing"}
+              </span>
+              <span>Vercel: {status.smtp.vercelEnv || "local"} · {status.smtp.host}:{status.smtp.port}</span>
+              <button type="button" onClick={() => void verify()} disabled={Boolean(busy)}>
+                {busy === "verify" ? "Checking…" : "Check Gmail login"}
+              </button>
             </div>
           ) : null}
 

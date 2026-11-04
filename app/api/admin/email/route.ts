@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { emailConfigured, sendMail, siteUrl } from "@/lib/email/mailer";
+import { emailConfigured, sendMail, siteUrl, smtpDiagnostics, verifySmtp } from "@/lib/email/mailer";
 import { processEmailQueue, unsubscribeToken } from "@/lib/email/queue";
 import { campaignEmail, lang, type Campaign } from "@/lib/email/templates";
 
@@ -67,7 +67,8 @@ export async function GET() {
 
   return NextResponse.json({
     configured: emailConfigured(),
-    from: process.env.EMAIL_FROM || process.env.SMTP_USER || null,
+    from: process.env.EMAIL_FROM || smtpDiagnostics().user,
+    smtp: smtpDiagnostics(),
     instant: Boolean(process.env.EMAIL_QUEUE_SECRET),
     dailyLimit: Number(process.env.EMAIL_DAILY_LIMIT || 450),
     tablesReady: pending !== null,
@@ -91,6 +92,15 @@ export async function POST(request: NextRequest) {
       const result = await processEmailQueue({ limit: 25, deadlineMs: 45_000 });
       const { count } = await admin.from("email_queue").select("id", { count: "exact", head: true }).in("status", ["pending", "sending"]);
       return NextResponse.json({ ...result, remaining: count || 0 });
+    }
+
+    if (body.action === "verify") {
+      try {
+        await verifySmtp();
+        return NextResponse.json({ ok: true });
+      } catch (caught) {
+        return NextResponse.json({ ok: false, error: caught instanceof Error ? caught.message : String(caught), smtp: smtpDiagnostics() });
+      }
     }
 
     const campaign = cleanCampaign(body.campaign);

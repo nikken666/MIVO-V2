@@ -39,3 +39,6 @@
   .preview{position:static}
   .row{grid-template-columns:1fr}
 }
+.check{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;margin:0 0 14px;padding:12px 16px;border:1px dashed #d9dcde;border-radius:14px;background:#fafbfc;font-size:13px}
+.check span{color:#6b7075}
+.check button{margin-left:auto;padding:7px 14px;border:1px solid #0071e3;border-radius:999px;background:#fff;color:#0071e3;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
