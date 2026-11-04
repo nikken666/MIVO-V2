@@ -9,6 +9,9 @@ import { friendlyError } from "@/lib/i18n/errors";
 
 type Mode = "login" | "register";
 
+// Apple sign-in needs an Apple Developer account. Set NEXT_PUBLIC_APPLE_SIGN_IN=on in Vercel to show it.
+const APPLE_SIGN_IN = process.env.NEXT_PUBLIC_APPLE_SIGN_IN === "on";
+
 export default function LoginPage() {
   const router = useRouter();
   const t = useT();
@@ -178,6 +181,7 @@ export default function LoginPage() {
               </svg>
               {socialBusy === "google" ? t("account.login.pleaseWait") : t("account.login.google")}
             </button>
+            {APPLE_SIGN_IN ? (
             <button
               type="button"
               className="mivoSocialButton apple"
@@ -189,6 +193,7 @@ export default function LoginPage() {
               </svg>
               {socialBusy === "apple" ? t("account.login.pleaseWait") : t("account.login.apple")}
             </button>
+            ) : null}
             <small>{t("account.login.socialNote")}</small>
             <div className="mivoAuthDivider"><span>{t("account.login.orEmail")}</span></div>
           </div>

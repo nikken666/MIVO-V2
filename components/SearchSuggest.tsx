@@ -5,10 +5,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { formatPrice } from "@/data/products";
 import { useT } from "./LanguageProvider";
 import { openVehiclePicker } from "./VehiclePickerButton";
+import ShopBadge, { type ShopTier } from "./ShopBadge";
 
 type Suggestion = {
   products: Array<{ name: string; slug: string; image: string | null; price: number; shop: string | null }>;
   terms: string[];
+  shops?: Array<{ id: string; name: string; href: string; logoUrl: string | null; tier: ShopTier; products: number }>;
   vehicle: { make: string; model: string | null } | null;
 };
 
@@ -95,8 +97,9 @@ export default function SearchSuggest({ inputRef }: { inputRef: React.RefObject<
   }
 
   const q = value.trim();
-  const rows: Array<{ kind: "query" | "term" | "recent" | "product"; label: string; href?: string }> = [];
+  const rows: Array<{ kind: "query" | "term" | "recent" | "product" | "shop"; label: string; href?: string }> = [];
   if (q.length >= 2) {
+    (data?.shops || []).forEach((shop) => rows.push({ kind: "shop", label: shop.name, href: shop.href }));
     (data?.terms || []).forEach((term) => rows.push({ kind: "term", label: term }));
     (data?.products || []).forEach((p) => rows.push({ kind: "product", label: p.name, href: "/products/" + p.slug }));
   } else {
@@ -219,6 +222,29 @@ export default function SearchSuggest({ inputRef }: { inputRef: React.RefObject<
             <>
               {rows.map((row, i) => {
                 const product = row.kind === "product" ? data?.products.find((p) => p.name === row.label) : null;
+                const shop = row.kind === "shop" ? data?.shops?.find((item) => item.href === row.href) : null;
+                if (shop) {
+                  return (
+                    <button
+                      type="button"
+                      key={"shop" + shop.id}
+                      className={"searchSuggestRow shop" + (i === highlight ? " active" : "")}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => choose(i)}
+                    >
+                      <span className="searchSuggestShopAvatar" aria-hidden="true">
+                        {shop.logoUrl ? <img src={shop.logoUrl} alt="" /> : shop.name.slice(0, 1)}
+                      </span>
+                      <span className="searchSuggestText">
+                        <strong>
+                          {shop.name} <ShopBadge tier={shop.tier} />
+                        </strong>
+                        <small>{t("search.shopProducts", { n: shop.products })}</small>
+                      </span>
+                      <span className="searchSuggestShopGo">{t("search.viewShop")}</span>
+                    </button>
+                  );
+                }
                 return (
                   <button
                     type="button"

@@ -16,6 +16,8 @@ import { searchProducts } from "@/lib/search";
 import { vehicleInQuery } from "@/lib/vehicleTerms";
 import SearchVehicleHint from "@/components/SearchVehicleHint";
 import { getT } from "@/lib/i18n/server";
+import { searchShops } from "@/lib/shopSearch";
+import ShopBadge from "@/components/ShopBadge";
 import type { Key, Translate } from "@/lib/i18n";
 
 
@@ -162,6 +164,8 @@ export default async function ProductsPage({
     : null;
 
   const products = await productsPromise;
+  // Shopee-style: shops whose name matches the search sit above the products.
+  const shopHits = rawQuery ? await searchShops(rawQuery, products, 3) : [];
   const representedBrands = [
     { name: "NIKKEN", category: t("browse.brands.nikken.range"), logo: "/brands/nikken-logo.svg", slug: "nikken", intro: "NIKKEN focuses on key automotive replacement components for everyday vehicles.", about: t("browse.brands.nikken.about") },
     { name: "KYB", category: t("browse.brands.kyb.range"), logo: "/brands/kyb-logo.svg", slug: "kyb", intro: "KYB focuses on suspension and ride-control components for passenger vehicles.", about: t("browse.brands.kyb.about") },
@@ -362,6 +366,26 @@ export default async function ProductsPage({
         </div>
       </div>
       )}
+
+      {view !== "brands" && shopHits.length ? (
+        <section className="searchShopStrip" aria-label={t("search.shopsFor", { q: rawQuery })}>
+          <h2>{t("search.shopsFor", { q: rawQuery })}</h2>
+          <div className="searchShopCards">
+            {shopHits.map((shop) => (
+              <a key={shop.id} href={shop.href} className="searchShopCard">
+                <span className="searchShopAvatar" aria-hidden="true">
+                  {shop.logoUrl ? <img src={shop.logoUrl} alt="" /> : shop.name.slice(0, 1)}
+                </span>
+                <span className="searchShopInfo">
+                  <strong>{shop.name} <ShopBadge tier={shop.tier} /></strong>
+                  <small>{shop.tagline || t("search.shopProducts", { n: shop.products })}</small>
+                </span>
+                <span className="searchShopVisit">{t("search.visitShop")} ›</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {view === "brands" ? null : (
         <>

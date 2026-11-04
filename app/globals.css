@@ -11354,3 +11354,26 @@ button.shopChip{font:inherit;cursor:pointer}
 .mivoSocialButton:disabled{opacity:.6;cursor:default}
 .mivoAuthDivider{display:flex;align-items:center;gap:12px;margin:6px 0 2px;color:#8a9095;font-size:12px}
 .mivoAuthDivider::before,.mivoAuthDivider::after{content:"";flex:1;height:1px;background:#e5e7e8}
+
+/* Search: shops whose name matches (Shopee-style) */
+.searchSuggestRow.shop{display:flex;align-items:center;gap:10px}
+.searchSuggestShopAvatar,.searchShopAvatar{display:grid;place-items:center;flex:0 0 auto;width:36px;height:36px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#0a5cff,#3d8bff);color:#fff;font-weight:700}
+.searchSuggestShopAvatar img,.searchShopAvatar img{width:100%;height:100%;object-fit:cover}
+.searchSuggestRow.shop .searchSuggestText{flex:1;min-width:0}
+.searchSuggestRow.shop strong{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.searchSuggestShopGo{flex:0 0 auto;white-space:nowrap;padding:4px 10px;border:1px solid var(--accent,#0071e3);border-radius:999px;color:var(--accent,#0071e3);font-size:12px;font-weight:600}
+.searchShopStrip{margin:0 0 18px}
+.searchShopStrip h2{margin:0 0 10px;font-size:14px;font-weight:600;color:#6b7075}
+.searchShopCards{display:grid;gap:10px}
+.searchShopCard{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid #e6e8ea;border-radius:16px;background:#fff;color:inherit;text-decoration:none;transition:box-shadow .2s,transform .2s}
+.searchShopCard:hover{box-shadow:0 10px 26px rgba(0,0,0,.07);transform:translateY(-1px)}
+.searchShopCard .searchShopAvatar{width:52px;height:52px;font-size:20px}
+.searchShopInfo{flex:1;min-width:0;display:grid;gap:3px}
+.searchShopInfo strong{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:16px}
+.searchShopInfo small{color:#7b8084;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.searchShopVisit{flex:0 0 auto;white-space:nowrap;padding:8px 14px;border:1px solid var(--accent,#0071e3);border-radius:999px;color:var(--accent,#0071e3);font-size:13px;font-weight:600}
+@media(max-width:540px){
+  .searchShopCard{padding:12px;gap:10px}
+  .searchShopCard .searchShopAvatar{width:44px;height:44px}
+  .searchShopVisit{padding:6px 10px;font-size:12px}
+}
