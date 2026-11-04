@@ -89,6 +89,8 @@ export default function ShopeeImportPage() {
   const [shopIndex, setShopIndex] = useState<ShopIndex | null>(null);
   const [updateExisting, setUpdateExisting] = useState(true);
   const [updateStock, setUpdateStock] = useState(false);
+  // With BigSeller files: only Shopee listings that are in them (= on sale in Shopee).
+  const [onlyListed, setOnlyListed] = useState(true);
 
   const [shopId, setShopId] = useState("");
   const [status, setStatus] = useState<"draft" | "active">("draft");
@@ -270,11 +272,18 @@ export default function ShopeeImportPage() {
   const plan = useMemo(
     () =>
       products.map((product) => {
+        // Not in the BigSeller "Online products" files: sold out or delisted in Shopee.
+        const notListed = Boolean(
+          onlyListed && priceList?.itemIds.size && !(product.productId && priceList.itemIds.has(String(product.productId).trim()))
+        );
+        if (notListed) {
+          return { product, brandId: null, categoryId: "", skip: false, outOfStock: false, newVariants: [] as ImportProduct["variants"], existing: null, update: null, notListed };
+        }
         // Already in the shop (same Shopee Item ID, or same unique name): update it.
         const existing = matches.get(product.key) || null;
         if (existing && shopIndex) {
           const update = planUpdate(shopIndex, existing, product, { stock: updateStock });
-          return { product, brandId: null, categoryId: "", skip: false, outOfStock: false, newVariants: [] as ImportProduct["variants"], existing, update };
+          return { product, brandId: null, categoryId: "", skip: false, outOfStock: false, newVariants: [] as ImportProduct["variants"], existing, update, notListed: false };
         }
         const notInShop = skipExisting ? product.variants.filter((v) => !existingSkus.has(v.sku)) : product.variants;
         // Options with no stock aren't listed (stock not given counts as in stock).
@@ -284,9 +293,9 @@ export default function ShopeeImportPage() {
           categoryOverride[product.key] || guessCategoryId(product, categories) || defaultCategoryId;
         const skip = product.variants.length > 0 && notInShop.length === 0;
         const outOfStock = !skip && notInShop.length > 0 && newVariants.length === 0;
-        return { product, brandId, categoryId, skip, outOfStock, newVariants, existing: null, update: null };
+        return { product, brandId, categoryId, skip, outOfStock, newVariants, existing: null, update: null, notListed: false };
       }),
-    [products, existingSkus, brands, categories, defaultCategoryId, categoryOverride, onlyInStock, skipExisting, shopIndex, updateStock, matches]
+    [products, existingSkus, brands, categories, defaultCategoryId, categoryOverride, onlyInStock, skipExisting, shopIndex, updateStock, matches, onlyListed, priceList]
   );
 
   // Only a BigSeller file uploaded: update prices of options the shop already has.
@@ -307,8 +316,8 @@ export default function ShopeeImportPage() {
   const shown = useMemo(() => {
     const words = search.toLowerCase().split(/\s+/).filter(Boolean);
     const cap = Number(maxStock);
-    return plan.filter(({ product, skip }) => {
-      if (skip) return false;
+    return plan.filter(({ product, skip, notListed }) => {
+      if (skip || notListed) return false;
       const leaf = (product.shopeeCategory.split("/").pop() || "").trim() || "(none)";
       if (shopeeCat && leaf !== shopeeCat) return false;
       if (Number.isFinite(cap) && maxStock !== "" && product.variants.every((v) => (v.stock ?? 0) > cap)) return false;
@@ -319,7 +328,7 @@ export default function ShopeeImportPage() {
   }, [plan, search, shopeeCat, maxStock]);
 
   const importable = plan.filter(
-    (row) => !row.existing && !row.skip && !row.outOfStock && !row.product.errors.length && row.categoryId && !unticked.has(row.product.key)
+    (row) => !row.notListed && !row.existing && !row.skip && !row.outOfStock && !row.product.errors.length && row.categoryId && !unticked.has(row.product.key)
   );
   const updatable = plan.filter(
     (row) => row.existing && row.update && !unticked.has(row.product.key) && (row.update.changes.length || row.update.productRef)
@@ -329,10 +338,11 @@ export default function ShopeeImportPage() {
   const summary = {
     products: products.length,
     variants: products.reduce((n, p) => n + p.variants.length, 0),
-    errors: plan.filter((row) => row.product.errors.length).length,
+    errors: plan.filter((row) => !row.notListed && !row.existing && row.product.errors.length).length,
     skipped: plan.filter((row) => row.skip).length,
+    notListed: plan.filter((row) => row.notListed).length,
     upToDate: plan.filter((row) => row.existing && row.update && !row.update.changes.length && !row.update.productRef).length,
-    noCategory: plan.filter((row) => !row.categoryId).length,
+    noCategory: plan.filter((row) => !row.notListed && !row.existing && !row.categoryId).length,
     outOfStock: plan.filter((row) => row.outOfStock).length,
     unticked: plan.filter((row) => unticked.has(row.product.key)).length,
   };
@@ -543,7 +553,7 @@ export default function ShopeeImportPage() {
                   <p className={styles.importPriceNote}>
                     <b>BigSeller prices</b> · {priceSummary.files.join(", ")} · {priceSummary.rows} options
                     {products.length
-                      ? ` · used for ${priceSummary.matched} Shopee options · ${priceSummary.discounted} get the discount price`
+                      ? ` · ${priceList?.itemIds.size ?? 0} listings on sale · used for ${priceSummary.matched} Shopee options · ${priceSummary.discounted} get the discount price`
                       : ""}
                   </p>
                 ) : null}
@@ -626,6 +636,12 @@ export default function ShopeeImportPage() {
                       <input type="checkbox" checked={onlyInStock} onChange={(e) => setOnlyInStock(e.target.checked)} disabled={running} />
                       Skip options with 0 stock
                     </label>
+                    {priceList?.itemIds.size ? (
+                      <label className={styles.importCheck}>
+                        <input type="checkbox" checked={onlyListed} onChange={(e) => setOnlyListed(e.target.checked)} disabled={running} />
+                        Only listings in the BigSeller file(s) – on sale in Shopee ({summary.notListed} sold out / delisted left out)
+                      </label>
+                    ) : null}
                     <label className={styles.importCheck}>
                       <input type="checkbox" checked={updateExisting} onChange={(e) => setUpdateExisting(e.target.checked)} disabled={running} />
                       Update products already in this shop (price{updateStock ? " + stock" : ""})
