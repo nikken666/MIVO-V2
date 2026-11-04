@@ -8,6 +8,8 @@ type VariantInput = {
   variation_2_value: string | null;
   sku: string;
   price: number;
+  compare_at_price?: number | null;
+  external_ref?: string | null;
   stock_on_hand: number;
   weight_kg: number;
   length_cm: number;
@@ -30,10 +32,15 @@ type Body = {
     variation_1_name: string | null;
     variation_2_name: string | null;
     status: "draft" | "active";
+    external_ref?: string | null;
   };
   variants?: VariantInput[];
   images?: string[];
 };
+
+// external_ref comes from supabase/shopee-sync.sql; older databases don't have it.
+const missingColumn = (e: { code?: string; message?: string } | null) =>
+  Boolean(e && (e.code === "42703" || e.code === "PGRST204" || /external_ref/.test(e.message || "")));
 
 const isUnique = (e: { code?: string; message?: string } | null) =>
   Boolean(e && (e.code === "23505" || /duplicate key|unique/i.test(e.message || "")));
@@ -84,34 +91,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ skipped: true, reason: "All SKUs are already in this shop." });
     }
 
-    const { data: created, error: productError } = await admin
-      .from("products")
-      .insert({
-        seller_id: shopId,
-        category_id: product.category_id,
-        brand_id: product.brand_id,
-        name: product.name.trim().slice(0, 300),
-        slug: product.slug,
-        short_description: null,
-        description: product.description,
-        primary_image_url: product.primary_image_url,
-        warranty_months: Math.max(0, Math.round(Number(product.warranty_months) || 0)),
-        variation_1_name: product.variation_1_name,
-        variation_2_name: product.variation_2_name,
-        is_universal_fitment: false,
-        restricted_shipping_states: [],
-        status: product.status === "active" ? "active" : "draft",
-        published_at: product.status === "active" ? new Date().toISOString() : null,
-        created_by: user.id,
-      })
-      .select("id")
-      .single();
+    const productRow: Record<string, unknown> = {
+      seller_id: shopId,
+      category_id: product.category_id,
+      brand_id: product.brand_id,
+      name: product.name.trim().slice(0, 300),
+      slug: product.slug,
+      short_description: null,
+      description: product.description,
+      primary_image_url: product.primary_image_url,
+      warranty_months: Math.max(0, Math.round(Number(product.warranty_months) || 0)),
+      variation_1_name: product.variation_1_name,
+      variation_2_name: product.variation_2_name,
+      is_universal_fitment: false,
+      restricted_shipping_states: [],
+      status: product.status === "active" ? "active" : "draft",
+      published_at: product.status === "active" ? new Date().toISOString() : null,
+      created_by: user.id,
+    };
+    if (product.external_ref) productRow.external_ref = String(product.external_ref).slice(0, 120);
+    let withRefs = Boolean(product.external_ref);
+    let { data: created, error: productError } = await admin.from("products").insert(productRow).select("id").single();
+    if (missingColumn(productError)) {
+      withRefs = false;
+      delete productRow.external_ref;
+      ({ data: created, error: productError } = await admin.from("products").insert(productRow).select("id").single());
+    }
     if (productError || !created) throw productError || new Error("Product not created.");
+    const productId = created.id as string;
 
     try {
-      const rows = () =>
+      const rows = (refs: boolean) =>
         fresh.map((v, index) => ({
-          product_id: created.id,
+          product_id: productId,
           seller_id: shopId,
           sort_order: index,
           title: v.title || "Default",
@@ -119,7 +131,9 @@ export async function POST(request: NextRequest) {
           variation_2_value: v.variation_2_value,
           sku: String(v.sku).trim().slice(0, 120),
           price: Math.max(0, Number(v.price) || 0),
-          compare_at_price: null,
+          compare_at_price:
+            v.compare_at_price && Number(v.compare_at_price) > Number(v.price) ? Number(v.compare_at_price) : null,
+          ...(refs && v.external_ref ? { external_ref: String(v.external_ref).slice(0, 120) } : {}),
           stock_on_hand: Math.max(0, Math.round(Number(v.stock_on_hand) || 0)),
           stock_reserved: 0,
           low_stock_threshold: 5,
@@ -130,7 +144,8 @@ export async function POST(request: NextRequest) {
           variant_image_url: v.variant_image_url,
           is_active: true,
         }));
-      const { error: variantError } = await admin.from("product_variants").insert(rows());
+      let { error: variantError } = await admin.from("product_variants").insert(rows(withRefs));
+      if (withRefs && missingColumn(variantError)) ({ error: variantError } = await admin.from("product_variants").insert(rows(false)));
       if (isUnique(variantError)) {
         throw new Error(
           "The database only allows one of each SKU per shop. Run supabase/RUN-NEW.sql to allow repeated SKUs. (" + (variantError?.message || "") + ")"
@@ -141,7 +156,7 @@ export async function POST(request: NextRequest) {
       if (images.length) {
         const { error: imageError } = await admin.from("product_images").insert(
           images.slice(0, 9).map((image_url, sort_order) => ({
-            product_id: created.id,
+            product_id: productId,
             image_url,
             alt_text: product.name.slice(0, 200),
             sort_order,
@@ -151,11 +166,11 @@ export async function POST(request: NextRequest) {
       }
     } catch (inner) {
       // Roll back the half-created product so a re-run starts clean.
-      await admin.from("products").delete().eq("id", created.id);
+      await admin.from("products").delete().eq("id", productId);
       throw inner;
     }
 
-    return NextResponse.json({ id: created.id, imported: fresh.length, leftOut: variants.length - fresh.length });
+    return NextResponse.json({ id: productId, imported: fresh.length, leftOut: variants.length - fresh.length });
   } catch (caught) {
     const e = caught as { message?: string; code?: string; details?: string };
     return NextResponse.json(

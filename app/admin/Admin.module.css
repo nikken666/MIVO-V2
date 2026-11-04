@@ -7448,3 +7448,5 @@ span.adminPanelKicker{font-size:12px!important;letter-spacing:normal!important}
 @media(max-width:420px){
   .todoGrid{grid-template-columns:1fr}
 }
+.importPriceNote{margin:10px 0 0;padding:10px 14px;border-radius:12px;background:#eef6ff;color:#1d4f91;font-size:13px;line-height:1.5}
+.importPriceNote small{display:block;margin-top:6px;color:#5b6b80}
