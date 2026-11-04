@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { stripeRequest } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -274,7 +274,8 @@ export async function POST(request: NextRequest) {
       .eq("id", order.id);
 
     if (updateError) throw updateError;
-    await sendQueuedEmailsQuietly();
+    // After the reply: a slow or refused mail login never holds up the payment.
+    after(() => sendQueuedEmailsQuietly());
 
     return NextResponse.json({
       refundId: refund.id,

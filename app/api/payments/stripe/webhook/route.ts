@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   stripeRequest,
@@ -326,7 +326,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Receipt / refund email queued by the database trigger: send it now.
-    await sendQueuedEmailsQuietly();
+    // After the reply: a slow or refused mail login never holds up the payment.
+    after(() => sendQueuedEmailsQuietly());
 
     await admin
       .from("payment_webhook_events")

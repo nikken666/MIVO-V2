@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { emailConfigured, sendMail, siteUrl } from "./mailer";
+import { emailConfigured, isAuthError, sendMail, siteUrl, smtpPaused } from "./mailer";
 import {
   campaignEmail,
   cancelledEmail,
@@ -141,9 +141,14 @@ async function build(admin: Admin, row: QueueRow) {
 }
 
 /** Send what is waiting in email_queue. Safe to call from many places at once. */
-export async function processEmailQueue(options: { limit?: number; deadlineMs?: number } = {}) {
-  const result = { sent: 0, failed: 0, skipped: 0, configured: emailConfigured() };
+export async function processEmailQueue(options: { limit?: number; deadlineMs?: number; ignorePause?: boolean } = {}) {
+  const result = { sent: 0, failed: 0, skipped: 0, configured: emailConfigured(), paused: false };
   if (!result.configured) return result;
+  // The mail login failed recently: leave everything waiting (nothing is lost).
+  if (smtpPaused() && !options.ignorePause) {
+    result.paused = true;
+    return result;
+  }
   const admin = createAdminClient();
   const stopAt = Date.now() + (options.deadlineMs ?? 40_000);
 
@@ -162,8 +167,9 @@ export async function processEmailQueue(options: { limit?: number; deadlineMs?: 
   if (error) throw error;
 
   let campaignBudget = campaignsAllowed;
+  let loginRefused = false;
   for (const row of (data || []) as QueueRow[]) {
-    if (Date.now() > stopAt || (row.kind === "campaign" && campaignBudget <= 0)) {
+    if (loginRefused || Date.now() > stopAt || (row.kind === "campaign" && campaignBudget <= 0)) {
       await admin.from("email_queue").update({ status: "pending", attempts: Math.max(0, row.attempts - 1) }).eq("id", row.id);
       continue;
     }
@@ -180,6 +186,13 @@ export async function processEmailQueue(options: { limit?: number; deadlineMs?: 
       result.sent++;
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : String(caught);
+      if (isAuthError(caught)) {
+        // Not this email's fault: keep it waiting and stop the batch.
+        loginRefused = true;
+        result.paused = true;
+        await admin.from("email_queue").update({ status: "pending", attempts: Math.max(0, row.attempts - 1), last_error: message.slice(0, 500) }).eq("id", row.id);
+        continue;
+      }
       await admin.from("email_queue").update({ status: "failed", last_error: message.slice(0, 500) }).eq("id", row.id);
       result.failed++;
     }
