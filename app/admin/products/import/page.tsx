@@ -13,6 +13,19 @@ import {
   type ImportProduct,
   type Table,
 } from "@/lib/shopeeImport";
+import { applyPriceList, isPriceTable, parsePriceTables, type PriceList } from "@/lib/bigsellerPrices";
+import {
+  buildShopIndex,
+  matchProducts,
+  planPriceListOnly,
+  planUpdate,
+  productRef,
+  variantRef,
+  type ShopIndex,
+  type ShopProduct,
+  type ShopVariant,
+  type VariantChange,
+} from "@/lib/shopeeSync";
 import styles from "../../Admin.module.css";
 import ui from "../../store-health/StoreHealth.module.css";
 import AdminSidebar from "@/components/admin/AdminSidebar";
@@ -69,6 +82,13 @@ export default function ShopeeImportPage() {
   // Shopee, even if the shop already has them (same SKU = shared stock).
   // On: leave out SKUs the shop already has.
   const [skipExisting, setSkipExisting] = useState(false);
+  // BigSeller "Online products" file: discount prices (促销价) per Shopee option.
+  const [priceList, setPriceList] = useState<PriceList | null>(null);
+  const [priceSummary, setPriceSummary] = useState<{ files: string[]; rows: number; matched: number; discounted: number } | null>(null);
+  // What the shop already has, so a second import updates instead of copying.
+  const [shopIndex, setShopIndex] = useState<ShopIndex | null>(null);
+  const [updateExisting, setUpdateExisting] = useState(true);
+  const [updateStock, setUpdateStock] = useState(false);
 
   const [shopId, setShopId] = useState("");
   const [status, setStatus] = useState<"draft" | "active">("draft");
@@ -127,25 +147,51 @@ export default function ShopeeImportPage() {
     })();
   }, []);
 
-  // SKUs that already exist in the chosen shop are skipped (safe re-runs).
+  // The chosen shop's products and options: SKUs (optional skip) and the
+  // index used to update listings that were imported before.
   useEffect(() => {
     if (!shopId) return;
+    let cancelled = false;
+    setShopIndex(null);
     (async () => {
       const client = createClient();
-      const skus = new Set<string>();
-      for (let from = 0; ; from += 1000) {
-        const { data, error: skuError } = await client
-          .from("product_variants")
-          .select("sku")
-          .eq("seller_id", shopId)
-          .order("id")
-          .range(from, from + 999);
-        if (skuError) break;
-        for (const row of (data || []) as Array<{ sku: string }>) skus.add(String(row.sku).toUpperCase());
-        if (!data || data.length < 1000) break;
+      async function pages<T>(table: string, columns: string, fallback: string): Promise<T[]> {
+        const out: T[] = [];
+        let cols = columns;
+        for (let from = 0; ; from += 1000) {
+          const { data, error: pageError } = await client.from(table).select(cols).eq("seller_id", shopId).order("id").range(from, from + 999);
+          if (pageError && cols !== fallback) {
+            // Database without supabase/shopee-sync.sql: no external_ref column yet.
+            cols = fallback;
+            from -= 1000;
+            continue;
+          }
+          if (pageError) break;
+          out.push(...((data || []) as unknown as T[]));
+          if (!data || data.length < 1000) break;
+        }
+        return out;
       }
-      setExistingSkus(skus);
+      const [shopProducts, shopVariants] = await Promise.all([
+        pages<ShopProduct>("products", "id, name, external_ref", "id, name"),
+        pages<ShopVariant>(
+          "product_variants",
+          "id, product_id, sku, variation_1_value, variation_2_value, price, compare_at_price, stock_on_hand, external_ref",
+          "id, product_id, sku, variation_1_value, variation_2_value, price, compare_at_price, stock_on_hand"
+        ),
+      ]);
+      if (cancelled) return;
+      setExistingSkus(new Set(shopVariants.map((v) => String(v.sku).toUpperCase())));
+      setShopIndex(
+        buildShopIndex(
+          shopProducts.map((p) => ({ ...p, external_ref: p.external_ref ?? null })),
+          shopVariants.map((v) => ({ ...v, external_ref: v.external_ref ?? null }))
+        )
+      );
     })();
+    return () => {
+      cancelled = true;
+    };
   }, [shopId]);
 
   async function readFiles(list: FileList | null) {
@@ -176,7 +222,17 @@ export default function ShopeeImportPage() {
       if (!tables.length) {
         throw new Error("Couldn't find any sheet in this file. Open it in Excel and Save As → Excel Workbook (.xlsx), or export CSV, then try again.");
       }
-      const parsed = parseShopeeTables(tables);
+      // BigSeller price lists are read separately: they hold the discount price.
+      const priceTables = tables.filter(isPriceTable);
+      const parsed = parseShopeeTables(tables.filter((t) => !isPriceTable(t)));
+      const prices = priceTables.length ? parsePriceTables(priceTables) : null;
+      const applied = prices ? applyPriceList(parsed.products, prices) : null;
+      setPriceList(prices);
+      setPriceSummary(
+        prices && applied
+          ? { files: [...new Set(priceTables.map((t) => t.name.split(" › ")[0]))], rows: prices.rows, matched: applied.matched, discounted: applied.discounted }
+          : null
+      );
       setFiles(Array.from(list).map((f) => f.name));
       setProducts(parsed.products);
       setCategoryOverride({});
@@ -186,7 +242,7 @@ export default function ShopeeImportPage() {
       setUnrecognised(parsed.unrecognisedFiles);
       // Copying thousands of images from the browser is slow; keep Shopee's image links for big imports.
       if (parsed.products.length > 300) setCopyImages(false);
-      if (!parsed.products.length) {
+      if (!parsed.products.length && !prices) {
         // Show what the file's first rows contain, so the problem is visible.
         const sample = tables
           .map((table) => {
@@ -206,9 +262,20 @@ export default function ShopeeImportPage() {
     }
   }
 
+  const matches = useMemo(
+    () => (updateExisting && shopIndex ? matchProducts(shopIndex, products) : new Map<string, ShopProduct>()),
+    [updateExisting, shopIndex, products]
+  );
+
   const plan = useMemo(
     () =>
       products.map((product) => {
+        // Already in the shop (same Shopee Item ID, or same unique name): update it.
+        const existing = matches.get(product.key) || null;
+        if (existing && shopIndex) {
+          const update = planUpdate(shopIndex, existing, product, { stock: updateStock });
+          return { product, brandId: null, categoryId: "", skip: false, outOfStock: false, newVariants: [] as ImportProduct["variants"], existing, update };
+        }
         const notInShop = skipExisting ? product.variants.filter((v) => !existingSkus.has(v.sku)) : product.variants;
         // Options with no stock aren't listed (stock not given counts as in stock).
         const newVariants = onlyInStock ? notInShop.filter((v) => v.stock == null || v.stock > 0) : notInShop;
@@ -217,9 +284,15 @@ export default function ShopeeImportPage() {
           categoryOverride[product.key] || guessCategoryId(product, categories) || defaultCategoryId;
         const skip = product.variants.length > 0 && notInShop.length === 0;
         const outOfStock = !skip && notInShop.length > 0 && newVariants.length === 0;
-        return { product, brandId, categoryId, skip, outOfStock, newVariants };
+        return { product, brandId, categoryId, skip, outOfStock, newVariants, existing: null, update: null };
       }),
-    [products, existingSkus, brands, categories, defaultCategoryId, categoryOverride, onlyInStock, skipExisting]
+    [products, existingSkus, brands, categories, defaultCategoryId, categoryOverride, onlyInStock, skipExisting, shopIndex, updateStock, matches]
+  );
+
+  // Only a BigSeller file uploaded: update prices of options the shop already has.
+  const priceOnly = useMemo(
+    () => (!products.length && priceList && shopIndex ? planPriceListOnly(shopIndex, priceList) : null),
+    [products.length, priceList, shopIndex]
   );
 
   const shopeeCategories = useMemo(() => {
@@ -246,13 +319,19 @@ export default function ShopeeImportPage() {
   }, [plan, search, shopeeCat, maxStock]);
 
   const importable = plan.filter(
-    (row) => !row.skip && !row.outOfStock && !row.product.errors.length && row.categoryId && !unticked.has(row.product.key)
+    (row) => !row.existing && !row.skip && !row.outOfStock && !row.product.errors.length && row.categoryId && !unticked.has(row.product.key)
   );
+  const updatable = plan.filter(
+    (row) => row.existing && row.update && !unticked.has(row.product.key) && (row.update.changes.length || row.update.productRef)
+  );
+  const updateCount = updatable.reduce((n, row) => n + (row.update?.changes.length || 0), 0);
+  const inShopCount = plan.filter((row) => row.existing).length;
   const summary = {
     products: products.length,
     variants: products.reduce((n, p) => n + p.variants.length, 0),
     errors: plan.filter((row) => row.product.errors.length).length,
     skipped: plan.filter((row) => row.skip).length,
+    upToDate: plan.filter((row) => row.existing && row.update && !row.update.changes.length && !row.update.productRef).length,
     noCategory: plan.filter((row) => !row.categoryId).length,
     outOfStock: plan.filter((row) => row.outOfStock).length,
     unticked: plan.filter((row) => unticked.has(row.product.key)).length,
@@ -277,13 +356,57 @@ export default function ShopeeImportPage() {
     }
   }
 
+  // Products already in the shop: price / original price / stock in batches.
+  async function sendUpdates(changes: VariantChange[], products: Array<{ id: string; external_ref: string }>, label: string) {
+    for (let i = 0; i < Math.max(changes.length, products.length); i += 500) {
+      if (stopRef.current) break;
+      const variants = changes.slice(i, i + 500);
+      const refs = products.slice(i, i + 500);
+      try {
+        const response = await fetch("/api/admin/products/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            shopId,
+            variants: variants.map(({ id, price, compare_at_price, stock, external_ref }) => ({ id, price, compare_at_price, stock, external_ref })),
+            products: refs,
+          }),
+        });
+        const result = (await response.json().catch(() => ({}))) as { updated?: number; error?: string };
+        if (!response.ok) throw new Error(result.error || "Update failed (" + response.status + ").");
+        setLog((current) => [...current, { name: label, ok: true, detail: (result.updated ?? variants.length) + " option(s) updated" }]);
+      } catch (caught) {
+        setLog((current) => [...current, { name: label, ok: false, detail: describeError(caught) }]);
+      }
+      setDone((n) => n + Math.max(variants.length, refs.length ? 1 : 0));
+    }
+  }
+
+  async function runPriceOnly() {
+    if (!priceOnly?.changes.length) return;
+    setRunning(true);
+    stopRef.current = false;
+    setDone(0);
+    setTotal(priceOnly.changes.length);
+    setLog([]);
+    await sendUpdates(priceOnly.changes, [], "Prices from BigSeller");
+    setRunning(false);
+  }
+
   async function runImport() {
     if (!shopId) return setError("Choose a shop first.");
     setRunning(true);
     stopRef.current = false;
     setDone(0);
-    setTotal(importable.length);
+    setTotal(importable.length + updateCount);
     setLog([]);
+
+    if (updatable.length) {
+      const products = updatable
+        .filter((row) => row.update?.productRef && row.existing)
+        .map((row) => ({ id: row.existing!.id, external_ref: row.update!.productRef! }));
+      await sendUpdates(updatable.flatMap((row) => row.update!.changes), products, "Products already in shop");
+    }
 
     for (const row of importable) {
       if (stopRef.current) break;
@@ -310,6 +433,7 @@ export default function ShopeeImportPage() {
               variation_1_name: product.variation1Name,
               variation_2_name: product.variation2Name,
               status,
+              external_ref: productRef(product.productId),
             },
             variants: newVariants.map((variant) => ({
               title: [variant.value1, variant.value2].filter(Boolean).join(" / ") || "Default",
@@ -317,6 +441,8 @@ export default function ShopeeImportPage() {
               variation_2_value: variant.value2,
               sku: variant.sku,
               price: variant.price ?? 0,
+              compare_at_price: variant.compareAtPrice,
+              external_ref: variantRef(variant.variationId),
               stock_on_hand: Math.max(0, Math.round(variant.stock ?? 0)),
               weight_kg: variant.weight ?? 0,
               length_cm: variant.length ?? 0,
@@ -409,6 +535,38 @@ export default function ShopeeImportPage() {
                 {unrecognised.length ? (
                   <p className={ui.timestamp}>Not a product file (ignored): {unrecognised.join(", ")}</p>
                 ) : null}
+                <p className={ui.timestamp}>
+                  Discount prices: add BigSeller&apos;s <b>Online products</b> export in the same upload. Its 促销价 becomes the
+                  price and Shopee&apos;s price is shown struck through.
+                </p>
+                {priceSummary ? (
+                  <p className={styles.importPriceNote}>
+                    <b>BigSeller prices</b> · {priceSummary.files.join(", ")} · {priceSummary.rows} options
+                    {products.length
+                      ? ` · used for ${priceSummary.matched} Shopee options · ${priceSummary.discounted} get the discount price`
+                      : ""}
+                  </p>
+                ) : null}
+                {priceOnly ? (
+                  <div className={styles.importPriceNote}>
+                    <b>Only a BigSeller file:</b> {priceOnly.found} of its options are already in this shop ·{" "}
+                    {priceOnly.changes.length} price(s) to change.
+                    <div style={{ marginTop: 8 }}>
+                      <button type="button" className={styles.importPrimary} disabled={running || !priceOnly.changes.length} onClick={() => void runPriceOnly()}>
+                        {running ? "Updating…" : "Update " + priceOnly.changes.length + " prices"}
+                      </button>
+                    </div>
+                    {priceOnly.found === 0 ? (
+                      <small>
+                        None matched yet. Upload the Shopee files together with this file once, so MIVO learns each
+                        option&apos;s Shopee ID; after that a BigSeller file on its own is enough.
+                      </small>
+                    ) : null}
+                  </div>
+                ) : null}
+                {priceOnly && (running || log.length) ? (
+                  <p className={ui.timestamp}>{log.filter((l) => l.ok).map((l) => l.detail).join(" · ") || "Working…"}</p>
+                ) : null}
               </section>
 
               {products.length ? (
@@ -444,7 +602,11 @@ export default function ShopeeImportPage() {
                   <div className={ui.cards}>
                     <div className={ui.card}><small>Products</small><strong>{summary.products}</strong><span>{summary.variants} SKUs</span></div>
                     <div className={ui.card}><small>Ready to import</small><strong>{importable.length}</strong><span>New to this shop</span></div>
-                    <div className={ui.card}><small>Already in shop</small><strong>{summary.skipped}</strong><span>Skipped (same SKU)</span></div>
+                    <div className={ui.card}>
+                      <small>Already in shop</small>
+                      <strong>{inShopCount}</strong>
+                      <span>{updateExisting ? updateCount + " option price(s) to update · " + summary.upToDate + " up to date" : "Not updated"}</span>
+                    </div>
                     <div className={ui.card}><small>Need attention</small><strong>{summary.errors + summary.noCategory}</strong><span>Errors or no category</span></div>
                   </div>
                   <div className={ui.toolbar} style={{ flexWrap: "wrap", alignItems: "end", margin: "12px 0" }}>
@@ -463,6 +625,14 @@ export default function ShopeeImportPage() {
                     <label className={styles.importCheck}>
                       <input type="checkbox" checked={onlyInStock} onChange={(e) => setOnlyInStock(e.target.checked)} disabled={running} />
                       Skip options with 0 stock
+                    </label>
+                    <label className={styles.importCheck}>
+                      <input type="checkbox" checked={updateExisting} onChange={(e) => setUpdateExisting(e.target.checked)} disabled={running} />
+                      Update products already in this shop (price{updateStock ? " + stock" : ""})
+                    </label>
+                    <label className={styles.importCheck}>
+                      <input type="checkbox" checked={updateStock} onChange={(e) => setUpdateStock(e.target.checked)} disabled={running || !updateExisting} />
+                      Also update their stock
                     </label>
                     <label className={styles.importCheck}>
                       <input type="checkbox" checked={skipExisting} onChange={(e) => setSkipExisting(e.target.checked)} disabled={running} />
@@ -487,7 +657,7 @@ export default function ShopeeImportPage() {
                     <table className={ui.table}>
                       <thead><tr><th></th><th>Product</th><th>SKUS</th><th>Price</th><th>Stock</th><th>Brand</th><th>Category</th><th>Status</th></tr></thead>
                       <tbody>
-                        {shown.slice(0, 300).map(({ product, brandId, categoryId, skip, outOfStock }) => (
+                        {shown.slice(0, 300).map(({ product, brandId, categoryId, skip, outOfStock, existing, update }) => (
                           <tr key={product.key} style={unticked.has(product.key) ? { opacity: 0.5 } : undefined}>
                             <td>
                               {skip ? (
@@ -511,10 +681,17 @@ export default function ShopeeImportPage() {
                             </td>
                             <td>{product.name || "—"}</td>
                             <td>{product.variants.map((v) => v.sku).join(", ")}</td>
-                            <td>{product.variants.map((v) => v.price ?? "?").join(" / ")}</td>
+                            <td>
+                              {product.variants
+                                .map((v) => (v.price ?? "?") + (v.compareAtPrice ? " (was " + v.compareAtPrice + ")" : ""))
+                                .join(" / ")}
+                            </td>
                             <td>{product.variants.map((v) => v.stock ?? "?").join(" / ")}</td>
                             <td>{brands.find((b) => b.id === brandId)?.name || "—"}</td>
                             <td>
+                              {existing ? (
+                                <small style={{ color: "#8a9095" }}>In shop</small>
+                              ) : (
                               <select
                                 className={styles.importRowSelect}
                                 value={categoryId}
@@ -526,9 +703,14 @@ export default function ShopeeImportPage() {
                                 <option value="">— Choose —</option>
                                 {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                               </select>
+                              )}
                             </td>
                             <td>
-                              {product.errors.length
+                              {existing && update
+                                ? update.changes.length
+                                  ? "↻ Update " + update.changes.length + " option(s)" + (update.newOptions ? " · " + update.newOptions + " new option(s) not added" : "")
+                                  : "✓ Up to date"
+                                : product.errors.length
                                 ? "❌ " + product.errors.join("; ")
                                 : skip
                                   ? "↷ Already in shop"
@@ -553,8 +735,10 @@ export default function ShopeeImportPage() {
                 <section className={styles.adminPanel}>
                   <h2 className={styles.importStepTitle}>4 · Import</h2>
                   <div className={styles.importActions}>
-                    <button type="button" className={styles.importPrimary} disabled={running || !importable.length} onClick={() => void runImport()}>
-                      {running ? "Importing…" : "Import " + importable.length + " ticked products"}
+                    <button type="button" className={styles.importPrimary} disabled={running || (!importable.length && !updatable.length)} onClick={() => void runImport()}>
+                      {running
+                        ? "Working…"
+                        : "Import " + importable.length + " new" + (updatable.length ? " + update " + updatable.length + " in shop" : "")}
                     </button>
                     {running ? <button type="button" onClick={() => { stopRef.current = true; }}>Stop</button> : null}
                     {log.length ? <button type="button" onClick={downloadLog}>Download log</button> : null}

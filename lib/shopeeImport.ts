@@ -22,6 +22,10 @@ export type ImportVariant = {
   value1: string | null;
   value2: string | null;
   price: number | null;
+  /** Original price shown struck through (from a BigSeller price list). */
+  compareAtPrice: number | null;
+  /** Shopee Variation ID, when the file has it. */
+  variationId: string | null;
   stock: number | null;
   weight: number | null;
   length: number | null;
@@ -275,6 +279,8 @@ export function parseShopeeTables(tables: Table[]): {
           value1: null,
           value2: null,
           price: null,
+          compareAtPrice: null,
+          variationId: r.variationId ? String(r.variationId).trim() : null,
           stock: null,
           weight: null,
           length: null,
