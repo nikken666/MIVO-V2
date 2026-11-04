@@ -29,6 +29,7 @@
 --   combined-shipping.sql
 --   own-shops.sql
 --   sku-repeat.sql
+--   customer-emails.sql
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
@@ -4412,6 +4413,249 @@ begin;
 drop index if exists public.product_variants_seller_sku_unique_idx;
 create index if not exists product_variants_seller_sku_idx
   on public.product_variants (seller_id, upper(btrim(sku)));
+
+commit;
+
+notify pgrst, 'reload schema';
+
+
+-- ---------------------------------------------------------------------
+-- customer-emails.sql
+-- ---------------------------------------------------------------------
+-- =====================================================================
+-- MIVO customer emails. Safe to re-run.
+--
+-- 1) email_queue: every email MIVO sends (receipt, shipped, delivered,
+--    cancelled, refunded, promotions) goes through this table once.
+-- 2) Triggers add to the queue when an order is paid / cancelled / refunded
+--    and when a parcel ships or is delivered. They never block the order.
+-- 3) Promotions: customers choose to receive them (profiles.marketing_opt_in),
+--    every promotion has an unsubscribe link.
+-- 4) Optional instant sending: after setting Vercel env EMAIL_QUEUE_SECRET, run
+--      select public.mivo_email_setup('https://mivo-v2.vercel.app', '<same secret>');
+--    Without it, emails still go out from the website itself and the daily check.
+-- =====================================================================
+
+begin;
+
+-- --------------------------------------------------------------- 1) queue
+create table if not exists public.email_queue (
+  id uuid primary key default gen_random_uuid(),
+  kind text not null check (kind in ('order_paid', 'order_cancelled', 'order_refunded',
+                                     'parcel_shipped', 'parcel_delivered', 'campaign')),
+  ref text not null,                       -- what makes it unique, e.g. the order id
+  order_id uuid,
+  seller_order_id uuid,
+  campaign_id uuid,
+  user_id uuid,
+  recipient text,                          -- filled in when it is sent
+  status text not null default 'pending' check (status in ('pending', 'sending', 'sent', 'failed', 'skipped')),
+  attempts integer not null default 0,
+  last_error text,
+  created_at timestamptz not null default now(),
+  sent_at timestamptz
+);
+create unique index if not exists email_queue_kind_ref on public.email_queue (kind, ref);
+create index if not exists email_queue_pending on public.email_queue (status, created_at) where status in ('pending', 'sending');
+alter table public.email_queue enable row level security;
+revoke all on public.email_queue from anon, authenticated;
+drop policy if exists "email_queue: admin read" on public.email_queue;
+create policy "email_queue: admin read" on public.email_queue for select to authenticated using (public.is_admin());
+grant select on public.email_queue to authenticated;
+
+-- Instant sending (pg_net). One row; only the database can read it.
+create table if not exists public.mivo_email_settings (
+  id boolean primary key default true check (id),
+  process_url text not null,
+  secret text not null,
+  updated_at timestamptz not null default now()
+);
+alter table public.mivo_email_settings enable row level security;
+revoke all on public.mivo_email_settings from anon, authenticated;
+
+create or replace function public.mivo_email_setup(p_site_url text, p_secret text)
+returns text language plpgsql security definer set search_path = public as $$
+begin
+  if coalesce(btrim(p_secret), '') = '' or length(p_secret) < 16 then
+    raise exception 'Use a secret of at least 16 characters (the same as EMAIL_QUEUE_SECRET in Vercel)';
+  end if;
+  begin
+    create extension if not exists pg_net;
+  exception when others then
+    return 'Saved, but pg_net could not be enabled here: turn it on in Database > Extensions';
+  end;
+  insert into public.mivo_email_settings (id, process_url, secret)
+  values (true, rtrim(p_site_url, '/') || '/api/email/process', p_secret)
+  on conflict (id) do update set process_url = excluded.process_url, secret = excluded.secret, updated_at = now();
+  return 'OK: emails will be sent right away';
+end;
+$$;
+revoke all on function public.mivo_email_setup(text, text) from public, anon, authenticated;
+
+-- Ask the website to send what is waiting. Never raises.
+create or replace function public.mivo_email_kick()
+returns void language plpgsql security definer set search_path = public as $$
+declare s public.mivo_email_settings%rowtype;
+begin
+  select * into s from public.mivo_email_settings where id;
+  if not found or to_regnamespace('net') is null then return; end if;
+  execute 'select net.http_post(url := $1, body := ''{}''::jsonb, headers := $2)'
+    using s.process_url, jsonb_build_object('Content-Type', 'application/json', 'x-mivo-email-secret', s.secret);
+exception when others then
+  null;
+end;
+$$;
+revoke all on function public.mivo_email_kick() from public, anon, authenticated;
+
+create or replace function public.mivo_email_enqueue(p_kind text, p_ref text, p_order uuid, p_seller_order uuid, p_user uuid)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if p_user is null then return; end if;
+  insert into public.email_queue (kind, ref, order_id, seller_order_id, user_id)
+  values (p_kind, p_ref, p_order, p_seller_order, p_user)
+  on conflict (kind, ref) do nothing;
+  if found then perform public.mivo_email_kick(); end if;
+exception when others then
+  null; -- an email problem must never stop an order from saving
+end;
+$$;
+revoke all on function public.mivo_email_enqueue(text, text, uuid, uuid, uuid) from public, anon, authenticated;
+
+-- Website: take a batch to send (two senders never get the same email).
+-- p_campaigns = false while the day's sending limit is used up: order emails still go.
+drop function if exists public.mivo_email_claim(integer);
+create or replace function public.mivo_email_claim(p_limit integer, p_campaigns boolean default true)
+returns setof public.email_queue language sql security definer set search_path = public as $$
+  update public.email_queue q
+     set status = 'sending', attempts = q.attempts + 1
+   where q.id in (
+     select id from public.email_queue
+      where (status = 'pending' or (status = 'sending' and created_at < now() - interval '15 minutes' and attempts < 5)
+             or (status = 'failed' and attempts < 3 and created_at > now() - interval '3 days'))
+        and (p_campaigns or kind <> 'campaign')
+      order by (kind = 'campaign'), created_at
+      limit greatest(1, least(coalesce(p_limit, 20), 100))
+      for update skip locked)
+  returning q.*;
+$$;
+revoke all on function public.mivo_email_claim(integer, boolean) from public, anon, authenticated;
+
+-- --------------------------------------------------------------- 2) triggers
+create or replace function public.mivo_order_emails()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  n jsonb := to_jsonb(new);
+  o jsonb := to_jsonb(old);
+  uid uuid := nullif(n ->> 'user_id', '')::uuid;
+begin
+  if n ->> 'payment_status' = 'paid' and o ->> 'payment_status' is distinct from 'paid' then
+    perform public.mivo_email_enqueue('order_paid', new.id::text, new.id, null, uid);
+  end if;
+  if n ->> 'status' = 'cancelled' and o ->> 'status' is distinct from 'cancelled'
+     and coalesce(n ->> 'paid_at', o ->> 'paid_at') is not null then
+    perform public.mivo_email_enqueue('order_cancelled', new.id::text, new.id, null, uid);
+  end if;
+  if n ->> 'payment_status' in ('refunded', 'partially_refunded')
+     and o ->> 'payment_status' is distinct from n ->> 'payment_status' then
+    perform public.mivo_email_enqueue('order_refunded', new.id::text || ':' || (n ->> 'payment_status'), new.id, null, uid);
+  end if;
+  return new;
+exception when others then
+  return new;
+end;
+$$;
+drop trigger if exists orders_customer_emails on public.orders;
+create trigger orders_customer_emails after update on public.orders
+  for each row execute function public.mivo_order_emails();
+revoke all on function public.mivo_order_emails() from public, anon, authenticated;
+
+create or replace function public.mivo_parcel_emails()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  n jsonb := to_jsonb(new);
+  o jsonb := to_jsonb(old);
+  uid uuid;
+begin
+  if n ->> 'status' in ('shipped', 'delivered') and o ->> 'status' is distinct from n ->> 'status' then
+    select user_id into uid from public.orders where id = new.order_id;
+    perform public.mivo_email_enqueue(
+      case when n ->> 'status' = 'shipped' then 'parcel_shipped' else 'parcel_delivered' end,
+      new.id::text, new.order_id, new.id, coalesce(uid, nullif(n ->> 'customer_id', '')::uuid));
+  end if;
+  return new;
+exception when others then
+  return new;
+end;
+$$;
+drop trigger if exists seller_orders_customer_emails on public.seller_orders;
+create trigger seller_orders_customer_emails after update on public.seller_orders
+  for each row execute function public.mivo_parcel_emails();
+revoke all on function public.mivo_parcel_emails() from public, anon, authenticated;
+
+-- --------------------------------------------------------------- 3) promotions
+alter table public.profiles add column if not exists marketing_opt_in boolean not null default false;
+alter table public.profiles add column if not exists marketing_opt_in_at timestamptz;
+
+-- A customer turns promotions on or off for themselves.
+create or replace function public.set_marketing_opt_in(p_on boolean)
+returns boolean language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'Please sign in'; end if;
+  update public.profiles
+     set marketing_opt_in = coalesce(p_on, false),
+         marketing_opt_in_at = now()
+   where id = auth.uid();
+  return coalesce(p_on, false);
+end;
+$$;
+-- {"on": true/false, "decided": has the customer ever chosen}
+drop function if exists public.my_marketing_opt_in();
+create or replace function public.my_marketing_opt_in()
+returns jsonb language sql stable security definer set search_path = public as $$
+  select jsonb_build_object('on', coalesce(p.marketing_opt_in, false), 'decided', p.marketing_opt_in_at is not null)
+    from public.profiles p where p.id = auth.uid();
+$$;
+revoke all on function public.set_marketing_opt_in(boolean) from public, anon;
+revoke all on function public.my_marketing_opt_in() from public, anon;
+grant execute on function public.set_marketing_opt_in(boolean) to authenticated;
+grant execute on function public.my_marketing_opt_in() to authenticated;
+
+create table if not exists public.email_campaigns (
+  id uuid primary key default gen_random_uuid(),
+  subject text not null,
+  headline text,
+  body text not null,
+  image_url text,
+  button_text text,
+  button_url text,
+  status text not null default 'sending' check (status in ('sending', 'sent')),
+  recipients integer not null default 0,
+  created_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+alter table public.email_campaigns enable row level security;
+revoke all on public.email_campaigns from anon, authenticated;
+drop policy if exists "email_campaigns: admin read" on public.email_campaigns;
+create policy "email_campaigns: admin read" on public.email_campaigns for select to authenticated using (public.is_admin());
+grant select on public.email_campaigns to authenticated;
+
+-- Website (after checking the admin): put one email per subscribed customer in the queue.
+create or replace function public.mivo_queue_campaign(p_campaign uuid)
+returns integer language plpgsql security definer set search_path = public as $$
+declare v_count integer;
+begin
+  insert into public.email_queue (kind, ref, campaign_id, user_id)
+  select 'campaign', p_campaign::text || ':' || p.id::text, p_campaign, p.id
+    from public.profiles p
+   where p.marketing_opt_in and coalesce(btrim(p.email), '') <> ''
+  on conflict (kind, ref) do nothing;
+  get diagnostics v_count = row_count;
+  update public.email_campaigns set recipients = recipients + v_count where id = p_campaign;
+  perform public.mivo_email_kick();
+  return v_count;
+end;
+$$;
+revoke all on function public.mivo_queue_campaign(uuid) from public, anon, authenticated;
 
 commit;
 

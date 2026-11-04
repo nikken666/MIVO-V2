@@ -9,6 +9,7 @@ import { localeNames, locales, type Locale } from "@/lib/i18n";
 import styles from "./Me.module.css";
 import { intlTag } from "@/lib/i18n/format";
 import { friendlyError } from "@/lib/i18n/errors";
+import MarketingOptIn from "@/components/MarketingOptIn";
 
 type Profile = {
   fullName: string;
@@ -338,6 +339,7 @@ export default function MePage() {
               ))}
             </select>
           </label>
+          <MarketingOptIn className={styles.settingRow} />
         </section>
 
         <button type="button" className={styles.logout} onClick={() => void logout()}>

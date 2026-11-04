@@ -45,6 +45,7 @@ const groups: NavGroup[] = [
       { href: "/admin/products/import", label: "Import from Shopee" },
       { href: "/admin/products/fitment-suggestions", label: "Vehicle fitment" },
       { href: "/admin/marketing", label: "Marketing" },
+      { href: "/admin/marketing/emails", label: "Customer emails" },
     ],
   },
   {

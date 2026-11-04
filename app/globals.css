@@ -11377,3 +11377,13 @@ button.shopChip{font:inherit;cursor:pointer}
   .searchShopCard .searchShopAvatar{width:44px;height:44px}
   .searchShopVisit{padding:6px 10px;font-size:12px}
 }
+
+/* Switch + register checkbox (emails) */
+.mivoSwitch{appearance:none;-webkit-appearance:none;flex:0 0 auto;position:relative;width:46px;height:28px;margin:0;border-radius:999px;background:#d5d8db;cursor:pointer;transition:background .2s}
+.mivoSwitch::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s}
+.mivoSwitch:checked{background:var(--accent,#0071e3)}
+.mivoSwitch:checked::after{transform:translateX(18px)}
+.mivoSwitch:disabled{opacity:.6}
+.mivoAuthCheck{display:flex!important;align-items:flex-start;gap:10px;font-size:13px;line-height:1.45;color:#4a5056;cursor:pointer}
+.mivoAuthCheck input{width:18px!important;height:18px;min-height:0!important;margin:1px 0 0;flex:0 0 auto;accent-color:var(--accent,#0071e3)}
+.mivoGoogleBox{display:flex;justify-content:center;min-height:44px}

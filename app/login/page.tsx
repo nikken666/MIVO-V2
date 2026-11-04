@@ -4,7 +4,8 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Logo from "@/components/Logo";
-import { useT } from "@/components/LanguageProvider";
+import { useLanguage } from "@/components/LanguageProvider";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 import { friendlyError } from "@/lib/i18n/errors";
 
 type Mode = "login" | "register";
@@ -14,10 +15,11 @@ const APPLE_SIGN_IN = process.env.NEXT_PUBLIC_APPLE_SIGN_IN === "on";
 
 export default function LoginPage() {
   const router = useRouter();
-  const t = useT();
+  const { t, locale } = useLanguage();
 
   const [mode, setMode] = useState<Mode>("login");
   const [fullName, setFullName] = useState("");
+  const [promoOptIn, setPromoOptIn] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -71,7 +73,7 @@ export default function LoginPage() {
           password,
           options: {
             emailRedirectTo: callback,
-            data: { full_name: fullName.trim() },
+            data: { full_name: fullName.trim(), marketing_opt_in: promoOptIn },
           },
         });
 
@@ -167,20 +169,30 @@ export default function LoginPage() {
           </div>
 
           <div className="mivoSocialAuth">
-            <button
-              type="button"
-              className="mivoSocialButton google"
-              disabled={Boolean(socialBusy) || busy}
-              onClick={() => void socialSignIn("google")}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.2-2.1 3.5-5.1 3.5-8.8z" />
-                <path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.6-4.9h-4v3.1A12 12 0 0 0 12 24z" />
-                <path fill="#FBBC05" d="M5.4 14.4a7.2 7.2 0 0 1 0-4.7V6.6h-4a12 12 0 0 0 0 10.9z" />
-                <path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.4 6.6l4 3.1C6.3 6.9 8.9 4.8 12 4.8z" />
-              </svg>
-              {socialBusy === "google" ? t("account.login.pleaseWait") : t("account.login.google")}
-            </button>
+            <GoogleSignInButton
+              locale={locale}
+              onSignedIn={() => {
+                router.push(nextPath());
+                router.refresh();
+              }}
+              onError={(caught) => setError(friendlyError(caught, t, "account.login.oauthFailed"))}
+              fallback={
+              <button
+                type="button"
+                className="mivoSocialButton google"
+                disabled={Boolean(socialBusy) || busy}
+                onClick={() => void socialSignIn("google")}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.2-2.1 3.5-5.1 3.5-8.8z" />
+                  <path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.6-4.9h-4v3.1A12 12 0 0 0 12 24z" />
+                  <path fill="#FBBC05" d="M5.4 14.4a7.2 7.2 0 0 1 0-4.7V6.6h-4a12 12 0 0 0 0 10.9z" />
+                  <path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.4 6.6l4 3.1C6.3 6.9 8.9 4.8 12 4.8z" />
+                </svg>
+                {socialBusy === "google" ? t("account.login.pleaseWait") : t("account.login.google")}
+              </button>
+              }
+            />
             {APPLE_SIGN_IN ? (
             <button
               type="button"
@@ -236,6 +248,13 @@ export default function LoginPage() {
                 autoComplete={mode === "login" ? "current-password" : "new-password"}
               />
             </label>
+
+            {mode === "register" ? (
+              <label className="mivoAuthCheck">
+                <input type="checkbox" checked={promoOptIn} onChange={(event) => setPromoOptIn(event.target.checked)} />
+                <span>{t("account.login.promoOptIn")}</span>
+              </label>
+            ) : null}
 
             {message ? <p className="mivoAuthSuccess">{message}</p> : null}
             {error ? <p className="mivoAuthError">{error}</p> : null}
