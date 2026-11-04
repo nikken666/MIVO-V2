@@ -7472,3 +7472,20 @@ span.adminPanelKicker{font-size:12px!important;letter-spacing:normal!important}
 
 /* Buttons that can't be used right now look it */
 .adminAction:disabled,.adminSecondaryAction:disabled,.adminAction[aria-disabled="true"]{opacity:.42;cursor:not-allowed;box-shadow:none;transform:none}
+
+/* Print shipping label links */
+.printLabelLink{display:inline-flex;align-items:center;gap:4px;margin:4px 0;color:#0071e3;font-size:12px;font-weight:600;text-decoration:none}
+.printLabelLink::before{content:"⎙";font-size:14px}
+.printLabelLink:hover{text-decoration:underline}
+.printLabelButton{display:flex;align-items:center;justify-content:center;gap:6px;margin:10px 0;padding:10px 14px;border:1px solid #111;border-radius:999px;background:#fff;color:#111;font-size:13px;font-weight:700;text-decoration:none}
+.printLabelButton::before{content:"⎙";font-size:16px}
+.printLabelButton:hover{background:#111;color:#fff}
+a.adminSecondaryAction[aria-disabled="true"]{opacity:.42;pointer-events:none}
+
+/* Seller-Centre style menu sections: icon, title, fold arrow */
+.adminNavGroupToggle{display:flex;align-items:center;gap:8px;width:100%;margin:0;padding:6px 12px;border:0;border-radius:10px;background:transparent;color:#1d1d1f;font:inherit;font-size:13px;font-weight:700;letter-spacing:0;text-align:left;cursor:pointer}
+.adminNavGroupToggle:hover{background:#f2f4f6}
+.adminNavGroupToggle svg{width:18px;height:18px;flex:0 0 auto;fill:none;stroke:#0071e3;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.adminNavGroupToggle span{flex:1}
+.adminNavGroupToggle i{font-style:normal;color:#8a9095;font-size:11px}
+.adminNavGroup a{padding-left:38px!important}

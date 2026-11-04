@@ -633,6 +633,11 @@ export default function AdminOrdersPage() {
                 <strong>{parcel.shopName}</strong>
                 <span>{label(status)}</span>
               </div>
+              {status !== "cancelled" ? (
+                <a className={styles.printLabelLink} href={"/admin/print/labels?parcels=" + parcel.id} target="_blank" rel="noreferrer">
+                  Print shipping label
+                </a>
+              ) : null}
               <small className={styles.adminParcelMeta}>
                 {parcel.items.reduce(
                   (sum, item) => sum + Number(item.quantity || 0),
@@ -1006,6 +1011,16 @@ export default function AdminOrdersPage() {
                                 PAYMENT {label(order.payment_status)}
                               </small>
                             </div>
+                            {order.status !== "cancelled" && order.status !== "pending_payment" ? (
+                              <a
+                                className={styles.printLabelButton}
+                                href={"/admin/print/labels?orders=" + encodeURIComponent(order.order_number)}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                Print shipping label{order.parcels.length > 1 ? "s (" + order.parcels.length + ")" : ""}
+                              </a>
+                            ) : null}
 
                             {order.parcels.length > 1 &&
                             fulfilmentSteps.slice(0, 4).includes(order.status)

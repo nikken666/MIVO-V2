@@ -647,6 +647,23 @@ export default function ArrangeShipmentPage() {
 
                 <div className={styles.adminMassArrangeActions}>
                   <span>{selected.length} SELECTED</span>
+                  <a
+                    className={styles.adminSecondaryAction}
+                    aria-disabled={selected.length === 0}
+                    href={
+                      selected.length
+                        ? "/admin/print/labels?" +
+                          new URLSearchParams({
+                            orders: selected.filter((key) => !key.startsWith("parcel:")).join(","),
+                            parcels: selected.filter((key) => key.startsWith("parcel:")).map((key) => key.slice(7)).join(","),
+                          }).toString()
+                        : undefined
+                    }
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Print labels ({selected.length})
+                  </a>
                   <button
                     type="button"
                     className={styles.adminAction}

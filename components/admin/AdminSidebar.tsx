@@ -9,18 +9,14 @@ type Badge = "toShip" | "chat" | "returns" | "notices" | "apps" | "claims" | "pr
 type NavItem = { href: string; label: string; badge?: Badge; superadminOnly?: boolean };
 type NavGroup = { title: string; items: NavItem[] };
 
-// MIVO back office. Platform tools come first (what only MIVO can do), then
-// MIVO Direct's own shop, then settings. Kept short on purpose: pages that
-// are reached from another page (vouchers, discounts, fitment review, store
-// health) aren't repeated here.
+// MIVO back office, laid out like Shopee Seller Centre: the daily work first
+// (orders, products), then marketing and chat, then platform tools and settings.
 const platformGroup: NavGroup = {
   title: "Platform",
   items: [
     { href: "/admin/shops/applications", label: "Seller applications", badge: "apps" },
     { href: "/admin/shops", label: "Shops" },
     { href: "/admin/platform/preferred", label: "Preferred sellers", badge: "preferred", superadminOnly: true },
-    { href: "/admin/platform/campaigns", label: "Campaigns", superadminOnly: true },
-    { href: "/admin/platform/free-shipping", label: "Free shipping", superadminOnly: true },
     { href: "/admin/platform/commission", label: "Commission", superadminOnly: true },
     { href: "/admin/platform/notices", label: "Notices to sellers", superadminOnly: true },
   ],
@@ -30,32 +26,54 @@ const groups: NavGroup[] = [
   {
     title: "Orders",
     items: [
-      { href: "/admin/orders", label: "Orders", badge: "toShip" },
-      { href: "/admin/arrange-shipment", label: "Arrange shipment" },
+      { href: "/admin/orders", label: "My orders", badge: "toShip" },
+      { href: "/admin/arrange-shipment", label: "Mass ship & print labels" },
       { href: "/admin/returns", label: "Returns & refunds", badge: "returns" },
       { href: "/admin/claims", label: "Warranty claims", badge: "claims" },
-      { href: "/admin/chat", label: "Chat", badge: "chat" },
     ],
   },
   {
-    title: "MIVO Direct products",
+    title: "Products",
     items: [
-      { href: "/admin/products", label: "Products" },
-      { href: "/admin/products/new", label: "Add product" },
+      { href: "/admin/products", label: "My products" },
+      { href: "/admin/products/new", label: "Add new product" },
       { href: "/admin/products/import", label: "Import from Shopee" },
       { href: "/admin/products/fitment-suggestions", label: "Vehicle fitment" },
-      { href: "/admin/marketing", label: "Marketing" },
+    ],
+  },
+  {
+    title: "Marketing",
+    items: [
+      { href: "/admin/marketing", label: "Vouchers & discounts" },
+      { href: "/admin/platform/campaigns", label: "Campaigns & banners", superadminOnly: true },
+      { href: "/admin/platform/free-shipping", label: "Free shipping", superadminOnly: true },
       { href: "/admin/marketing/emails", label: "Customer emails" },
     ],
   },
   {
-    title: "Settings",
-    items: [
-      { href: "/admin/shipping", label: "Shipping & EasyParcel" },
-      { href: "/admin/system-check", label: "System check" },
-    ],
+    title: "Customer service",
+    items: [{ href: "/admin/chat", label: "Chat", badge: "chat" }],
   },
 ];
+
+const settingsGroup: NavGroup = {
+  title: "Settings",
+  items: [
+    { href: "/admin/shipping", label: "Shipping & EasyParcel" },
+    { href: "/admin/system-check", label: "System check" },
+  ],
+};
+
+// One small line icon per menu section (24×24, stroke).
+const groupIcons: Record<string, string> = {
+  Orders: "M4 7h16l-1.5 11a2 2 0 0 1-2 1.7H7.5a2 2 0 0 1-2-1.7zM8 7a4 4 0 0 1 8 0",
+  Products: "M4 8l8-4 8 4-8 4zM4 8v8l8 4 8-4V8M12 12v8",
+  Marketing: "M4 10v4h3l6 4V6L7 10zM17 9a3 3 0 0 1 0 6",
+  "Customer service": "M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8l-4 3v-3H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z",
+  Platform: "M4 20h16M6 20V10M10 20V10M14 20V10M18 20V10M3 10l9-6 9 6",
+  Settings: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14.3 3h-4l-.3 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.4-1a7 7 0 0 0 2 1.2l.3 2.7h4l.3-2.7a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z",
+  "Shop": "M4 9l1.5-5h13L20 9M4 9h16v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1zM9 20v-6h6v6",
+};
 
 // Sellers (shop owners who are not MIVO admins) see only their own shops.
 const sellerGroups: NavGroup[] = [
@@ -123,6 +141,28 @@ export default function AdminSidebar() {
   });
   const [role, setRole] = useState<"admin" | "seller" | null>(null);
   const [open, setOpen] = useState(false);
+  // Menu sections the user folded away (remembered on this device).
+  const [folded, setFolded] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    try {
+      setFolded(new Set(JSON.parse(window.localStorage.getItem("mivo:navFolded") || "[]") as string[]));
+    } catch {
+      // ignore
+    }
+  }, []);
+  function toggleGroup(title: string) {
+    setFolded((current) => {
+      const next = new Set(current);
+      if (next.has(title)) next.delete(title);
+      else next.add(title);
+      try {
+        window.localStorage.setItem("mivo:navFolded", JSON.stringify([...next]));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  }
 
   useEffect(() => {
     const supabase = createClient();
@@ -200,11 +240,16 @@ export default function AdminSidebar() {
 
   useEffect(() => setOpen(false), [pathname]);
 
-  const adminPlatform: NavGroup = {
-    ...platformGroup,
-    items: platformGroup.items.filter((item) => me.superadmin || !item.superadminOnly),
-  };
-  const navGroups = role === "seller" ? sellerGroups : role === "admin" ? [adminPlatform, ...groups] : [];
+  const visible = (group: NavGroup): NavGroup => ({
+    ...group,
+    items: group.items.filter((item) => me.superadmin || !item.superadminOnly),
+  });
+  const navGroups =
+    role === "seller"
+      ? sellerGroups
+      : role === "admin"
+        ? [...groups, platformGroup, settingsGroup].map(visible).filter((group) => group.items.length)
+        : [];
   const home = role === "seller" ? "/seller" : "/admin";
   const allHrefs = navGroups.flatMap((g) => g.items.map((i) => i.href));
 
@@ -233,10 +278,26 @@ export default function AdminSidebar() {
           <a href={home} className={isActive(pathname, home, allHrefs) ? styles.active : ""}>
             Dashboard
           </a>
-          {navGroups.map((group) => (
+          {navGroups.map((group) => {
+            const hasActive = group.items.some((item) => isActive(pathname, item.href, allHrefs));
+            const isFolded = folded.has(group.title) && !hasActive;
+            const groupCount = group.items.reduce((sum, item) => sum + (item.badge ? badges[item.badge] : 0), 0);
+            return (
             <div className={styles.adminNavGroup} key={group.title}>
-              <span className={styles.adminNavGroupTitle}>{group.title}</span>
-              {group.items.map((item) => {
+              <button
+                type="button"
+                className={styles.adminNavGroupTitle + " " + styles.adminNavGroupToggle}
+                onClick={() => toggleGroup(group.title)}
+                aria-expanded={!isFolded}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d={groupIcons[group.title] || groupIcons.Products} />
+                </svg>
+                <span>{group.title}</span>
+                {isFolded && groupCount ? <b className={styles.adminNavBadge}>{groupCount > 99 ? "99+" : groupCount}</b> : null}
+                <i aria-hidden="true">{isFolded ? "▸" : "▾"}</i>
+              </button>
+              {isFolded ? null : group.items.map((item) => {
                 const count = item.badge ? badges[item.badge] : 0;
                 return (
                   <a
@@ -250,7 +311,8 @@ export default function AdminSidebar() {
                 );
               })}
             </div>
-          ))}
+            );
+          })}
         </nav>
 
         <div className={styles.adminMe}>

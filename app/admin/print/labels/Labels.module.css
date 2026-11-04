@@ -1,0 +1,57 @@
+.page{min-height:100vh;padding:20px;background:#e9ecef;color:#000;font-family:Arial,Helvetica,sans-serif}
+.toolbar{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;max-width:900px;margin:0 auto 18px;padding:12px 16px;border-radius:14px;background:#fff;box-shadow:0 4px 18px rgba(0,0,0,.08)}
+.sizes{display:flex;gap:4px;padding:4px;border-radius:10px;background:#eef0f2}
+.sizes button{border:0;border-radius:8px;background:transparent;padding:8px 12px;font:inherit;font-size:13px;font-weight:600;color:#4a5056;cursor:pointer}
+.sizes button.active{background:#fff;color:#111;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.print{border:0;border-radius:999px;background:#0071e3;color:#fff;padding:10px 26px;font:inherit;font-weight:700;cursor:pointer}
+.print:disabled{opacity:.45}
+.error{max-width:900px;margin:0 auto;color:#b42318}
+
+.sheet{display:flex;flex-wrap:wrap;gap:14px;justify-content:center}
+
+/* One label: 100 × 150 mm (4×6 in thermal); 105 × 148.5 mm cells on A4 */
+.label{--w:100mm;--h:150mm;box-sizing:border-box;width:var(--w);height:var(--h);overflow:hidden;display:flex;flex-direction:column;border:.4mm solid #000;background:#fff;font-size:2.9mm;line-height:1.25}
+.sheetA4 .label{--w:105mm;--h:148.5mm}
+.top{display:flex;justify-content:space-between;align-items:stretch;border-bottom:.4mm solid #000}
+.brand{display:flex;flex-direction:column;justify-content:center;gap:1mm;padding:2mm 3mm}
+.brand img{width:26mm;height:auto;filter:grayscale(1) contrast(1.4)}
+.brand span{font-size:3.4mm;font-weight:700;text-transform:uppercase}
+.parcelNo{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:20mm;border-left:.4mm solid #000;padding:1mm 2mm}
+.parcelNo small{font-size:2.4mm}
+.parcelNo b{font-size:6mm}
+.orderCode{display:flex;flex-direction:column;align-items:center;gap:.6mm;padding:2mm 3mm 1.5mm;border-bottom:.4mm solid #000}
+.orderCode div{display:flex;gap:2mm;align-items:baseline}
+.orderCode span{font-size:2.4mm}
+.orderCode b{font-size:4.2mm;letter-spacing:.3mm}
+.barcode{display:block;width:100%;fill:#000}
+.to{padding:2mm 3mm;border-bottom:.4mm solid #000}
+.to small,.from small{display:block;margin-bottom:.6mm;font-size:2.3mm;font-weight:700;letter-spacing:.2mm}
+.toName{display:flex;justify-content:space-between;gap:2mm;font-size:4.2mm;margin-bottom:.8mm}
+.to p{margin:0;font-size:3.6mm;font-weight:600}
+.to p.state{font-size:4mm;font-weight:800;text-transform:uppercase}
+.from{padding:1.6mm 3mm;border-bottom:.4mm solid #000}
+.from p{margin:0;font-size:2.7mm}
+.items{flex:1;min-height:0;overflow:hidden;padding:1.6mm 3mm}
+.itemsHead,.itemRow{display:grid;grid-template-columns:1fr 24mm 8mm;gap:1.5mm;align-items:start}
+.itemsHead{padding-bottom:.6mm;border-bottom:.3mm solid #000;font-size:2.3mm;font-weight:700}
+.itemRow{padding:.8mm 0;border-bottom:.2mm dashed #888;font-size:2.6mm}
+.itemRow span{overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.itemRow span:nth-child(2){font-family:"Courier New",monospace;font-size:2.4mm;word-break:break-all}
+.itemRow em{font-style:normal;font-weight:700}
+.itemRow b{text-align:center;font-size:3.4mm}
+.more{margin:1mm 0 0;font-size:2.4mm}
+.bottom{padding:1.6mm 3mm 2mm;border-top:.4mm solid #000;font-size:2.5mm}
+.note{margin:.8mm 0 0;font-weight:700}
+.tracking{display:flex;flex-direction:column;align-items:center;gap:.4mm;margin-top:1.2mm}
+.tracking span{font-size:2.8mm;font-weight:700;letter-spacing:.3mm}
+
+@media print{
+  .page{padding:0;background:#fff}
+  .toolbar,.error{display:none}
+  .sheet{display:block}
+  .sheetA6 .label{border:0;break-after:page;page-break-after:always}
+  .sheetA4 .sheet{display:grid;grid-template-columns:105mm 105mm;grid-auto-rows:148.5mm;gap:0}
+  .sheetA4 .label{border:.2mm dashed #999}
+  .sheetA4 .label:nth-child(4n){break-after:page;page-break-after:always}
+  .label{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}

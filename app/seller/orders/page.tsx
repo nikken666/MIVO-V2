@@ -189,6 +189,11 @@ export default function SellerOrdersPage() {
                         </td>
                         <td>
                           <strong>{label(p.parcel_status)}</strong>
+                          {p.payment_status === "paid" && p.parcel_status !== "cancelled" ? (
+                            <a className={styles.printLabelLink} href={"/admin/print/labels?parcels=" + id} target="_blank" rel="noreferrer">
+                              Print label
+                            </a>
+                          ) : null}
                           {p.tracking_number ? (
                             <small>
                               {p.courier_name} · {p.tracking_number}
