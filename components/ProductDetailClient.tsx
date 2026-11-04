@@ -180,11 +180,10 @@ export default function ProductDetailClient({
     product.variation2Name,
   ]);
 
+  // Only one option to choose (e.g. Shopee's single "SIDE: RH"): pick it for the
+  // shopper, so "Add to cart" works on the first tap.
   useEffect(() => {
-    if (
-      !selectedVehicleLabel ||
-      selectableVariants.length !== 1
-    ) {
+    if (selectableVariants.length !== 1) {
       return;
     }
 

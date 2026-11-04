@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import EasyParcelArrange from "@/components/admin/EasyParcelArrange";
+import ShipModeTabs from "@/components/admin/ShipModeTabs";
 import { COURIERS } from "@/lib/couriers";
 import { createClient } from "@/lib/supabase/client";
 import AdminSidebar from "@/components/admin/AdminSidebar";
@@ -207,10 +208,10 @@ export default function SellerOrdersPage() {
                             </button>
                           ) : null}
                           {p.payment_status === "paid" && ["paid", "processing", "packed"].includes(p.parcel_status) ? (
-                            <EasyParcelArrange sellerOrderId={id} onDone={() => void load()} />
-                          ) : null}
-                          {p.payment_status === "paid" && ["paid", "processing", "packed"].includes(p.parcel_status) ? (
-                            <div className={styles.sellerShip} title="Or ship it yourself and enter the tracking number">
+                            <ShipModeTabs
+                              easyParcel={<EasyParcelArrange sellerOrderId={id} onDone={() => void load()} />}
+                              manual={
+                            <div className={styles.sellerShip}>
                               {(
                                 <select
                                   value={courier[id] ?? p.courier_name ?? p.buyer_courier_name ?? ""}
@@ -225,10 +226,12 @@ export default function SellerOrdersPage() {
                                 value={tracking[id] ?? p.tracking_number ?? ""}
                                 onChange={(e) => setTracking((t) => ({ ...t, [id]: e.target.value }))}
                               />
-                              <button type="button" className={styles.adminSecondaryAction} disabled={busy === id} onClick={() => void move(p, "shipped")}>
-                                Ship
+                              <button type="button" className={styles.adminAction} disabled={busy === id} onClick={() => void move(p, "shipped")}>
+                                Mark shipped
                               </button>
                             </div>
+                              }
+                            />
                           ) : null}
                         </td>
                       </tr>

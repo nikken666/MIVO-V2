@@ -83,7 +83,7 @@ export default function PaidCancellationModal({
   }, [orderNumber]);
 
   async function confirmCancellation() {
-    if (!preview || !accepted) return;
+    if (!preview || (!accepted && !onHold)) return;
 
     setBusy(true);
     setError("");
@@ -221,16 +221,19 @@ export default function PaidCancellationModal({
               />
             </label>
 
-            <label className="cancelAgreement">
-              <input
-                type="checkbox"
-                checked={accepted}
-                onChange={(event) => setAccepted(event.target.checked)}
-              />
-              <span>
-                {t("account.paidCancel.agree")}
-              </span>
-            </label>
+            {/* Card still on hold: nothing is deducted, so nothing to agree to. */}
+            {onHold ? null : (
+              <label className="cancelAgreement">
+                <input
+                  type="checkbox"
+                  checked={accepted}
+                  onChange={(event) => setAccepted(event.target.checked)}
+                />
+                <span>
+                  {t("account.paidCancel.agree")}
+                </span>
+              </label>
+            )}
 
             {error ? <p className="accountDataError">{error}</p> : null}
 
@@ -247,7 +250,7 @@ export default function PaidCancellationModal({
               <button
                 type="button"
                 className="orderPrimaryButton"
-                disabled={!accepted || busy}
+                disabled={(!accepted && !onHold) || busy}
                 onClick={confirmCancellation}
               >
                 {busy ? t("account.cancel.cancelling") : t("account.paidCancel.confirm")}

@@ -7446,7 +7446,29 @@ span.adminPanelKicker{font-size:12px!important;letter-spacing:normal!important}
   .pagerInfo{margin-right:0;width:100%;text-align:center}
 }
 @media(max-width:420px){
-  .todoGrid{grid-template-columns:1fr}
+  /* two per row on phones; hot items first so the work is on the first screen */
+  .todoGrid{grid-template-columns:1fr 1fr;gap:8px}
+  .todoCard{padding:11px}
+  .todoCard strong{font-size:22px}
+  .todoCard span{font-size:13px}
+  .todoCard small{font-size:11px;line-height:1.35}
+  .todoPanel{padding:14px}
 }
 .importPriceNote{margin:10px 0 0;padding:10px 14px;border-radius:12px;background:#eef6ff;color:#1d4f91;font-size:13px;line-height:1.5}
 .importPriceNote small{display:block;margin-top:6px;color:#5b6b80}
+
+/* Ship a parcel: EasyParcel or manual tracking number */
+.shipModes{display:grid;gap:8px;margin:8px 0;padding:10px;border:1px solid #e6e8ea;border-radius:14px;background:#fafbfc}
+.shipModeTabs{display:flex;flex-wrap:wrap;gap:6px;padding:4px;border-radius:11px;background:#eef0f2}
+.shipModeTabs button{flex:1 1 160px;border:0;border-radius:8px;background:transparent;padding:8px 10px;font:inherit;font-size:13px;font-weight:600;color:#4a5056;cursor:pointer}
+.shipModeTabs button.shipModeActive{background:#fff;color:#111;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.shipModeBody{display:grid;gap:8px}
+.shipModeHint{color:#6b7075;font-size:12px;line-height:1.45}
+
+/* Dashboard: five figures fill the row (the grid had seven columns) */
+@media(min-width:1181px){
+  .dashboardStats{grid-template-columns:1.45fr repeat(4,1fr)}
+}
+
+/* Buttons that can't be used right now look it */
+.adminAction:disabled,.adminSecondaryAction:disabled,.adminAction[aria-disabled="true"]{opacity:.42;cursor:not-allowed;box-shadow:none;transform:none}

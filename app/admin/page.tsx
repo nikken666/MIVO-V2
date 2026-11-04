@@ -89,71 +89,67 @@ export default function AdminPage() {
         start.setHours(0, 0, 0, 0);
         const startIso = start.toISOString();
 
+        // Exact counts from the database (a plain select stops at 1,000 rows).
+        const count = async (query: PromiseLike<{ count: number | null; error: unknown }>) => {
+          const { count: n, error: countError } = await query;
+          if (countError) throw countError;
+          return n || 0;
+        };
         const [
-          { data: orderData, error: orderError },
-          { data: variantData, error: variantError },
-          { count: activeProducts, error: productError },
-          { count: openClaims, error: claimsError },
+          { data: recentData, error: recentError },
+          { data: todayData, error: todayError },
+          ordersToday,
+          pendingPayment,
+          toShip,
+          activeProducts,
+          openClaims,
+          lowStock,
         ] = await Promise.all([
           supabase
             .from("orders")
-            .select(
-              "id, order_number, status, payment_status, total_amount, created_at, paid_at, shipping_address"
-            )
-            .order("created_at", { ascending: false }),
+            .select("id, order_number, status, payment_status, total_amount, created_at, paid_at, shipping_address")
+            .order("created_at", { ascending: false })
+            .limit(6),
+          // Money taken today: orders paid today that weren't cancelled (shipped and delivered count too).
           supabase
-            .from("product_variants")
-            .select(
-              "stock_on_hand, stock_reserved, low_stock_threshold"
-            )
-            .eq("is_active", true),
-          supabase
-            .from("products")
-            .select("*", { count: "exact", head: true })
-            .eq("status", "active"),
-          supabase
-            .from("warranty_claims")
-            .select("*", { count: "exact", head: true })
-            .in("status", ["new", "reviewing", "approved"]),
+            .from("orders")
+            .select("total_amount, payment_status, status")
+            .gte("paid_at", startIso)
+            .in("payment_status", ["paid", "partially_refunded"])
+            .not("status", "in", "(cancelled,refunded)"),
+          count(supabase.from("orders").select("id", { count: "exact", head: true }).gte("created_at", startIso)),
+          count(supabase.from("orders").select("id", { count: "exact", head: true }).eq("status", "pending_payment")),
+          count(supabase.from("orders").select("id", { count: "exact", head: true }).in("status", ["paid", "processing", "packed"])),
+          count(supabase.from("products").select("*", { count: "exact", head: true }).eq("status", "active")),
+          count(supabase.from("warranty_claims").select("*", { count: "exact", head: true }).in("status", ["new", "reviewing", "approved"])),
+          // Low stock compares two columns, so read every active option in pages.
+          (async () => {
+            let low = 0;
+            for (let from = 0; from < 200000; from += 1000) {
+              const { data, error: pageError } = await supabase
+                .from("product_variants")
+                .select("stock_on_hand, stock_reserved, low_stock_threshold")
+                .eq("is_active", true)
+                .order("id")
+                .range(from, from + 999);
+              if (pageError) throw pageError;
+              for (const variant of (data || []) as VariantRow[]) {
+                const available = Number(variant.stock_on_hand || 0) - Number(variant.stock_reserved || 0);
+                if (available <= Number(variant.low_stock_threshold || 0)) low++;
+              }
+              if (!data || data.length < 1000) break;
+            }
+            return low;
+          })(),
         ]);
 
-        if (orderError || variantError || productError || claimsError) {
-          throw orderError || variantError || productError || claimsError;
-        }
+        if (recentError || todayError) throw recentError || todayError;
 
-        const orders = (orderData as OrderRow[] | null) || [];
-        const variants = (variantData as VariantRow[] | null) || [];
-
-        const todaySales = orders
-          .filter(
-            (order) =>
-              order.payment_status === "paid" &&
-              order.paid_at &&
-              order.paid_at >= startIso
-          )
-          .reduce(
-            (sum, order) => sum + Number(order.total_amount || 0),
-            0
-          );
-
-        const ordersToday = orders.filter(
-          (order) => order.created_at >= startIso
-        ).length;
-
-        const pendingPayment = orders.filter(
-          (order) => order.status === "pending_payment"
-        ).length;
-
-        const toShip = orders.filter((order) =>
-          ["paid", "processing", "packed"].includes(order.status)
-        ).length;
-
-        const lowStock = variants.filter((variant) => {
-          const available =
-            Number(variant.stock_on_hand || 0) -
-            Number(variant.stock_reserved || 0);
-          return available <= Number(variant.low_stock_threshold || 0);
-        }).length;
+        const orders = (recentData as OrderRow[] | null) || [];
+        const todaySales = ((todayData || []) as Array<{ total_amount: number }>).reduce(
+          (sum, order) => sum + Number(order.total_amount || 0),
+          0
+        );
 
         setStats({
           todaySales,
@@ -161,8 +157,8 @@ export default function AdminPage() {
           pendingPayment,
           toShip,
           lowStock,
-          activeProducts: activeProducts || 0,
-          openClaims: openClaims || 0,
+          activeProducts,
+          openClaims,
         });
         setRecentOrders(orders.slice(0, 6));
       } catch (caught) {

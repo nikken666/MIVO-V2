@@ -41,6 +41,13 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang={locale === "zh" ? "zh-Hans" : locale} className={inter.variable}>
       <body>
+        {/* A product photo that fails to load (e.g. removed on Shopee) shows a neat placeholder instead of a broken icon. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              'document.addEventListener("error",function(e){var t=e.target;if(t&&t.tagName==="IMG"&&!t.getAttribute("data-fallback")&&!/part-placeholder|mivo-logo|\\.svg/.test(t.currentSrc||t.src)){t.setAttribute("data-fallback","1");t.removeAttribute("srcset");t.src="/part-placeholder.svg";}},true);',
+          }}
+        />
         <LanguageProvider initialLocale={locale}>
           <MarketplaceProvider>
             <SiteChrome>{children}</SiteChrome>

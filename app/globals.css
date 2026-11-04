@@ -11394,3 +11394,27 @@ button.shopChip{font:inherit;cursor:pointer}
 .fitmentState-likely{border-color:#f5d39a}
 .productFitmentCompact.fitment-likely{border-color:#f5d39a;background:#fffaf0}
 .productFitmentCompact.fitment-likely strong{color:#8a4b00}
+
+/* Floating chat never sits on top of a pop-up (cancel, vehicle picker, …) */
+body:has(.cancelModalBackdrop) .chatLauncher,
+body:has([role="dialog"][aria-modal="true"]) .chatLauncher{display:none!important}
+
+/* Product page on phones: name, rating, then the price, then the shop (price on the first screen) */
+@media(max-width:760px){
+  .productPurchasePanel{display:flex;flex-direction:column}
+  .productPurchasePanel>*,.productTitleBlock>*{order:10}
+  .productTitleBlock{display:contents}
+  .productTitleBlock>.detailBrand{order:1}
+  .productTitleBlock>h1{order:2}
+  .productTitleBlock>.productTitleMeta{order:3;margin-bottom:6px}
+  .productPurchasePanel>.productPricePanel{order:4;margin-top:4px}
+  .productTitleBlock>.productShopRow{order:5;margin-top:12px}
+  .productTitleBlock>.shopVouchers{order:6}
+}
+
+/* Built-in banner art (right half of the slide, desktop and tablet) */
+.shopSlideArt{position:absolute;right:4%;top:50%;width:min(44%,440px);height:auto;transform:translateY(-50%);pointer-events:none;z-index:1;filter:drop-shadow(0 18px 30px rgba(0,0,0,.18));animation:mivoArtFloat 6s ease-in-out infinite}
+.shopSlideCopy{position:relative;z-index:2}
+@keyframes mivoArtFloat{0%,100%{transform:translateY(-50%)}50%{transform:translateY(calc(-50% - 8px))}}
+@media(max-width:760px){.shopSlideArt{display:none}}
+@media(prefers-reduced-motion:reduce){.shopSlideArt{animation:none}}

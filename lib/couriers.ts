@@ -10,4 +10,11 @@ export const COURIERS = [
   "Flash Express",
   "Skynet",
   "ABX Express",
+  "GDEX",
+  "Line Clear Express",
+  "Best Express",
+  "Lalamove",
+  "Teleport",
+  "Own delivery",
+  "Other",
 ] as const;

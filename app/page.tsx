@@ -106,7 +106,12 @@ export default async function HomePage() {
 
   // Only what the page shows goes to the browser (not the whole catalogue).
   const bestOff = (product: (typeof catalogue)[number]) =>
-    Math.max(0, ...(product.variants || []).map((v) => (v.compareAtPrice && v.compareAtPrice > v.price ? 1 - v.price / v.compareAtPrice : 0)));
+    Math.max(
+      0,
+      ...(product.variants || [])
+        .filter((v) => v.isActive && (typeof v.stock !== "number" || v.stock > 0))
+        .map((v) => (v.compareAtPrice && v.compareAtPrice > v.price ? 1 - v.price / v.compareAtPrice : 0))
+    );
   const onSale = catalogue
     .filter((product) => bestOff(product) > 0)
     .sort((a, b) => bestOff(b) - bestOff(a))

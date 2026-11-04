@@ -94,15 +94,28 @@ export default function MePage() {
       });
 
       const [{ data: orders }, { count: carCount }] = await Promise.all([
-        supabase.from("orders").select("status, payment_status").eq("user_id", user.id),
+        supabase.from("orders").select("id, status, payment_status").eq("user_id", user.id),
         supabase.from("customer_vehicles").select("id", { count: "exact", head: true }).eq("user_id", user.id),
       ]);
       const next: Counts = { toPay: 0, toShip: 0, toReceive: 0, toRate: 0 };
-      for (const o of (orders || []) as Array<{ status: string; payment_status: string }>) {
+      const delivered: string[] = [];
+      for (const o of (orders || []) as Array<{ id: string; status: string; payment_status: string }>) {
         if (o.status === "pending_payment") next.toPay += 1;
         else if (["paid", "processing", "packed"].includes(o.status)) next.toShip += 1;
         else if (o.status === "shipped") next.toReceive += 1;
-        else if (o.status === "delivered") next.toRate += 1;
+        else if (o.status === "delivered" || o.status === "completed") delivered.push(o.id);
+      }
+      // "To rate": delivered orders that still have a part without a review.
+      if (delivered.length) {
+        const [{ data: items }, { data: reviews }] = await Promise.all([
+          supabase.from("order_items").select("id, order_id").in("order_id", delivered.slice(0, 200)),
+          supabase.from("product_reviews").select("order_item_id").in("order_id", delivered.slice(0, 200)),
+        ]);
+        const reviewed = new Set(((reviews || []) as Array<{ order_item_id: string | null }>).map((r) => r.order_item_id));
+        const waiting = new Set(
+          ((items || []) as Array<{ id: string; order_id: string }>).filter((i) => !reviewed.has(i.id)).map((i) => i.order_id)
+        );
+        next.toRate = waiting.size;
       }
       setCounts(next);
       setCars(carCount || 0);
