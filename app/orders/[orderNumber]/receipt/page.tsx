@@ -116,7 +116,11 @@ export default function OrderReceiptPage() {
           throw orderError || new Error(t("account.receipt.notFound"));
         }
 
-        if (orderData.payment_status !== "paid") {
+        // Paid orders keep their receipt after a (partial) refund; cancelled ones have none.
+        const receiptReady =
+          ["paid", "partially_refunded"].includes(orderData.payment_status) ||
+          (orderData.payment_status === "refunded" && orderData.status !== "cancelled");
+        if (!receiptReady) {
           throw new Error(t("account.receipt.notPaid"));
         }
 

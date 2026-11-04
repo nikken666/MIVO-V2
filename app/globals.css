@@ -5583,11 +5583,12 @@ input::placeholder,textarea::placeholder{font-family:var(--mivo-ui-font)}
   }
 }
 @media print{
-  body *{
+  /* Only the receipt page hides the rest of the site when printing. */
+  body:has(.receiptPage) *{
     visibility:hidden !important;
   }
-  .receiptPage,
-  .receiptPage *{
+  body:has(.receiptPage) .receiptPage,
+  body:has(.receiptPage) .receiptPage *{
     visibility:visible !important;
   }
   .receiptPage{

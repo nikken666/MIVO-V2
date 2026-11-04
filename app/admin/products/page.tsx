@@ -245,48 +245,22 @@ export default function AdminProductsPage() {
           return;
         }
 
-        // MIVO's shops: the ones this account owns, plus MIVO Direct.
-        const [{ data: owned }, { data: direct }] = await Promise.all([
-          supabase.rpc("seller_my_shops"),
-          supabase.from("sellers").select("id, shop_name, tier").eq("tier", "direct"),
-        ]);
-        const shopMap = new Map<string, { id: string; name: string; tier: string | null }>();
-        for (const row of [
-          ...(((direct as Array<{ id: string; shop_name: string; tier: string | null }> | null) || [])),
-          ...(((owned as Array<{ id: string; shop_name: string; tier: string | null }> | null) || [])),
-        ]) {
-          shopMap.set(row.id, { id: row.id, name: row.shop_name, tier: row.tier });
-        }
-        const shopList = Array.from(shopMap.values()).sort(
-          (a, b) => Number(b.tier === "direct") - Number(a.tier === "direct") || a.name.localeCompare(b.name)
-        );
-        setMyShops(shopList);
-        const shopIds = shopList.map((shop) => shop.id);
-
-        // Supabase returns at most 1000 rows per request: page through them,
-        // otherwise big catalogues (e.g. a Shopee import) look incomplete.
-        const all: unknown[] = [];
-        let productError: { message: string } | null = null;
-        for (let from = 0; shopIds.length && from < 50000; from += 1000) {
-          const page = await supabase
-            .from("products")
-            .select(
-              "id, seller_id, name, slug, status, short_description, description, primary_image_url, created_at, brands(name), product_images(id, image_url, sort_order), product_variants(id, sort_order, title, variation_1_value, variation_2_value, sku, price, stock_on_hand, stock_reserved, low_stock_threshold, weight_kg, length_cm, width_cm, height_cm, discount_enabled, discount_percent, discount_starts_at, discount_ends_at)"
-            )
-            .in("seller_id", shopIds)
-            .order("created_at", { ascending: false })
-            .order("id")
-            .range(from, from + 999);
-          if (page.error) {
-            productError = page.error;
-            break;
-          }
-          all.push(...(page.data || []));
-          if (!page.data || page.data.length < 1000) break;
-        }
-        const data = all;
-
-        if (productError) throw productError;
+        // MIVO's shops and their products, read by the server without the long
+        // descriptions and photo galleries (those load when a product is edited).
+        const response = await fetch("/api/admin/products/list", { cache: "no-store" });
+        const listed = (await response.json().catch(() => ({}))) as {
+          shops?: Array<{ id: string; name: string; tier: string | null }>;
+          products?: ProductRow[];
+          error?: string;
+        };
+        if (!response.ok) throw new Error(listed.error || "Couldn't load products (" + response.status + ").");
+        setMyShops(listed.shops || []);
+        const data = (listed.products || []).map((product) => ({
+          ...product,
+          short_description: null,
+          description: null,
+          product_images: null,
+        }));
 
         const rows = ((data as ProductRow[] | null) || []).map(
           (product) => ({
@@ -543,9 +517,33 @@ export default function AdminProductsPage() {
     setBulkDescriptionEditorId(productId);
   }
 
-  function openBulkEditor() {
-    const rows = products
-      .filter((product) => selectedProductIds.has(product.id))
+  async function openBulkEditor() {
+    // Descriptions and photo galleries aren't in the list: fetch them for the chosen products.
+    const chosen = products.filter((product) => selectedProductIds.has(product.id));
+    const details = new Map<string, Pick<ProductRow, "short_description" | "description" | "product_images">>();
+    const ids = chosen.map((product) => product.id);
+    try {
+      const client = createClient();
+      for (let i = 0; i < ids.length; i += 100) {
+        const { data, error: detailError } = await client
+          .from("products")
+          .select("id, short_description, description, product_images(id, image_url, sort_order)")
+          .in("id", ids.slice(i, i + 100));
+        if (detailError) throw detailError;
+        for (const row of (data || []) as Array<Pick<ProductRow, "id" | "short_description" | "description" | "product_images">>) {
+          details.set(row.id, {
+            short_description: row.short_description,
+            description: row.description,
+            product_images: (row.product_images || []).slice().sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0)),
+          });
+        }
+      }
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Couldn't load the products to edit.");
+      return;
+    }
+    const rows = chosen
+      .map((product) => ({ ...product, ...(details.get(product.id) || {}) }))
       .map<BulkEditRow>((product) => {
         const gallery = (product.product_images || []).length
           ? (product.product_images || [])
