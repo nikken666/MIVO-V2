@@ -7,8 +7,35 @@ import nodemailer, { type Transporter } from "nodemailer";
 
 let transporter: Transporter | null = null;
 
+function smtpUser() {
+  return (process.env.SMTP_USER || "").trim().replace(/^["']|["']$/g, "").toLowerCase();
+}
+function smtpPass() {
+  // Gmail shows App Passwords as "abcd efgh ijkl mnop": spaces and stray quotes are removed.
+  return (process.env.SMTP_PASS || "").replace(/\s+/g, "").replace(/^["']|["']$/g, "");
+}
+
+/** What the server actually sees, without revealing the password. */
+export function smtpDiagnostics() {
+  const pass = smtpPass();
+  return {
+    host: process.env.SMTP_HOST?.trim() || "smtp.gmail.com",
+    port: Number(process.env.SMTP_PORT || 465),
+    user: smtpUser() || null,
+    passLength: pass.length,
+    passLooksLikeAppPassword: /^[a-z]{16}$/i.test(pass),
+    vercelEnv: process.env.VERCEL_ENV || null,
+  };
+}
+
+/** Log in to the mail server without sending anything. */
+export async function verifySmtp() {
+  if (!emailConfigured()) throw new Error("SMTP_USER / SMTP_PASS missing.");
+  await transport().verify();
+}
+
 export function emailConfigured() {
-  return Boolean(process.env.SMTP_USER?.trim() && process.env.SMTP_PASS?.trim());
+  return Boolean(smtpUser() && smtpPass());
 }
 
 function transport() {
@@ -18,7 +45,7 @@ function transport() {
       host: process.env.SMTP_HOST?.trim() || "smtp.gmail.com",
       port,
       secure: port === 465,
-      auth: { user: process.env.SMTP_USER!.trim(), pass: process.env.SMTP_PASS!.replace(/\s+/g, "") },
+      auth: { user: smtpUser(), pass: smtpPass() },
     });
   }
   return transporter;
@@ -38,7 +65,7 @@ export type Mail = {
 
 export async function sendMail(mail: Mail) {
   if (!emailConfigured()) throw new Error("Email is not set up (SMTP_USER / SMTP_PASS missing in Vercel).");
-  const user = process.env.SMTP_USER!.trim();
+  const user = smtpUser();
   const name = (process.env.EMAIL_FROM_NAME || "MIVO").replace(/["\r\n]/g, "");
   await transport().sendMail({
     from: `"${name}" <${process.env.EMAIL_FROM?.trim() || user}>`,
