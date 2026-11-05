@@ -1,5 +1,6 @@
 "use client";
 
+import { shrinkPhoto } from "@/lib/imageResize";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -55,7 +56,9 @@ export default function ReturnRequestPage() {
   const [reason, setReason] = useState("");
   const [solution, setSolution] = useState<"return_refund" | "refund_only">("return_refund");
   const [description, setDescription] = useState("");
-  const [photos, setPhotos] = useState<Array<{ path: string; preview: string }>>([]);
+  const [photos, setPhotos] = useState<Array<{ path: string; preview: string; video?: boolean }>>([]);
+  const [uploading, setUploading] = useState(0);
+  const [photoError, setPhotoError] = useState("");
   const [quote, setQuote] = useState<Quote | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -151,23 +154,42 @@ export default function ReturnRequestPage() {
   }, [chosen, reason, orderNumber]);
 
   async function addPhotos(files: FileList | null) {
-    if (!files || !userId) return;
+    if (!files || !files.length) return;
     const supabase = createClient();
-    for (const file of Array.from(files).slice(0, 6 - photos.length)) {
-      if (file.size > 20 * 1024 * 1024) {
-        setError(t("errors.fileTooLarge"));
-        continue;
+    setPhotoError("");
+    // The signed-in user may not be loaded yet when the camera returns.
+    let uid = userId;
+    if (!uid) {
+      const { data: { user } } = await supabase.auth.getUser();
+      uid = user?.id || "";
+      if (uid) setUserId(uid);
+    }
+    if (!uid) {
+      setPhotoError(t("ret.submitError"));
+      return;
+    }
+    const list = Array.from(files).slice(0, 6 - photos.length);
+    setUploading((n) => n + list.length);
+    for (const original of list) {
+      try {
+        const file = await shrinkPhoto(original);
+        if (file.size > 20 * 1024 * 1024) {
+          setPhotoError(t("errors.fileTooLarge"));
+          continue;
+        }
+        const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5) || "jpg";
+        const path = uid + "/" + orderNumber + "-" + crypto.randomUUID() + "." + ext;
+        const { error: uploadError } = await supabase.storage
+          .from("return-evidence")
+          .upload(path, file, { contentType: file.type || "application/octet-stream" });
+        if (uploadError) {
+          setPhotoError(friendlyError(uploadError, t, "ret.submitError") + " (" + uploadError.message + ")");
+          continue;
+        }
+        setPhotos((current) => [...current, { path, preview: URL.createObjectURL(file), video: file.type.startsWith("video/") }]);
+      } finally {
+        setUploading((n) => Math.max(0, n - 1));
       }
-      const ext = (file.name.split(".").pop() || "jpg").toLowerCase().slice(0, 5);
-      const path = userId + "/" + orderNumber + "-" + crypto.randomUUID() + "." + ext;
-      const { error: uploadError } = await supabase.storage
-        .from("return-evidence")
-        .upload(path, file, { contentType: file.type });
-      if (uploadError) {
-        setError(friendlyError(uploadError, t, "ret.submitError"));
-        continue;
-      }
-      setPhotos((current) => [...current, { path, preview: URL.createObjectURL(file) }]);
     }
   }
 
@@ -192,7 +214,17 @@ export default function ReturnRequestPage() {
     }
   }
 
-  const canSubmit = chosen.length > 0 && reason && description.trim().length >= 5 && !busy;
+  const canSubmit = chosen.length > 0 && reason && description.trim().length >= 5 && !busy && uploading === 0;
+  // Why the button is still grey, shown under it.
+  const missing = !chosen.length
+    ? t("ret.needItem")
+    : !reason
+      ? t("ret.needReason")
+      : description.trim().length < 5
+        ? t("ret.needDescription")
+        : uploading > 0
+          ? t("ret.uploading")
+          : "";
 
   return (
     <main className={styles.page}>
@@ -324,7 +356,12 @@ export default function ReturnRequestPage() {
                 <div className={styles.photos}>
                   {photos.map((p) => (
                     <span key={p.path} className={styles.photo}>
-                      <img src={p.preview} alt="" />
+                      {p.video ? <video src={p.preview} muted playsInline /> : <img src={p.preview} alt="" />}
+                    </span>
+                  ))}
+                  {Array.from({ length: uploading }, (_, i) => (
+                    <span key={"up" + i} className={styles.photo} aria-busy="true">
+                      <small>{t("ret.uploading")}</small>
                     </span>
                   ))}
                   {photos.length < 6 ? (
@@ -338,9 +375,13 @@ export default function ReturnRequestPage() {
                     accept="image/*,video/*"
                     multiple
                     hidden
-                    onChange={(e) => void addPhotos(e.target.files)}
+                    onChange={(e) => {
+                      void addPhotos(e.target.files);
+                      e.currentTarget.value = "";
+                    }}
                   />
                 </div>
+                {photoError ? <p className={styles.error}>{photoError}</p> : null}
               </section>
             ) : null}
 
@@ -379,9 +420,11 @@ export default function ReturnRequestPage() {
               </section>
             ) : null}
 
+            {error ? <p className={styles.error}>{error}</p> : null}
             <button type="button" className={styles.primary} disabled={!canSubmit} onClick={() => void submit()}>
               {busy ? t("ret.submitting") : t("ret.submit")}
             </button>
+            {missing && !busy ? <p className={styles.noteWarn}>{missing}</p> : null}
           </>
         ) : null}
       </div>
