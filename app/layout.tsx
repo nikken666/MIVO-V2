@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import MarketplaceProvider from "@/components/MarketplaceProvider";
 import SiteChrome from "@/components/SiteChrome";
+import ViewportFix from "@/components/ViewportFix";
 import LanguageProvider from "@/components/LanguageProvider";
 import { getLocale } from "@/lib/i18n/server";
 
@@ -48,6 +49,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               'document.addEventListener("error",function(e){var t=e.target;if(t&&t.tagName==="IMG"&&!t.getAttribute("data-fallback")&&!/part-placeholder|mivo-logo|\\.svg/.test(t.currentSrc||t.src)){t.setAttribute("data-fallback","1");t.removeAttribute("srcset");t.src="/part-placeholder.svg";}},true);',
           }}
         />
+        <ViewportFix />
         <LanguageProvider initialLocale={locale}>
           <MarketplaceProvider>
             <SiteChrome>{children}</SiteChrome>
