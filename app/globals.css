@@ -11419,3 +11419,20 @@ body:has([role="dialog"][aria-modal="true"]) .chatLauncher{display:none!importan
 @keyframes mivoArtFloat{0%,100%{transform:translateY(-50%)}50%{transform:translateY(calc(-50% - 8px))}}
 @media(max-width:760px){.shopSlideArt{display:none}}
 @media(prefers-reduced-motion:reduce){.shopSlideArt{animation:none}}
+
+/* Product photos fill a square frame on phone and desktop (Shopee photos are square) */
+.premiumProductImage,.shopDiscoverGrid .premiumProductImage{height:auto!important;min-height:0!important;aspect-ratio:1/1}
+.premiumProductImage>img{position:absolute;inset:0;width:100%;height:100%;padding:0;object-fit:cover}
+.premiumProductImage>.productPlaceholder{position:absolute;inset:0;height:auto}
+.premiumProductImage>img[src$=".svg"],.premiumProductImage>img[data-fallback]{object-fit:contain;padding:18%}
+.flashSaleImage img{padding:0;object-fit:cover}
+.flashSaleImage img[src$=".svg"],.flashSaleImage img[data-fallback]{object-fit:contain;padding:18%}
+
+/* Phone bottom bars: follow the screen when iOS leaves the page offset after the
+   keyboard closes (--vv-shift, set by components/ViewportFix.tsx), and step aside
+   while the keyboard is open. */
+.chatLauncher,.chatPanel{translate:0 var(--vv-shift,0px)}
+@media(max-width:767px){
+  .mobileProductBar,.mobileCheckoutBar,.checkoutActionRow,.cartSuccessToast{translate:0 var(--vv-shift,0px)}
+  .kbOpen .mobileProductBar,.kbOpen .mobileCheckoutBar,.kbOpen .checkoutActionRow,.kbOpen .chatLauncher{visibility:hidden}
+}

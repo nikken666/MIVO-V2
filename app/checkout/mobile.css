@@ -43,11 +43,11 @@
   .mivoVoucherEditor{display:none!important}
   .mivoVoucherEditor.expanded{display:block!important}
   .checkoutVoucherOptions{max-width:100%;overflow-x:auto}
-  .checkoutActionRow{position:fixed!important;bottom:0!important;left:0!important;right:0!important;z-index:100!important;background:#fff!important;border-top:1px solid #e5e7eb!important;padding:10px max(12px,env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))!important;margin:0!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;box-shadow:0 -4px 18px rgba(0,0,0,.07)!important}
+  .checkoutActionRow{position:fixed!important;bottom:0!important;left:0!important;right:0!important;z-index:100!important;background:#fff!important;border-top:1px solid #e5e7eb!important;padding:10px max(12px,env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))!important;margin:0!important;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;box-shadow:0 -4px 18px rgba(0,0,0,.07)!important}
   .checkoutActionRow > div{min-width:0!important;flex:1!important}
   .checkoutActionRow > div > span,.checkoutActionRow > div > small{display:none!important}
-  .checkoutActionRow strong{font-size:18px!important;white-space:nowrap}
-  .checkoutPlaceOrder{min-width:0!important;width:auto!important;flex:0 0 auto!important;max-width:58%!important;padding:12px 14px!important;border-radius:8px!important;font-size:12px!important}
+  .checkoutActionRow strong{font-size:18px!important;white-space:nowrap;text-align:left}
+  .checkoutPlaceOrder{min-width:0!important;min-height:48px!important;width:auto!important;flex:0 0 auto!important;max-width:58%!important;padding:12px 18px!important;border-radius:8px!important;font-size:12px!important}
   .checkoutPlaceOrder small,.checkoutPlaceOrder b{display:none!important}
   .checkoutSummaryTotal{margin:8px 0!important;padding:10px 0!important}
   .checkoutAssurance{display:none!important}
