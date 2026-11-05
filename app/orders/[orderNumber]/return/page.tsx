@@ -58,6 +58,7 @@ export default function ReturnRequestPage() {
   const [description, setDescription] = useState("");
   const [photos, setPhotos] = useState<Array<{ path: string; preview: string; video?: boolean }>>([]);
   const [uploading, setUploading] = useState(0);
+  const [daysSinceDelivery, setDaysSinceDelivery] = useState<number | null>(null);
   const [photoError, setPhotoError] = useState("");
   const [quote, setQuote] = useState<Quote | null>(null);
   const [loading, setLoading] = useState(true);
@@ -85,6 +86,16 @@ export default function ReturnRequestPage() {
           .maybeSingle();
         if (orderError || !order) throw orderError || new Error("not found");
         setOrderStatus(order.status);
+        const { data: hist } = await supabase
+          .from("order_status_history")
+          .select("created_at")
+          .eq("order_id", order.id)
+          .eq("new_status", "delivered")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        const deliveredAt = (hist as { created_at?: string } | null)?.created_at;
+        if (deliveredAt) setDaysSinceDelivery((Date.now() - new Date(deliveredAt).getTime()) / (24 * 3600 * 1000));
         const { data: rows, error: itemError } = await supabase
           .from("order_items")
           .select("id, product_name, variant_name, quantity, unit_price, seller_order_id, seller_id")
@@ -240,6 +251,7 @@ export default function ReturnRequestPage() {
         </Link>
         <h1 className={styles.title}>{t("ret.request")}</h1>
         <p className={styles.sub}>{t("ret.window")}</p>
+        {daysSinceDelivery != null && daysSinceDelivery > 7 ? <p className={styles.noteWarn}>{t("ret.lateNote")}</p> : null}
         <details className={styles.policy}>
           <summary>{t("ret.policyTitle")}</summary>
           <p>

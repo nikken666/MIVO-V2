@@ -45,16 +45,24 @@ const content: Record<
     title: "Returns & Refunds Policy",
     intro:
       "We want you to get the right part the first time. If something is wrong, here is exactly how returns, refunds and cancellations work.",
-    updated: "2 November 2026",
+    updated: "5 November 2026",
     sections: [
       {
         title: "Return window",
         body: (
           <>
             <p>
-              Return requests must be made within <strong>7 days</strong> of
+              Return requests must be made within <strong>15 days</strong> of
               the order being delivered. Requests made after this period are
               handled under the product warranty instead (see section 6).
+            </p>
+            <p>
+              Orders are confirmed automatically <strong>7 days</strong> after
+              delivery. A free return (MIVO books the return parcel) is only
+              available for requests made within those 7 days. From day 8 to
+              day 15 you can still request a return: once MIVO has reviewed and
+              approved it, you pay for and post the item back yourself to the
+              MIVO hub address shown on the request page.
             </p>
           </>
         ),
@@ -132,7 +140,7 @@ const content: Record<
                 Sign in, open the order from{" "}
                 <Link href="/orders">My Orders</Link> and tap{" "}
                 <strong>Return / Refund</strong> (available once the order has
-                shipped, until 7 days after delivery).
+                shipped, until 15 days after delivery).
               </li>
               <li>
                 Choose the items (one shop at a time), the reason, and add a
@@ -229,7 +237,7 @@ const content: Record<
     title: "Polisi Pulangan & Bayaran Balik",
     intro:
       "Kami mahu anda mendapat alat ganti yang betul pada kali pertama. Jika ada masalah, berikut ialah cara pulangan, bayaran balik dan pembatalan berfungsi.",
-    updated: "2 November 2026",
+    updated: "5 November 2026",
     sections: [
       {
         title: "Tempoh pulangan",
@@ -237,9 +245,17 @@ const content: Record<
           <>
             <p>
               Permintaan pulangan mesti dibuat dalam tempoh{" "}
-              <strong>7 hari</strong> dari tarikh pesanan diterima. Permintaan
+              <strong>15 hari</strong> dari tarikh pesanan diterima. Permintaan
               yang dibuat selepas tempoh ini akan dikendalikan di bawah waranti
               produk (rujuk bahagian 6).
+            </p>
+            <p>
+              Pesanan disahkan secara automatik <strong>7 hari</strong> selepas
+              diterima. Pulangan percuma (MIVO menempah bungkusan pulangan)
+              hanya untuk permintaan dalam tempoh 7 hari itu. Dari hari ke-8
+              hingga ke-15 anda masih boleh memohon pulangan: selepas MIVO
+              menyemak dan meluluskannya, anda membayar dan mengepos sendiri
+              barang ke alamat hab MIVO yang ditunjukkan di halaman permintaan.
             </p>
           </>
         ),
@@ -320,7 +336,7 @@ const content: Record<
                 Log masuk, buka pesanan daripada{" "}
                 <Link href="/orders">Pesanan Saya</Link> dan tekan{" "}
                 <strong>Pulangan / Bayaran Balik</strong> (tersedia sebaik
-                sahaja pesanan dihantar, sehingga 7 hari selepas diterima).
+                sahaja pesanan dihantar, sehingga 15 hari selepas diterima).
               </li>
               <li>
                 Pilih barang (satu kedai pada satu masa), sebabnya, dan
@@ -439,15 +455,21 @@ const content: Record<
     title: "退货与退款政策",
     intro:
       "我们希望您第一次就买对零件。如有任何问题，以下清楚说明退货、退款及取消订单的处理方式。",
-    updated: "2026年11月2日",
+    updated: "2026年11月5日",
     sections: [
       {
         title: "退货期限",
         body: (
           <>
             <p>
-              退货申请必须在订单签收后 <strong>7 天</strong>
+              退货申请必须在订单签收后 <strong>15 天</strong>
               内提出。超过此期限的申请将改按产品保修处理（见第 6 节）。
+            </p>
+            <p>
+              订单签收 <strong>7 天</strong>后自动确认收货。免费退货（由 MIVO
+              安排退货快递）仅限签收后 7 天内提出的申请。第 8 至第 15
+              天仍可申请退货：经 MIVO 审核同意后，需自行付运费，把商品寄回申请页面显示的
+              MIVO 仓库地址。
             </p>
           </>
         ),
@@ -507,7 +529,7 @@ const content: Record<
               <li>
                 登录后，从<Link href="/orders">我的订单</Link>
                 打开该订单，并点击<strong>退货/退款</strong>
-                （订单发货后即可申请，直至签收后 7 天）。
+                （订单发货后即可申请，直至签收后 15 天）。
               </li>
               <li>
                 选择商品（每次限一家店铺）及原因，并填写说明，附上商品及包装的清晰照片或视频。提交前您会看到预计退款金额。

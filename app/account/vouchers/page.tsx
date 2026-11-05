@@ -85,7 +85,7 @@ export default function MyVouchersPage() {
             .from("orders")
             .select("id", { count: "exact", head: true })
             .eq("user_id", user.id)
-            .in("status", ["paid", "processing", "packed", "shipped", "delivered"]),
+            .in("status", ["paid", "processing", "packed", "shipped", "delivered", "completed"]),
         ]);
 
         if (claimError) throw claimError;

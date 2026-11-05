@@ -3,9 +3,9 @@
 const rows = {
   "ret.policyTitle": ["Before you return", "Sebelum anda memulangkan", "退货前请了解"],
   "ret.policyText": [
-    "Request within 7 days of delivery. Wrong, damaged, faulty or missing parts: once MIVO confirms it, you get the item price and its delivery fee back. Change of mind or no reason: the original delivery fee isn't refunded and the card processing fee is deducted. Either way you post the item back yourself and enter the tracking number.",
-    "Mohon dalam masa 7 hari selepas penghantaran. Alat ganti salah, rosak, tidak berfungsi atau tidak lengkap: selepas MIVO mengesahkannya, anda dapat semula harga barang dan caj penghantarannya. Tukar fikiran atau tiada sebab: caj penghantaran asal tidak dipulangkan dan caj pemprosesan bayaran ditolak. Dalam kedua-dua kes, anda poskan barang sendiri dan masukkan nombor penjejakan.",
-    "收货后 7 天内可申请。配件发错、损坏、有问题或缺件：经 MIVO 确认后，退还商品款和原运费。改变主意或无理由退货：原运费不退，并扣除付款手续费。两种情况都需要你自己寄回商品并填写快递单号。"
+    "Request within 15 days of delivery. Free return only within 7 days, when MIVO confirms it's our mistake. Wrong, damaged, faulty or missing parts: once MIVO confirms it, you get the item price and its delivery fee back. Change of mind or no reason: the original delivery fee isn't refunded and the card processing fee is deducted. Either way you post the item back yourself and enter the tracking number.",
+    "Mohon dalam masa 15 hari selepas penghantaran. Pulangan percuma hanya dalam 7 hari, apabila MIVO mengesahkan ia kesilapan kami. Alat ganti salah, rosak, tidak berfungsi atau tidak lengkap: selepas MIVO mengesahkannya, anda dapat semula harga barang dan caj penghantarannya. Tukar fikiran atau tiada sebab: caj penghantaran asal tidak dipulangkan dan caj pemprosesan bayaran ditolak. Dalam kedua-dua kes, anda poskan barang sendiri dan masukkan nombor penjejakan.",
+    "收货后 15 天内可申请；前 7 天内经 MIVO 确认是我们的问题可免费退货。配件发错、损坏、有问题或缺件：经 MIVO 确认后，退还商品款和原运费。改变主意或无理由退货：原运费不退，并扣除付款手续费。两种情况都需要你自己寄回商品并填写快递单号。"
   ],
   "ret.policyLink": ["Full return policy", "Polisi pulangan penuh", "完整退货政策"],
   "ret.title": ["Return / Refund", "Pulangan / Bayaran Balik", "退货 / 退款"],
@@ -34,6 +34,8 @@ const rows = {
   "ret.photosHint": ["Clear photos help the seller and MIVO decide faster.", "Foto yang jelas membantu penjual dan MIVO membuat keputusan lebih cepat.", "清楚的照片能让卖家和 MIVO 更快处理。"],
   "ret.addPhoto": ["+ Add", "+ Tambah", "+ 添加"],
   "ret.uploading": ["Uploading…", "Memuat naik…", "上传中…"],
+  "ret.selfPostNote": ["This return was requested more than 7 days after delivery, so please post it back yourself at your own cost and enter the tracking number below.", "Pulangan ini dimohon lebih 7 hari selepas penghantaran, jadi sila poskan sendiri atas kos anda dan masukkan nombor penjejakan di bawah.", "此退货申请在签收 7 天后提出，请自行付邮费寄回，并在下方填写运单号。"],
+  "ret.lateNote": ["It's more than 7 days since delivery, so the free return no longer applies: if MIVO approves your request, you post the item back to MIVO HUB at your own cost.", "Sudah lebih 7 hari sejak penghantaran, jadi pulangan percuma tidak lagi terpakai: jika MIVO meluluskan permohonan anda, anda poskan barang ke MIVO HUB atas kos sendiri.", "已经收货超过 7 天，不再享有免费退货：如果 MIVO 批准你的申请，你需要自己付邮费把商品寄回 MIVO HUB。"],
   "ret.needPhoto": ["Add at least one photo of the item.", "Tambah sekurang-kurangnya satu foto barang.", "请至少上传一张商品照片。"],
   "ret.photoFailed": ["That photo couldn't be uploaded. Please try again.", "Foto itu tidak dapat dimuat naik. Sila cuba lagi.", "这张照片上传失败，请再试一次。"],
   "ret.parcelPhotos": ["Parcel photos ({n}/6)", "Foto bungkusan ({n}/6)", "包裹照片（{n}/6）"],
@@ -58,7 +60,7 @@ const rows = {
   "ret.fitNote": ["This part wasn't verified by MIVO for your car, so it counts as change of mind.", "Alat ganti ini tidak disahkan oleh MIVO untuk kereta anda, jadi ia dikira sebagai tukar fikiran.", "此零件未经 MIVO 验证适合你的车，因此按改变主意处理。"],
   "ret.submit": ["Submit request", "Hantar permohonan", "提交申请"],
   "ret.submitting": ["Submitting…", "Menghantar…", "提交中…"],
-  "ret.window": ["You can request a return within 7 days after delivery.", "Anda boleh memohon pulangan dalam tempoh 7 hari selepas penghantaran.", "收货后 7 天内可申请退货。"],
+  "ret.window": ["You can request a return within 15 days after delivery (free return in the first 7 days if it's our mistake).", "Anda boleh memohon pulangan dalam tempoh 15 hari selepas penghantaran (pulangan percuma dalam 7 hari pertama jika ini kesilapan kami).", "收货后 15 天内可申请退货（前 7 天内如果是我们的问题可免费退货）。"],
   "ret.loadError": ["Unable to load this order.", "Tidak dapat memuatkan pesanan ini.", "无法加载此订单。"],
   "ret.submitError": ["Unable to submit the request.", "Tidak dapat menghantar permohonan.", "无法提交申请。"],
   "ret.actionError": ["Unable to update the request.", "Tidak dapat mengemas kini permohonan.", "无法更新申请。"],

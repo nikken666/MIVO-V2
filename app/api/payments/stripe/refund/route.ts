@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
 
     let order = initialOrder as OrderRow;
 
-    if (order.status === "shipped" || order.status === "delivered") {
+    if (order.status === "shipped" || order.status === "delivered" || order.status === "completed") {
       return NextResponse.json(
         { error: "This order can no longer be cancelled." },
         { status: 409 }
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
         .eq("order_id", order.id);
       const parcelIds = (parcels || []).map((row) => row.id as string);
       const parcelShipped = (parcels || []).some((row) =>
-        ["shipped", "delivered"].includes(String(row.status))
+        ["shipped", "delivered", "completed"].includes(String(row.status))
       );
       const { data: tracked } = parcelIds.length
         ? await supabase

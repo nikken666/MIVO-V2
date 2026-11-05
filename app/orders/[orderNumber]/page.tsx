@@ -68,7 +68,7 @@ type OrderStatusHistoryRow = {
 
 
 function progressForStatus(status: string) {
-  if (status === "delivered") return 4;
+  if (status === "delivered" || status === "completed") return 4;
   if (status === "shipped") return 3;
   if (status === "packed" || status === "processing") return 2;
   if (status === "paid") return 1;
@@ -273,7 +273,7 @@ export default function OrderDetailsPage() {
 
     let allReviewed = false;
 
-    if (orderData.status === "delivered" && loadedItems.length > 0) {
+    if ((orderData.status === "delivered" || orderData.status === "completed") && loadedItems.length > 0) {
       const { data: reviewData, error: reviewError } = await supabase
         .from("product_reviews")
         .select("order_item_id")
@@ -394,6 +394,10 @@ export default function OrderDetailsPage() {
   }
 
   const address = order.shipping_address || {};
+  // Returns: up to 15 days after delivery (free return only in the first 7).
+  const deliveredAt = statusHistory.find((entry) => entry.new_status === "delivered")?.created_at || null;
+  const withinReturnWindow = !deliveredAt || Date.now() - new Date(deliveredAt).getTime() <= 15 * 24 * 3600 * 1000;
+
   const cancelled =
     order.status === "cancelled" ||
     order.status === "refunded" ||
@@ -758,6 +762,7 @@ export default function OrderDetailsPage() {
             !cancelled &&
             order.status !== "shipped" &&
             order.status !== "delivered" &&
+            order.status !== "completed" &&
             // A multi-shop order with one parcel already on its way can't be cancelled.
             !shipments.some((parcel) => parcel.tracking_number) ? (
               <button
@@ -769,7 +774,8 @@ export default function OrderDetailsPage() {
               </button>
             ) : null}
 
-            {order.status === "shipped" || order.status === "delivered" ? (
+            {order.status === "shipped" ||
+            ((order.status === "delivered" || order.status === "completed") && withinReturnWindow) ? (
               <Link
                 href={"/orders/" + encodeURIComponent(order.order_number) + "/return"}
                 className="orderGhostButton orderSideMainAction"
@@ -789,7 +795,7 @@ export default function OrderDetailsPage() {
               </button>
             ) : null}
 
-            {order.status === "delivered" ? (
+            {order.status === "delivered" || order.status === "completed" ? (
               reviewedAll ? (
                 <button
                   type="button"

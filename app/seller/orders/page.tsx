@@ -33,7 +33,7 @@ type Item = { seller_order_id: string; product_name: string; variant_name: strin
 const tabs = [
   { key: "toShip", label: "To ship", match: ["paid", "processing", "packed"] },
   { key: "shipped", label: "Shipped", match: ["shipped"] },
-  { key: "done", label: "Completed", match: ["delivered"] },
+  { key: "done", label: "Completed", match: ["delivered", "completed"] },
   { key: "unpaid", label: "Unpaid", match: ["pending_payment"] },
   { key: "all", label: "All", match: [] as string[] },
 ];

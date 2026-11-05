@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       .select("id")
       .eq("order_number", orderNumber)
       .eq("user_id", user.id)
-      .eq("status", "delivered")
+      .in("status", ["delivered", "completed"])
       .maybeSingle();
 
     if (orderError || !order) {

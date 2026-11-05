@@ -117,7 +117,7 @@ export default function OrderWarrantyPage() {
           throw orderError || new Error(t("account.detail.notFound"));
         }
 
-        if (orderData.status !== "delivered") {
+        if (orderData.status !== "delivered" && orderData.status !== "completed") {
           router.replace(
             "/orders/" + encodeURIComponent(orderNumber)
           );
