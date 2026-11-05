@@ -296,17 +296,34 @@ async function attachReviewStats(
 // products from the database on every request made those pages take many
 // seconds, so it's kept in memory for a minute per server (one load shared by
 // everyone; a change in the back office shows up within a minute).
-const CATALOGUE_TTL_MS = 60_000;
-let catalogueCache: { at: number; promise: Promise<Product[]> } | null = null;
+// After 3 minutes a fresh copy is loaded in the background while visitors
+// keep getting the current one, so nobody waits for the reload (only the
+// first visitor to a new server does). If a load could only return the demo
+// products, it is retried soon instead of being kept.
+const CATALOGUE_TTL_MS = 3 * 60_000;
+const CATALOGUE_RETRY_MS = 10_000;
+let catalogueCache: { at: number; ttl: number; promise: Promise<Product[]> } | null = null;
+let catalogueRefreshing: Promise<Product[]> | null = null;
+
+function startCatalogueLoad(): Promise<Product[]> {
+  if (catalogueRefreshing) return catalogueRefreshing;
+  const promise = loadActiveProducts();
+  catalogueRefreshing = promise;
+  promise
+    .then((products) => {
+      catalogueCache = { at: Date.now(), ttl: products === demoProducts ? CATALOGUE_RETRY_MS : CATALOGUE_TTL_MS, promise };
+    })
+    .catch(() => {})
+    .finally(() => {
+      if (catalogueRefreshing === promise) catalogueRefreshing = null;
+    });
+  return promise;
+}
 
 export function getActiveProducts(): Promise<Product[]> {
-  if (!catalogueCache || Date.now() - catalogueCache.at > CATALOGUE_TTL_MS) {
-    const promise = loadActiveProducts();
-    catalogueCache = { at: Date.now(), promise };
-    // A failed load isn't kept.
-    promise.catch(() => {
-      if (catalogueCache?.promise === promise) catalogueCache = null;
-    });
+  if (!catalogueCache) return startCatalogueLoad();
+  if (Date.now() - catalogueCache.at > catalogueCache.ttl) {
+    void startCatalogueLoad();
   }
   return catalogueCache.promise;
 }
