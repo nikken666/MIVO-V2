@@ -417,6 +417,7 @@ export default function ReturnRequestPage() {
                       ? t("ret.fitNote") + " " + t("ret.mindNote")
                       : t("ret.mindNote")}
                 </p>
+                <p className={styles.hint}>{t("ret.reviewNote")}</p>
               </section>
             ) : null}
 

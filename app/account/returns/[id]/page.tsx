@@ -32,6 +32,8 @@ type Request = {
   status: string;
   return_courier: string | null;
   return_tracking: string | null;
+  return_awb_url?: string | null;
+  return_ep_shipment?: string | null;
   seller_note: string | null;
   mivo_note: string | null;
   respond_by: string | null;
@@ -147,7 +149,7 @@ export default function ReturnDetailPage() {
         <section className={styles.banner}>
           <strong>{t(("ret.st." + req.status) as Key)}</strong>
           {req.status === "requested" && req.respond_by ? <p>{t("ret.respondBy", { date: when(req.respond_by) })}</p> : null}
-          {req.status === "approved_return" && req.ship_back_by ? <p>{t("ret.shipBy", { date: when(req.ship_back_by) })}</p> : null}
+          {req.status === "approved_return" && req.ship_back_by ? <p>{t(req.return_ep_shipment ? "ret.dropBy" : "ret.shipBy", { date: when(req.ship_back_by) })}</p> : null}
           {req.status === "returning" ? <p>{t("ret.returningNote")}</p> : null}
           {req.status === "received" && req.inspect_by ? <p>{t("ret.inspectBy", { date: when(req.inspect_by) })}</p> : null}
           {req.status === "refunded" || req.status === "refunding" ? <p>{t("ret.refundTime")}</p> : null}
@@ -183,7 +185,49 @@ export default function ReturnDetailPage() {
           </section>
         ) : null}
 
-        {req.status === "approved_return" ? (
+        {req.status === "approved_return" && req.return_ep_shipment ? (
+          <section className={styles.card}>
+            <h2>{t("ret.freeReturnTitle")}</h2>
+            <div className={styles.noteGood}>
+              {t("ret.freeReturnText", { courier: req.return_courier || "" })}
+              {req.return_tracking ? (
+                <>
+                  <br />
+                  <strong>{t("ret.tracking")}: {req.return_tracking}</strong>
+                </>
+              ) : (
+                <>
+                  <br />
+                  {t("ret.freeReturnPending")}
+                </>
+              )}
+            </div>
+            <div className={styles.actions}>
+              {req.return_awb_url ? (
+                <a className={styles.secondary} href={req.return_awb_url} target="_blank" rel="noreferrer">
+                  {t("ret.freeReturnLabel")}
+                </a>
+              ) : null}
+              <button
+                type="button"
+                className={styles.primary}
+                disabled={busy || !req.return_tracking}
+                onClick={async () => {
+                  setBusy(true);
+                  setError("");
+                  const { error: dropError } = await createClient().rpc("return_request_customer_dropped", { p_id: req.id });
+                  if (dropError) setError(friendlyError(dropError, t, "ret.actionError"));
+                  await load();
+                  setBusy(false);
+                }}
+              >
+                {t("ret.freeReturnDropped")}
+              </button>
+            </div>
+          </section>
+        ) : null}
+
+        {req.status === "approved_return" && !req.return_ep_shipment ? (
           <section className={styles.card}>
             <h2>{t("ret.shipBack")}</h2>
             {returnTo?.address ? (

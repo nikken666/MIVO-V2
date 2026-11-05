@@ -30,6 +30,10 @@ type Req = {
   needs_return: boolean;
   return_courier: string | null;
   return_tracking: string | null;
+  return_awb_url?: string | null;
+  return_ep_shipment?: string | null;
+  return_label_cost?: number | string | null;
+  fault_decided_by?: string | null;
   seller_note: string | null;
   dispute_note: string | null;
   mivo_note: string | null;
@@ -236,6 +240,51 @@ export default function AdminReturnsPage() {
   }
 
   const rpc = (name: string, args: Record<string, unknown>) => () => createClient().rpc(name, args);
+
+  // MIVO books the return parcel with EasyParcel (paid from MIVO's wallet).
+  async function bookReturn(id: string) {
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      const response = await fetch("/api/admin/returns/book-return", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const data = (await response.json().catch(() => ({}))) as { error?: string; courier?: string; awbNumber?: string; price?: number; pending?: boolean };
+      if (!response.ok) throw new Error(data.error || "Couldn't book the return.");
+      setMessage(
+        data.pending
+          ? "Booked. The courier label is still being prepared — press the button again in a minute."
+          : "Return parcel booked: " + (data.courier || "") + " " + (data.awbNumber || "") + (data.price ? " · RM " + Number(data.price).toFixed(2) + " from the EasyParcel wallet" : "") + ". The customer can now drop it off."
+      );
+      await load();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Couldn't book the return.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // MIVO accepts and decides whose fault it is; for our fault the return parcel is booked straight away.
+  async function mivoAccept(current: Req, ourFault: boolean) {
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      const { error: rpcError } = await createClient().rpc("return_request_mivo_accept", { p_id: current.id, p_our_fault: ourFault, p_note: note || null });
+      if (rpcError) throw new Error(rpcError.message);
+      setMessage(ourFault ? "Accepted as our fault." : "Accepted as change of mind.");
+      await load();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Action failed.");
+      setBusy(false);
+      return;
+    }
+    setBusy(false);
+    if (ourFault && current.needs_return) await bookReturn(current.id);
+  }
   const amt = Number(amount);
 
   // Seller confirms the returned item is fine: approve and pay the refund straight away.
@@ -405,7 +454,40 @@ export default function AdminReturnsPage() {
                   </div>
 
                   {/* Actions per stage */}
-                  {current.status === "requested" ? (
+                  {isAdmin && ["requested", "mivo_review", "seller_offer"].includes(current.status) ? (
+                    <div className={styles.returnsActions}>
+                      <h3>MIVO decision · whose fault is it?</h3>
+                      <p className={styles.adminNotice}>
+                        The customer chose “{current.reason.replace(/_/g, " ")}”. Check the photos, then decide.
+                        Our fault: item + its delivery share refunded{current.needs_return ? ", and MIVO books a free return parcel with EasyParcel (customer drops it off)" : ""}.
+                        Not our fault: change-of-mind rules — no delivery refund, payment fee deducted{current.needs_return ? ", customer pays the return postage" : ""}.
+                      </p>
+                      <div className={styles.returnsRow}>
+                        <button type="button" className={styles.adminAction} disabled={busy} onClick={() => void mivoAccept(current, true)}>
+                          Accept · our fault{current.needs_return ? " · book free return" : ""}
+                        </button>
+                        <button type="button" className={styles.adminSecondaryAction} disabled={busy} onClick={() => void mivoAccept(current, false)}>
+                          Accept · not our fault
+                        </button>
+                        {current.status === "requested" ? (
+                          <button
+                            type="button"
+                            className={styles.adminSecondaryAction}
+                            disabled={busy || note.trim().length < 5}
+                            title="Write the reason in the note box below first (shown to the customer)."
+                            onClick={() => void run(rpc("return_request_mivo_decide", { p_id: current.id, p_approve: false, p_amount: null, p_require_return: false, p_note: note }), "Rejected. The customer can see your note.")}
+                          >
+                            Reject
+                          </button>
+                        ) : null}
+                      </div>
+                      {current.status === "requested" ? (
+                        <label><span>Note to the customer (needed to reject)</span><textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} /></label>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  {current.status === "requested" && !isAdmin ? (
                     <div className={styles.returnsActions}>
                       <h3>Seller response</h3>
                       <button type="button" className={styles.adminAction} disabled={busy} onClick={() => void run(rpc("return_request_seller_respond", { p_id: current.id, p_action: "accept", p_amount: null, p_note: note || null }), current.needs_return ? "Accepted. Customer will send the item back." : "Accepted. Ready to refund.")}>
@@ -420,6 +502,33 @@ export default function AdminReturnsPage() {
                         Dispute
                       </button>
                     </div>
+                  ) : null}
+
+                  {current.status === "approved_return" || current.status === "returning" ? (
+                    current.return_ep_shipment ? (
+                      <p className={styles.adminNotice}>
+                        Free return booked with EasyParcel: {current.return_courier || "courier"} {current.return_tracking || "(label being prepared)"}
+                        {current.return_label_cost != null ? " · RM " + Number(current.return_label_cost).toFixed(2) : ""}
+                        {current.return_awb_url ? (
+                          <>
+                            {" · "}
+                            <a href={current.return_awb_url} target="_blank" rel="noreferrer">Label</a>
+                          </>
+                        ) : null}
+                        {!current.return_tracking && isAdmin ? (
+                          <>
+                            {" · "}
+                            <button type="button" className={styles.adminSecondaryAction} disabled={busy} onClick={() => void bookReturn(current.id)}>Get label</button>
+                          </>
+                        ) : null}
+                      </p>
+                    ) : isAdmin && current.status === "approved_return" && current.seller_fault ? (
+                      <div className={styles.returnsRow}>
+                        <button type="button" className={styles.adminAction} disabled={busy} onClick={() => void bookReturn(current.id)}>
+                          Book free return parcel (EasyParcel)
+                        </button>
+                      </div>
+                    ) : null
                   ) : null}
 
                   {current.status === "approved_return" || current.status === "returning" || current.status === "received" ? (
