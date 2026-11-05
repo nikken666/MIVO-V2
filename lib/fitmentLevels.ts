@@ -23,28 +23,29 @@ export async function attachFitmentLevels(products: Product[]): Promise<Product[
       supabase = await createClient();
     }
     // fitment_verified exists once supabase/fitment-verification.sql has run.
-    for (let i = 0; i < ids.length; i += 300) {
-      const { data: flags } = await supabase
-        .from("products")
-        .select("id, fitment_verified")
-        .in("id", ids.slice(i, i + 300));
-      for (const row of (flags || []) as Array<{ id: string; fitment_verified: boolean | null }>) {
-        if (row.fitment_verified) verified.add(row.id);
-      }
-    }
-    for (let i = 0; i < ids.length; i += 300) {
-      const chunk = ids.slice(i, i + 300);
-      for (let from = 0; ; from += 1000) {
-        const { data, error } = await supabase
-          .from("product_vehicle_fitments")
-          .select("product_id")
-          .in("product_id", chunk)
-          .order("id")
-          .range(from, from + 999);
-        if (error) break;
-        for (const row of (data || []) as Array<{ product_id: string }>) withData.add(row.product_id);
-        if (!data || data.length < 1000) break;
-      }
+    // 300 products per read, three reads at a time.
+    const chunks: string[][] = [];
+    for (let i = 0; i < ids.length; i += 300) chunks.push(ids.slice(i, i + 300));
+    for (let i = 0; i < chunks.length; i += 3) {
+      await Promise.all(
+        chunks.slice(i, i + 3).map(async (chunk) => {
+          const { data: flags } = await supabase.from("products").select("id, fitment_verified").in("id", chunk);
+          for (const row of (flags || []) as Array<{ id: string; fitment_verified: boolean | null }>) {
+            if (row.fitment_verified) verified.add(row.id);
+          }
+          for (let from = 0; ; from += 1000) {
+            const { data, error } = await supabase
+              .from("product_vehicle_fitments")
+              .select("product_id")
+              .in("product_id", chunk)
+              .order("id")
+              .range(from, from + 999);
+            if (error) break;
+            for (const row of (data || []) as Array<{ product_id: string }>) withData.add(row.product_id);
+            if (!data || data.length < 1000) break;
+          }
+        })
+      );
     }
   } catch {
     // Keep the catalogue working without levels.
