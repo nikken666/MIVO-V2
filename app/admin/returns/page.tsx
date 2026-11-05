@@ -255,7 +255,7 @@ export default function AdminReturnsPage() {
         body: JSON.stringify({ id }),
       });
       const data = (await response.json().catch(() => ({}))) as { error?: string; courier?: string; awbNumber?: string; price?: number; pending?: boolean };
-      if (!response.ok) throw new Error(data.error || "Couldn't book the return.");
+      if (!response.ok) throw new Error("EasyParcel booking failed: " + (data.error || "unknown error") + " The return is still accepted — press “Book return with EasyParcel” again after fixing it.");
       setMessage(
         data.pending
           ? "Booked. The courier label is still being prepared — press the button again in a minute."
@@ -466,6 +466,10 @@ export default function AdminReturnsPage() {
                     {current.seller_amount != null ? <div><span>Seller proposed</span><strong>{money(current.seller_amount)}</strong></div> : null}
                     {current.final_amount != null ? <div className={styles.returnsFinal}><span>Approved refund</span><strong>{money(current.final_amount)}</strong></div> : null}
                   </div>
+
+                  {/* Result of the last action, next to the buttons (the top of the page is out of view). */}
+                  {message ? <p className={styles.adminSuccess}>{message}</p> : null}
+                  {error ? <p className={styles.adminError}>{error}</p> : null}
 
                   {/* Actions per stage */}
                   {isAdmin && ["requested", "mivo_review", "seller_offer"].includes(current.status) ? (
