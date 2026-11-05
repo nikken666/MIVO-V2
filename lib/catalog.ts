@@ -306,14 +306,19 @@ let catalogueLoading: Promise<Product[]> | null = null;
 
 function refreshCatalogue(): Promise<Product[]> {
   if (!catalogueLoading) {
-    const promise = loadActiveProducts();
+    // A failed reload keeps the last good catalogue; only a first load with
+    // nothing to fall back on shows the demo products.
+    const promise = loadActiveProducts().catch((error) => {
+      console.error("Catalogue load failed:", error?.message || error);
+      if (catalogueLast) return catalogueLast;
+      return demoProducts;
+    });
     catalogueLoading = promise;
     promise
       .then((products) => {
         catalogueLast = products;
         catalogueCache = { at: Date.now(), promise };
       })
-      .catch(() => {})
       .finally(() => {
         if (catalogueLoading === promise) catalogueLoading = null;
       });
@@ -342,18 +347,25 @@ export function cardProduct(product: Product): Product {
   };
 }
 
+const CATALOGUE_PAGE = 500;
+
 async function loadActiveProducts(): Promise<Product[]> {
-  try {
-    const supabase = await createClient();
-    // At most 1000 rows come back per request: count, then fetch the pages
-    // side by side instead of one after another.
-    const { count, error: countError } = await supabase
-      .from("products")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "active");
-    if (countError) throw countError;
-    const pageStarts = Array.from({ length: Math.min(40, Math.ceil((count || 0) / 1000) + 1) }, (_, i) => i * 1000);
-    const pages = await mapLimit(pageStarts, 6, async (from) => {
+  const supabase = await createClient();
+  // Pages of 500, a few at a time: small enough for the database's time
+  // limit on visitor queries. A page that fails is retried; if it still
+  // fails the whole load fails and the previous catalogue stays in use.
+  const { count, error: countError } = await supabase
+    .from("products")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "active");
+  if (countError) throw countError;
+  const pageStarts = Array.from(
+    { length: Math.min(80, Math.ceil((count || 0) / CATALOGUE_PAGE) + 1) },
+    (_, i) => i * CATALOGUE_PAGE
+  );
+  const pages = await mapLimit(pageStarts, 3, async (from) => {
+    let lastError: unknown = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
       const page = await withShopFallback((select) =>
         supabase
           .from("products")
@@ -361,31 +373,30 @@ async function loadActiveProducts(): Promise<Product[]> {
           .eq("status", "active")
           .order("created_at", { ascending: false })
           .order("id")
-          .range(from, from + 999)
+          .range(from, from + CATALOGUE_PAGE - 1)
       );
-      if (page.error) throw page.error;
-      return (page.data || []) as unknown[];
-    });
-    const seen = new Set<string>();
-    const data = pages.flat().filter((row) => {
-      const id = (row as { id?: string }).id || "";
-      if (seen.has(id)) return false;
-      seen.add(id);
-      return true;
-    });
+      if (!page.error) return (page.data || []) as unknown[];
+      lastError = page.error;
+      await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
+    }
+    throw lastError;
+  });
+  const seen = new Set<string>();
+  const data = pages.flat().filter((row) => {
+    const id = (row as { id?: string }).id || "";
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
 
-    const live = (data as unknown as ProductRow[])
-      .map(mapProduct)
-      .filter((product): product is Product => Boolean(product))
-      // Long Shopee descriptions aren't needed in lists (search uses the start).
-      .map((product) => ({ ...product, description: (product.description || "").slice(0, 600) }));
+  const live = (data as unknown as ProductRow[])
+    .map(mapProduct)
+    .filter((product): product is Product => Boolean(product))
+    // Long Shopee descriptions aren't needed in lists (search uses the start).
+    .map((product) => ({ ...product, description: (product.description || "").slice(0, 600) }));
 
-    return live.length > 0
-      ? await attachFitmentLevels(await attachReviewStats(live))
-      : demoProducts;
-  } catch {
-    return demoProducts;
-  }
+  if (!live.length) throw new Error("No live products returned.");
+  return attachFitmentLevels(await attachReviewStats(live));
 }
 
 export async function getActiveProductBySlug(

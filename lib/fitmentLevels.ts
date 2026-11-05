@@ -19,13 +19,13 @@ export async function attachFitmentLevels(products: Product[]): Promise<Product[
     // Chunks are fetched side by side (thousands of products).
     const chunks: string[][] = [];
     for (let i = 0; i < ids.length; i += 300) chunks.push(ids.slice(i, i + 300));
-    await mapLimit(chunks, 6, async (chunk) => {
+    await mapLimit(chunks, 3, async (chunk) => {
       const { data: flags } = await supabase.from("products").select("id, fitment_verified").in("id", chunk);
       for (const row of (flags || []) as Array<{ id: string; fitment_verified: boolean | null }>) {
         if (row.fitment_verified) verified.add(row.id);
       }
     });
-    await mapLimit(chunks, 6, async (chunk) => {
+    await mapLimit(chunks, 3, async (chunk) => {
       for (let from = 0; ; from += 1000) {
         const { data, error } = await supabase
           .from("product_vehicle_fitments")
