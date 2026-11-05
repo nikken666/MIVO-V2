@@ -143,9 +143,6 @@ export default function WarrantyClaimPage() {
 
         const months = Number(itemData.warranty_months || 0);
 
-        if (months <= 0) {
-          throw new Error(t("account.claim.noCoverage"));
-        }
 
         const { data: activeClaim } = await supabase
           .from("warranty_claims")
@@ -200,7 +197,7 @@ export default function WarrantyClaimPage() {
           orderData.created_at;
         const expiry = addMonths(startAt, months);
 
-        if (Date.now() > expiry.getTime()) {
+        if (months > 0 && Date.now() > expiry.getTime()) {
           throw new Error(t("account.claim.expired"));
         }
 
@@ -458,12 +455,14 @@ export default function WarrantyClaimPage() {
             <div className="warrantyClaimCoverage">
               <div>
                 <span>{t("account.warranty.period")}</span>
-                <strong>{t("account.warranty.months", { n: months })}</strong>
+                <strong>{months > 0 ? t("account.warranty.months", { n: months }) : t("account.warranty.mivoReview")}</strong>
               </div>
-              <div>
-                <span>{t("account.warranty.expires")}</span>
-                <strong>{dateLabel(expiry)}</strong>
-              </div>
+              {months > 0 ? (
+                <div>
+                  <span>{t("account.warranty.expires")}</span>
+                  <strong>{dateLabel(expiry)}</strong>
+                </div>
+              ) : null}
             </div>
           </aside>
 

@@ -257,6 +257,10 @@ export default function AdminClaimsPage() {
 
   async function saveClaim() {
     if (!selected) return;
+    if (status === "rejected" && adminNote.trim().length < 5) {
+      setError("Write the reason in “Customer update” before rejecting — the customer sees it.");
+      return;
+    }
 
     setBusy(true);
     setError("");

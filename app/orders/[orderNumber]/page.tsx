@@ -812,8 +812,7 @@ export default function OrderDetailsPage() {
               )
             ) : null}
 
-            {order.status === "delivered" &&
-            items.some((item) => Number(item.warranty_months || 0) > 0) ? (
+            {order.status === "delivered" || order.status === "completed" ? (
               <Link
                 href={
                   "/orders/" +
