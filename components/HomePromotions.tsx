@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PAID_ORDER_STATUSES, voucherAllowed, voucherUses } from "@/lib/vouchers";
 import {
   useEffect,
   useMemo,
@@ -66,6 +67,8 @@ type Voucher = {
   minimum_spend: number | string;
   max_discount: number | string | null;
   first_order_only: boolean;
+  new_user_only?: boolean | null;
+  per_user_limit?: number | string | null;
   ends_at: string;
 };
 
@@ -182,9 +185,7 @@ export default function HomePromotions({
             .maybeSingle(),
           supabase
             .from("vouchers")
-            .select(
-              "id, campaign_id, code, name, description, discount_type, discount_value, minimum_spend, max_discount, first_order_only, ends_at"
-            )
+            .select("*")
             .eq("is_active", true)
             .lte("starts_at", new Date().toISOString())
             .gte("ends_at", new Date().toISOString())
@@ -195,23 +196,46 @@ export default function HomePromotions({
       if (!active) return;
 
       setCampaign((campaignData as Campaign | null) || null);
-      setVouchers((voucherData as Voucher[] | null) || []);
+      // Shop vouchers belong on shop pages; the home page shows MIVO's own.
+      // New-customer vouchers first (the sign-up hook), then the ones ending soonest.
+      const platformVouchers = ((voucherData as Array<Voucher & { seller_id?: string | null }> | null) || [])
+        .filter((voucher) => !voucher.seller_id)
+        .sort(
+          (a, b) =>
+            Number(Boolean(b.new_user_only)) - Number(Boolean(a.new_user_only)) ||
+            new Date(a.ends_at).getTime() - new Date(b.ends_at).getTime()
+        );
+      setVouchers(platformVouchers);
 
       const user = auth.data.user;
 
       if (user) {
-        const { data: claimed } = await supabase
-          .from("customer_vouchers")
-          .select("voucher_id")
-          .eq("user_id", user.id);
+        const [{ data: claimed }, { data: redemptions }, { count: paidOrders }] = await Promise.all([
+          supabase.from("customer_vouchers").select("voucher_id").eq("user_id", user.id),
+          supabase
+            .from("voucher_redemptions")
+            .select("voucher_id, status")
+            .eq("user_id", user.id)
+            .in("status", ["reserved", "redeemed"]),
+          supabase
+            .from("orders")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", user.id)
+            .in("status", PAID_ORDER_STATUSES),
+        ]);
 
         if (!active) return;
 
-        setClaimedIds(
-          ((claimed as Array<{ voucher_id: string }> | null) || []).map(
-            (row) => row.voucher_id
+        const claimedList = ((claimed as Array<{ voucher_id: string }> | null) || []).map((row) => row.voucher_id);
+        const claimedSet = new Set(claimedList);
+        const uses = voucherUses(redemptions as Array<{ voucher_id: string; status: string }> | null);
+        // Hide vouchers this customer can no longer use (used up, or for new customers only).
+        setVouchers(
+          platformVouchers.filter((voucher) =>
+            voucherAllowed(voucher, { paidOrders: Number(paidOrders || 0), claimed: claimedSet.has(voucher.id), uses })
           )
         );
+        setClaimedIds(claimedList);
       }
     }
 
@@ -677,9 +701,11 @@ export default function HomePromotions({
                       <span>{voucher.code}</span>
                       <strong>{voucherValue(voucher, t)}</strong>
                       <small>
-                        {t("browse.promo.minSpend", {
-                          amount: formatPrice(Number(voucher.minimum_spend)),
-                        })}
+                        {Number(voucher.minimum_spend) > 0
+                          ? t("browse.promo.minSpend", {
+                              amount: formatPrice(Number(voucher.minimum_spend)),
+                            })
+                          : t("browse.promo.noMinSpend")}
                         {voucher.max_discount
                           ? " · " +
                             t("browse.promo.cap", {
@@ -693,7 +719,9 @@ export default function HomePromotions({
                       <span>
                         {voucher.first_order_only
                           ? t("browse.promo.firstOrder")
-                          : t("browse.promo.limitedVoucher")}
+                          : voucher.new_user_only
+                            ? t("browse.promo.newCustomer")
+                            : t("browse.promo.limitedVoucher")}
                       </span>
                       <button
                         type="button"

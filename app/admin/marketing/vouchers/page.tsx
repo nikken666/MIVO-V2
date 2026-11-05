@@ -31,6 +31,7 @@ type Voucher = {
   usage_limit: number | null;
   per_user_limit: number;
   first_order_only: boolean;
+  new_user_only?: boolean | null;
   scope_type: "all" | "brand" | "category" | "product";
   scope_id: string | null;
   is_active: boolean;
@@ -66,6 +67,7 @@ function emptyVoucher() {
     usage_limit: "500",
     per_user_limit: "1",
     first_order_only: false,
+    new_user_only: false,
     scope_type: "all" as "all" | "brand" | "category" | "product",
     scope_id: "",
   };
@@ -117,9 +119,7 @@ export default function MarketingVouchersPage() {
     ] = await Promise.all([
       supabase
         .from("vouchers")
-        .select(
-          "id, campaign_id, code, name, description, discount_type, discount_value, minimum_spend, max_discount, starts_at, ends_at, usage_limit, per_user_limit, first_order_only, scope_type, scope_id, is_active"
-        )
+        .select("*")
         .order("created_at", { ascending: false }),
       supabase
         .from("promotion_campaigns")
@@ -224,6 +224,8 @@ export default function MarketingVouchersPage() {
       }
 
       const supabase = createClient();
+      // The column exists once new-user-vouchers.sql has run (loaded rows then carry it).
+      const editingHasNewUserFlag = vouchers.some((voucher) => voucher.new_user_only !== undefined);
       const payload = {
         campaign_id: form.campaign_id || null,
         code: form.code.trim().toUpperCase(),
@@ -248,6 +250,8 @@ export default function MarketingVouchersPage() {
           Number(form.per_user_limit || 1)
         ),
         first_order_only: form.first_order_only,
+        // Only sent when switched on, so saving works before new-user-vouchers.sql has been run.
+        ...(form.new_user_only || editingHasNewUserFlag ? { new_user_only: form.new_user_only } : {}),
         scope_type: form.scope_type,
         scope_id:
           form.scope_type === "product"
@@ -357,6 +361,7 @@ export default function MarketingVouchersPage() {
           : String(voucher.usage_limit),
       per_user_limit: String(voucher.per_user_limit || 1),
       first_order_only: voucher.first_order_only,
+      new_user_only: Boolean(voucher.new_user_only),
       scope_type: voucher.scope_type,
       scope_id: voucher.scope_id || "",
     });
@@ -728,6 +733,20 @@ export default function MarketingVouchersPage() {
                     <span>First order only</span>
                   </label>
 
+                  <label className={styles.promotionCheck}>
+                    <input
+                      type="checkbox"
+                      checked={form.new_user_only}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          new_user_only: event.target.checked,
+                        }))
+                      }
+                    />
+                    <span>New customers only (claimable before the first order; given automatically at sign-up)</span>
+                  </label>
+
                   <label className={styles.adminField}>
                     <span>Start</span>
                     <input
@@ -834,6 +853,9 @@ export default function MarketingVouchersPage() {
                         </small>
                         {voucher.first_order_only ? (
                           <b>First order</b>
+                        ) : null}
+                        {voucher.new_user_only ? (
+                          <b>New customers</b>
                         ) : null}
                       </div>
 

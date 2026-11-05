@@ -56,8 +56,8 @@ const reasonLabel: Record<string, string> = {
   no_reason: "No reason",
 };
 const statusLabel: Record<string, string> = {
-  requested: "To respond",
-  seller_offer: "Offer sent",
+  requested: "MIVO to decide",
+  seller_offer: "Old offer",
   mivo_review: "MIVO review",
   approved_return: "Awaiting return",
   returning: "Item on the way",
@@ -70,8 +70,8 @@ const statusLabel: Record<string, string> = {
 };
 const tabs: Array<{ key: string; label: string; match: string[] }> = [
   { key: "all", label: "All", match: [] },
-  { key: "respond", label: "To respond", match: ["requested"] },
-  { key: "review", label: "Disputes · MIVO decides", match: ["mivo_review"] },
+  { key: "respond", label: "New · MIVO to decide", match: ["requested"] },
+  { key: "review", label: "Needs a closer look", match: ["mivo_review"] },
   { key: "offer", label: "Offer sent", match: ["seller_offer"] },
   { key: "receive", label: "To receive", match: ["approved_return", "returning", "received"] },
   { key: "refund", label: "To refund", match: ["refunding"] },
@@ -354,7 +354,7 @@ export default function AdminReturnsPage() {
             <div>
               <span className={styles.adminEyebrow}>Orders</span>
               <h1>Returns &amp; refunds</h1>
-              <p>Respond within 2 days or requests are approved automatically. Disputes go to MIVO review.</p>
+              <p>MIVO decides every return and refund. Shops can add their view (agree, suggest a partial refund, or disagree) — nothing is approved automatically.</p>
             </div>
           </header>
 
@@ -456,7 +456,7 @@ export default function AdminReturnsPage() {
                       </p>
                     ) : null}
                     {current.dispute_note ? <p className={styles.returnsQuote}>Dispute: “{current.dispute_note}”</p> : null}
-                    {current.seller_note ? <p className={styles.returnsQuote}>Seller: “{current.seller_note}”</p> : null}
+                    {current.seller_note ? <p className={styles.returnsQuote}>Shop: “{current.seller_note}”</p> : null}
                   </div>
 
                   <div className={styles.returnsMoney}>
@@ -464,7 +464,7 @@ export default function AdminReturnsPage() {
                     {Number(current.shipping_refund) > 0 ? <div><span>Shipping share</span><strong>+ {money(current.shipping_refund)}</strong></div> : null}
                     {Number(current.fee_deduction) > 0 ? <div><span>Payment fee deducted</span><strong>− {money(current.fee_deduction)}</strong></div> : null}
                     <div><span>Customer asked for</span><strong>{money(current.requested_amount)}</strong></div>
-                    {current.seller_amount != null ? <div><span>Seller proposed</span><strong>{money(current.seller_amount)}</strong></div> : null}
+                    {current.seller_amount != null ? <div><span>Shop suggests (customer keeps item)</span><strong>{money(current.seller_amount)}</strong></div> : null}
                     {current.final_amount != null ? <div className={styles.returnsFinal}><span>Approved refund</span><strong>{money(current.final_amount)}</strong></div> : null}
                   </div>
 
@@ -504,24 +504,28 @@ export default function AdminReturnsPage() {
                         ) : null}
                       </div>
                       {current.status === "requested" ? (
-                        <label><span>Note to the customer (needed to reject)</span><textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} /></label>
+                        <label><span>Note to the customer (needed to reject, shown with any decision)</span><textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} /></label>
                       ) : null}
                     </div>
                   ) : null}
 
                   {current.status === "requested" && !isAdmin ? (
                     <div className={styles.returnsActions}>
-                      <h3>Seller response</h3>
-                      <button type="button" className={styles.adminAction} disabled={busy} onClick={() => void run(rpc("return_request_seller_respond", { p_id: current.id, p_action: "accept", p_amount: null, p_note: note || null }), current.needs_return ? "Accepted. Customer will send the item back." : "Accepted. Ready to refund.")}>
-                        Accept {current.needs_return ? "return" : "refund"}
+                      <h3>Your view · MIVO decides</h3>
+                      <p className={styles.adminNotice}>
+                        MIVO makes the final decision on every return. Tell MIVO what you think; the customer only sees MIVO&apos;s decision.
+                        {current.seller_note || current.seller_amount != null ? <strong> You already sent your view — you can update it.</strong> : null}
+                      </p>
+                      <button type="button" className={styles.adminAction} disabled={busy} onClick={() => void run(rpc("return_request_seller_respond", { p_id: current.id, p_action: "accept", p_amount: null, p_note: note || null }), "Sent to MIVO: you agree. MIVO will decide.")}>
+                        Agree
                       </button>
-                      <label><span>Partial refund (customer keeps item)</span><input type="number" min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} /></label>
-                      <button type="button" className={styles.adminSecondaryAction} disabled={busy || !(amt > 0 && amt < Number(current.requested_amount))} onClick={() => void run(rpc("return_request_seller_respond", { p_id: current.id, p_action: "offer", p_amount: amt, p_note: note || null }), "Offer sent to the customer.")}>
-                        Offer {money(amt)}
+                      <label><span>Suggest a partial refund (customer keeps item)</span><input type="number" min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} /></label>
+                      <button type="button" className={styles.adminSecondaryAction} disabled={busy || !(amt > 0 && amt < Number(current.requested_amount))} onClick={() => void run(rpc("return_request_seller_respond", { p_id: current.id, p_action: "offer", p_amount: amt, p_note: note || null }), "Suggestion sent to MIVO. MIVO will decide.")}>
+                        Suggest {money(amt)}
                       </button>
-                      <label><span>Note / reason to dispute</span><textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} /></label>
-                      <button type="button" className={styles.adminSecondaryAction} disabled={busy || note.trim().length < 5} onClick={() => void run(rpc("return_request_seller_respond", { p_id: current.id, p_action: "dispute", p_amount: null, p_note: note }), "Disputed. MIVO will review.")}>
-                        Dispute
+                      <label><span>Note for MIVO (needed to disagree)</span><textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} /></label>
+                      <button type="button" className={styles.adminSecondaryAction} disabled={busy || note.trim().length < 5} onClick={() => void run(rpc("return_request_seller_respond", { p_id: current.id, p_action: "dispute", p_amount: null, p_note: note }), "Sent to MIVO: you disagree. MIVO will decide.")}>
+                        Disagree
                       </button>
                     </div>
                   ) : null}
@@ -559,13 +563,13 @@ export default function AdminReturnsPage() {
                       {current.status === "received" && current.inspect_by ? (
                         <p className={styles.adminNotice}>
                           Parcel arrived. You have until {when(current.inspect_by)} to check it. If you don&apos;t
-                          report a problem by then, {money(current.requested_amount)} is refunded to the customer automatically.
+                          report a problem by then, {money(current.final_amount ?? current.requested_amount)} is refunded to the customer automatically.
                         </p>
                       ) : (
                         <>
                           <p className={styles.adminNotice}>
                             When the parcel arrives, mark it below. You then have 3 days to unpack and check it before the
-                            refund goes out automatically. If you don&apos;t mark it, it counts as arrived 7 days after the customer sent it.
+                            refund goes out automatically. If nobody marks it within 14 days of sending, it moves to MIVO review (no automatic refund).
                           </p>
                           <button type="button" className={styles.adminSecondaryAction} disabled={busy} onClick={() => void run(rpc("return_request_seller_arrived", { p_id: current.id }), "Parcel arrived. You have 3 days to check it.")}>
                             Parcel arrived · start 3-day check
@@ -583,21 +587,25 @@ export default function AdminReturnsPage() {
                     </div>
                   ) : null}
 
-                  {isAdmin && (current.status === "mivo_review" || current.status === "seller_offer") ? (
+                  {isAdmin && (current.status === "requested" || current.status === "mivo_review" || current.status === "seller_offer") ? (
                     <div className={styles.returnsActions}>
-                      <h3>MIVO decision</h3>
+                      <h3>{current.status === "requested" ? "Or: choose the amount yourself (e.g. partial refund, customer keeps the item)" : "MIVO decision"}</h3>
                       <label><span>Refund amount</span><input type="number" min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} /></label>
                       <label className={styles.returnsCheck}>
                         <input type="checkbox" checked={requireReturn} onChange={(e) => setRequireReturn(e.target.checked)} /> Customer must send the item back first
                       </label>
-                      <label><span>Decision note (shown to customer)</span><textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} /></label>
+                      {current.status !== "requested" ? (
+                        <label><span>Decision note (shown to customer)</span><textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} /></label>
+                      ) : null}
                       <div className={styles.returnsRow}>
                         <button type="button" className={styles.adminAction} disabled={busy || !(amt > 0)} onClick={() => void run(rpc("return_request_mivo_decide", { p_id: current.id, p_approve: true, p_amount: amt, p_require_return: requireReturn, p_note: note || null }), "Approved.")}>
                           Approve {money(amt)}
                         </button>
-                        <button type="button" className={styles.adminSecondaryAction} disabled={busy || note.trim().length < 5} onClick={() => void run(rpc("return_request_mivo_decide", { p_id: current.id, p_approve: false, p_amount: null, p_require_return: false, p_note: note }), "Rejected.")}>
-                          Reject
-                        </button>
+                        {current.status !== "requested" ? (
+                          <button type="button" className={styles.adminSecondaryAction} disabled={busy || note.trim().length < 5} onClick={() => void run(rpc("return_request_mivo_decide", { p_id: current.id, p_approve: false, p_amount: null, p_require_return: false, p_note: note }), "Rejected.")}>
+                            Reject
+                          </button>
+                        ) : null}
                       </div>
                     </div>
                   ) : null}

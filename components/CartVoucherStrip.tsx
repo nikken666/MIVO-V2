@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { voucherAllowed, voucherUses } from "@/lib/vouchers";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/data/products";
@@ -45,12 +46,11 @@ export default function CartVoucherStrip() {
       const [{ data: voucherData }, auth] = await Promise.all([
         supabase
           .from("vouchers")
-          .select(
-            "id, code, name, discount_type, discount_value, minimum_spend, first_order_only, starts_at, ends_at"
-          )
+          .select("*")
           .eq("is_active", true)
-          .order("created_at", { ascending: true })
-          .limit(4),
+          .gte("ends_at", new Date().toISOString())
+          .order("created_at", { ascending: false })
+          .limit(20),
         supabase.auth.getUser(),
       ]);
 
@@ -83,15 +83,12 @@ export default function CartVoucherStrip() {
 
         if (!active) return;
 
-        const blockedIds = new Set(
-          ((redemptions as Array<{ voucher_id: string; status: string }> | null) || [])
-            .map((row) => row.voucher_id)
-        );
+        const uses = voucherUses(redemptions as Array<{ voucher_id: string; status: string }> | null);
+        const claimedSet = new Set(((claimed as Array<{ voucher_id: string }> | null) || []).map((row) => row.voucher_id));
         const now = Date.now();
 
         available = available.filter((voucher) => {
-          if (blockedIds.has(voucher.id)) return false;
-          if (voucher.first_order_only && Number(paidOrderCount || 0) > 0) {
+          if (!voucherAllowed(voucher, { paidOrders: Number(paidOrderCount || 0), claimed: claimedSet.has(voucher.id), uses })) {
             return false;
           }
           const startsAt = new Date(voucher.starts_at).getTime();
@@ -101,14 +98,10 @@ export default function CartVoucherStrip() {
           return true;
         });
 
-        setClaimedIds(
-          ((claimed as Array<{ voucher_id: string }> | null) || [])
-            .map((row) => row.voucher_id)
-            .filter((id) => !blockedIds.has(id))
-        );
+        setClaimedIds(Array.from(claimedSet));
       }
 
-      setVouchers(available);
+      setVouchers(available.slice(0, 4));
     }
 
     void load();

@@ -38,6 +38,8 @@ FILES=(
   return-parcel-photos.sql
   returns-window.sql
   pickup-return-no-markup.sql
+  returns-mivo-review.sql
+  new-user-vouchers.sql
 )
 # Only what's new since the last release (for a database that already ran RUN-ALL once).
 NEW_FILES=(
@@ -51,6 +53,8 @@ NEW_FILES=(
   return-parcel-photos.sql
   returns-window.sql
   pickup-return-no-markup.sql
+  returns-mivo-review.sql
+  new-user-vouchers.sql
 )
 {
   echo "-- ====================================================================="

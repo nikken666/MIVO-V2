@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usesLeft, voucherAllowed, voucherUses } from "@/lib/vouchers";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -20,8 +21,11 @@ type Voucher = {
   minimum_spend: number | string;
   max_discount: number | string | null;
   first_order_only: boolean;
+  new_user_only?: boolean | null;
+  per_user_limit?: number | string | null;
   starts_at: string;
   ends_at: string;
+  uses_left?: number;
 };
 
 type ClaimedVoucher = Voucher & {
@@ -92,16 +96,13 @@ export default function MyVouchersPage() {
         if (redemptionError) throw redemptionError;
         if (paidOrderError) throw paidOrderError;
 
-        const blockedIds = new Set(
-          ((redemptions as Array<{ voucher_id: string; status: string }> | null) || [])
-            .map((row) => row.voucher_id)
-        );
+        const uses = voucherUses(redemptions as Array<{ voucher_id: string; status: string }> | null);
 
         const rows =
           ((claimed as Array<{
             voucher_id: string;
             claimed_at: string;
-          }> | null) || []).filter((row) => !blockedIds.has(row.voucher_id));
+          }> | null) || []);
 
         const ids = rows.map((row) => row.voucher_id);
 
@@ -112,20 +113,17 @@ export default function MyVouchersPage() {
 
         const { data: voucherData, error: voucherError } = await supabase
           .from("vouchers")
-          .select(
-            "id, code, name, description, discount_type, discount_value, minimum_spend, max_discount, first_order_only, starts_at, ends_at"
-          )
+          .select("*")
           .in("id", ids);
 
         if (voucherError) throw voucherError;
 
         const byId = new Map(
           ((voucherData as Voucher[] | null) || [])
-            .filter(
-              (voucher) =>
-                !voucher.first_order_only || Number(paidOrderCount || 0) === 0
+            .filter((voucher) =>
+              voucherAllowed(voucher, { paidOrders: Number(paidOrderCount || 0), claimed: true, uses })
             )
-            .map((voucher) => [voucher.id, voucher])
+            .map((voucher) => [voucher.id, { ...voucher, uses_left: usesLeft(voucher, uses) } as Voucher])
         );
 
         if (!active) return;
@@ -208,6 +206,11 @@ export default function MyVouchersPage() {
                     ) : null}
                     {voucher.first_order_only ? (
                       <span>{t("account.vouchers.firstOrder")}</span>
+                    ) : voucher.new_user_only ? (
+                      <span>{t("account.vouchers.newCustomer")}</span>
+                    ) : null}
+                    {Number(voucher.per_user_limit || 1) > 1 && voucher.uses_left ? (
+                      <span>{t("account.vouchers.usesLeft", { n: voucher.uses_left })}</span>
                     ) : null}
                     <span>{t("account.vouchers.validUntil", { date: dateLabel(voucher.ends_at) })}</span>
                   </div>
