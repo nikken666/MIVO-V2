@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { attachFitmentLevels } from "@/lib/fitmentLevels";
+import { mapLimit } from "@/lib/mapLimit";
 import {
   products as demoProducts,
   type Product,
@@ -295,20 +296,37 @@ async function attachReviewStats(
 // products from the database on every request made those pages take many
 // seconds, so it's kept in memory for a minute per server (one load shared by
 // everyone; a change in the back office shows up within a minute).
+// After that minute the old copy keeps being served while a fresh one loads
+// in the background, so nobody waits for the reload; only the very first
+// visitor to a new server waits for the first load.
 const CATALOGUE_TTL_MS = 60_000;
 let catalogueCache: { at: number; promise: Promise<Product[]> } | null = null;
+let catalogueLast: Product[] | null = null;
+let catalogueLoading: Promise<Product[]> | null = null;
+
+function refreshCatalogue(): Promise<Product[]> {
+  if (!catalogueLoading) {
+    const promise = loadActiveProducts();
+    catalogueLoading = promise;
+    promise
+      .then((products) => {
+        catalogueLast = products;
+        catalogueCache = { at: Date.now(), promise };
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (catalogueLoading === promise) catalogueLoading = null;
+      });
+  }
+  return catalogueLoading;
+}
 
 export function getActiveProducts(): Promise<Product[]> {
-  if (!catalogueCache || Date.now() - catalogueCache.at > CATALOGUE_TTL_MS) {
-    const promise = loadActiveProducts();
-    catalogueCache = { at: Date.now(), promise };
-    // A failed load isn't kept.
-    promise.catch(() => {
-      if (catalogueCache?.promise === promise) catalogueCache = null;
-    });
-  }
-  return catalogueCache.promise;
+  if (catalogueCache && Date.now() - catalogueCache.at <= CATALOGUE_TTL_MS) return catalogueCache.promise;
+  const loading = refreshCatalogue();
+  return catalogueLast ? Promise.resolve(catalogueLast) : loading;
 }
+
 
 /**
  * What a product card needs, without the description and extra images, so
@@ -327,9 +345,15 @@ export function cardProduct(product: Product): Product {
 async function loadActiveProducts(): Promise<Product[]> {
   try {
     const supabase = await createClient();
-    // At most 1000 rows come back per request: page through big catalogues.
-    const data: unknown[] = [];
-    for (let from = 0; from < 20000; from += 1000) {
+    // At most 1000 rows come back per request: count, then fetch the pages
+    // side by side instead of one after another.
+    const { count, error: countError } = await supabase
+      .from("products")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "active");
+    if (countError) throw countError;
+    const pageStarts = Array.from({ length: Math.min(40, Math.ceil((count || 0) / 1000) + 1) }, (_, i) => i * 1000);
+    const pages = await mapLimit(pageStarts, 6, async (from) => {
       const page = await withShopFallback((select) =>
         supabase
           .from("products")
@@ -340,14 +364,21 @@ async function loadActiveProducts(): Promise<Product[]> {
           .range(from, from + 999)
       );
       if (page.error) throw page.error;
-      const rows = (page.data || []) as unknown[];
-      data.push(...rows);
-      if (rows.length < 1000) break;
-    }
+      return (page.data || []) as unknown[];
+    });
+    const seen = new Set<string>();
+    const data = pages.flat().filter((row) => {
+      const id = (row as { id?: string }).id || "";
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
 
     const live = (data as unknown as ProductRow[])
       .map(mapProduct)
-      .filter((product): product is Product => Boolean(product));
+      .filter((product): product is Product => Boolean(product))
+      // Long Shopee descriptions aren't needed in lists (search uses the start).
+      .map((product) => ({ ...product, description: (product.description || "").slice(0, 600) }));
 
     return live.length > 0
       ? await attachFitmentLevels(await attachReviewStats(live))

@@ -1,5 +1,6 @@
 "use client";
 
+import { thumbUrl } from "@/lib/imageThumb";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { flyToCart } from "@/lib/flyToCart";
@@ -150,18 +151,30 @@ export default function ProductCard({
       <div className="productImageWrap">
       <Link href={detailHref} className={imageClass}>
         {product.imageUrl ? (
-          <img src={product.imageUrl} alt={product.name} onError={(event) => {
-            const image = event.currentTarget;
-            image.onerror = null;
-            image.src = product.brand === "GSP" ? "/brands/gsp-logo.svg" : "/part-placeholder.svg";
-            image.title = t("browse.card.photoUnavailable");
-          }} />
+          <img
+            src={thumbUrl(product.imageUrl)}
+            alt={product.name}
+            decoding="async"
+            data-fallback="1"
+            onError={(event) => {
+              const image = event.currentTarget;
+              // The small Shopee copy failed: try the full photo once, then the placeholder.
+              if (product.imageUrl && image.getAttribute("src") !== product.imageUrl && !image.dataset.full) {
+                image.dataset.full = "1";
+                image.src = product.imageUrl;
+                return;
+              }
+              image.onerror = null;
+              image.src = product.brand === "GSP" ? "/brands/gsp-logo.svg" : "/part-placeholder.svg";
+              image.title = t("browse.card.photoUnavailable");
+            }}
+          />
         ) : null}
         {/* A6: desktop hover shows the second photo */}
         {product.imageUrl && product.imageUrls?.[1] && product.imageUrls[1] !== product.imageUrl ? (
           <img
             className="productAltImage"
-            src={product.imageUrls[1]}
+            src={thumbUrl(product.imageUrls[1])}
             alt=""
             aria-hidden="true"
             loading="lazy"
