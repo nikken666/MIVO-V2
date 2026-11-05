@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { mixShops } from "@/lib/mixShops";
 import { cardProduct, getActiveProducts } from "@/lib/catalog";
 import { getFittingProductIds } from "@/lib/liveFitment";
 import { nameSuggestsVehicle } from "@/lib/guessFitment";
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
   const [products, { fits, universal }] = await Promise.all([getActiveProducts(), getFittingProductIds(selected)]);
 
   const related = companions[context] || [];
-  const items = products
+  const items = mixShops(products)
     .filter((p) => p.id && !exclude.has(p.id) && !exclude.has(p.slug) && Number(p.stock ?? 1) > 0)
     .map((p) => {
       const raw: FitmentStatus | null = fits.has(p.id!)
