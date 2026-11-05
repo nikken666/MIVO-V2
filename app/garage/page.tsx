@@ -10,6 +10,7 @@ import {
   type AccountVehicle,
 } from "@/lib/customerData";
 import { useT } from "@/components/LanguageProvider";
+import { openVehiclePicker } from "@/components/VehiclePickerButton";
 import { friendlyError } from "@/lib/i18n/errors";
 
 export default function GaragePage() {
@@ -80,9 +81,13 @@ export default function GaragePage() {
     }
 
     void loadVehicle();
+    // A car picked in the selector (opened from this page) shows up right away.
+    const reload = () => void loadVehicle();
+    window.addEventListener("mivo:vehicle-changed", reload);
 
     return () => {
       active = false;
+      window.removeEventListener("mivo:vehicle-changed", reload);
     };
   }, []);
 
@@ -208,12 +213,13 @@ export default function GaragePage() {
               <Link className="btn btnDark" href={"/products?" + query}>
                 {t("account.garage.shopParts")} <span>→</span>
               </Link>
-              <Link
+              <button
                 className="garageSecondary"
-                href="/?addVehicle=1#fitment"
+                type="button"
+                onClick={openVehiclePicker}
               >
                 + {t("account.garage.addAnother")}
-              </Link>
+              </button>
               <button
                 className="garageRemove"
                 type="button"
@@ -232,9 +238,9 @@ export default function GaragePage() {
             <p>
               {t("account.garage.emptyText")}
             </p>
-            <Link className="btn btnDark" href="/#fitment">
+            <button className="btn btnDark" type="button" onClick={openVehiclePicker}>
               {t("account.garage.selectVehicle")} <span>→</span>
-            </Link>
+            </button>
           </div>
         )}
 
