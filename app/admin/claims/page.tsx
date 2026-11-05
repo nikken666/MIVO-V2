@@ -529,7 +529,9 @@ export default function AdminClaimsPage() {
                     </div>
 
                     <WarrantyResolution
-                      key={selected.id}
+                      // Remount when the status changes, so approving a claim
+                      // shows the resolution steps without reloading the page.
+                      key={selected.id + ":" + selected.status}
                       claimId={selected.id}
                       onChanged={() => void loadClaims()}
                     />
