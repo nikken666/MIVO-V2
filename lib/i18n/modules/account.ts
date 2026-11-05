@@ -446,6 +446,8 @@ const vouchers = {
   "account.vouchers.minSpend": ["Min. spend {price}", "Belanja min. {price}", "最低消费 {price}"],
   "account.vouchers.maxDiscount": ["Max discount {price}", "Diskaun maks. {price}", "最高优惠 {price}"],
   "account.vouchers.firstOrder": ["First order only", "Pesanan pertama sahaja", "仅限首单"],
+  "account.vouchers.newCustomer": ["New customers", "Pelanggan baharu", "新用户专享"],
+  "account.vouchers.usesLeft": ["{n} left", "Baki {n}", "剩 {n} 张"],
   "account.vouchers.validUntil": ["Valid until {date}", "Sah sehingga {date}", "有效期至 {date}"],
   "account.vouchers.useNow": ["Use now", "Guna sekarang", "立即使用"],
 } as const satisfies Record<`account.${string}`, Row>;

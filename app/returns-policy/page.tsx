@@ -148,10 +148,11 @@ const content: Record<
                 packaging. You will see the estimated refund before you submit.
               </li>
               <li>
-                The seller has 2 days to respond: accept, offer a partial refund
-                (you keep the item), or raise a dispute. If the seller
-                doesn&rsquo;t respond in time, the request is approved
-                automatically.
+                MIVO reviews every request — whether it&rsquo;s day 1 or day
+                15 — and usually replies within 2 working days. The shop can
+                share its view, but MIVO makes the decision: approve the return,
+                offer a partial refund (you keep the item), or reject it with a
+                reason. Nothing is approved automatically.
               </li>
               <li>
                 If a return is approved, send the item back within 7 days and
@@ -159,9 +160,10 @@ const content: Record<
                 Requests not sent back in time are closed.
               </li>
               <li>
-                If you and the seller disagree (an offer you reject, a dispute,
-                or a problem found with the returned item), MIVO reviews the
-                photos and history and makes the final decision.
+                When the returned item arrives, it is checked within 3 days. If
+                there&rsquo;s no problem, your refund goes out automatically. If
+                a problem is found, MIVO reviews the photos and history and
+                makes the final decision.
               </li>
             </ol>
             <p>
@@ -345,11 +347,12 @@ const content: Record<
                 dipaparkan sebelum anda menghantar permintaan.
               </li>
               <li>
-                Penjual mempunyai 2 hari untuk memberi maklum balas: menerima,
-                menawarkan bayaran balik separa (anda menyimpan barang
-                tersebut), atau membuka pertikaian. Jika penjual tidak memberi
-                maklum balas dalam tempoh itu, permintaan akan diluluskan
-                secara automatik.
+                MIVO menyemak setiap permintaan — sama ada pada hari pertama
+                atau hari ke-15 — dan biasanya menjawab dalam 2 hari bekerja.
+                Kedai boleh memberi pandangan, tetapi MIVO yang membuat
+                keputusan: meluluskan pulangan, menawarkan bayaran balik separa
+                (anda menyimpan barang), atau menolak dengan sebab. Tiada
+                permintaan yang diluluskan secara automatik.
               </li>
               <li>
                 Jika pulangan diluluskan, hantar semula barang dalam tempoh 7
@@ -358,10 +361,10 @@ const content: Record<
                 semula dalam tempoh tersebut akan ditutup.
               </li>
               <li>
-                Jika anda dan penjual tidak bersetuju (tawaran yang anda tolak,
-                pertikaian, atau masalah yang ditemui pada barang yang
-                dipulangkan), MIVO akan menyemak gambar dan sejarah permintaan
-                serta membuat keputusan muktamad.
+                Apabila barang yang dipulangkan tiba, ia disemak dalam tempoh 3
+                hari. Jika tiada masalah, bayaran balik dihantar secara
+                automatik. Jika ada masalah, MIVO akan menyemak gambar dan
+                sejarah permintaan serta membuat keputusan muktamad.
               </li>
             </ol>
             <p>
@@ -535,15 +538,16 @@ const content: Record<
                 选择商品（每次限一家店铺）及原因，并填写说明，附上商品及包装的清晰照片或视频。提交前您会看到预计退款金额。
               </li>
               <li>
-                卖家须在 2
-                天内回应：同意、提出部分退款（您保留商品）或发起争议。如卖家未在期限内回应，申请将自动获批。
+                每一个退货申请（不管是签收后第 1 天还是第 15 天）都由 MIVO
+                审核，通常 2 个工作日内回复。店铺可以提供意见，但由 MIVO
+                作出决定：同意退货、提出部分退款（您保留商品），或说明原因后拒绝。不会自动通过。
               </li>
               <li>
                 退货获批后，请在 7
                 天内寄回商品，并在申请页面填写快递公司及运单号。未在期限内寄回的申请将被关闭。
               </li>
               <li>
-                如您与卖家意见不一致（您拒绝了对方的提议、发起了争议，或退回的商品被发现有问题），MIVO
+                退回的商品到达后会在 3 天内检查；没有问题就会自动退款。如发现问题，MIVO
                 将审查照片及记录，并作出最终决定。
               </li>
             </ol>

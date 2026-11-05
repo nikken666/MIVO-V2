@@ -398,14 +398,18 @@ export default function ReturnDetailPage() {
         <section className={styles.card}>
           <h2>{t("ret.timeline")}</h2>
           <ul className={styles.timeline}>
-            {events.map((e) => (
+            {events.map((e) => {
+              // The shop's view is for MIVO; the customer sees MIVO's decision.
+              const internal = e.actor === "seller" && ["seller_agreed", "seller_suggested", "disputed"].includes(e.action);
+              return (
               <li key={e.id}>
                 {t(("ret.ev." + e.action) as Key)}
-                {e.amount != null ? " · " + formatPrice(Number(e.amount)) : ""}
-                {e.note && e.actor !== "system" ? <em>“{e.note}”</em> : null}
+                {e.amount != null && !internal ? " · " + formatPrice(Number(e.amount)) : ""}
+                {e.note && e.actor !== "system" && !internal ? <em>“{e.note}”</em> : null}
                 <time>{when(e.created_at)}</time>
               </li>
-            ))}
+              );
+            })}
           </ul>
         </section>
 

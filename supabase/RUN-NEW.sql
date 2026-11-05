@@ -14,6 +14,8 @@
 --   return-parcel-photos.sql
 --   returns-window.sql
 --   pickup-return-no-markup.sql
+--   returns-mivo-review.sql
+--   new-user-vouchers.sql
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
@@ -954,6 +956,178 @@ revoke all on function public.return_request_return_address(uuid) from public, a
 grant execute on function public.return_request_return_address(uuid) to authenticated;
 
 update public.shipping_rules set handling_markup = 0 where handling_markup <> 0;
+
+commit;
+
+notify pgrst, 'reload schema';
+
+
+-- ---------------------------------------------------------------------
+-- returns-mivo-review.sql
+-- ---------------------------------------------------------------------
+-- =====================================================================
+-- Every return / refund request is decided by MIVO.
+--   * A shop can only give its view (agree, suggest a partial refund, or
+--     disagree). The request keeps waiting for MIVO's decision.
+--   * No more automatic approval when a shop doesn't answer within 2 days.
+--   * A parcel sent back counts as arrived only when MIVO (or the shop)
+--     marks it received. If nobody does within 14 days, it goes to MIVO's
+--     review list instead of being refunded automatically.
+--   * After it is marked received, the 3-day inspection and automatic
+--     refund work as before, for the amount MIVO approved.
+-- Safe to re-run.
+-- =====================================================================
+
+begin;
+
+create or replace function public.return_request_seller_respond(p_id uuid, p_action text, p_amount numeric, p_note text)
+returns void language plpgsql security definer set search_path = public as $$
+declare r public.return_requests%rowtype;
+begin
+  select * into r from public.return_requests where id = p_id for update;
+  if not found then raise exception 'Request not found'; end if;
+  if not public.mivo_can_manage_shop(r.seller_id) then raise exception 'Not allowed'; end if;
+  if r.status <> 'requested' then raise exception 'This request is already %', r.status; end if;
+
+  if p_action = 'accept' then
+    -- The shop agrees; MIVO still decides.
+    update public.return_requests
+       set seller_note = coalesce(nullif(btrim(coalesce(p_note, '')), ''), 'Shop agrees with this request.'),
+           seller_amount = null, updated_at = now()
+     where id = r.id;
+    perform public.mivo_return_log(r.id, 'seller', 'seller_agreed', p_note, r.requested_amount);
+  elsif p_action = 'offer' then
+    -- A suggestion for MIVO (customer keeps the item); the customer isn't asked.
+    if p_amount is null or p_amount <= 0 or p_amount >= r.requested_amount then
+      raise exception 'Suggest an amount between RM0 and RM%', r.requested_amount;
+    end if;
+    update public.return_requests
+       set seller_amount = round(p_amount, 2),
+           seller_note = nullif(btrim(coalesce(p_note, '')), ''), updated_at = now()
+     where id = r.id;
+    perform public.mivo_return_log(r.id, 'seller', 'seller_suggested', p_note, round(p_amount, 2));
+  elsif p_action = 'dispute' then
+    if coalesce(btrim(p_note), '') = '' then raise exception 'Explain why you disagree'; end if;
+    update public.return_requests
+       set status = 'mivo_review', dispute_note = btrim(p_note), updated_at = now()
+     where id = r.id;
+    perform public.mivo_return_log(r.id, 'seller', 'disputed', p_note, null);
+  else
+    raise exception 'Unknown action';
+  end if;
+end;
+$$;
+
+create or replace function public.return_requests_auto()
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_closed int := 0; v_overdue int := 0; v_refund int := 0; r record;
+begin
+  -- Approved, but the item wasn't sent back in time.
+  for r in select id from public.return_requests
+            where status = 'approved_return' and ship_back_by < now() and return_tracking is null loop
+    update public.return_requests set status = 'closed', updated_at = now() where id = r.id;
+    perform public.mivo_return_log(r.id, 'system', 'auto_closed', 'Item was not sent back within 7 days', null);
+    v_closed := v_closed + 1;
+  end loop;
+
+  -- Sent back 14+ days ago and nobody marked it received: MIVO checks it.
+  for r in select id from public.return_requests
+            where status = 'returning' and coalesce(shipped_back_at, updated_at) < now() - interval '14 days' loop
+    update public.return_requests
+       set status = 'mivo_review',
+           dispute_note = coalesce(dispute_note, 'Parcel not marked received 14 days after it was sent back'),
+           updated_at = now()
+     where id = r.id;
+    perform public.mivo_return_log(r.id, 'system', 'review_overdue', 'Parcel not marked received 14 days after it was sent back', null);
+    v_overdue := v_overdue + 1;
+  end loop;
+
+  -- Marked received and no problem reported within 3 days: refund the approved amount.
+  for r in select id, coalesce(final_amount, requested_amount) as amount from public.return_requests
+            where status = 'received' and inspect_by < now() loop
+    update public.return_requests
+       set status = 'refunding', final_amount = r.amount, updated_at = now()
+     where id = r.id;
+    perform public.mivo_return_log(r.id, 'system', 'auto_refund', 'No problem reported within 3 days of arrival', r.amount);
+    v_refund := v_refund + 1;
+  end loop;
+
+  return jsonb_build_object('auto_accepted', 0, 'auto_closed', v_closed,
+                            'sent_to_review', v_overdue, 'auto_refund', v_refund);
+end;
+$$;
+revoke all on function public.return_requests_auto() from public, anon, authenticated;
+
+commit;
+
+notify pgrst, 'reload schema';
+
+
+-- ---------------------------------------------------------------------
+-- new-user-vouchers.sql
+-- ---------------------------------------------------------------------
+-- =====================================================================
+-- "New customers only" vouchers. Safe to re-run.
+--   * vouchers.new_user_only: can be claimed only by someone who has not
+--     paid for an order yet. Once claimed it keeps working until it is
+--     used up (per_user_limit) or expires — e.g. 3 free-shipping vouchers.
+--   * New accounts get every active new-customer voucher in their wallet
+--     automatically when they sign up.
+-- The existing claim / checkout functions are not changed: the rule is
+-- checked when a voucher is added to someone's wallet.
+-- =====================================================================
+
+begin;
+
+alter table public.vouchers add column if not exists new_user_only boolean not null default false;
+
+-- Has this person paid for an order before?
+create or replace function public.mivo_has_paid_order(p_user uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from public.orders
+     where user_id = p_user
+       and status::text in ('paid','processing','packed','shipped','delivered','completed','refunded','partially_refunded'));
+$$;
+revoke all on function public.mivo_has_paid_order(uuid) from public, anon, authenticated;
+
+-- New-customer vouchers only go into the wallets of people who haven't bought yet.
+create or replace function public.mivo_guard_new_user_voucher()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if exists (select 1 from public.vouchers v where v.id = new.voucher_id and v.new_user_only)
+     and public.mivo_has_paid_order(new.user_id) then
+    raise exception 'This voucher is for new customers only';
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists customer_vouchers_new_user_guard on public.customer_vouchers;
+create trigger customer_vouchers_new_user_guard
+  before insert on public.customer_vouchers
+  for each row execute function public.mivo_guard_new_user_voucher();
+
+-- New sign-ups get the new-customer vouchers straight away.
+create or replace function public.mivo_give_new_user_vouchers()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  begin
+    insert into public.customer_vouchers (user_id, voucher_id)
+    select new.id, v.id
+      from public.vouchers v
+     where v.new_user_only and v.is_active and now() <= v.ends_at
+    on conflict do nothing;
+  exception when others then
+    null; -- a voucher problem must never block a sign-up
+  end;
+  return new;
+end;
+$$;
+revoke all on function public.mivo_give_new_user_vouchers() from public, anon, authenticated;
+drop trigger if exists mivo_new_user_vouchers on auth.users;
+create trigger mivo_new_user_vouchers
+  after insert on auth.users
+  for each row execute function public.mivo_give_new_user_vouchers();
 
 commit;
 

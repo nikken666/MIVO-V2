@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { voucherAllowed, voucherUses } from "@/lib/vouchers";
 import "./mobile.css";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -66,6 +67,8 @@ type VoucherOption = {
   minimum_spend: number | string;
   max_discount: number | string | null;
   first_order_only: boolean;
+  new_user_only?: boolean | null;
+  per_user_limit?: number | string | null;
   scope_type: "all" | "brand" | "category" | "product";
   starts_at: string;
   ends_at: string;
@@ -259,22 +262,16 @@ export default function CheckoutPage() {
             .in("status", ["paid", "processing", "packed", "shipped", "delivered", "completed"]),
         ]);
 
-        const blockedIds = new Set(
-          ((redemptions as Array<{ voucher_id: string; status: string }> | null) || [])
-            .map((row) => row.voucher_id)
-        );
+        const uses = voucherUses(redemptions as Array<{ voucher_id: string; status: string }> | null);
 
         const ids =
           ((claimed as Array<{ voucher_id: string }> | null) || [])
-            .map((row) => row.voucher_id)
-            .filter((id) => !blockedIds.has(id));
+            .map((row) => row.voucher_id);
 
         if (ids.length > 0) {
           const { data: voucherData } = await supabase
             .from("vouchers")
-            .select(
-              "id, code, name, description, discount_type, discount_value, minimum_spend, max_discount, first_order_only, scope_type, starts_at, ends_at"
-            )
+            .select("*")
             .in("id", ids)
             .eq("is_active", true)
             .order("created_at", { ascending: true });
@@ -286,10 +283,7 @@ export default function CheckoutPage() {
               const endsAt = new Date(voucher.ends_at).getTime();
               if (Number.isFinite(startsAt) && startsAt > now) return false;
               if (Number.isFinite(endsAt) && endsAt < now) return false;
-              if (voucher.first_order_only && Number(paidOrderCount || 0) > 0) {
-                return false;
-              }
-              return true;
+              return voucherAllowed(voucher, { paidOrders: Number(paidOrderCount || 0), claimed: true, uses });
             }
           );
 
@@ -1353,8 +1347,8 @@ export default function CheckoutPage() {
                             <small>{t("buy.co.maxDiscount", { amount: formatPrice(cap) })}</small>
                           ) : null}
 
-                          {voucher.first_order_only ? (
-                            <small>{t("buy.co.firstOrderOnly")}</small>
+                          {voucher.first_order_only || voucher.new_user_only ? (
+                            <small>{t(voucher.first_order_only ? "buy.co.firstOrderOnly" : "buy.co.newCustomerOnly")}</small>
                           ) : null}
 
                           {voucher.scope_type !== "all" ? (
