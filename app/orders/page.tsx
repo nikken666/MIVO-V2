@@ -68,7 +68,7 @@ function orderBucket(order: OrderRow): Exclude<OrderTab, "all"> {
     return "cancelled";
   }
 
-  if (order.status === "delivered") return "completed";
+  if (order.status === "delivered" || order.status === "completed") return "completed";
   if (order.status === "shipped") return "to_receive";
 
   if (
@@ -183,7 +183,7 @@ export default function OrdersPage() {
     );
 
     const completedOrders = loadedOrders.filter(
-      (order) => order.status === "delivered"
+      (order) => order.status === "delivered" || order.status === "completed"
     );
 
     const enrichImages = async () => {

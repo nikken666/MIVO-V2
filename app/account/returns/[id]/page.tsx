@@ -47,6 +47,7 @@ type Request = {
   return_tracking: string | null;
   return_awb_url?: string | null;
   return_ep_shipment?: string | null;
+  free_return?: boolean | null;
   seller_note: string | null;
   mivo_note: string | null;
   respond_by: string | null;
@@ -314,6 +315,7 @@ export default function ReturnDetailPage() {
         {req.status === "approved_return" && !req.return_ep_shipment ? (
           <section className={styles.card}>
             <h2>{t("ret.shipBack")}</h2>
+            {req.free_return === false ? <p className={styles.noteWarn}>{t("ret.selfPostNote")}</p> : null}
             {returnTo?.address ? (
               <div className={styles.noteGood}>
                 <strong>{t("ret.sendTo")}</strong>

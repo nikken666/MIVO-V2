@@ -119,10 +119,14 @@ export async function GET(request: NextRequest) {
   }
 
   // Commission: apply scheduled changes, revert finished temporary ones.
+  const completed = await admin.rpc("mivo_auto_complete_orders").then(
+    (r) => r.data ?? r.error?.message ?? null,
+    () => null,
+  );
   const commission = await admin.rpc("mivo_apply_commission_changes").then(
     (r) => r.data ?? r.error?.message,
     () => null
   );
 
-  return NextResponse.json({ captured: results.filter((r) => r.ok).length, results, returns, refunds, easyparcel, commission, expired });
+  return NextResponse.json({ captured: results.filter((r) => r.ok).length, results, returns, refunds, easyparcel, commission, expired, completed });
 }

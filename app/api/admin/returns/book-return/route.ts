@@ -55,6 +55,9 @@ export async function POST(request: NextRequest) {
     if (r.status !== "approved_return") {
       return NextResponse.json({ error: "Accept the return first (status is " + r.status + ")." }, { status: 409 });
     }
+    if (r.free_return === false) {
+      return NextResponse.json({ error: "This return was requested more than 7 days after delivery, so it isn't a free return — the customer posts it back." }, { status: 409 });
+    }
     if (!r.seller_fault) {
       return NextResponse.json({ error: "Only returns accepted as our fault get a free return parcel." }, { status: 409 });
     }

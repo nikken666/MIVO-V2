@@ -36,6 +36,7 @@ FILES=(
   warranty-open-claims.sql
   liquid-shipping.sql
   return-parcel-photos.sql
+  returns-window.sql
 )
 # Only what's new since the last release (for a database that already ran RUN-ALL once).
 NEW_FILES=(
@@ -47,6 +48,7 @@ NEW_FILES=(
   warranty-open-claims.sql
   liquid-shipping.sql
   return-parcel-photos.sql
+  returns-window.sql
 )
 {
   echo "-- ====================================================================="

@@ -120,7 +120,7 @@ function bucket(order: OrderView): Exclude<TabKey, "all"> {
     return "cancelled";
   }
 
-  if (order.status === "delivered") return "completed";
+  if (order.status === "delivered" || order.status === "completed") return "completed";
   if (order.status === "shipped") return "shipped";
   if (["paid", "processing", "packed"].includes(order.status)) {
     return "to_ship";
@@ -718,7 +718,7 @@ export default function AdminOrdersPage() {
                 />
               ) : null}
 
-              {status === "shipped" || status === "delivered" ? (
+              {status === "shipped" || status === "delivered" || status === "completed" ? (
                 <div className={styles.adminTrackingBox}>
                   <span>Courier</span>
                   <strong>{parcel.shipment?.courier_name || "—"}</strong>

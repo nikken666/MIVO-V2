@@ -28,6 +28,7 @@ type Req = {
   final_amount: number | string | null;
   status: string;
   needs_return: boolean;
+  free_return?: boolean | null;
   return_courier: string | null;
   return_tracking: string | null;
   return_awb_url?: string | null;
@@ -285,7 +286,7 @@ export default function AdminReturnsPage() {
       return;
     }
     setBusy(false);
-    if (ourFault && current.needs_return) await bookReturn(current.id);
+    if (ourFault && current.needs_return && current.free_return !== false) await bookReturn(current.id);
   }
   const amt = Number(amount);
 
@@ -477,12 +478,15 @@ export default function AdminReturnsPage() {
                       <h3>MIVO decision · whose fault is it?</h3>
                       <p className={styles.adminNotice}>
                         The customer chose “{current.reason.replace(/_/g, " ")}”. Check the photos, then decide.
+                        {current.free_return === false ? (
+                          <strong> Requested more than 7 days after delivery: no free return — if accepted, the customer posts it back to the return address at their own cost.</strong>
+                        ) : null}
                         Our fault: item + its delivery share refunded{current.needs_return ? "; MIVO books the return with EasyParcel (paid from the wallet) and the customer drops it off at a courier point with the tracking number / barcode" : ""}.
                         Not our fault: change-of-mind rules — no delivery refund, payment fee deducted{current.needs_return ? "; the customer posts it back at their own cost and enters the tracking number" : ""}.
                       </p>
                       <div className={styles.returnsRow}>
                         <button type="button" className={styles.adminAction} disabled={busy} onClick={() => void mivoAccept(current, true)}>
-                          Accept · our fault{current.needs_return ? " · book EasyParcel return" : ""}
+                          Accept · our fault{current.needs_return && current.free_return !== false ? " · book EasyParcel return" : ""}
                         </button>
                         <button type="button" className={styles.adminSecondaryAction} disabled={busy} onClick={() => void mivoAccept(current, false)}>
                           Accept · not our fault
@@ -540,7 +544,7 @@ export default function AdminReturnsPage() {
                           </>
                         ) : null}
                       </p>
-                    ) : isAdmin && current.status === "approved_return" && current.seller_fault ? (
+                    ) : isAdmin && current.status === "approved_return" && current.seller_fault && current.free_return !== false ? (
                       <div className={styles.returnsRow}>
                         <button type="button" className={styles.adminAction} disabled={busy} onClick={() => void bookReturn(current.id)}>
                           Book return with EasyParcel

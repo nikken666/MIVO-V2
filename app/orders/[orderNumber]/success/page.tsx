@@ -33,7 +33,7 @@ type ReceiptItem = {
   line_subtotal: number | string;
 };
 
-const paidStatuses = ["paid", "processing", "packed", "shipped", "delivered"];
+const paidStatuses = ["paid", "processing", "packed", "shipped", "delivered", "completed"];
 
 function isPaid(order: OrderSummary | null) {
   return Boolean(
