@@ -5,7 +5,7 @@ import { payReturnRefund } from "@/lib/returns/payRefund";
 import { completePendingBooking, refreshTracking } from "@/lib/easyparcel/shipping";
 
 // Daily (vercel.json): charge card holds that would expire within a day,
-// and run return-request housekeeping.
+// run return-request housekeeping and cancel orders never paid.
 // Stripe keeps an online card hold about 7 days; holds are due after 6.
 export async function GET(request: NextRequest) {
   const secret = process.env.CRON_SECRET;
@@ -74,11 +74,55 @@ export async function GET(request: NextRequest) {
     easyparcel = caught instanceof Error ? caught.message : String(caught);
   }
 
+  // Unpaid orders: cancelled once their 24-hour payment window has passed
+  // (plus an hour, so a shopper still on the card page isn't cut off). The
+  // order rules in the database put their reserved stock back on sale, the
+  // same as when a shopper cancels an unpaid order.
+  let expired: unknown = null;
+  try {
+    const cutoff = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const dayAgo = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString();
+    const { data: stale, error: staleError } = await admin
+      .from("orders")
+      .select("id, order_number, expires_at, created_at")
+      .eq("status", "pending_payment")
+      .neq("payment_status", "paid")
+      .lt("created_at", dayAgo)
+      .limit(200);
+    if (staleError) throw staleError;
+    let cancelled = 0;
+    for (const order of (stale as Array<{ id: string; expires_at: string | null }> | null) || []) {
+      if (order.expires_at && order.expires_at > cutoff) continue;
+      const { data: done } = await admin
+        .from("orders")
+        .update({
+          status: "cancelled",
+          payment_status: "cancelled",
+          cancellation_reason: "Payment not received within 24 hours",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", order.id)
+        .eq("status", "pending_payment")
+        .neq("payment_status", "paid")
+        .select("id");
+      if (!done?.length) continue;
+      await admin.from("seller_orders").update({ status: "cancelled" }).eq("order_id", order.id);
+      await admin
+        .from("order_status_history")
+        .insert({ order_id: order.id, old_status: "pending_payment", new_status: "cancelled", note: "Payment not received within 24 hours" })
+        .then(() => undefined, () => undefined);
+      cancelled++;
+    }
+    expired = { cancelled };
+  } catch (caught) {
+    expired = caught instanceof Error ? caught.message : String(caught);
+  }
+
   // Commission: apply scheduled changes, revert finished temporary ones.
   const commission = await admin.rpc("mivo_apply_commission_changes").then(
     (r) => r.data ?? r.error?.message,
     () => null
   );
 
-  return NextResponse.json({ captured: results.filter((r) => r.ok).length, results, returns, refunds, easyparcel, commission });
+  return NextResponse.json({ captured: results.filter((r) => r.ok).length, results, returns, refunds, easyparcel, commission, expired });
 }
