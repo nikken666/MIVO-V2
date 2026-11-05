@@ -91,7 +91,7 @@ export default function AdminReturnsPage() {
   const initialTabSet = useRef(false);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
-  const [detail, setDetail] = useState<{ items: Map<string, string>; events: Ev[]; photos: string[] } | null>(null);
+  const [detail, setDetail] = useState<{ items: Map<string, string>; events: Ev[]; photos: string[]; parcelPhotos: string[] } | null>(null);
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [requireReturn, setRequireReturn] = useState(true);
@@ -188,11 +188,12 @@ export default function AdminReturnsPage() {
           .in("id", current.items.map((i) => i.order_item_id)),
         supabase.from("return_request_events").select("*").eq("request_id", current.id).order("created_at", { ascending: false }),
       ]);
-      let photos: string[] = [];
-      if (current.evidence_paths?.length) {
-        const { data: signed } = await supabase.storage.from("return-evidence").createSignedUrls(current.evidence_paths, 3600);
-        photos = (signed || []).map((s) => s.signedUrl).filter(Boolean) as string[];
-      }
+      // Photos come from the server (browser storage rules can't read shops).
+      const pics = (await fetch("/api/returns/photos?id=" + encodeURIComponent(current.id))
+        .then((r) => (r.ok ? r.json() : {}))
+        .catch(() => ({}))) as { evidence?: string[]; parcel?: string[] };
+      const photos = pics.evidence || [];
+      const parcelPhotos = pics.parcel || [];
       setDetail({
         items: new Map(
           ((itemRes.data || []) as Array<{ id: string; product_name: string; variant_name: string | null; sku: string }>).map((i) => [
@@ -202,6 +203,7 @@ export default function AdminReturnsPage() {
         ),
         events: (evRes.data || []) as Ev[],
         photos,
+        parcelPhotos,
       });
     })();
   }, [current?.id, current?.status]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -434,6 +436,18 @@ export default function AdminReturnsPage() {
                           </a>
                         ))}
                       </div>
+                    ) : null}
+                    {detail?.parcelPhotos.length ? (
+                      <>
+                        <p>Customer&apos;s parcel / drop-off photos:</p>
+                        <div className={styles.returnsPhotos}>
+                          {detail.parcelPhotos.map((u) => (
+                            <a key={u} href={u} target="_blank" rel="noreferrer">
+                              <img src={u} alt="" />
+                            </a>
+                          ))}
+                        </div>
+                      </>
                     ) : null}
                     {current.return_tracking ? (
                       <p>

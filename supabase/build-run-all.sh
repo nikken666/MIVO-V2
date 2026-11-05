@@ -34,6 +34,8 @@ FILES=(
   return-shipping-share.sql
   return-easyparcel.sql
   warranty-open-claims.sql
+  liquid-shipping.sql
+  return-parcel-photos.sql
 )
 # Only what's new since the last release (for a database that already ran RUN-ALL once).
 NEW_FILES=(
@@ -43,6 +45,8 @@ NEW_FILES=(
   return-shipping-share.sql
   return-easyparcel.sql
   warranty-open-claims.sql
+  liquid-shipping.sql
+  return-parcel-photos.sql
 )
 {
   echo "-- ====================================================================="

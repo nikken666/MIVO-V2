@@ -177,16 +177,18 @@ export default function ReturnRequestPage() {
           setPhotoError(t("errors.fileTooLarge"));
           continue;
         }
-        const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5) || "jpg";
-        const path = uid + "/" + orderNumber + "-" + crypto.randomUUID() + "." + ext;
-        const { error: uploadError } = await supabase.storage
-          .from("return-evidence")
-          .upload(path, file, { contentType: file.type || "application/octet-stream" });
-        if (uploadError) {
-          setPhotoError(friendlyError(uploadError, t, "ret.submitError") + " (" + uploadError.message + ")");
+        // Uploaded by the server (see /api/returns/photos).
+        const body = new FormData();
+        body.append("file", file);
+        body.append("orderNumber", orderNumber);
+        const response = await fetch("/api/returns/photos", { method: "POST", body });
+        const result = (await response.json().catch(() => ({}))) as { path?: string; error?: string };
+        if (!response.ok || !result.path) {
+          setPhotoError(t("ret.photoFailed") + (result.error ? " (" + result.error + ")" : ""));
           continue;
         }
-        setPhotos((current) => [...current, { path, preview: URL.createObjectURL(file), video: file.type.startsWith("video/") }]);
+        const path = result.path;
+        setPhotos((current) => [...current, { path, preview: URL.createObjectURL(file) }]);
       } finally {
         setUploading((n) => Math.max(0, n - 1));
       }
@@ -376,7 +378,7 @@ export default function ReturnRequestPage() {
                   <input
                     ref={fileRef}
                     type="file"
-                    accept="image/*,video/*"
+                    accept="image/*"
                     multiple
                     hidden
                     onChange={(e) => {
