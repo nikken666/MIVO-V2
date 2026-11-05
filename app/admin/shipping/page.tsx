@@ -206,14 +206,13 @@ export default function AdminShippingPage() {
 
           <section className={styles.shippingFormulaCard}>
             <span>How MIVO calculates shipping</span>
-            <strong>
-              Tiered courier rate card + RM2 MIVO markup.
-            </strong>
+            <strong>EasyParcel price, no markup.</strong>
             <p>
-              Origin postcode: 52200. MIVO first calculates chargeable weight
-              using the higher of actual or volumetric weight, then looks up
-              the matching SPX / J&T weight tier. Customer shipping = courier
-              rate + MIVO markup.
+              With EasyParcel connected, the buyer pays EasyParcel&rsquo;s price
+              for the cheapest courier from the shop&rsquo;s pickup address. Buyers
+              don&rsquo;t see the courier name until the parcel ships. The rate
+              cards below are only a backup, used when EasyParcel can&rsquo;t give
+              a price.
             </p>
           </section>
 
