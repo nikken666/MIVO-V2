@@ -4948,6 +4948,22 @@ grant execute on function public.return_request_customer_dropped(uuid) to authen
 commit;
 notify pgrst, 'reload schema';
 
+-- A return request needs at least one photo or video (except "not received").
+begin;
+create or replace function public.mivo_return_needs_photo()
+returns trigger language plpgsql as $$
+begin
+  if new.reason <> 'not_received' and cardinality(coalesce(new.evidence_paths, '{}')) = 0 then
+    raise exception 'Add at least one photo or video of the item';
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists return_requests_need_photo on public.return_requests;
+create trigger return_requests_need_photo before insert on public.return_requests
+  for each row execute function public.mivo_return_needs_photo();
+commit;
+
 
 -- ---------------------------------------------------------------------
 -- warranty-open-claims.sql

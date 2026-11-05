@@ -214,7 +214,9 @@ export default function ReturnRequestPage() {
     }
   }
 
-  const canSubmit = chosen.length > 0 && reason && description.trim().length >= 5 && !busy && uploading === 0;
+  const photoNeeded = reason !== "not_received";
+  const canSubmit =
+    chosen.length > 0 && reason && description.trim().length >= 5 && !busy && uploading === 0 && (!photoNeeded || photos.length > 0);
   // Why the button is still grey, shown under it.
   const missing = !chosen.length
     ? t("ret.needItem")
@@ -224,7 +226,9 @@ export default function ReturnRequestPage() {
         ? t("ret.needDescription")
         : uploading > 0
           ? t("ret.uploading")
-          : "";
+          : photoNeeded && !photos.length
+            ? t("ret.needPhoto")
+            : "";
 
   return (
     <main className={styles.page}>

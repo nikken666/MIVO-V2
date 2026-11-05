@@ -723,6 +723,15 @@ export default function ProductDetailClient({
                   <small>{t("buy.pd.shippingAtCheckout")}</small>
                 </p>
               </div>
+              {product.restrictedShippingStates?.length ? (
+                <div>
+                  <span>!</span>
+                  <p>
+                    <strong>{t("buy.pd.noShipTo", { states: product.restrictedShippingStates.join(", ") })}</strong>
+                    <small>{t("buy.pd.noShipToHint")}</small>
+                  </p>
+                </div>
+              ) : null}
               <div>
                 <span>✓</span>
                 <p>
