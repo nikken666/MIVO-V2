@@ -5,10 +5,27 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export const maxDuration = 60;
 
 type Row = { id: string; price: number; compare_at_price: number | null; stock?: number | null; external_ref?: string | null };
+type NewVariant = {
+  title?: string;
+  variation_1_value?: string | null;
+  variation_2_value?: string | null;
+  sku?: string;
+  price?: number;
+  compare_at_price?: number | null;
+  external_ref?: string | null;
+  stock_on_hand?: number;
+  weight_kg?: number;
+  length_cm?: number;
+  width_cm?: number;
+  height_cm?: number;
+  variant_image_url?: string | null;
+};
 type Body = {
   shopId?: string;
   variants?: Row[];
   products?: Array<{ id: string; external_ref: string }>;
+  // Options Shopee has that the shop's product is missing: added.
+  add?: Array<{ productId: string; variants: NewVariant[] }>;
 };
 
 const missingColumn = (e: { code?: string; message?: string } | null) =>
@@ -44,7 +61,8 @@ export async function POST(request: NextRequest) {
         stock: r.stock == null ? null : Math.max(0, Math.round(Number(r.stock) || 0)),
         external_ref: r.external_ref ? String(r.external_ref).slice(0, 120) : null,
       }));
-    if (!shopId || !rows.length) return NextResponse.json({ error: "Nothing to update." }, { status: 400 });
+    const adds = (body.add || []).filter((a) => a && typeof a.productId === "string" && Array.isArray(a.variants) && a.variants.length).slice(0, 200);
+    if (!shopId || (!rows.length && !adds.length)) return NextResponse.json({ error: "Nothing to update." }, { status: 400 });
 
     const admin = createAdminClient();
     const [{ data: isAdmin }, { data: shop }] = await Promise.all([
@@ -55,6 +73,10 @@ export async function POST(request: NextRequest) {
     if (!isAdmin && !(shop.owner_id === user.id && shop.status === "approved")) {
       return NextResponse.json({ error: "You can only update your own shop." }, { status: 403 });
     }
+
+    let added = 0;
+    if (adds.length) added = await addVariants(admin, shopId, adds);
+    if (!rows.length) return NextResponse.json({ updated: 0, refs: 0, added });
 
     // One statement for the whole batch (supabase/shopee-sync.sql) …
     let updated = 0;
@@ -98,7 +120,7 @@ export async function POST(request: NextRequest) {
       refs += results.filter((r) => !r.error).length;
     }
 
-    return NextResponse.json({ updated, refs });
+    return NextResponse.json({ updated, refs, added });
   } catch (caught) {
     const e = caught as { message?: string; code?: string; details?: string };
     return NextResponse.json(
@@ -106,4 +128,60 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+/** Adds missing options to the shop's own products, after the ones they already have. */
+async function addVariants(admin: ReturnType<typeof createAdminClient>, shopId: string, adds: NonNullable<Body["add"]>) {
+  const ids = [...new Set(adds.map((a) => a.productId))];
+  const [{ data: owned, error: ownedError }, { data: existing, error: existingError }] = await Promise.all([
+    admin.from("products").select("id").eq("seller_id", shopId).in("id", ids),
+    admin.from("product_variants").select("product_id, sort_order").in("product_id", ids),
+  ]);
+  if (ownedError) throw ownedError;
+  if (existingError) throw existingError;
+  const mine = new Set((owned || []).map((p) => p.id as string));
+  const nextSort = new Map<string, number>();
+  for (const v of existing || []) {
+    const id = v.product_id as string;
+    nextSort.set(id, Math.max(nextSort.get(id) ?? 0, Number(v.sort_order || 0) + 1));
+  }
+  const rows = (refs: boolean) =>
+    adds
+      .filter((a) => mine.has(a.productId))
+      .flatMap((a) =>
+        a.variants.slice(0, 100).map((v, i) => {
+          const price = Math.max(0, Math.round((Number(v.price) || 0) * 100) / 100);
+          return {
+            product_id: a.productId,
+            seller_id: shopId,
+            sort_order: (nextSort.get(a.productId) ?? 0) + i,
+            title: String(v.title || "Default").slice(0, 200),
+            variation_1_value: v.variation_1_value ?? null,
+            variation_2_value: v.variation_2_value ?? null,
+            sku: String(v.sku || "").trim().slice(0, 120),
+            price,
+            compare_at_price: v.compare_at_price && Number(v.compare_at_price) > price ? Number(v.compare_at_price) : null,
+            ...(refs && v.external_ref ? { external_ref: String(v.external_ref).slice(0, 120) } : {}),
+            stock_on_hand: Math.max(0, Math.round(Number(v.stock_on_hand) || 0)),
+            stock_reserved: 0,
+            low_stock_threshold: 5,
+            weight_kg: Number(v.weight_kg) || 0,
+            length_cm: Number(v.length_cm) || 0,
+            width_cm: Number(v.width_cm) || 0,
+            height_cm: Number(v.height_cm) || 0,
+            variant_image_url: v.variant_image_url ?? null,
+            is_active: true,
+          };
+        })
+      )
+      .filter((r) => r.sku);
+  let list = rows(true);
+  if (!list.length) return 0;
+  let { error } = await admin.from("product_variants").insert(list);
+  if (missingColumn(error)) {
+    list = rows(false);
+    ({ error } = await admin.from("product_variants").insert(list));
+  }
+  if (error) throw error;
+  return list.length;
 }
