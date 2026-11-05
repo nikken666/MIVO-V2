@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/data/products";
@@ -12,6 +12,7 @@ import { intlTag } from "@/lib/i18n/format";
 import type { Key } from "@/lib/i18n";
 import styles from "../Returns.module.css";
 import { code128Bars } from "@/lib/barcode128";
+import { shrinkPhoto } from "@/lib/imageResize";
 
 // Scannable barcode of the courier tracking number (what drop-off counters scan).
 function TrackingBarcode({ value }: { value: string }) {
@@ -66,6 +67,9 @@ export default function ReturnDetailPage() {
   const [items, setItems] = useState<Map<string, string>>(new Map());
   const [events, setEvents] = useState<Event[]>([]);
   const [photos, setPhotos] = useState<string[]>([]);
+  const [parcelPhotos, setParcelPhotos] = useState<string[]>([]);
+  const [parcelUploading, setParcelUploading] = useState(false);
+  const parcelInput = useRef<HTMLInputElement>(null);
   const [returnTo, setReturnTo] = useState<{ shop?: string; name?: string; phone?: string; address?: string } | null>(null);
   const [courier, setCourier] = useState("");
   const [tracking, setTracking] = useState("");
@@ -100,10 +104,12 @@ export default function ReturnDetailPage() {
         const { data: address } = await supabase.rpc("return_request_return_address", { p_request_id: r.id });
         setReturnTo((address as typeof returnTo) || null);
       }
-      if (r.evidence_paths?.length) {
-        const { data: signed } = await supabase.storage.from("return-evidence").createSignedUrls(r.evidence_paths, 3600);
-        setPhotos((signed || []).map((s) => s.signedUrl).filter(Boolean) as string[]);
-      }
+      // Photos come from the server (browser storage rules can't read shops).
+      const pics = (await fetch("/api/returns/photos?id=" + encodeURIComponent(r.id))
+        .then((res) => (res.ok ? res.json() : {}))
+        .catch(() => ({}))) as { evidence?: string[]; parcel?: string[] };
+      setPhotos(pics.evidence || []);
+      setParcelPhotos(pics.parcel || []);
     } catch (caught) {
       setError(friendlyError(caught, t, "ret.loadError"));
     }
@@ -134,6 +140,70 @@ export default function ReturnDetailPage() {
       setBusy(false);
     }
   }
+
+  async function addParcelPhotos(files: FileList | null) {
+    if (!files?.length || !req) return;
+    setParcelUploading(true);
+    setError("");
+    try {
+      const paths: string[] = [];
+      for (const original of Array.from(files).slice(0, 6 - parcelPhotos.length)) {
+        const file = await shrinkPhoto(original);
+        const body = new FormData();
+        body.append("file", file);
+        body.append("orderNumber", orderNumber);
+        const response = await fetch("/api/returns/photos", { method: "POST", body });
+        const result = (await response.json().catch(() => ({}))) as { path?: string; error?: string };
+        if (!response.ok || !result.path) throw new Error(t("ret.photoFailed") + (result.error ? " (" + result.error + ")" : ""));
+        paths.push(result.path);
+      }
+      if (paths.length) {
+        const { error: saveError } = await createClient().rpc("return_request_add_parcel_photos", { p_id: req.id, p_paths: paths });
+        if (saveError) throw saveError;
+      }
+      await load();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : friendlyError(caught, t, "ret.actionError"));
+    } finally {
+      setParcelUploading(false);
+    }
+  }
+
+  const parcelPhotoBlock = (
+    <div>
+      <h3 className={styles.h2gap}>{t("ret.parcelPhotos", { n: parcelPhotos.length })}</h3>
+      <p className={styles.hint}>{t("ret.parcelPhotosHint")}</p>
+      <div className={styles.photos}>
+        {parcelPhotos.map((url) => (
+          <a key={url} href={url} target="_blank" rel="noreferrer" className={styles.photo}>
+            <img src={url} alt="" />
+          </a>
+        ))}
+        {parcelUploading ? (
+          <span className={styles.photo} aria-busy="true">
+            <small>{t("ret.uploading")}</small>
+          </span>
+        ) : null}
+        {parcelPhotos.length < 6 ? (
+          <button type="button" className={styles.addPhoto} disabled={parcelUploading} onClick={() => parcelInput.current?.click()}>
+            {t("ret.addPhoto")}
+          </button>
+        ) : null}
+        <input
+          ref={parcelInput}
+          type="file"
+          accept="image/*"
+          multiple
+          hidden
+          onChange={(e) => {
+            void addParcelPhotos(e.target.files);
+            e.currentTarget.value = "";
+          }}
+        />
+      </div>
+      {!parcelPhotos.length ? <p className={styles.noteWarn}>{t("ret.needParcelPhoto")}</p> : null}
+    </div>
+  );
 
   if (!req) {
     return (
@@ -215,6 +285,7 @@ export default function ReturnDetailPage() {
                 </>
               )}
             </div>
+            {parcelPhotoBlock}
             <div className={styles.actions}>
               {req.return_awb_url ? (
                 <a className={styles.secondary} href={req.return_awb_url} target="_blank" rel="noreferrer">
@@ -224,7 +295,7 @@ export default function ReturnDetailPage() {
               <button
                 type="button"
                 className={styles.primary}
-                disabled={busy || !req.return_tracking}
+                disabled={busy || !req.return_tracking || !parcelPhotos.length || parcelUploading}
                 onClick={async () => {
                   setBusy(true);
                   setError("");
@@ -259,8 +330,9 @@ export default function ReturnDetailPage() {
               <input className={styles.input} placeholder={t("ret.courier")} value={courier} onChange={(e) => setCourier(e.target.value)} />
               <input className={styles.input} placeholder={t("ret.tracking")} value={tracking} onChange={(e) => setTracking(e.target.value)} />
             </div>
+            {parcelPhotoBlock}
             <div className={styles.actions}>
-              <button type="button" className={styles.primary} disabled={busy || !courier.trim() || !tracking.trim()} onClick={() => void act("ship_back", { courier, tracking })}>
+              <button type="button" className={styles.primary} disabled={busy || !courier.trim() || !tracking.trim() || !parcelPhotos.length || parcelUploading} onClick={() => void act("ship_back", { courier, tracking })}>
                 {t("ret.shipBack")}
               </button>
             </div>
