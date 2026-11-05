@@ -3,9 +3,9 @@
 const rows = {
   "ret.policyTitle": ["Before you return", "Sebelum anda memulangkan", "退货前请了解"],
   "ret.policyText": [
-    "Request within 7 days of delivery. Wrong, damaged, faulty or missing parts: full refund and MIVO covers the return postage. Change of mind or no reason: you send it back at your own cost, the original delivery fee isn't refunded and the card processing fee is deducted.",
-    "Mohon dalam masa 7 hari selepas penghantaran. Alat ganti salah, rosak, tidak berfungsi atau tidak lengkap: bayaran balik penuh dan MIVO tanggung pos pulangan. Tukar fikiran atau tiada sebab: anda hantar balik atas kos sendiri, caj penghantaran asal tidak dipulangkan dan caj pemprosesan bayaran ditolak.",
-    "收货后 7 天内可申请。配件发错、损坏、有问题或缺件：全额退款，退货运费由 MIVO 承担。改变主意或无理由退货：寄回运费由你自付，原运费不退，并扣除付款手续费。"
+    "Request within 7 days of delivery. Wrong, damaged, faulty or missing parts: once MIVO confirms it, you get the item price and its delivery fee back. Change of mind or no reason: the original delivery fee isn't refunded and the card processing fee is deducted. Either way you post the item back yourself and enter the tracking number.",
+    "Mohon dalam masa 7 hari selepas penghantaran. Alat ganti salah, rosak, tidak berfungsi atau tidak lengkap: selepas MIVO mengesahkannya, anda dapat semula harga barang dan caj penghantarannya. Tukar fikiran atau tiada sebab: caj penghantaran asal tidak dipulangkan dan caj pemprosesan bayaran ditolak. Dalam kedua-dua kes, anda poskan barang sendiri dan masukkan nombor penjejakan.",
+    "收货后 7 天内可申请。配件发错、损坏、有问题或缺件：经 MIVO 确认后，退还商品款和原运费。改变主意或无理由退货：原运费不退，并扣除付款手续费。两种情况都需要你自己寄回商品并填写快递单号。"
   ],
   "ret.policyLink": ["Full return policy", "Polisi pulangan penuh", "完整退货政策"],
   "ret.title": ["Return / Refund", "Pulangan / Bayaran Balik", "退货 / 退款"],
@@ -34,7 +34,7 @@ const rows = {
   "ret.photosHint": ["Clear photos help the seller and MIVO decide faster.", "Foto yang jelas membantu penjual dan MIVO membuat keputusan lebih cepat.", "清楚的照片能让卖家和 MIVO 更快处理。"],
   "ret.addPhoto": ["+ Add", "+ Tambah", "+ 添加"],
   "ret.uploading": ["Uploading…", "Memuat naik…", "上传中…"],
-  "ret.reviewNote": ["This is an estimate. MIVO checks your photos and confirms the amount. If it's our mistake, we book the return parcel for you for free.", "Ini anggaran. MIVO menyemak foto anda dan mengesahkan jumlahnya. Jika ini kesilapan kami, kami tempah bungkusan pulangan untuk anda secara percuma.", "这是预估金额。MIVO 会查看你的照片并确认金额；如果是我们的问题，我们会免费帮你订好退货快递。"],
+  "ret.reviewNote": ["This is an estimate. MIVO checks your photos and confirms the amount before the item is sent back.", "Ini anggaran. MIVO menyemak foto anda dan mengesahkan jumlahnya sebelum barang dihantar balik.", "这是预估金额。MIVO 会先查看你的照片并确认金额，然后你再寄回商品。"],
   "ret.freeReturnTitle": ["Free return — drop it off", "Pulangan percuma — hantar ke kaunter", "免费退货 — 拿去寄件点"],
   "ret.freeReturnText": ["MIVO has booked and paid the return with {courier}. Pack the item, then show this tracking number (or the printed label) at any {courier} drop-off point.", "MIVO telah menempah dan membayar pulangan dengan {courier}. Bungkus barang, kemudian tunjukkan nombor penjejakan ini (atau label bercetak) di mana-mana kaunter {courier}.", "MIVO 已经用 {courier} 帮你订好并付了退货运费。把商品包好，拿这个单号（或打印的面单）到任何 {courier} 寄件点扫描寄出。"],
   "ret.freeReturnPending": ["The courier label is being prepared — check back in a few minutes.", "Label kurier sedang disediakan — sila semak semula dalam beberapa minit.", "快递面单准备中，请过几分钟再看。"],
@@ -48,7 +48,7 @@ const rows = {
   "ret.itemsAmount": ["Item price (after voucher)", "Harga barang (selepas baucar)", "商品金额（扣除优惠券后）"],
   "ret.shippingRefund": ["Shipping fee share", "Bahagian caj penghantaran", "运费分摊"],
   "ret.feeDeduction": ["Payment processing fee (not returned by the payment provider)", "Caj pemprosesan pembayaran (tidak dikembalikan oleh penyedia pembayaran)", "支付手续费（支付平台不退还）"],
-  "ret.faultNote": ["Seller's responsibility: you get the item price and shipping back. MIVO covers return postage.", "Tanggungjawab penjual: anda dapat semula harga barang dan caj penghantaran. MIVO menanggung kos pos pulangan.", "属于卖家责任：退还商品款和运费，寄回运费由 MIVO 承担。"],
+  "ret.faultNote": ["If MIVO confirms it's our mistake: you get the item price and its delivery fee back. You post the item back yourself.", "Jika MIVO mengesahkan ini kesilapan kami: anda dapat semula harga barang dan caj penghantarannya. Anda poskan barang sendiri.", "如果 MIVO 确认是我们的问题：退还商品款和原运费。商品需要你自己寄回。"],
   "ret.mindNote": ["Change of mind: the original delivery fee isn't refunded, the payment fee is deducted, and you pay the postage to send it back.", "Tukar fikiran: caj penghantaran asal tidak dikembalikan, caj pembayaran ditolak, dan anda membayar pos untuk memulangkannya.", "改变主意：原运费不退、扣除支付手续费，寄回运费由你承担。"],
   "ret.fitNote": ["This part wasn't verified by MIVO for your car, so it counts as change of mind.", "Alat ganti ini tidak disahkan oleh MIVO untuk kereta anda, jadi ia dikira sebagai tukar fikiran.", "此零件未经 MIVO 验证适合你的车，因此按改变主意处理。"],
   "ret.submit": ["Submit request", "Hantar permohonan", "提交申请"],

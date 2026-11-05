@@ -136,9 +136,8 @@ export default function OrderWarrantyPage() {
 
         const rawItems =
           (itemData as Omit<WarrantyItem, "image_url">[] | null) || [];
-        const warrantiedItems = rawItems.filter(
-          (item) => Number(item.warranty_months || 0) > 0
-        );
+        // Every item can be claimed: one without a set warranty is reviewed by MIVO.
+        const warrantiedItems = rawItems;
 
         if (warrantiedItems.length === 0) {
           throw new Error(t("account.warranty.noWarranty"));
@@ -265,6 +264,7 @@ export default function OrderWarrantyPage() {
     if (!warrantyStart) return 0;
 
     return items.filter((item) => {
+      if (Number(item.warranty_months || 0) <= 0) return true;
       const expiry = addMonths(
         warrantyStart,
         Number(item.warranty_months || 0)
@@ -335,7 +335,8 @@ export default function OrderWarrantyPage() {
           {items.map((item) => {
             const months = Number(item.warranty_months || 0);
             const expiry = addMonths(warrantyStart, months);
-            const active = expiry.getTime() >= Date.now();
+            const reviewOnly = months <= 0;
+            const active = reviewOnly || expiry.getTime() >= Date.now();
 
             return (
               <article className="warrantyItemCard" key={item.id}>
@@ -359,13 +360,15 @@ export default function OrderWarrantyPage() {
                   <div>
                     <span>{t("account.warranty.period")}</span>
                     <strong>
-                      {t("account.warranty.months", { n: months })}
+                      {reviewOnly ? t("account.warranty.mivoReview") : t("account.warranty.months", { n: months })}
                     </strong>
                   </div>
-                  <div>
-                    <span>{t("account.warranty.expires")}</span>
-                    <strong>{dateLabel(expiry)}</strong>
-                  </div>
+                  {reviewOnly ? null : (
+                    <div>
+                      <span>{t("account.warranty.expires")}</span>
+                      <strong>{dateLabel(expiry)}</strong>
+                    </div>
+                  )}
                   <b className={active ? "active" : "expired"}>
                     {active ? t("account.status.active") : t("account.status.expired")}
                   </b>

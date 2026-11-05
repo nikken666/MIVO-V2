@@ -70,9 +70,9 @@ const content: Record<
                   not received
                 </strong>
                 <span>
-                  The seller&rsquo;s responsibility: full refund of the item
-                  price and its share of shipping. MIVO covers the return
-                  postage.
+                  Once MIVO confirms it&rsquo;s the seller&rsquo;s responsibility:
+                  refund of the item price and its share of shipping. You post
+                  the item back and enter the tracking number.
                 </span>
               </div>
               <div>

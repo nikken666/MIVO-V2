@@ -283,7 +283,6 @@ export default function AdminReturnsPage() {
       return;
     }
     setBusy(false);
-    if (ourFault && current.needs_return) await bookReturn(current.id);
   }
   const amt = Number(amount);
 
@@ -459,12 +458,12 @@ export default function AdminReturnsPage() {
                       <h3>MIVO decision · whose fault is it?</h3>
                       <p className={styles.adminNotice}>
                         The customer chose “{current.reason.replace(/_/g, " ")}”. Check the photos, then decide.
-                        Our fault: item + its delivery share refunded{current.needs_return ? ", and MIVO books a free return parcel with EasyParcel (customer drops it off)" : ""}.
-                        Not our fault: change-of-mind rules — no delivery refund, payment fee deducted{current.needs_return ? ", customer pays the return postage" : ""}.
+                        Our fault: item + its delivery share refunded. Not our fault: change-of-mind rules — no delivery refund,
+                        payment fee deducted.{current.needs_return ? " Either way the customer posts the item back to the shop's return address and enters the tracking number." : ""}
                       </p>
                       <div className={styles.returnsRow}>
                         <button type="button" className={styles.adminAction} disabled={busy} onClick={() => void mivoAccept(current, true)}>
-                          Accept · our fault{current.needs_return ? " · book free return" : ""}
+                          Accept · our fault
                         </button>
                         <button type="button" className={styles.adminSecondaryAction} disabled={busy} onClick={() => void mivoAccept(current, false)}>
                           Accept · not our fault
@@ -522,12 +521,6 @@ export default function AdminReturnsPage() {
                           </>
                         ) : null}
                       </p>
-                    ) : isAdmin && current.status === "approved_return" && current.seller_fault ? (
-                      <div className={styles.returnsRow}>
-                        <button type="button" className={styles.adminAction} disabled={busy} onClick={() => void bookReturn(current.id)}>
-                          Book free return parcel (EasyParcel)
-                        </button>
-                      </div>
                     ) : null
                   ) : null}
 

@@ -304,6 +304,7 @@ const review = {
 
 const warranty = {
   "account.warranty.noWarranty": ["This order has no registered warranty.", "Tiada waranti berdaftar untuk pesanan ini.", "此订单没有登记保修。"],
+  "account.warranty.mivoReview": ["Reviewed by MIVO", "Disemak oleh MIVO", "由 MIVO 审核"],
   "account.warranty.loadError": ["Unable to load warranty.", "Tidak dapat memuatkan waranti.", "无法加载保修信息。"],
   "account.warranty.loading": ["Loading warranty…", "Memuatkan waranti…", "正在加载保修信息…"],
   "account.warranty.unavailable": ["Warranty information unavailable.", "Maklumat waranti tidak tersedia.", "暂无保修信息。"],
