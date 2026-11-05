@@ -1,22 +1,15 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import * as ep from "@/lib/easyparcel/api";
 
-// Checkout shipping per shop: the buyer pays MIVO's price list (Shipping
-// settings, Shopee-style rates), or EasyParcel's real cost when that is higher.
-// The cost is from each shop's pickup address to the buyer, cheapest usable
-// service. Throws when EasyParcel can't price every shop, so checkout falls
-// back to MIVO's shipping rules alone.
+// Checkout shipping per shop: the buyer pays EasyParcel's price, no markup,
+// from each shop's pickup address to the buyer, cheapest usable service.
+// Throws when EasyParcel can't price every shop, so checkout falls back to
+// MIVO's shipping rules alone.
 
 type CartItem = { variant_id: string; quantity: number };
 
 const CACHE_HOURS = 6;
 const DEFAULT_DIMS = { length: 30, width: 20, height: 15 };
-
-/** Optional fixed handling fee added per parcel (MYR), e.g. packing costs. */
-function handlingFee() {
-  const value = Number(process.env.EASYPARCEL_SHIPPING_MARKUP || 0);
-  return Number.isFinite(value) && value > 0 ? value : 0;
-}
 
 async function cachedQuotes(sender: ep.Address, receiver: ep.Address, parcel: ep.Parcel) {
   const admin = createAdminClient();
@@ -75,19 +68,6 @@ export async function quoteCheckout(userId: string, items: CartItem[], address: 
     groups.set(key, [...(groups.get(key) || []), shop]);
   }
 
-  // MIVO's own price list (Shipping settings), per shop: what the buyer pays,
-  // unless EasyParcel's real cost is higher (then the cost, so MIVO never loses).
-  const priceList = new Map<string, number>();
-  const { data: rules } = await admin.rpc("quote_shipping_by_shop", {
-    p_items: items,
-    p_state: address.state,
-    p_postcode: address.postcode,
-  });
-  for (const shop of (rules as Array<{ seller_id: string; options?: Array<{ shipping_amount: number | string }> }> | null) || []) {
-    const prices = (shop.options || []).map((o) => Number(o.shipping_amount)).filter((n) => Number.isFinite(n));
-    if (prices.length) priceList.set(shop.seller_id, Math.min(...prices));
-  }
-
   const receiver: ep.Address = { name: "Buyer", phone: "0", line1: "-", postcode: address.postcode, city: "-", state: address.state };
   const results: Array<{
     seller_id: string;
@@ -138,8 +118,7 @@ export async function quoteCheckout(userId: string, items: CartItem[], address: 
       group: key,
       shop_name: members.map((m) => m.shop_name).join(" · "),
       tier: shop.tier,
-      // MIVO's price list is per parcel too (quote_shipping_by_shop groups the same way).
-      amount: Math.round(Math.max(priceList.get(shop.id) ?? 0, best.price + handlingFee()) * 100) / 100,
+      amount: Math.round(best.price * 100) / 100,
       cost: best.price,
       courier: best.courierName,
       service_id: best.serviceId,

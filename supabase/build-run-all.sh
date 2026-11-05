@@ -37,6 +37,7 @@ FILES=(
   liquid-shipping.sql
   return-parcel-photos.sql
   returns-window.sql
+  pickup-return-no-markup.sql
 )
 # Only what's new since the last release (for a database that already ran RUN-ALL once).
 NEW_FILES=(
@@ -49,6 +50,7 @@ NEW_FILES=(
   liquid-shipping.sql
   return-parcel-photos.sql
   returns-window.sql
+  pickup-return-no-markup.sql
 )
 {
   echo "-- ====================================================================="
