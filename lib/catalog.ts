@@ -329,51 +329,150 @@ export function cardProduct(product: Product): Product {
 // get the demo products instead of the real ones.
 let lastGoodCatalogue: Product[] | null = null;
 
+type Reader = Awaited<ReturnType<typeof createClient>>;
+
 /**
  * The catalogue is read by the server with the service key, applying the
- * same rule as the public row rules (live products of approved shops).
- * Through the visitor's role, those rules run for every photo and option
- * row — with thousands of products that exceeded the database's time limit
- * for visitors and the site fell back to the demo products.
+ * same rule as the public row rules (live products of approved shops); the
+ * visitor's row rules run for every photo and option row and are too slow
+ * for thousands of products. Falls back to the visitor's client.
  */
-async function catalogueReader(): Promise<{ client: Awaited<ReturnType<typeof createClient>>; shopIds: string[] | null }> {
+function catalogueClient(): Promise<Reader> | Reader {
   try {
-    const admin = createAdminClient();
-    const { data, error } = await admin.from("sellers").select("id").eq("status", "approved");
-    if (error) throw error;
-    return { client: admin as unknown as Awaited<ReturnType<typeof createClient>>, shopIds: (data || []).map((s) => s.id as string) };
+    return createAdminClient() as unknown as Reader;
   } catch {
-    return { client: await createClient(), shopIds: null };
+    return createClient();
   }
 }
 
+const LIST_PAGE = 1000;
+const LIST_COLUMNS =
+  "id, seller_id, category_id, brand_id, slug, name, short_description, warranty_months, primary_image_url, variation_1_name, variation_2_name, is_universal_fitment, restricted_shipping_states, brands(name), categories(name)";
+const LIST_VARIANT_COLUMNS =
+  "id, product_id, title, variation_1_value, variation_2_value, variant_image_url, sort_order, sku, price, compare_at_price, discount_enabled, discount_percent, discount_starts_at, discount_ends_at, stock_on_hand, stock_reserved, weight_kg, length_cm, width_cm, height_cm, is_active";
+
+/** Runs fn over items, a few at a time. */
+async function inBatches<T, R>(items: T[], size: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const out: R[] = [];
+  for (let i = 0; i < items.length; i += size) out.push(...(await Promise.all(items.slice(i, i + size).map(fn))));
+  return out;
+}
+
+/** A query that is retried a couple of times before giving up. */
+async function withRetry<T>(run: () => PromiseLike<{ data: T | null; error: { message?: string } | null }>): Promise<T> {
+  let lastError: unknown = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { data, error } = await run();
+    if (!error) return (data ?? ([] as unknown)) as T;
+    lastError = error;
+    await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
+  }
+  throw lastError;
+}
+
+/**
+ * What lists need, in small flat reads (products, then their options):
+ * no long descriptions or photo galleries, which only the product page
+ * shows and loads itself. One big nested read of everything took too long
+ * once the catalogue reached thousands of products.
+ */
 async function loadActiveProducts(): Promise<Product[]> {
   try {
-    const { client: supabase, shopIds } = await catalogueReader();
-    if (shopIds && !shopIds.length) return lastGoodCatalogue || demoProducts;
-    // At most 1000 rows come back per request: page through big catalogues.
-    const data: unknown[] = [];
-    for (let from = 0; from < 30000; from += 1000) {
-      const page = await withShopFallback((select) => {
-        let query = supabase
+    const supabase = await catalogueClient();
+
+    // Approved shops (with their display details).
+    let sellerRows: { data: unknown; error: { message?: string } | null } = await supabase
+      .from("sellers")
+      .select("id, shop_name, slug, tier, logo_url")
+      .eq("status", "approved");
+    if (sellerRows.error) sellerRows = await supabase.from("sellers").select("id, shop_name, slug").eq("status", "approved");
+    if (sellerRows.error) throw sellerRows.error;
+    const shops = new Map(((sellerRows.data || []) as SellerRelation[]).map((s) => [s.id as string, s]));
+    if (!shops.size) return lastGoodCatalogue || demoProducts;
+    const shopIds = [...shops.keys()];
+
+    // Live products, 1000 per read, three reads at a time.
+    const { count, error: countError } = await supabase
+      .from("products")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "active")
+      .in("seller_id", shopIds);
+    if (countError) throw countError;
+    const starts = Array.from({ length: Math.ceil((count || 0) / LIST_PAGE) + 1 }, (_, i) => i * LIST_PAGE).slice(0, 40);
+    const pages = await inBatches(starts, 3, (from) =>
+      withRetry<Array<Record<string, unknown>>>(() =>
+        supabase
           .from("products")
-          .select(select)
-          .eq("status", "active");
-        if (shopIds) query = query.in("seller_id", shopIds);
-        return query
+          .select(LIST_COLUMNS)
+          .eq("status", "active")
+          .in("seller_id", shopIds)
           .order("created_at", { ascending: false })
           .order("id")
-          .range(from, from + 999);
-      });
-      if (page.error) throw page.error;
-      const rows = (page.data || []) as unknown[];
-      data.push(...rows);
-      if (rows.length < 1000) break;
+          .range(from, from + LIST_PAGE - 1) as unknown as PromiseLike<{ data: Array<Record<string, unknown>> | null; error: { message?: string } | null }>
+      )
+    );
+    const seen = new Set<string>();
+    const rows = pages.flat().filter((row) => {
+      const id = String(row.id);
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+    if (!rows.length) return lastGoodCatalogue || demoProducts;
+
+    // Their options, 150 products per read, four reads at a time.
+    const ids = rows.map((row) => String(row.id));
+    const chunks: string[][] = [];
+    for (let i = 0; i < ids.length; i += 150) chunks.push(ids.slice(i, i + 150));
+    const variantsByProduct = new Map<string, NonNullable<ProductRow["product_variants"]>>();
+    await inBatches(chunks, 4, async (chunk) => {
+      for (let from = 0; ; from += 1000) {
+        const data = await withRetry<Array<Record<string, unknown>>>(() =>
+          supabase
+            .from("product_variants")
+            .select(LIST_VARIANT_COLUMNS)
+            .in("product_id", chunk)
+            .order("id")
+            .range(from, from + 999) as unknown as PromiseLike<{ data: Array<Record<string, unknown>> | null; error: { message?: string } | null }>
+        );
+        for (const v of data) {
+          const key = String(v.product_id);
+          const list = variantsByProduct.get(key) || [];
+          list.push(v as unknown as NonNullable<ProductRow["product_variants"]>[number]);
+          variantsByProduct.set(key, list);
+        }
+        if (data.length < 1000) break;
+      }
+    });
+
+    // Products without a main photo: their first gallery photo.
+    const noPhoto = rows.filter((row) => !row.primary_image_url).map((row) => String(row.id));
+    const firstPhoto = new Map<string, string>();
+    for (let i = 0; i < noPhoto.length; i += 150) {
+      const { data } = await supabase
+        .from("product_images")
+        .select("product_id, image_url, sort_order")
+        .in("product_id", noPhoto.slice(i, i + 150))
+        .order("sort_order");
+      for (const img of (data || []) as Array<{ product_id: string; image_url: string }>) {
+        if (!firstPhoto.has(img.product_id)) firstPhoto.set(img.product_id, img.image_url);
+      }
     }
 
-    const live = (data as unknown as ProductRow[])
-      .map(mapProduct)
-      .filter((product): product is Product => Boolean(product));
+    const live = rows
+      .map((row) =>
+        mapProduct({
+          ...(row as unknown as ProductRow),
+          description: null,
+          sellers: shops.get(String(row.seller_id)) || null,
+          product_images: firstPhoto.has(String(row.id))
+            ? [{ image_url: firstPhoto.get(String(row.id)) as string, sort_order: 0 }]
+            : [],
+          product_variants: variantsByProduct.get(String(row.id)) || [],
+        })
+      )
+      .filter((product): product is Product => Boolean(product))
+      .map((product) => ({ ...product, description: product.shortDescription || "" }));
 
     if (!live.length) return lastGoodCatalogue || demoProducts;
     const ready = await attachFitmentLevels(await attachReviewStats(live));
