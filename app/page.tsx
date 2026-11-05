@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { mixShops } from "@/lib/mixShops";
 import type { ReactNode } from "react";
 import { cardProduct, getActiveProducts } from "@/lib/catalog";
 import ProductCard from "@/components/ProductCard";
@@ -82,7 +83,8 @@ const DISCOVER_COUNT = 20;
 export default async function HomePage() {
   const t = await getT();
   const liveProducts = await getActiveProducts();
-  const catalogue = liveProducts.length ? liveProducts : products;
+  // Shops take turns (order changes daily), not one shop's newest imports.
+  const catalogue = mixShops(liveProducts.length ? liveProducts : products);
 
   // Daily discover: a varied mix (max 3 per category first, then fill up).
   const discover: typeof catalogue = [];
@@ -112,9 +114,11 @@ export default async function HomePage() {
         .filter((v) => v.isActive && (typeof v.stock !== "number" || v.stock > 0))
         .map((v) => (v.compareAtPrice && v.compareAtPrice > v.price ? 1 - v.price / v.compareAtPrice : 0))
     );
-  const onSale = catalogue
-    .filter((product) => bestOff(product) > 0)
-    .sort((a, b) => bestOff(b) - bestOff(a))
+  // Biggest discounts first within each shop, shops taking turns.
+  const onSale = mixShops(
+    catalogue.filter((product) => bestOff(product) > 0).sort((a, b) => bestOff(b) - bestOff(a)),
+    { shuffle: false }
+  )
     .slice(0, 60)
     .map(cardProduct);
   const discoverCards = discover.map(cardProduct);

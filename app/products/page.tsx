@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 
+import { mixShops } from "@/lib/mixShops";
 import ProductCard from "@/components/ProductCard";
 import SavedVehicleProductsBootstrap from "@/components/SavedVehicleProductsBootstrap";
 import ProductsVehicleBanner from "@/components/ProductsVehicleBanner";
@@ -174,10 +175,13 @@ export default async function ProductsPage({
   ];
 
 
-  const inSection = products.filter(
-    (product) =>
-      (!category || product.category.toLowerCase().includes(category)) &&
-      (!group || matchesProductGroup(product.category, group))
+  // Shops take turns (order changes daily); search relevance still comes first.
+  const inSection = mixShops(
+    products.filter(
+      (product) =>
+        (!category || product.category.toLowerCase().includes(category)) &&
+        (!group || matchesProductGroup(product.category, group))
+    )
   );
   // Word-by-word search across name, brand, SKU/OEM, category, shop and more.
   const search = searchProducts(inSection, rawQuery);
