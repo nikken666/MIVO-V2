@@ -71,8 +71,9 @@ const content: Record<
                 </strong>
                 <span>
                   Once MIVO confirms it&rsquo;s the seller&rsquo;s responsibility:
-                  refund of the item price and its share of shipping. You post
-                  the item back and enter the tracking number.
+                  refund of the item price and its share of shipping. MIVO books
+                  the return parcel — you drop it off at a courier point with the
+                  tracking number.
                 </span>
               </div>
               <div>

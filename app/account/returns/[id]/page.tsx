@@ -11,6 +11,18 @@ import { friendlyError } from "@/lib/i18n/errors";
 import { intlTag } from "@/lib/i18n/format";
 import type { Key } from "@/lib/i18n";
 import styles from "../Returns.module.css";
+import { code128Bars } from "@/lib/barcode128";
+
+// Scannable barcode of the courier tracking number (what drop-off counters scan).
+function TrackingBarcode({ value }: { value: string }) {
+  const { bars, width } = code128Bars(value);
+  return (
+    <svg viewBox={`0 0 ${width} 40`} preserveAspectRatio="none" role="img" aria-label={value}
+      style={{ display: "block", width: "100%", maxWidth: 360, height: 72, margin: "10px 0 4px", background: "#fff", padding: 6, borderRadius: 8 }}>
+      {bars.map((b, i) => <rect key={i} x={b.x} y={0} width={b.w} height={40} fill="#000" />)}
+    </svg>
+  );
+}
 
 type Request = {
   id: string;
@@ -194,6 +206,7 @@ export default function ReturnDetailPage() {
                 <>
                   <br />
                   <strong>{t("ret.tracking")}: {req.return_tracking}</strong>
+                  <TrackingBarcode value={req.return_tracking} />
                 </>
               ) : (
                 <>

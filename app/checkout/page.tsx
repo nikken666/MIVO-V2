@@ -722,6 +722,23 @@ export default function CheckoutPage() {
       const form = new FormData(event.currentTarget);
       const supabase = createClient();
 
+      // Some products (e.g. oil, coolant) can't be sent to East Malaysia.
+      const productIds = Array.from(new Set(selectedCart.map((line) => line.product.id).filter(Boolean))) as string[];
+      if (productIds.length) {
+        const { data: limits } = await supabase
+          .from("products")
+          .select("name, restricted_shipping_states")
+          .in("id", productIds);
+        const blocked = ((limits || []) as Array<{ name: string; restricted_shipping_states: string[] | null }>).filter((p) =>
+          (p.restricted_shipping_states || []).includes(shippingState)
+        );
+        if (blocked.length) {
+          setError(t("buy.co.cannotShipTo", { state: shippingState, items: blocked.map((p) => p.name).join(", ") }));
+          setBusy(false);
+          return;
+        }
+      }
+
       const items = selectedCart.map((line) => {
         if (!line.variant?.id) {
           throw new Error(
