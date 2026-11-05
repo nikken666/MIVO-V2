@@ -79,7 +79,7 @@ function transport() {
 }
 
 export function siteUrl() {
-  return (process.env.NEXT_PUBLIC_SITE_URL || "https://mivo-v2.vercel.app").replace(/\/$/, "");
+  return (process.env.NEXT_PUBLIC_SITE_URL || "https://www.mivoparts.my").replace(/\/$/, "");
 }
 
 export type Mail = {

@@ -11,7 +11,7 @@ const MIVO_GOOGLE_CLIENT_ID = "278353123157-8or8ueaj2sd2539060ehtvsjlro9od0v.app
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() || MIVO_GOOGLE_CLIENT_ID;
 // Google only accepts the web addresses listed under "Authorized JavaScript origins"
 // (no wildcards). Elsewhere, e.g. a Vercel preview link, use the redirect button.
-const ORIGINS = (process.env.NEXT_PUBLIC_GOOGLE_ORIGINS || "https://mivo-v2.vercel.app,http://localhost:3000")
+const ORIGINS = (process.env.NEXT_PUBLIC_GOOGLE_ORIGINS || "https://www.mivoparts.my,https://mivoparts.my,https://mivo-v2.vercel.app,http://localhost:3000")
   .split(",")
   .map((origin) => origin.trim().replace(/\/$/, ""))
   .filter(Boolean);

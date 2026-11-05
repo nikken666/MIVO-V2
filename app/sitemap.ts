@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "https://mivo-v2.vercel.app";
+  "https://www.mivoparts.my";
 
 const productGroups = [
   "maintenance",

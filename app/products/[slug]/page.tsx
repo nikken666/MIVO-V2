@@ -142,7 +142,7 @@ export default async function ProductPage({
 
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-    "https://mivo-v2.vercel.app";
+    "https://www.mivoparts.my";
   const productUrl = siteUrl + "/products/" + product.slug;
   const activeVariants = (product.variants || []).filter(
     (item) => item.isActive

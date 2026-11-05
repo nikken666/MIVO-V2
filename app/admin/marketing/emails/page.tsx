@@ -222,7 +222,7 @@ export default function AdminEmailsPage() {
               <label>Picture link (optional)<input {...field("image_url")} placeholder="https://…/banner.jpg" /></label>
               <div className={css.row}>
                 <label>Button text<input {...field("button_text")} maxLength={40} /></label>
-                <label>Button link<input {...field("button_url")} placeholder="https://mivo-v2.vercel.app/products" /></label>
+                <label>Button link<input {...field("button_url")} placeholder="https://www.mivoparts.my/products" /></label>
               </div>
               <p className={css.hint}>
                 Only customers who ticked “Send me promotions” get this. Every email has an unsubscribe link.
