@@ -286,8 +286,10 @@ export default function ShopeeImportPage() {
           return { product, brandId: null, categoryId: "", skip: false, outOfStock: false, newVariants: [] as ImportProduct["variants"], existing, update, notListed: false };
         }
         const notInShop = skipExisting ? product.variants.filter((v) => !existingSkus.has(v.sku)) : product.variants;
-        // Options with no stock aren't listed (stock not given counts as in stock).
-        const newVariants = onlyInStock ? notInShop.filter((v) => v.stock == null || v.stock > 0) : notInShop;
+        // Every option is imported; one with 0 stock shows "Sold out" to buyers.
+        // The tick only leaves out products where no option has stock.
+        const noneInStock = notInShop.length > 0 && notInShop.every((v) => v.stock != null && v.stock <= 0);
+        const newVariants = onlyInStock && noneInStock ? [] : notInShop;
         const brandId = guessBrandId(product, brands);
         const categoryId =
           categoryOverride[product.key] || guessCategoryId(product, categories) || defaultCategoryId;
@@ -331,9 +333,9 @@ export default function ShopeeImportPage() {
     (row) => !row.notListed && !row.existing && !row.skip && !row.outOfStock && !row.product.errors.length && row.categoryId && !unticked.has(row.product.key)
   );
   const updatable = plan.filter(
-    (row) => row.existing && row.update && !unticked.has(row.product.key) && (row.update.changes.length || row.update.productRef)
+    (row) => row.existing && row.update && !unticked.has(row.product.key) && (row.update.changes.length || row.update.productRef || row.update.missing.length)
   );
-  const updateCount = updatable.reduce((n, row) => n + (row.update?.changes.length || 0), 0);
+  const updateCount = updatable.reduce((n, row) => n + (row.update?.changes.length || 0) + (row.update?.missing.length || 0), 0);
   const inShopCount = plan.filter((row) => row.existing).length;
   const summary = {
     products: products.length,
@@ -341,7 +343,7 @@ export default function ShopeeImportPage() {
     errors: plan.filter((row) => !row.notListed && !row.existing && row.product.errors.length).length,
     skipped: plan.filter((row) => row.skip).length,
     notListed: plan.filter((row) => row.notListed).length,
-    upToDate: plan.filter((row) => row.existing && row.update && !row.update.changes.length && !row.update.productRef).length,
+    upToDate: plan.filter((row) => row.existing && row.update && !row.update.changes.length && !row.update.productRef && !row.update.missing.length).length,
     noCategory: plan.filter((row) => !row.notListed && !row.existing && !row.categoryId).length,
     outOfStock: plan.filter((row) => row.outOfStock).length,
     unticked: plan.filter((row) => unticked.has(row.product.key)).length,
@@ -363,6 +365,48 @@ export default function ShopeeImportPage() {
       return client.storage.from("product-images").getPublicUrl(path).data.publicUrl;
     } catch {
       return url; // CORS or network: keep the Shopee URL.
+    }
+  }
+
+  const variantPayload = (variant: ImportProduct["variants"][number]) => ({
+    title: [variant.value1, variant.value2].filter(Boolean).join(" / ") || "Default",
+    variation_1_value: variant.value1,
+    variation_2_value: variant.value2,
+    sku: variant.sku,
+    price: variant.price ?? 0,
+    compare_at_price: variant.compareAtPrice,
+    external_ref: variantRef(variant.variationId),
+    stock_on_hand: Math.max(0, Math.round(variant.stock ?? 0)),
+    weight_kg: variant.weight ?? 0,
+    length_cm: variant.length ?? 0,
+    width_cm: variant.width ?? 0,
+    height_cm: variant.height ?? 0,
+    variant_image_url: variant.image,
+  });
+
+  // Options missing from products already in the shop: added (0 stock = Sold out).
+  async function addMissing(rows: typeof updatable) {
+    const items = rows.filter((row) => row.existing && row.update?.missing.length);
+    for (let i = 0; i < items.length; i += 50) {
+      if (stopRef.current) break;
+      const batch = items.slice(i, i + 50);
+      const count = batch.reduce((n, row) => n + row.update!.missing.length, 0);
+      try {
+        const response = await fetch("/api/admin/products/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            shopId,
+            add: batch.map((row) => ({ productId: row.existing!.id, variants: row.update!.missing.map(variantPayload) })),
+          }),
+        });
+        const result = (await response.json().catch(() => ({}))) as { added?: number; error?: string };
+        if (!response.ok) throw new Error(result.error || "Adding options failed (" + response.status + ").");
+        setLog((current) => [...current, { name: "Missing options", ok: true, detail: (result.added ?? count) + " option(s) added" }]);
+      } catch (caught) {
+        setLog((current) => [...current, { name: "Missing options", ok: false, detail: describeError(caught) }]);
+      }
+      setDone((n) => n + count);
     }
   }
 
@@ -416,6 +460,7 @@ export default function ShopeeImportPage() {
         .filter((row) => row.update?.productRef && row.existing)
         .map((row) => ({ id: row.existing!.id, external_ref: row.update!.productRef! }));
       await sendUpdates(updatable.flatMap((row) => row.update!.changes), products, "Products already in shop");
+      await addMissing(updatable);
     }
 
     for (const row of importable) {
@@ -445,21 +490,7 @@ export default function ShopeeImportPage() {
               status,
               external_ref: productRef(product.productId),
             },
-            variants: newVariants.map((variant) => ({
-              title: [variant.value1, variant.value2].filter(Boolean).join(" / ") || "Default",
-              variation_1_value: variant.value1,
-              variation_2_value: variant.value2,
-              sku: variant.sku,
-              price: variant.price ?? 0,
-              compare_at_price: variant.compareAtPrice,
-              external_ref: variantRef(variant.variationId),
-              stock_on_hand: Math.max(0, Math.round(variant.stock ?? 0)),
-              weight_kg: variant.weight ?? 0,
-              length_cm: variant.length ?? 0,
-              width_cm: variant.width ?? 0,
-              height_cm: variant.height ?? 0,
-              variant_image_url: variant.image,
-            })),
+            variants: newVariants.map(variantPayload),
             images,
           }),
         });
@@ -634,7 +665,7 @@ export default function ShopeeImportPage() {
                     </label>
                     <label className={styles.importCheck}>
                       <input type="checkbox" checked={onlyInStock} onChange={(e) => setOnlyInStock(e.target.checked)} disabled={running} />
-                      Skip options with 0 stock
+                      Skip products with 0 stock in every option
                     </label>
                     {priceList?.itemIds.size ? (
                       <label className={styles.importCheck}>
@@ -723,8 +754,11 @@ export default function ShopeeImportPage() {
                             </td>
                             <td>
                               {existing && update
-                                ? update.changes.length
-                                  ? "↻ Update " + update.changes.length + " option(s)" + (update.newOptions ? " · " + update.newOptions + " new option(s) not added" : "")
+                                ? update.changes.length || update.newOptions
+                                  ? [
+                                      update.changes.length ? "↻ Update " + update.changes.length + " option(s)" : "",
+                                      update.newOptions ? "+ Add " + update.newOptions + " missing option(s)" : "",
+                                    ].filter(Boolean).join(" · ")
                                   : "✓ Up to date"
                                 : product.errors.length
                                 ? "❌ " + product.errors.join("; ")

@@ -154,19 +154,20 @@ function changeFor(
 /** What changes for a listing the shop already has. */
 export function planUpdate(index: ShopIndex, shopProduct: ShopProduct, product: ImportProduct, options: { stock: boolean }) {
   const changes: VariantChange[] = [];
-  let newOptions = 0;
+  // Options Shopee has that the shop doesn't (e.g. skipped earlier for 0 stock).
+  const missing: ImportProduct["variants"] = [];
   const only = product.variants.length === 1;
   for (const variant of product.variants) {
     const current = matchVariant(index, shopProduct, variant, only);
     if (!current) {
-      newOptions++;
+      missing.push(variant);
       continue;
     }
     const change = changeFor(current, variant.price, variant.compareAtPrice, options.stock ? variant.stock : null, variantRef(variant.variationId));
     if (change) changes.push(change);
   }
   const ref = productRef(product.productId);
-  return { changes, newOptions, productRef: ref && shopProduct.external_ref !== ref ? ref : null };
+  return { changes, missing, newOptions: missing.length, productRef: ref && shopProduct.external_ref !== ref ? ref : null };
 }
 
 /** Only a price list was uploaded: update the shop's options it can find. */
