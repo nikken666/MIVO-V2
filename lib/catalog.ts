@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import { attachFitmentLevels } from "@/lib/fitmentLevels";
-import { mapLimit } from "@/lib/mapLimit";
 import {
   products as demoProducts,
   type Product,
@@ -296,42 +295,20 @@ async function attachReviewStats(
 // products from the database on every request made those pages take many
 // seconds, so it's kept in memory for a minute per server (one load shared by
 // everyone; a change in the back office shows up within a minute).
-// After that minute the old copy keeps being served while a fresh one loads
-// in the background, so nobody waits for the reload; only the very first
-// visitor to a new server waits for the first load.
 const CATALOGUE_TTL_MS = 60_000;
 let catalogueCache: { at: number; promise: Promise<Product[]> } | null = null;
-let catalogueLast: Product[] | null = null;
-let catalogueLoading: Promise<Product[]> | null = null;
-
-function refreshCatalogue(): Promise<Product[]> {
-  if (!catalogueLoading) {
-    // A failed reload keeps the last good catalogue; only a first load with
-    // nothing to fall back on shows the demo products.
-    const promise = loadActiveProducts().catch((error) => {
-      console.error("Catalogue load failed:", error?.message || error);
-      if (catalogueLast) return catalogueLast;
-      return demoProducts;
-    });
-    catalogueLoading = promise;
-    promise
-      .then((products) => {
-        catalogueLast = products;
-        catalogueCache = { at: Date.now(), promise };
-      })
-      .finally(() => {
-        if (catalogueLoading === promise) catalogueLoading = null;
-      });
-  }
-  return catalogueLoading;
-}
 
 export function getActiveProducts(): Promise<Product[]> {
-  if (catalogueCache && Date.now() - catalogueCache.at <= CATALOGUE_TTL_MS) return catalogueCache.promise;
-  const loading = refreshCatalogue();
-  return catalogueLast ? Promise.resolve(catalogueLast) : loading;
+  if (!catalogueCache || Date.now() - catalogueCache.at > CATALOGUE_TTL_MS) {
+    const promise = loadActiveProducts();
+    catalogueCache = { at: Date.now(), promise };
+    // A failed load isn't kept.
+    promise.catch(() => {
+      if (catalogueCache?.promise === promise) catalogueCache = null;
+    });
+  }
+  return catalogueCache.promise;
 }
-
 
 /**
  * What a product card needs, without the description and extra images, so
@@ -347,25 +324,12 @@ export function cardProduct(product: Product): Product {
   };
 }
 
-const CATALOGUE_PAGE = 500;
-
 async function loadActiveProducts(): Promise<Product[]> {
-  const supabase = await createClient();
-  // Pages of 500, a few at a time: small enough for the database's time
-  // limit on visitor queries. A page that fails is retried; if it still
-  // fails the whole load fails and the previous catalogue stays in use.
-  const { count, error: countError } = await supabase
-    .from("products")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "active");
-  if (countError) throw countError;
-  const pageStarts = Array.from(
-    { length: Math.min(80, Math.ceil((count || 0) / CATALOGUE_PAGE) + 1) },
-    (_, i) => i * CATALOGUE_PAGE
-  );
-  const pages = await mapLimit(pageStarts, 3, async (from) => {
-    let lastError: unknown = null;
-    for (let attempt = 0; attempt < 3; attempt++) {
+  try {
+    const supabase = await createClient();
+    // At most 1000 rows come back per request: page through big catalogues.
+    const data: unknown[] = [];
+    for (let from = 0; from < 20000; from += 1000) {
       const page = await withShopFallback((select) =>
         supabase
           .from("products")
@@ -373,30 +337,24 @@ async function loadActiveProducts(): Promise<Product[]> {
           .eq("status", "active")
           .order("created_at", { ascending: false })
           .order("id")
-          .range(from, from + CATALOGUE_PAGE - 1)
+          .range(from, from + 999)
       );
-      if (!page.error) return (page.data || []) as unknown[];
-      lastError = page.error;
-      await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
+      if (page.error) throw page.error;
+      const rows = (page.data || []) as unknown[];
+      data.push(...rows);
+      if (rows.length < 1000) break;
     }
-    throw lastError;
-  });
-  const seen = new Set<string>();
-  const data = pages.flat().filter((row) => {
-    const id = (row as { id?: string }).id || "";
-    if (seen.has(id)) return false;
-    seen.add(id);
-    return true;
-  });
 
-  const live = (data as unknown as ProductRow[])
-    .map(mapProduct)
-    .filter((product): product is Product => Boolean(product))
-    // Long Shopee descriptions aren't needed in lists (search uses the start).
-    .map((product) => ({ ...product, description: (product.description || "").slice(0, 600) }));
+    const live = (data as unknown as ProductRow[])
+      .map(mapProduct)
+      .filter((product): product is Product => Boolean(product));
 
-  if (!live.length) throw new Error("No live products returned.");
-  return attachFitmentLevels(await attachReviewStats(live));
+    return live.length > 0
+      ? await attachFitmentLevels(await attachReviewStats(live))
+      : demoProducts;
+  } catch {
+    return demoProducts;
+  }
 }
 
 export async function getActiveProductBySlug(

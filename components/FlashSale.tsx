@@ -1,6 +1,5 @@
 "use client";
 
-import { thumbUrl } from "@/lib/imageThumb";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -136,7 +135,7 @@ export default function FlashSale({ products }: { products: Product[] }) {
               <Link href={"/products/" + deal.product.slug} className="flashSaleCard" key={deal.product.slug}>
                 <div className="flashSaleImage">
                   {deal.product.imageUrl ? (
-                    <img src={thumbUrl(deal.product.imageUrl)} alt={deal.product.name} loading="lazy" decoding="async" />
+                    <img src={deal.product.imageUrl} alt={deal.product.name} loading="lazy" />
                   ) : (
                     <span>{deal.product.icon}</span>
                   )}
