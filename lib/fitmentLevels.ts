@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Product } from "@/data/products";
-import { mapLimit } from "@/lib/mapLimit";
 
 // How much a product's vehicle fitment can be trusted:
 //   verified – MIVO Direct, or another shop's listing checked by MIVO staff
@@ -16,16 +15,17 @@ export async function attachFitmentLevels(products: Product[]): Promise<Product[
   try {
     const supabase = await createClient();
     // fitment_verified exists once supabase/fitment-verification.sql has run.
-    // Chunks are fetched side by side (thousands of products).
-    const chunks: string[][] = [];
-    for (let i = 0; i < ids.length; i += 300) chunks.push(ids.slice(i, i + 300));
-    await mapLimit(chunks, 3, async (chunk) => {
-      const { data: flags } = await supabase.from("products").select("id, fitment_verified").in("id", chunk);
+    for (let i = 0; i < ids.length; i += 300) {
+      const { data: flags } = await supabase
+        .from("products")
+        .select("id, fitment_verified")
+        .in("id", ids.slice(i, i + 300));
       for (const row of (flags || []) as Array<{ id: string; fitment_verified: boolean | null }>) {
         if (row.fitment_verified) verified.add(row.id);
       }
-    });
-    await mapLimit(chunks, 3, async (chunk) => {
+    }
+    for (let i = 0; i < ids.length; i += 300) {
+      const chunk = ids.slice(i, i + 300);
       for (let from = 0; ; from += 1000) {
         const { data, error } = await supabase
           .from("product_vehicle_fitments")
@@ -37,7 +37,7 @@ export async function attachFitmentLevels(products: Product[]): Promise<Product[
         for (const row of (data || []) as Array<{ product_id: string }>) withData.add(row.product_id);
         if (!data || data.length < 1000) break;
       }
-    });
+    }
   } catch {
     // Keep the catalogue working without levels.
   }
