@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { Product } from "@/data/products";
 
 // How much a product's vehicle fitment can be trusted:
@@ -13,7 +14,14 @@ export async function attachFitmentLevels(products: Product[]): Promise<Product[
   const verified = new Set<string>();
   const withData = new Set<string>();
   try {
-    const supabase = await createClient();
+    // Server-side read with the service key (only ids of live products are
+    // asked for); the visitor's row rules are too slow for thousands of rows.
+    let supabase: Awaited<ReturnType<typeof createClient>>;
+    try {
+      supabase = createAdminClient() as unknown as Awaited<ReturnType<typeof createClient>>;
+    } catch {
+      supabase = await createClient();
+    }
     // fitment_verified exists once supabase/fitment-verification.sql has run.
     for (let i = 0; i < ids.length; i += 300) {
       const { data: flags } = await supabase

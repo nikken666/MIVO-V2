@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { attachFitmentLevels } from "@/lib/fitmentLevels";
 import {
   products as demoProducts,
@@ -324,21 +325,46 @@ export function cardProduct(product: Product): Product {
   };
 }
 
+// Last catalogue that loaded; kept if a later load fails, so visitors never
+// get the demo products instead of the real ones.
+let lastGoodCatalogue: Product[] | null = null;
+
+/**
+ * The catalogue is read by the server with the service key, applying the
+ * same rule as the public row rules (live products of approved shops).
+ * Through the visitor's role, those rules run for every photo and option
+ * row — with thousands of products that exceeded the database's time limit
+ * for visitors and the site fell back to the demo products.
+ */
+async function catalogueReader(): Promise<{ client: Awaited<ReturnType<typeof createClient>>; shopIds: string[] | null }> {
+  try {
+    const admin = createAdminClient();
+    const { data, error } = await admin.from("sellers").select("id").eq("status", "approved");
+    if (error) throw error;
+    return { client: admin as unknown as Awaited<ReturnType<typeof createClient>>, shopIds: (data || []).map((s) => s.id as string) };
+  } catch {
+    return { client: await createClient(), shopIds: null };
+  }
+}
+
 async function loadActiveProducts(): Promise<Product[]> {
   try {
-    const supabase = await createClient();
+    const { client: supabase, shopIds } = await catalogueReader();
+    if (shopIds && !shopIds.length) return lastGoodCatalogue || demoProducts;
     // At most 1000 rows come back per request: page through big catalogues.
     const data: unknown[] = [];
-    for (let from = 0; from < 20000; from += 1000) {
-      const page = await withShopFallback((select) =>
-        supabase
+    for (let from = 0; from < 30000; from += 1000) {
+      const page = await withShopFallback((select) => {
+        let query = supabase
           .from("products")
           .select(select)
-          .eq("status", "active")
+          .eq("status", "active");
+        if (shopIds) query = query.in("seller_id", shopIds);
+        return query
           .order("created_at", { ascending: false })
           .order("id")
-          .range(from, from + 999)
-      );
+          .range(from, from + 999);
+      });
       if (page.error) throw page.error;
       const rows = (page.data || []) as unknown[];
       data.push(...rows);
@@ -349,11 +375,13 @@ async function loadActiveProducts(): Promise<Product[]> {
       .map(mapProduct)
       .filter((product): product is Product => Boolean(product));
 
-    return live.length > 0
-      ? await attachFitmentLevels(await attachReviewStats(live))
-      : demoProducts;
-  } catch {
-    return demoProducts;
+    if (!live.length) return lastGoodCatalogue || demoProducts;
+    const ready = await attachFitmentLevels(await attachReviewStats(live));
+    lastGoodCatalogue = ready;
+    return ready;
+  } catch (error) {
+    console.error("Catalogue load failed:", (error as { message?: string })?.message || error);
+    return lastGoodCatalogue || demoProducts;
   }
 }
 
