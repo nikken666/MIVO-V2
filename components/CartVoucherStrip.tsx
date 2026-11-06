@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { voucherAllowed, voucherUses } from "@/lib/vouchers";
+import { claimClosed, voucherAllowed, voucherUses } from "@/lib/vouchers";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/data/products";
@@ -18,6 +18,9 @@ type Voucher = {
   discount_value: number | string;
   minimum_spend: number | string;
   first_order_only: boolean;
+  new_user_only?: boolean | null;
+  per_user_limit?: number | string | null;
+  claim_ends_at?: string | null;
   starts_at: string;
   ends_at: string;
 };
@@ -56,7 +59,7 @@ export default function CartVoucherStrip() {
 
       if (!active) return;
 
-      let available = (voucherData as Voucher[] | null) || [];
+      let available = ((voucherData as Voucher[] | null) || []).filter((voucher) => !claimClosed(voucher));
 
       if (auth.data.user) {
         const userId = auth.data.user.id;

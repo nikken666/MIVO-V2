@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { PAID_ORDER_STATUSES, voucherAllowed, voucherUses } from "@/lib/vouchers";
+import { PAID_ORDER_STATUSES, claimClosed, voucherAllowed, voucherUses } from "@/lib/vouchers";
+import { intlTag } from "@/lib/i18n/format";
 import {
   useEffect,
   useMemo,
@@ -69,6 +70,7 @@ type Voucher = {
   first_order_only: boolean;
   new_user_only?: boolean | null;
   per_user_limit?: number | string | null;
+  claim_ends_at?: string | null;
   ends_at: string;
 };
 
@@ -199,7 +201,7 @@ export default function HomePromotions({
       // Shop vouchers belong on shop pages; the home page shows MIVO's own.
       // New-customer vouchers first (the sign-up hook), then the ones ending soonest.
       const platformVouchers = ((voucherData as Array<Voucher & { seller_id?: string | null }> | null) || [])
-        .filter((voucher) => !voucher.seller_id)
+        .filter((voucher) => !voucher.seller_id && !claimClosed(voucher))
         .sort(
           (a, b) =>
             Number(Boolean(b.new_user_only)) - Number(Boolean(a.new_user_only)) ||
@@ -710,6 +712,12 @@ export default function HomePromotions({
                           ? " · " +
                             t("browse.promo.cap", {
                               amount: formatPrice(Number(voucher.max_discount)),
+                            })
+                          : ""}
+                        {voucher.claim_ends_at && !claimed
+                          ? " · " +
+                            t("browse.promo.claimBy", {
+                              date: new Date(voucher.claim_ends_at).toLocaleDateString(intlTag(), { day: "numeric", month: "short" }),
                             })
                           : ""}
                       </small>
