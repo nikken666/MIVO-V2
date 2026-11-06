@@ -11436,3 +11436,45 @@ body:has([role="dialog"][aria-modal="true"]) .chatLauncher{display:none!importan
   .mobileProductBar,.mobileCheckoutBar,.checkoutActionRow,.cartSuccessToast{translate:0 var(--vv-shift,0px)}
   .kbOpen .mobileProductBar,.kbOpen .mobileCheckoutBar,.kbOpen .checkoutActionRow,.kbOpen .chatLauncher{visibility:hidden}
 }
+
+/* ===================== New customer gift popup (components/WelcomeGift.tsx) ===================== */
+.giftBackdrop{position:fixed;inset:0;z-index:650;display:grid;place-items:center;padding:16px;background:rgba(8,14,32,.55);backdrop-filter:blur(3px);animation:giftFade .25s ease}
+.giftCard{position:relative;width:min(400px,100%);max-height:calc(100dvh - 32px);overflow:auto;border-radius:24px;padding:24px 20px 18px;text-align:center;
+  background:linear-gradient(180deg,#e8f0ff 0%,#fff 42%);box-shadow:0 30px 80px rgba(0,0,0,.3);animation:giftPop .4s cubic-bezier(.2,.9,.3,1.15)}
+.giftClose{position:absolute;top:10px;right:12px;width:34px;height:34px;border:0;border-radius:50%;background:rgba(0,0,0,.06);color:#3c4043;font-size:22px;line-height:1;cursor:pointer}
+.giftClose:hover{background:rgba(0,0,0,.1)}
+.giftBadge{display:inline-block;padding:5px 12px;border-radius:999px;background:var(--accent-2);color:var(--accent-2-ink);font-size:12px;font-weight:700;letter-spacing:.02em}
+.giftCard h2{margin:12px 0 4px;font-size:22px;line-height:1.25;color:#111;letter-spacing:-.01em}
+.giftIntro p{margin:0 0 6px;color:#5f6368;font-size:14px}
+.giftBox{display:block;margin:10px auto 0;padding:0;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.giftArt{display:block;width:170px;height:auto;overflow:visible;animation:giftWiggle 1.8s ease-in-out infinite;transform-origin:50% 90%}
+.giftArtLid{transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .45s ease;transform-origin:80px 56px}
+.giftArt.isOpening{animation:none}
+.giftArt.isOpening .giftArtLid{transform:translateY(-46px) rotate(-16deg);opacity:0}
+.giftArtSparkles{animation:giftTwinkle 1.4s ease-in-out infinite}
+.giftPrimary{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;margin-top:12px;border:0;border-radius:999px;background:var(--accent);color:#fff!important;font-size:15px;font-weight:600;cursor:pointer;text-decoration:none;box-shadow:0 10px 24px rgba(var(--accent-rgb),.28)}
+.giftPrimary:hover{background:var(--accent-hover)}
+.giftPrimary:disabled{opacity:.6;cursor:default}
+.giftLater{display:block;width:100%;margin-top:6px;padding:9px;border:0;background:none;color:#5f6368;font-size:13px;cursor:pointer;text-decoration:none}
+.giftLater:hover{color:#1d1d1f}
+.giftVouchers{list-style:none;margin:14px 0 8px;padding:0;display:grid;gap:10px;text-align:left}
+.giftVouchers li{position:relative;display:grid;grid-template-columns:104px minmax(0,1fr);min-height:72px;border:1px solid #ffd9a8;border-radius:14px;background:linear-gradient(90deg,#fff8ec,#fff);overflow:hidden;animation:giftSlide .5s cubic-bezier(.2,.8,.2,1) both}
+.giftValue{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 8px;background:linear-gradient(160deg,#ff9a1f,#ff5a1f);color:#fff;text-align:center}
+.giftValue strong{font-size:16px;line-height:1.15}
+.giftValue em{font-style:normal;font-size:12px;font-weight:700;padding:1px 9px;border-radius:999px;background:rgba(255,255,255,.25)}
+.giftTerms{display:flex;flex-direction:column;justify-content:center;gap:3px;padding:10px 12px;border-left:1px dashed #ffc98a}
+.giftTerms span{font-size:13px;font-weight:600;color:#1d1d1f}
+.giftTerms small{font-size:12px;color:#7a7f85}
+.giftTick{align-self:flex-start;margin-top:2px;padding:2px 8px;border-radius:999px;background:#e7f6ec;color:#137333;font-size:12px;font-weight:700}
+.giftVouchers li.isClaimed{border-color:#b7e1c4}
+.giftAny{margin:6px 0 0;color:#5f6368;font-size:13px;line-height:1.45}
+.giftNote{margin:8px 0 0;color:#b42318;font-size:12px}
+.giftActions{margin-top:4px}
+@keyframes giftFade{from{opacity:0}to{opacity:1}}
+@keyframes giftPop{from{opacity:0;transform:translateY(18px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes giftWiggle{0%,58%,100%{transform:rotate(0)}64%{transform:rotate(-6deg)}70%{transform:rotate(6deg)}76%{transform:rotate(-4deg)}82%{transform:rotate(3deg)}88%{transform:rotate(0)}}
+@keyframes giftTwinkle{0%,100%{opacity:.35}50%{opacity:1}}
+@keyframes giftSlide{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+@media(max-width:420px){.giftCard{padding:22px 16px 16px}.giftVouchers li{grid-template-columns:92px minmax(0,1fr)}.giftArt{width:150px}}
+@media(prefers-reduced-motion:reduce){.giftBackdrop,.giftCard,.giftArt,.giftArtSparkles,.giftVouchers li{animation:none!important}.giftArtLid{transition:none}}
+.mivoAuthGiftNote{margin:12px 0 0;padding:10px 12px;border:1px solid #ffd9a8;border-radius:12px;background:#fff8ec;color:#7a4a00;font-size:13px;line-height:1.45}

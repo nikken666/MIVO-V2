@@ -32,6 +32,7 @@ type Voucher = {
   per_user_limit: number;
   first_order_only: boolean;
   new_user_only?: boolean | null;
+  welcome_pack?: boolean | null;
   scope_type: "all" | "brand" | "category" | "product";
   scope_id: string | null;
   is_active: boolean;
@@ -68,6 +69,7 @@ function emptyVoucher() {
     per_user_limit: "1",
     first_order_only: false,
     new_user_only: false,
+    welcome_pack: false,
     scope_type: "all" as "all" | "brand" | "category" | "product",
     scope_id: "",
   };
@@ -226,6 +228,7 @@ export default function MarketingVouchersPage() {
       const supabase = createClient();
       // The column exists once new-user-vouchers.sql has run (loaded rows then carry it).
       const editingHasNewUserFlag = vouchers.some((voucher) => voucher.new_user_only !== undefined);
+      const hasWelcomeFlag = vouchers.some((voucher) => voucher.welcome_pack !== undefined);
       const payload = {
         campaign_id: form.campaign_id || null,
         code: form.code.trim().toUpperCase(),
@@ -252,6 +255,7 @@ export default function MarketingVouchersPage() {
         first_order_only: form.first_order_only,
         // Only sent when switched on, so saving works before new-user-vouchers.sql has been run.
         ...(form.new_user_only || editingHasNewUserFlag ? { new_user_only: form.new_user_only } : {}),
+        ...(form.welcome_pack || hasWelcomeFlag ? { welcome_pack: form.welcome_pack } : {}),
         scope_type: form.scope_type,
         scope_id:
           form.scope_type === "product"
@@ -362,6 +366,7 @@ export default function MarketingVouchersPage() {
       per_user_limit: String(voucher.per_user_limit || 1),
       first_order_only: voucher.first_order_only,
       new_user_only: Boolean(voucher.new_user_only),
+      welcome_pack: Boolean(voucher.welcome_pack),
       scope_type: voucher.scope_type,
       scope_id: voucher.scope_id || "",
     });
@@ -747,6 +752,20 @@ export default function MarketingVouchersPage() {
                     <span>New customers only (claimable before the first order; given automatically at sign-up)</span>
                   </label>
 
+                  <label className={styles.promotionCheck}>
+                    <input
+                      type="checkbox"
+                      checked={form.welcome_pack}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          welcome_pack: event.target.checked,
+                        }))
+                      }
+                    />
+                    <span>Show in the new customer gift popup</span>
+                  </label>
+
                   <label className={styles.adminField}>
                     <span>Start</span>
                     <input
@@ -856,6 +875,9 @@ export default function MarketingVouchersPage() {
                         ) : null}
                         {voucher.new_user_only ? (
                           <b>New customers</b>
+                        ) : null}
+                        {voucher.welcome_pack ? (
+                          <b>Gift popup</b>
                         ) : null}
                       </div>
 
