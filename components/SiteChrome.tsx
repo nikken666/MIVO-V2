@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ChatWidget from "@/components/chat/ChatWidget";
+import WelcomeGift from "@/components/WelcomeGift";
 
 export default function SiteChrome({
   children,
@@ -25,6 +26,7 @@ export default function SiteChrome({
       {children}
       {!isBackOffice ? <Footer /> : null}
       {!isBackOffice ? <ChatWidget /> : null}
+      {!isBackOffice ? <WelcomeGift /> : null}
     </>
   );
 }

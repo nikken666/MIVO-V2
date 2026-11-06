@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { GIFT_PENDING_KEY } from "@/components/WelcomeGift";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Logo from "@/components/Logo";
@@ -27,10 +28,18 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [socialBusy, setSocialBusy] = useState<"" | "google" | "apple">("");
 
+  const [giftPending, setGiftPending] = useState(false);
+
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("error") === "oauth") {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("error") === "oauth") {
       setError(t("account.login.oauthFailed"));
     }
+    // From the new-customer gift popup: open on "Create account".
+    if (params.get("mode") === "register") setMode("register");
+    try {
+      setGiftPending(Boolean(window.localStorage.getItem(GIFT_PENDING_KEY)));
+    } catch {}
   }, [t]);
 
   function nextPath() {
@@ -65,10 +74,11 @@ export default function LoginPage() {
       const supabase = createClient();
 
       if (mode === "register") {
+        // The confirmation link brings them back to where they came from.
         const callback =
-          window.location.origin + "/auth/callback?next=/account";
+          window.location.origin + "/auth/callback?next=" + encodeURIComponent(nextPath());
 
-        const { error: signUpError } = await supabase.auth.signUp({
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: email.trim(),
           password,
           options: {
@@ -78,6 +88,13 @@ export default function LoginPage() {
         });
 
         if (signUpError) throw signUpError;
+
+        // No email confirmation needed: they're signed in already.
+        if (signUpData.session) {
+          router.push(nextPath());
+          router.refresh();
+          return;
+        }
 
         setMessage(t("account.login.created"));
         setMode("login");
@@ -141,6 +158,7 @@ export default function LoginPage() {
                 ? t("account.login.signInText")
                 : t("account.login.registerText")}
             </p>
+            {giftPending ? <p className="mivoAuthGiftNote">🎁 {t("gift.loginHint")}</p> : null}
           </div>
 
           <div className="mivoAuthTabs">
