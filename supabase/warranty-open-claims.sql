@@ -6,6 +6,11 @@
 
 begin;
 
+-- Replace the existing versions whatever their return type or defaults
+-- (CREATE OR REPLACE can't change those). Rights are granted again below.
+drop function if exists public.create_warranty_claim(text, uuid, text, text, text[]);
+drop function if exists public.admin_update_warranty_claim(uuid, text, text, text);
+
 create or replace function public.create_warranty_claim(
   p_order_number text,
   p_order_item_id uuid,
