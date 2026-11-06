@@ -9,7 +9,7 @@ type Status = {
   configured: boolean;
   from: string | null;
   instant: boolean;
-  smtp?: { host: string; port: number; user: string | null; passLength: number; passLooksLikeAppPassword: boolean; vercelEnv: string | null };
+  smtp?: { host: string; port: number; user: string | null; passLength: number; passLooksLikeAppPassword: boolean; passEnd?: string | null; vercelEnv: string | null };
   dailyLimit: number;
   tablesReady: boolean;
   pending: number | null;
@@ -193,6 +193,7 @@ export default function AdminEmailsPage() {
               <b>{status.smtp.user || "SMTP_USER missing"}</b>
               <span>
                 Password: {status.smtp.passLength} characters
+                {status.smtp.passEnd ? " · ends with ••" + status.smtp.passEnd : ""}
                 {status.smtp.passLength
                   ? status.smtp.passLooksLikeAppPassword
                     ? " · looks like a Gmail App Password ✓"

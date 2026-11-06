@@ -45,6 +45,8 @@ export function smtpDiagnostics() {
     user: smtpUser() || null,
     passLength: pass.length,
     passLooksLikeAppPassword: /^[a-z]{16}$/i.test(pass),
+    // Last 2 letters only, so the admin can tell which App Password is in use.
+    passEnd: pass.length >= 8 ? pass.slice(-2) : null,
     vercelEnv: process.env.VERCEL_ENV || null,
   };
 }
