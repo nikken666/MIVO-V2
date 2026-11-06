@@ -6,6 +6,8 @@
  * - "First order only" vouchers stop working once the customer has a paid order.
  * - "New customers only" vouchers can only be claimed before the first paid
  *   order; once claimed they keep working until used up or expired.
+ * - A voucher with a claim deadline (claim_ends_at) can't be claimed after it,
+ *   but vouchers already claimed work until they expire (ends_at).
  */
 
 export type VoucherRules = {
@@ -13,6 +15,7 @@ export type VoucherRules = {
   per_user_limit?: number | string | null;
   first_order_only?: boolean | null;
   new_user_only?: boolean | null;
+  claim_ends_at?: string | null;
 };
 
 /** Paid-order statuses that make someone a returning customer. */
@@ -42,5 +45,13 @@ export function voucherAllowed(
   if (usesLeft(voucher, uses) <= 0) return false;
   if (voucher.first_order_only && paidOrders > 0) return false;
   if (voucher.new_user_only && paidOrders > 0 && !claimed) return false;
+  if (!claimed && claimClosed(voucher)) return false;
   return true;
+}
+
+/** Past the last day to claim this voucher? */
+export function claimClosed(voucher: { claim_ends_at?: string | null }) {
+  if (!voucher.claim_ends_at) return false;
+  const until = new Date(voucher.claim_ends_at).getTime();
+  return Number.isFinite(until) && Date.now() > until;
 }
