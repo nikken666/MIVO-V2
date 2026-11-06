@@ -100,7 +100,7 @@ begin
   for r in
     select o.id from public.orders o
      where o.status = 'delivered'
-       and coalesce(public.mivo_order_delivered_at(o.id), o.delivered_at, o.updated_at) < now() - interval '7 days'
+       and coalesce(public.mivo_order_delivered_at(o.id), o.updated_at) < now() - interval '7 days'
        and not exists (select 1 from public.return_requests q where q.order_id = o.id
                         and q.status not in ('rejected','cancelled','closed','refunded'))
      for update skip locked

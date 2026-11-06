@@ -4982,6 +4982,11 @@ commit;
 
 begin;
 
+-- Replace the existing versions whatever their return type or defaults
+-- (CREATE OR REPLACE can't change those). Rights are granted again below.
+drop function if exists public.create_warranty_claim(text, uuid, text, text, text[]);
+drop function if exists public.admin_update_warranty_claim(uuid, text, text, text);
+
 create or replace function public.create_warranty_claim(
   p_order_number text,
   p_order_item_id uuid,
@@ -5294,7 +5299,7 @@ begin
   for r in
     select o.id from public.orders o
      where o.status = 'delivered'
-       and coalesce(public.mivo_order_delivered_at(o.id), o.delivered_at, o.updated_at) < now() - interval '7 days'
+       and coalesce(public.mivo_order_delivered_at(o.id), o.updated_at) < now() - interval '7 days'
        and not exists (select 1 from public.return_requests q where q.order_id = o.id
                         and q.status not in ('rejected','cancelled','closed','refunded'))
      for update skip locked
