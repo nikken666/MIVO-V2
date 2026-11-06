@@ -5,6 +5,7 @@ import "./globals.css";
 import MarketplaceProvider from "@/components/MarketplaceProvider";
 import SiteChrome from "@/components/SiteChrome";
 import ViewportFix from "@/components/ViewportFix";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import LanguageProvider from "@/components/LanguageProvider";
 import { getLocale } from "@/lib/i18n/server";
 
@@ -50,6 +51,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           }}
         />
         <ViewportFix />
+        <ServiceWorkerRegister />
         <LanguageProvider initialLocale={locale}>
           <MarketplaceProvider>
             <SiteChrome>{children}</SiteChrome>
