@@ -31,7 +31,7 @@ type Body = {
     warranty_months: number;
     variation_1_name: string | null;
     variation_2_name: string | null;
-    status: "draft" | "active";
+    status: "inactive" | "draft" | "active";
     external_ref?: string | null;
   };
   variants?: VariantInput[];
@@ -105,7 +105,8 @@ export async function POST(request: NextRequest) {
       variation_2_name: product.variation_2_name,
       is_universal_fitment: false,
       restricted_shipping_states: [],
-      status: product.status === "active" ? "active" : "draft",
+      // Delisted unless asked otherwise: the shop checks new imports before they go on sale.
+      status: product.status === "active" ? "active" : product.status === "draft" ? "draft" : "inactive",
       published_at: product.status === "active" ? new Date().toISOString() : null,
       created_by: user.id,
     };
