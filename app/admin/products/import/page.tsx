@@ -93,7 +93,8 @@ export default function ShopeeImportPage() {
   const [onlyListed, setOnlyListed] = useState(true);
 
   const [shopId, setShopId] = useState("");
-  const [status, setStatus] = useState<"draft" | "active">("draft");
+  // New products go to Delisted by default, to check before they go on sale.
+  const [status, setStatus] = useState<"inactive" | "draft" | "active">("inactive");
   const [defaultCategoryId, setDefaultCategoryId] = useState("");
   const [warrantyMonths, setWarrantyMonths] = useState(0);
   const [copyImages, setCopyImages] = useState(true);
@@ -615,8 +616,9 @@ export default function ShopeeImportPage() {
                   <h2 className={styles.importStepTitle}>2 · Settings</h2>
                   <div className={ui.toolbar} style={{ flexWrap: "wrap", alignItems: "end" }}>
                     <label className={styles.adminField}><span>Status</span>
-                      <select value={status} onChange={(e) => setStatus(e.target.value as "draft" | "active")} disabled={running}>
-                        <option value="draft">Draft (review first)</option>
+                      <select value={status} onChange={(e) => setStatus(e.target.value as "inactive" | "draft" | "active")} disabled={running}>
+                        <option value="inactive">Delisted (check, then publish)</option>
+                        <option value="draft">Draft</option>
                         <option value="active">Live immediately</option>
                       </select>
                     </label>
