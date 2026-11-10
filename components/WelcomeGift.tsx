@@ -42,8 +42,6 @@ type Stage = "hidden" | "closed" | "opening" | "open" | "claimed" | "already";
 export const GIFT_PENDING_KEY = "mivo:gift-pending";
 const DISMISS_KEY = "mivo:gift-dismissed";
 const SEEN_KEY = "mivo:gift-seen";
-/** Set once this device's customer has the pack, so the popup stops showing here (even after logging out). */
-const DONE_KEY = "mivo:gift-done";
 const DAY = 24 * 3600 * 1000;
 const HIDDEN_ON = ["/login", "/auth", "/checkout", "/account", "/orders", "/sell", "/track-order"];
 
@@ -143,7 +141,6 @@ export default function WelcomeGift() {
         else got.push(voucher.id);
       }
       write("local", GIFT_PENDING_KEY, null);
-      if (pack.every((voucher) => got.includes(voucher.id))) write("local", DONE_KEY, "1");
       setClaimedIds(got);
       setNote(failures.length ? t("gift.someFailed", { reason: failures[0] }) : "");
     },
@@ -154,8 +151,6 @@ export default function WelcomeGift() {
     if (checking.current || stageRef.current !== "hidden") return;
     // Already shown this visit and nothing to claim: no need to ask the database again.
     if (read("session", SEEN_KEY) && !pendingClaim()) return;
-    // This device already has the gift (claimed before, maybe logged out since): don't offer it again.
-    if (read("local", DONE_KEY) && !pendingClaim()) return;
     checking.current = true;
     try {
       const supabase = createClient();
@@ -198,7 +193,6 @@ export default function WelcomeGift() {
         const already = ((claimed as Array<{ voucher_id: string }> | null) || []).map((row) => row.voucher_id);
         setClaimedIds(already);
         const hasAll = pack.every((voucher) => already.includes(voucher.id));
-        if (hasAll) write("local", DONE_KEY, "1");
         const pendingAt = pendingSince();
         if (pendingAt) {
           write("session", SEEN_KEY, "1");
