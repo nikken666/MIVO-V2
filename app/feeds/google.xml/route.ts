@@ -43,7 +43,8 @@ export async function GET() {
     );
     const price = Number(cheapest?.price ?? product.price) || 0;
     const regular = Number(cheapest?.compareAtPrice || 0);
-    const onSale = regular > price;
+    // Only a real, running shop discount counts as a sale (not a made-up "was" price).
+    const onSale = Boolean(cheapest?.discountPercent) && regular > price;
     const inStock = Number(product.stock || 0) > 0;
     const images = (product.imageUrls?.length ? product.imageUrls : [product.imageUrl!]).map(absolute);
     const description =
