@@ -41,6 +41,7 @@ FILES=(
   returns-mivo-review.sql
   new-user-vouchers.sql
   welcome-pack.sql
+  voucher-no-double-claim.sql
 )
 # Only what's new since the last release (for a database that already ran RUN-ALL once).
 NEW_FILES=(
@@ -57,6 +58,7 @@ NEW_FILES=(
   returns-mivo-review.sql
   new-user-vouchers.sql
   welcome-pack.sql
+  voucher-no-double-claim.sql
 )
 {
   echo "-- ====================================================================="

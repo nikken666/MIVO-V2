@@ -36,12 +36,14 @@ type PackVoucher = {
   claim_ends_at?: string | null;
 };
 
-type Stage = "hidden" | "closed" | "opening" | "open" | "claimed";
+type Stage = "hidden" | "closed" | "opening" | "open" | "claimed" | "already";
 
 /** Set when a guest leaves the popup to sign up; the pack is claimed once they're signed in. */
 export const GIFT_PENDING_KEY = "mivo:gift-pending";
 const DISMISS_KEY = "mivo:gift-dismissed";
 const SEEN_KEY = "mivo:gift-seen";
+/** Set once this device's customer has the pack, so the popup stops showing here (even after logging out). */
+const DONE_KEY = "mivo:gift-done";
 const DAY = 24 * 3600 * 1000;
 const HIDDEN_ON = ["/login", "/auth", "/checkout", "/account", "/orders", "/sell", "/track-order"];
 
@@ -65,9 +67,12 @@ function write(kind: "local" | "session", key: string, value: string | null) {
     else storage(kind)?.setItem(key, value);
   } catch {}
 }
-function pendingClaim() {
+function pendingSince() {
   const at = Number(read("local", GIFT_PENDING_KEY) || 0);
-  return at > 0 && Date.now() - at < 7 * DAY;
+  return at > 0 && Date.now() - at < 7 * DAY ? at : 0;
+}
+function pendingClaim() {
+  return pendingSince() > 0;
 }
 
 function valueText(voucher: PackVoucher, t: Translate) {
@@ -138,6 +143,7 @@ export default function WelcomeGift() {
         else got.push(voucher.id);
       }
       write("local", GIFT_PENDING_KEY, null);
+      if (pack.every((voucher) => got.includes(voucher.id))) write("local", DONE_KEY, "1");
       setClaimedIds(got);
       setNote(failures.length ? t("gift.someFailed", { reason: failures[0] }) : "");
     },
@@ -148,6 +154,8 @@ export default function WelcomeGift() {
     if (checking.current || stageRef.current !== "hidden") return;
     // Already shown this visit and nothing to claim: no need to ask the database again.
     if (read("session", SEEN_KEY) && !pendingClaim()) return;
+    // This device already has the gift (claimed before, maybe logged out since): don't offer it again.
+    if (read("local", DONE_KEY) && !pendingClaim()) return;
     checking.current = true;
     try {
       const supabase = createClient();
@@ -189,14 +197,25 @@ export default function WelcomeGift() {
         }
         const already = ((claimed as Array<{ voucher_id: string }> | null) || []).map((row) => row.voucher_id);
         setClaimedIds(already);
-        if (pendingClaim()) {
-          // Back from signing up: claim the pack and show it.
+        const hasAll = pack.every((voucher) => already.includes(voucher.id));
+        if (hasAll) write("local", DONE_KEY, "1");
+        const pendingAt = pendingSince();
+        if (pendingAt) {
           write("session", SEEN_KEY, "1");
+          // A brand-new account gets the pack at sign-up, so it already has everything: still a "claimed!".
+          // An older account that already had the pack is told so, instead of seeing it claimed again.
+          const newAccount = new Date(user.created_at || 0).getTime() >= pendingAt - 60 * 1000;
+          if (hasAll && !newAccount) {
+            write("local", GIFT_PENDING_KEY, null);
+            setStage("already");
+            return;
+          }
+          // Back from signing up: claim the pack and show it.
           await claimAll(pack, already);
           setStage("claimed");
           return;
         }
-        if (pack.every((voucher) => already.includes(voucher.id))) return;
+        if (hasAll) return;
       }
 
       // Pop up once per visit, and not again for a day after it was closed.
@@ -303,7 +322,13 @@ export default function WelcomeGift() {
         ) : (
           <div className="giftReveal">
             <span className="giftBadge">{t("gift.badge")}</span>
-            <h2>{stage === "claimed" ? t("gift.claimedTitle") : t("gift.revealTitle")}</h2>
+            <h2>
+              {stage === "claimed"
+                ? t("gift.claimedTitle")
+                : stage === "already"
+                  ? t("gift.alreadyTitle")
+                  : t("gift.revealTitle")}
+            </h2>
             <ul className="giftVouchers">
               {vouchers.map((voucher, index) => {
                 const claimed = claimedIds.includes(voucher.id);
@@ -323,11 +348,17 @@ export default function WelcomeGift() {
                 );
               })}
             </ul>
-            <p className="giftAny">{stage === "claimed" ? t("gift.claimedText") : t("gift.anyProduct")}</p>
+            <p className="giftAny">
+              {stage === "claimed"
+                ? t("gift.claimedText")
+                : stage === "already"
+                  ? t("gift.alreadyText")
+                  : t("gift.anyProduct")}
+            </p>
             {note ? <p className="giftNote">{note}</p> : null}
 
             <div className="giftActions">
-              {stage === "claimed" ? (
+              {stage === "claimed" || stage === "already" ? (
                 <>
                   <Link href="/products" className="giftPrimary" onClick={() => setStage("hidden")}>
                     {t("gift.shopNow")}
