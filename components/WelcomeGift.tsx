@@ -236,12 +236,19 @@ export default function WelcomeGift() {
     const supabase = createClient();
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN" && pendingClaim()) window.setTimeout(() => void check(), 300);
+      if (event === "SIGNED_OUT") {
+        // Logged out: someone may sign up a new account here, so offer the gift again.
+        write("local", DISMISS_KEY, null);
+        write("session", SEEN_KEY, null);
+        window.setTimeout(() => void check(), 800);
+      }
     });
     return () => data.subscription.unsubscribe();
   }, [check]);
 
   const dismiss = useCallback(() => {
-    write("local", DISMISS_KEY, String(Date.now()));
+    // "Not now" pauses the popup for a day; closing it after claiming doesn't.
+    if (stageRef.current !== "claimed" && stageRef.current !== "already") write("local", DISMISS_KEY, String(Date.now()));
     setStage("hidden");
   }, []);
 
