@@ -23,6 +23,7 @@ import type { Translate } from "@/lib/i18n";
 import { intlTag } from "@/lib/i18n/format";
 import { friendlyError } from "@/lib/i18n/errors";
 import FreeShippingProgress from "@/components/FreeShippingProgress";
+import { trackBeginCheckout } from "@/lib/analytics";
 
 type Buyer = {
   email: string;
@@ -308,6 +309,22 @@ export default function CheckoutPage() {
     [cart, selectedCartLineIds, buyNowLine]
   );
   const selectedCount = selectedCart.reduce((sum, line) => sum + line.quantity, 0);
+  const checkoutTracked = useRef(false);
+  useEffect(() => {
+    if (checkoutTracked.current || !cartReady || !selectedCart.length) return;
+    checkoutTracked.current = true;
+    trackBeginCheckout(
+      selectedCart.map((line) => ({
+        id: line.product.id || line.product.slug,
+        name: line.product.name,
+        price: Number(line.variant?.price ?? line.product.price) || 0,
+        quantity: line.quantity,
+        brand: line.product.brand,
+        category: line.product.category,
+        variant: line.variant?.title || null,
+      }))
+    );
+  }, [cartReady, selectedCart]);
 
   const subtotal = selectedCart.reduce((sum, line) => {
     const price = line.variant?.price ?? line.product.price;

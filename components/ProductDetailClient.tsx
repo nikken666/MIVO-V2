@@ -22,6 +22,7 @@ import ProductVehicleSelector from "./ProductVehicleSelector";
 import { htmlToParagraphs, htmlToPlainText } from "@/lib/plainText";
 import ShopBadge, { shopHref } from "./ShopBadge";
 import { flyToCart } from "@/lib/flyToCart";
+import { trackViewItem } from "@/lib/analytics";
 
 function uniqueValues(values: Array<string | null | undefined>) {
   return Array.from(
@@ -54,6 +55,16 @@ export default function ProductDetailClient({
   const { t, locale } = useLanguage();
   const router = useRouter();
   const { addToCart, startBuyNow, cartReady } = useMarketplace();
+
+  useEffect(() => {
+    trackViewItem({
+      id: product.id || product.slug,
+      name: product.name,
+      price: Number(product.price) || 0,
+      brand: product.brand,
+      category: product.category,
+    });
+  }, [product.id, product.slug, product.name, product.price, product.brand, product.category]);
 
   const images = useMemo(
     () =>

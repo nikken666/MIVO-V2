@@ -9,6 +9,7 @@ import { formatPrice } from "@/data/products";
 import styles from "./Success.module.css";
 import { useLanguage } from "@/components/LanguageProvider";
 import { intlTag } from "@/lib/i18n/format";
+import { trackPurchase } from "@/lib/analytics";
 
 type OrderSummary = {
   id: string;
@@ -163,6 +164,24 @@ export default function PaymentSuccessPage() {
   }, [orderNumber, router]);
 
   const confirmed = isPaid(order);
+  useEffect(() => {
+    if (!confirmed || !order || !items.length) return;
+    trackPurchase(
+      {
+        number: order.order_number,
+        total: Number(order.total_amount) || 0,
+        shipping: Number(order.shipping_amount) || 0,
+        coupon: order.voucher_code || null,
+      },
+      items.map((item) => ({
+        id: item.product_id || item.id,
+        name: item.product_name,
+        price: (Number(item.line_subtotal) || 0) / Math.max(1, Number(item.quantity) || 1),
+        quantity: Number(item.quantity) || 1,
+        variant: item.variant_name || null,
+      }))
+    );
+  }, [confirmed, order, items]);
   const total = Number(order?.total_amount || 0);
   const shown = useCountUp(total, confirmed);
   const shipping = Number(order?.shipping_amount || 0);
