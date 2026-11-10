@@ -17,6 +17,12 @@ const rows = {
     "Baucar sudah dalam akaun anda. Pilih satu semasa checkout — boleh digunakan untuk semua produk.",
     "优惠券已放进你的账号，结账时选择使用，全场商品都可以用。",
   ],
+  "gift.alreadyTitle": ["You already have this gift", "Anda sudah menuntut hadiah ini", "你已经领过这个礼包了"],
+  "gift.alreadyText": [
+    "Each account can claim the new customer gift once. Your vouchers are waiting in My vouchers.",
+    "Setiap akaun hanya boleh menuntut hadiah pelanggan baharu sekali. Baucar anda ada dalam Baucar saya.",
+    "每个账号只能领一次新人礼包，你的优惠券在「我的优惠券」里。",
+  ],
   "gift.someFailed": ["Some vouchers couldn't be added: {reason}", "Sebahagian baucar tidak dapat ditambah: {reason}", "部分优惠券未能领取：{reason}"],
   "gift.shopNow": ["Shop now", "Beli sekarang", "去逛逛"],
   "gift.myVouchers": ["My vouchers", "Baucar saya", "我的优惠券"],
