@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { emailConfigured, isAuthError, sendMail, siteUrl, smtpPaused } from "./mailer";
 import {
+  adminOrderAlertEmail,
   campaignEmail,
   cancelledEmail,
   lang,
@@ -140,6 +141,32 @@ async function build(admin: Admin, row: QueueRow) {
   return { to: who.email, ...mail };
 }
 
+/** Who gets the "new order" alert: ORDER_ALERT_EMAIL (comma-separated), else EMAIL_REPLY_TO. "off" turns it off. */
+function alertRecipients() {
+  const raw = (process.env.ORDER_ALERT_EMAIL || process.env.EMAIL_REPLY_TO || "").trim();
+  if (!raw || raw.toLowerCase() === "off") return [];
+  return raw.split(/[,;\s]+/).map((v) => v.trim()).filter((v) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v));
+}
+
+/** Tell the MIVO team about a newly paid order. Sent once, on the first try of the order's receipt. */
+async function sendOrderAlert(admin: Admin, row: QueueRow) {
+  const to = alertRecipients();
+  if (!to.length || !row.order_id) return;
+  const who = row.user_id ? await customer(admin, row.user_id) : { email: "", name: "" };
+  const info = await orderInfo(admin, row.order_id, who.name);
+  if (!info) return;
+  if (!info.name) info.name = String(info.address?.full_name || "");
+  const { data: parcels } = await admin.from("seller_orders").select("seller_id").eq("order_id", row.order_id);
+  const sellerIds = [...new Set(((parcels || []) as Array<{ seller_id: string | null }>).map((p) => p.seller_id).filter(Boolean))] as string[];
+  let shops: string[] = [];
+  if (sellerIds.length) {
+    const { data: sellers } = await admin.from("sellers").select("shop_name").in("id", sellerIds);
+    shops = ((sellers || []) as Array<{ shop_name: string | null }>).map((s) => s.shop_name || "").filter(Boolean);
+  }
+  const mail = adminOrderAlertEmail(siteUrl(), { ...info, customerEmail: who.email, shops });
+  for (const address of to) await sendMail({ ...mail, to: address });
+}
+
 /** Send what is waiting in email_queue. Safe to call from many places at once. */
 export async function processEmailQueue(options: { limit?: number; deadlineMs?: number; ignorePause?: boolean } = {}) {
   const result = { sent: 0, failed: 0, skipped: 0, configured: emailConfigured(), paused: false };
@@ -172,6 +199,10 @@ export async function processEmailQueue(options: { limit?: number; deadlineMs?: 
     if (loginRefused || Date.now() > stopAt || (row.kind === "campaign" && campaignBudget <= 0)) {
       await admin.from("email_queue").update({ status: "pending", attempts: Math.max(0, row.attempts - 1) }).eq("id", row.id);
       continue;
+    }
+    if (row.kind === "order_paid" && row.attempts <= 1) {
+      // A problem with the alert never holds up the customer's receipt.
+      await sendOrderAlert(admin, row).catch(() => undefined);
     }
     try {
       const mail = await build(admin, row);

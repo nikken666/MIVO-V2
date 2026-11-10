@@ -288,3 +288,44 @@ export function campaignEmail(site: string, l: Lang, c: Campaign, name: string, 
     unsubscribeUrl,
   };
 }
+
+/** "New order" alert for the MIVO team (Chinese, with English labels). */
+export function adminOrderAlertEmail(site: string, o: OrderInfo & { customerEmail?: string; shops?: string[] }) {
+  const url = site + "/admin/orders?order=" + encodeURIComponent(o.orderNumber);
+  const address = addressText(o.address);
+  const count = o.items.reduce((sum, item) => sum + item.qty, 0);
+  const body =
+    para(`新订单已付款 · New paid order: ${o.orderNumber}（${count} 件 · ${rm(o.total)}）`) +
+    rows([
+      ["顾客 Customer", o.name || "-"],
+      ...(o.customerEmail ? [["Email", o.customerEmail] as [string, string]] : []),
+      ...(o.shops?.length ? [["店铺 Shop", o.shops.join(", ")] as [string, string]] : []),
+    ]) +
+    itemsTable(o.items, "zh") +
+    rows([
+      ["商品 Subtotal", rm(o.subtotal)],
+      ["运费 Shipping", rm(o.shipping)],
+      ...(o.discount > 0 ? [["优惠 Discount", "− " + rm(o.discount)] as [string, string]] : []),
+      ["实付 Paid", rm(o.total), true],
+    ]) +
+    (address
+      ? `<p style="margin:0 0 4px;font-size:13px;color:#6b7075">收货地址 Ship to</p><p style="margin:0 0 16px;font-size:14px;line-height:1.5;white-space:pre-line">${esc(address)}</p>`
+      : "");
+  return {
+    subject: `🛒 新订单 ${o.orderNumber} · ${rm(o.total)}`,
+    html: layout({
+      site,
+      l: "zh",
+      preheader: `${o.name || "顾客"} 付款 ${rm(o.total)}`,
+      title: "有新订单啦！",
+      bodyHtml: body,
+      button: { text: "去后台发货 Open in admin", url },
+    }),
+    text: textVersion("有新订单啦！ New paid order", [
+      o.orderNumber + " · " + rm(o.total),
+      "顾客: " + (o.name || "-") + (o.customerEmail ? " <" + o.customerEmail + ">" : ""),
+      ...o.items.map((i) => `- ${i.name}${i.variant ? " (" + i.variant + ")" : ""} x${i.qty}  ${rm(i.total)}`),
+      address,
+    ], url),
+  };
+}

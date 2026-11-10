@@ -12,6 +12,7 @@ import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import type { Product, ProductVariant } from "@/data/products";
 import { createClient } from "@/lib/supabase/client";
+import { trackAddToCart } from "@/lib/analytics";
 import {
   loadAccountCart,
   saveAccountCart,
@@ -392,6 +393,15 @@ export default function MarketplaceProvider({
           1,
           Math.floor(Number(quantity) || 1)
         );
+        trackAddToCart({
+          id: product.id || product.slug,
+          name: product.name,
+          price: Number(variant?.price ?? product.price) || 0,
+          quantity: requestedQuantity,
+          brand: product.brand,
+          category: product.category,
+          variant: variant?.title || null,
+        });
         const lineId = createLineId(product, variant);
         const found = cart.find((line) => line.lineId === lineId);
         const maximum =
